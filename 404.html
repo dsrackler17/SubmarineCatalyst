@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>404 — Submarine Catalyst</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --navy:#040d1a; --deep:#07152b; --surface:#0b1f3a; --border:#1a3a5c; --accent:#00d4ff; --accent2:#00ff9d; --text:#c8dff0; --muted:#5a7a99; --white:#eaf4ff; --mono:'Space Mono',monospace; --serif:'DM Serif Display',serif; --sans:'DM Sans',sans-serif; }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--navy);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;}
+  .code{font-family:var(--serif);font-size:8rem;color:rgba(0,212,255,0.15);line-height:1;margin-bottom:1rem;}
+  .title{font-family:var(--serif);font-size:2rem;color:var(--white);margin-bottom:0.75rem;}
+  .sub{font-size:1rem;color:var(--muted);font-weight:300;margin-bottom:2.5rem;max-width:420px;line-height:1.7;}
+  .back{font-family:var(--mono);font-size:0.8rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);text-decoration:none;border:1px solid var(--accent);padding:0.65rem 1.5rem;transition:all 0.2s;}
+  .back:hover{background:var(--accent);color:var(--navy);}
+</style>
+</head>
+<body>
+  <div class="code">404</div>
+  <h1 class="title">Signal lost.</h1>
+  <p class="sub">The page you're looking for doesn't exist or has been moved. Check the URL or head back to the surface.</p>
+  <a href="/" class="back">← Return to Base</a>
+</body>
+</html>

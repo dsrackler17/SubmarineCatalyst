@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subscribe — Submarine Catalyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<style>
+  :root {
+    --navy:    #040d1a;
+    --deep:    #07152b;
+    --surface: #0b1f3a;
+    --panel:   #0f2647;
+    --border:  #1a3a5c;
+    --accent:  #00d4ff;
+    --accent2: #00ff9d;
+    --amber:   #f5a623;
+    --red:     #ff4444;
+    --text:    #c8dff0;
+    --muted:   #5a7a99;
+    --white:   #eaf4ff;
+    --mono:    'Space Mono', monospace;
+    --serif:   'DM Serif Display', serif;
+    --sans:    'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+  nav, main, footer { position: relative; z-index: 1; }
+
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(4,13,26,0.85);
+    backdrop-filter: blur(12px);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+  .sonar-icon { width: 32px; height: 32px; }
+  .sonar-icon svg { width: 100%; height: 100%; }
+  .nav-wordmark { font-family: var(--mono); font-size: 0.85rem; font-weight: 700; color: var(--white); letter-spacing: 0.12em; text-transform: uppercase; }
+  .nav-wordmark span { color: var(--accent); }
+  .nav-right { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted); }
+  .nav-right a { color: var(--accent); text-decoration: none; }
+  .nav-right a:hover { text-decoration: underline; }
+
+  main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; }
+
+  .signup-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    max-width: 900px;
+    width: 100%;
+    animation: fadeUp 0.6s ease both;
+  }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .value-side { padding-top: 0.5rem; }
+  .auth-eyebrow { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
+  .auth-eyebrow::before { content: ''; display: block; width: 1.5rem; height: 1px; background: var(--accent); }
+  .auth-heading { font-family: var(--serif); font-size: 2.2rem; color: var(--white); margin-bottom: 0.5rem; line-height: 1.15; }
+  .auth-heading em { color: var(--accent); font-style: italic; }
+  .auth-sub { font-size: 0.9rem; color: var(--muted); font-weight: 300; margin-bottom: 2rem; line-height: 1.7; }
+
+  .feature-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem; }
+  .feature-list li { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.88rem; color: var(--text); font-weight: 300; }
+  .feature-list li::before { content: '✓'; font-family: var(--mono); font-size: 0.7rem; color: var(--accent2); flex-shrink: 0; margin-top: 0.1rem; }
+
+  .price-tag { display: inline-flex; align-items: baseline; gap: 0.25rem; background: var(--surface); border: 1px solid var(--border); padding: 0.75rem 1.25rem; }
+  .price-dollar { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
+  .price-amount { font-family: var(--serif); font-size: 2.5rem; color: var(--white); line-height: 1; }
+  .price-period { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.08em; }
+
+  .auth-card { background: var(--surface); border: 1px solid var(--border); padding: 2rem; position: relative; overflow: hidden; align-self: start; }
+  .auth-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+
+  .form-group { margin-bottom: 1.1rem; }
+  .form-label { display: block; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+  .form-input { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--white); font-family: var(--mono); font-size: 0.85rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .form-input::placeholder { color: var(--muted); }
+  .form-input:focus { border-color: var(--accent); }
+
+  .tos-row { display: flex; align-items: flex-start; gap: 0.75rem; margin: 1.25rem 0; }
+  .tos-row input[type="checkbox"] { margin-top: 0.15rem; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; width: 14px; height: 14px; }
+  .tos-row label { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); line-height: 1.6; cursor: pointer; letter-spacing: 0.03em; }
+  .tos-row label a { color: var(--accent); text-decoration: none; }
+  .tos-row label a:hover { text-decoration: underline; }
+
+  .btn-submit { display: block; width: 100%; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.9rem; cursor: pointer; font-weight: 700; transition: opacity 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+  .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-submit:not(:disabled):hover { opacity: 0.85; }
+
+  .auth-note { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); text-align: center; margin-top: 0.75rem; letter-spacing: 0.04em; }
+
+  .auth-divider { display: flex; align-items: center; gap: 1rem; margin: 1.25rem 0; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .auth-divider span { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  .auth-switch { text-align: center; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--muted); }
+  .auth-switch a { color: var(--accent); text-decoration: none; }
+  .auth-switch a:hover { text-decoration: underline; }
+
+  .error-box { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .error-box.visible { display: block; }
+  .success-box { background: rgba(0,255,157,0.08); border: 1px solid rgba(0,255,157,0.3); color: var(--accent2); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .success-box.visible { display: block; }
+
+  footer { border-top: 1px solid var(--border); padding: 1.25rem 3rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); position: relative; z-index: 1; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 1.5rem; }
+
+  @media (max-width: 768px) { .signup-grid { grid-template-columns: 1fr; gap: 2rem; } nav { padding: 1rem 1.25rem; } footer { padding: 1rem 1.25rem; flex-direction: column; gap: 0.75rem; text-align: center; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="sonar-icon">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="16" cy="16" r="15" stroke="#1a3a5c" stroke-width="1"/>
+        <circle cx="16" cy="16" r="10" stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="5"  stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="2"  fill="#00d4ff"/>
+        <line x1="16" y1="16" x2="24" y2="4" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="24" cy="4" r="1.5" fill="#00ff9d">
+          <animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3">
+          <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+    </div>
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <span class="nav-right">Already subscribed? <a href="/login.html">Sign in →</a></span>
+</nav>
+
+<main>
+  <div class="signup-grid">
+    <div class="value-side">
+      <div class="auth-eyebrow">Pro Access</div>
+      <h1 class="auth-heading">The edge is in<br>the <em>evidence.</em></h1>
+      <p class="auth-sub">Full scanner output. Every PDUFA event. Seven signal layers. Updated every scan cycle.</p>
+      <ul class="feature-list">
+        <li>Complete PDUFA calendar with PoA scores</li>
+        <li>7-layer approval probability model</li>
+        <li>Convexity breakdowns on every ticker</li>
+        <li>Risk flags: CRLs, extensions, AdCom votes</li>
+        <li>ELITE / STRONG / WATCH / WEAK grading</li>
+        <li>Email alerts for high-score setups ≤30 days out</li>
+        <li>Performance log with historical outcomes</li>
+      </ul>
+      <div class="price-tag">
+        <span class="price-dollar">$</span>
+        <span class="price-amount">79</span>
+        <span class="price-period">/month &nbsp;·&nbsp; cancel anytime</span>
+      </div>
+    </div>
+
+    <div class="auth-card">
+      <div class="error-box" id="error-box"></div>
+      <div class="success-box" id="success-box"></div>
+
+      <form id="signup-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" name="password" placeholder="Min. 8 characters" autocomplete="new-password" required minlength="8" />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="confirm">Confirm Password</label>
+          <input class="form-input" type="password" id="confirm" name="confirm" placeholder="Repeat password" autocomplete="new-password" required />
+        </div>
+        <div class="tos-row">
+          <input type="checkbox" id="tos-agree">
+          <label for="tos-agree">
+            I agree to the <a href="/terms.html" target="_blank">Terms of Service</a> and
+            <a href="/privacy.html" target="_blank">Privacy Policy</a>. I understand this is a
+            quantitative tool, not investment advice, and that trading involves substantial risk of loss.
+          </label>
+        </div>
+        <button type="submit" class="btn-submit" id="submit-btn" disabled>Create Account &amp; Subscribe</button>
+        <p class="auth-note">Billed monthly via Stripe &nbsp;·&nbsp; Cancel anytime</p>
+      </form>
+
+      <div class="auth-divider"><span>already have an account</span></div>
+      <div class="auth-switch"><a href="/login.html">Sign in →</a></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div class="footer-links">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+</footer>
+
+<script>
+  // Redirect if already logged in
+  scGetSession().then(session => {
+    if (session) window.location.href = '/dashboard.html';
+  });
+
+  const tosCheckbox = document.getElementById('tos-agree');
+  const submitBtn   = document.getElementById('submit-btn');
+
+  tosCheckbox.addEventListener('change', () => {
+    submitBtn.disabled = !tosCheckbox.checked;
+  });
+
+  document.getElementById('signup-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const errorBox   = document.getElementById('error-box');
+    const successBox = document.getElementById('success-box');
+    errorBox.classList.remove('visible');
+    successBox.classList.remove('visible');
+
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    const confirm  = document.getElementById('confirm').value;
+
+    if (password.length < 8) {
+      errorBox.textContent = 'Password must be at least 8 characters.';
+      errorBox.classList.add('visible');
+      return;
+    }
+    if (password !== confirm) {
+      errorBox.textContent = 'Passwords do not match.';
+      errorBox.classList.add('visible');
+      return;
+    }
+
+    submitBtn.textContent = 'Creating account...';
+    submitBtn.disabled    = true;
+
+    const sb = getSupabase();
+    if (!sb) {
+      errorBox.textContent = 'Service unavailable. Please try again in a moment.';
+      errorBox.classList.add('visible');
+      submitBtn.textContent = 'Create Account & Subscribe';
+      submitBtn.disabled = false;
+      return;
+    }
+
+    try {
+      const { data, error } = await sb.auth.signUp({ email, password });
+
+      if (error) {
+        errorBox.textContent = error.message || 'Signup failed. Please try again.';
+        errorBox.classList.add('visible');
+        submitBtn.textContent = 'Create Account & Subscribe';
+        submitBtn.disabled = false;
+        return;
+      }
+
+      successBox.textContent = '✓ Account created. Redirecting to payment...';
+      successBox.classList.add('visible');
+
+      // Redirect to Stripe Payment Link with user context
+      const userId = data.user?.id || 'guest';
+      setTimeout(() => scCheckout(userId, email), 1200);
+
+    } catch (err) {
+      errorBox.textContent = 'Connection error. Please check your internet and try again.';
+      errorBox.classList.add('visible');
+      submitBtn.textContent = 'Create Account & Subscribe';
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
