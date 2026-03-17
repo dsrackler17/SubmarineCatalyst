@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Submarine Catalyst</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #040d1a;
+    --deep:    #07152b;
+    --surface: #0b1f3a;
+    --border:  #1a3a5c;
+    --accent:  #00d4ff;
+    --text:    #c8dff0;
+    --muted:   #5a7a99;
+    --white:   #eaf4ff;
+    --mono:    'Space Mono', monospace;
+    --serif:   'DM Serif Display', serif;
+    --sans:    'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(4,13,26,0.95);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-wordmark {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    text-decoration: none;
+  }
+  .nav-wordmark span { color: var(--accent); }
+  .nav-back {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-back:hover { color: var(--accent); }
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 4rem 2rem 6rem;
+    position: relative;
+    z-index: 1;
+  }
+  .page-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  h1 {
+    font-family: var(--serif);
+    font-size: 2.8rem;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+    line-height: 1.15;
+  }
+  .effective {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border);
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+  }
+  p {
+    color: var(--muted);
+    font-weight: 300;
+    margin-bottom: 1rem;
+    font-size: 0.95rem;
+  }
+  p strong { color: var(--text); font-weight: 500; }
+  ul {
+    list-style: none;
+    margin-bottom: 1rem;
+  }
+  ul li {
+    color: var(--muted);
+    font-weight: 300;
+    font-size: 0.95rem;
+    padding-left: 1.5rem;
+    position: relative;
+    margin-bottom: 0.4rem;
+  }
+  ul li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--border);
+  }
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    background: var(--deep);
+    position: relative;
+    z-index: 1;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-wordmark">SUBMARINE<span>CATALYST</span></a>
+  <a href="/" class="nav-back">← Back to Home</a>
+</nav>
+
+<div class="container">
+  <div class="page-label">Legal</div>
+  <h1>Privacy Policy</h1>
+  <div class="effective">Effective Date: March 2025 &nbsp;·&nbsp; Submarine Catalyst &nbsp;·&nbsp; submarinecatalyst.com</div>
+
+  <p>Submarine Catalyst ("we", "us", "our") is committed to protecting your privacy. This Privacy Policy explains what information we collect, how we use it, and your rights regarding your data.</p>
+
+  <h2>1. Information We Collect</h2>
+  <p><strong>Account information:</strong> When you subscribe, we collect your email address and name via our authentication provider (Supabase).</p>
+  <p><strong>Payment information:</strong> Payment details including credit card numbers are collected and processed directly by Stripe. We never see or store your full card number. We only receive a customer ID and subscription status from Stripe.</p>
+  <p><strong>Usage data:</strong> We may collect basic usage data such as pages visited and features used to improve the Service. We do not sell this data.</p>
+  <p><strong>Communications:</strong> If you contact us by email, we retain that correspondence.</p>
+
+  <h2>2. How We Use Your Information</h2>
+  <ul>
+    <li>To create and manage your account</li>
+    <li>To process your subscription payment through Stripe</li>
+    <li>To send you service-related emails (subscription confirmations, alerts you opt into)</li>
+    <li>To improve the Service based on usage patterns</li>
+    <li>To comply with legal obligations</li>
+  </ul>
+  <p>We do not sell, rent, or share your personal information with third parties for marketing purposes.</p>
+
+  <h2>3. Third-Party Services</h2>
+  <p>We use the following third-party services to operate the platform:</p>
+  <ul>
+    <li><strong>Stripe</strong> — payment processing. Subject to Stripe's Privacy Policy at stripe.com/privacy</li>
+    <li><strong>Supabase</strong> — database and authentication. Subject to Supabase's Privacy Policy at supabase.com/privacy</li>
+    <li><strong>Hostinger</strong> — web hosting</li>
+  </ul>
+  <p>Each of these services has their own privacy policies governing how they handle your data.</p>
+
+  <h2>4. Data Security</h2>
+  <p>We implement reasonable technical measures to protect your information, including encrypted connections (HTTPS) and access controls on our database. However, no method of transmission over the internet is 100% secure. We cannot guarantee absolute security of your data.</p>
+
+  <h2>5. Data Retention</h2>
+  <p>We retain your account information for as long as your subscription is active and for a reasonable period afterward. If you request deletion of your account, we will remove your personal data within 30 days, except where retention is required by law or for legitimate business purposes such as resolving disputes.</p>
+
+  <h2>6. Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li>Access the personal data we hold about you</li>
+    <li>Request correction of inaccurate data</li>
+    <li>Request deletion of your account and associated data</li>
+    <li>Cancel your subscription at any time</li>
+  </ul>
+  <p>To exercise any of these rights, contact us at the email associated with your subscription.</p>
+
+  <h2>7. Cookies</h2>
+  <p>We use minimal cookies necessary for authentication and session management. We do not use advertising cookies or tracking pixels. You can disable cookies in your browser settings but this may affect your ability to log in to the Service.</p>
+
+  <h2>8. Children's Privacy</h2>
+  <p>The Service is not directed at individuals under the age of 18. We do not knowingly collect personal information from minors. If you believe a minor has provided us with personal information, contact us and we will delete it.</p>
+
+  <h2>9. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. We will notify subscribers of material changes via email. Continued use of the Service after changes are posted constitutes acceptance of the updated Policy.</p>
+
+  <h2>10. Contact</h2>
+  <p>For any privacy-related questions or requests, contact us at the email address associated with your Stripe subscription or through the contact information on file with your account.</p>
+
+</div>
+
+<footer>
+  <a href="/">SUBMARINE CATALYST</a>
+  <span>© 2025 Submarine Catalyst · All rights reserved</span>
+  <div style="display:flex;gap:1.5rem">
+    <a href="/privacy">Privacy Policy</a>
+    <a href="/terms">Terms of Service</a>
+  </div>
+</footer>
+
+</body>
+</html>
