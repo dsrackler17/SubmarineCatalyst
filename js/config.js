@@ -2,7 +2,9 @@ const SC_CONFIG = {
   supabaseUrl:  'https://dipagzqrvivposqjkdkx.supabase.co',
   supabaseKey:  'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU',
   stripePaymentLink: 'https://buy.stripe.com/7sYdR85LA1IhgXs0eu8IU01',
-  stripePortalUrl: null,
+  stripePortalUrl: 'billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00'
+
+,
   adminEmails: [],
   siteName: 'Submarine Catalyst',
   domain: 'submarinecatalyst.com',
