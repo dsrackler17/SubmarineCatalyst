@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDUFA Calendar — Submarine Catalyst</title>
+<meta name="description" content="Complete PDUFA calendar with approval probability scores, convexity analysis, and risk flags for every upcoming FDA binary event.">
+<meta name="twitter:site" content="@DRackler">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<style>
+  :root {
+    --navy:    #040d1a;
+    --deep:    #07152b;
+    --surface: #0b1f3a;
+    --panel:   #0f2647;
+    --border:  #1a3a5c;
+    --accent:  #00d4ff;
+    --accent2: #00ff9d;
+    --amber:   #f5a623;
+    --red:     #ff4444;
+    --text:    #c8dff0;
+    --muted:   #5a7a99;
+    --white:   #eaf4ff;
+    --mono:    'Space Mono', monospace;
+    --serif:   'DM Serif Display', serif;
+    --sans:    'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  nav, main, footer { position: relative; z-index: 1; }
+
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(4,13,26,0.92);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+  .sonar-icon { width: 28px; height: 28px; }
+  .sonar-icon svg { width: 100%; height: 100%; }
+  .nav-wordmark {
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .nav-wordmark span { color: var(--accent); }
+  .nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+  .nav-links a {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--accent); }
+  .nav-cta {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 0.45rem 1.1rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s, color 0.2s;
+  }
+  .nav-cta:hover { background: var(--accent); color: var(--navy); }
+
+  .page-header {
+    border-bottom: 1px solid var(--border);
+    background: var(--deep);
+    padding: 2.5rem 3rem 2rem;
+  }
+  .page-header-inner {
+    max-width: 1300px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+  .page-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.5rem;
+  }
+  .page-title {
+    font-family: var(--serif);
+    font-size: 2rem;
+    color: var(--white);
+    line-height: 1.15;
+    margin-bottom: 0.3rem;
+  }
+  .page-meta {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .live-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: var(--accent2);
+    border-radius: 50%;
+    animation: pulse 2s ease infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  .filters {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 1.25rem 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-label {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .filter-btn {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 0.3rem 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.07); }
+  .filter-sep { width: 1px; height: 20px; background: var(--border); margin: 0 0.25rem; }
+
+  main {
+    max-width: 1300px;
+    margin: 0 auto;
+    padding: 2rem 3rem 5rem;
+  }
+
+  .calendar-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+  }
+  .calendar-table thead tr { border-bottom: 1px solid var(--border); }
+  .calendar-table th {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 400;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s;
+  }
+  .calendar-table th:hover { color: var(--accent); }
+  .calendar-table th .sort-arrow { margin-left: 0.3rem; opacity: 0.4; }
+  .calendar-table th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+  .calendar-table tbody tr {
+    border-bottom: 1px solid rgba(26,58,92,0.4);
+    transition: background 0.15s;
+    cursor: pointer;
+  }
+  .calendar-table tbody tr:hover { background: rgba(0,212,255,0.03); }
+  .calendar-table td { padding: 1rem 1rem; vertical-align: middle; }
+
+  .ticker-cell { display: flex; align-items: center; gap: 0.75rem; }
+  .ticker-sym {
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--white);
+    letter-spacing: 0.06em;
+  }
+
+  .days-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    padding: 0.15rem 0.5rem;
+    border: 1px solid;
+  }
+  .days-hot   { border-color: rgba(255,68,68,0.5);    color: var(--red);    background: rgba(255,68,68,0.08); }
+  .days-warm  { border-color: rgba(245,166,35,0.5);   color: var(--amber);  background: rgba(245,166,35,0.08); }
+  .days-watch { border-color: rgba(0,212,255,0.4);    color: var(--accent); background: rgba(0,212,255,0.06); }
+  .days-far   { border-color: rgba(90,122,153,0.4);   color: var(--muted);  background: transparent; }
+
+  .drug-name  { color: var(--text); font-family: var(--sans); font-size: 0.85rem; font-weight: 400; }
+  .drug-ind   { color: var(--muted); font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.05em; margin-top: 0.15rem; }
+
+  .grade-badge {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.6rem;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .grade-elite  { color: var(--accent2);  border-color: rgba(0,255,157,0.4);  background: rgba(0,255,157,0.08); }
+  .grade-strong { color: var(--accent);   border-color: rgba(0,212,255,0.4);  background: rgba(0,212,255,0.08); }
+  .grade-watch  { color: var(--amber);    border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
+  .grade-weak   { color: var(--muted);    border-color: rgba(90,122,153,0.4); background: transparent; }
+
+  .score-cell { text-align: center; }
+  .score-val  { font-size: 0.9rem; font-weight: 700; color: var(--accent2); }
+  .score-sub  { font-size: 0.6rem; color: var(--muted); margin-top: 0.1rem; }
+
+  .locked { position: relative; display: inline-block; }
+  .locked .score-val, .locked .poa-val { filter: blur(5px); user-select: none; pointer-events: none; }
+  .lock-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; opacity: 0.7; pointer-events: none; }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(4,13,26,0.85);
+    backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    padding: 2.5rem;
+    max-width: 420px;
+    width: 90%;
+    position: relative;
+    animation: modalUp 0.3s ease both;
+  }
+  @keyframes modalUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  .modal::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .modal-close {
+    position: absolute;
+    top: 1rem; right: 1rem;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 1rem;
+    cursor: pointer;
+    line-height: 1;
+  }
+  .modal-close:hover { color: var(--white); }
+  .modal-eyebrow {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+  .modal-title { font-family: var(--serif); font-size: 1.75rem; color: var(--white); margin-bottom: 0.75rem; line-height: 1.2; }
+  .modal-body { font-size: 0.88rem; color: var(--muted); font-weight: 300; margin-bottom: 1.75rem; line-height: 1.65; }
+  .modal-cta {
+    display: block;
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: var(--navy);
+    border: none;
+    padding: 0.85rem;
+    cursor: pointer;
+    font-weight: 700;
+    text-decoration: none;
+    text-align: center;
+    transition: opacity 0.2s;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+  }
+  .modal-cta:hover { opacity: 0.85; }
+  .modal-note { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); text-align: center; margin-top: 0.6rem; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 1.5rem 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    background: var(--deep);
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-disclaimer { max-width: 500px; text-align: center; line-height: 1.6; }
+
+  @media (max-width: 1024px) {
+    nav { padding: 1rem 1.5rem; }
+    .nav-links { display: none; }
+    .page-header { padding: 2rem 1.5rem 1.5rem; }
+    .filters { padding: 1rem 1.5rem; }
+    main { padding: 1.5rem 1.5rem 4rem; }
+  }
+  @media (max-width: 768px) {
+    .calendar-table th:nth-child(4),
+    .calendar-table td:nth-child(4) { display: none; }
+    footer { flex-direction: column; gap: 0.75rem; text-align: center; padding: 1rem 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="sonar-icon">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Submarine Catalyst sonar icon">
+        <circle cx="16" cy="16" r="15" stroke="#1a3a5c" stroke-width="1"/>
+        <circle cx="16" cy="16" r="10" stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="5"  stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="2"  fill="#00d4ff"/>
+        <line x1="16" y1="16" x2="24" y2="4" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="24" cy="4" r="1.5" fill="#00ff9d">
+          <animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3">
+          <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/>
+        </path>
+      </svg>
+    </div>
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html" class="active">Calendar</a></li>
+    <li><a href="/dashboard.html">Dashboard</a></li>
+    <li><a href="/research.html">AI Research</a></li>
+  </ul>
+  <a href="/signup.html" class="nav-cta">Get Access</a>
+</nav>
+
+<div class="page-header">
+  <div class="page-header-inner">
+    <div>
+      <div class="page-eyebrow">FDA PDUFA Intelligence</div>
+      <h1 class="page-title">Upcoming Catalyst Calendar</h1>
+      <div class="page-meta">
+        <span class="live-dot"></span>
+        <span>Updated daily</span>
+        <span>·</span>
+        <span id="entry-count">— entries</span>
+        <span>·</span>
+        <span>Scores visible to subscribers only</span>
+      </div>
+    </div>
+    <a href="/signup.html" class="nav-cta" style="white-space:nowrap;">Unlock All Scores →</a>
+  </div>
+</div>
+
+<div class="filters">
+  <span class="filter-label">Window:</span>
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="30">≤ 30d</button>
+  <button class="filter-btn" data-filter="60">≤ 60d</button>
+  <button class="filter-btn" data-filter="90">≤ 90d</button>
+  <div class="filter-sep"></div>
+  <span class="filter-label">Grade:</span>
+  <button class="filter-btn" data-grade="ELITE">Elite</button>
+  <button class="filter-btn" data-grade="STRONG">Strong</button>
+  <button class="filter-btn" data-grade="WATCH">Watch</button>
+  <button class="filter-btn" data-grade="all-grades">All Grades</button>
+</div>
+
+<main>
+  <table class="calendar-table" id="calendar-table">
+    <thead>
+      <tr>
+        <th data-col="ticker">Ticker <span class="sort-arrow">↕</span></th>
+        <th data-col="drug">Drug / Indication</th>
+        <th data-col="date">PDUFA Date <span class="sort-arrow">↕</span></th>
+        <th data-col="type">Type</th>
+        <th data-col="grade">Grade <span class="sort-arrow">↕</span></th>
+        <th data-col="poa" class="score-cell">PoA % <span class="sort-arrow">↕</span></th>
+        <th data-col="score" class="score-cell">Final Score <span class="sort-arrow">↕</span></th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</main>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <button class="modal-close" id="modal-close">✕</button>
+    <div class="modal-eyebrow">Pro Feature</div>
+    <h2 class="modal-title">Scores are locked.</h2>
+    <p class="modal-body">
+      PoA percentages, final scores, convexity breakdowns, and risk flags are visible to active subscribers only.
+      Get full scanner output on every PDUFA event in the calendar.
+    </p>
+    <a href="/signup.html" class="modal-cta">Subscribe — $79/month</a>
+    <p class="modal-note">Cancel anytime &nbsp;·&nbsp; Billed monthly via Stripe</p>
+  </div>
+</div>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div class="footer-disclaimer">
+    Not investment advice. Scores are quantitative signals only. Trading binary events involves substantial risk of loss.
+  </div>
+  <div class="footer-links">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/login.html">Login</a>
+  </div>
+</footer>
+
+<script>
+// ─── PDUFA DATA — dates synced with dashboard/scanner (2026) ─────────────────
+const PDUFA_DATA = [
+  {
+    ticker: "RCKT", drug: "Kresladi (lentiviral gene therapy)",
+    indication: "Leukocyte Adhesion Deficiency-I (LAD-I)", type: "BLA",
+    date: "2026-03-28", grade: "ELITE", poa: 91.0, score: 84.2,
+    flags: ["✅ AdCom 10-0 unanimous", "🚨 Prior CRL — CMC only"]
+  },
+  {
+    ticker: "LNTH", drug: "Flurpiridaz F 18",
+    indication: "Myocardial Perfusion PET Imaging", type: "NDA",
+    date: "2026-03-29", grade: "STRONG", poa: 78.5, score: 67.4,
+    flags: ["✅ Priority review", "⚠️ Competitive market"]
+  },
+  {
+    ticker: "TVTX", drug: "FILSPARI (sparsentan)",
+    indication: "Focal Segmental Glomerulosclerosis (FSGS)", type: "sNDA",
+    date: "2026-04-13", grade: "STRONG", poa: 74.2, score: 61.8,
+    flags: ["✅ Accelerated approval pathway", "⚠️ Confirmatory trial ongoing"]
+  },
+  {
+    ticker: "IMVT", drug: "Batoclimab",
+    indication: "Thyroid Eye Disease", type: "BLA",
+    date: "2026-04-22", grade: "STRONG", poa: 72.1, score: 59.3,
+    flags: ["✅ Breakthrough designation", "✅ Strong Phase 3 data"]
+  },
+  {
+    ticker: "ACAD", drug: "Nuplazid (pimavanserin)",
+    indication: "Dementia-Related Psychosis", type: "sNDA",
+    date: "2026-04-30", grade: "WATCH", poa: 58.4, score: 44.7,
+    flags: ["🚨 Prior CRL — clinical", "⚠️ AdCom 9-3 in favor"]
+  },
+  {
+    ticker: "PRAX", drug: "Ulixacaltamide",
+    indication: "Essential Tremor", type: "NDA",
+    date: "2026-05-12", grade: "WATCH", poa: 61.2, score: 47.1,
+    flags: ["⚠️ Review extension noted", "✅ No competing approved therapies"]
+  },
+  {
+    ticker: "VKTX", drug: "VK2809",
+    indication: "Non-Alcoholic Steatohepatitis (NASH)", type: "NDA",
+    date: "2026-05-28", grade: "WATCH", poa: 55.8, score: 41.2,
+    flags: ["⚠️ Competitive NASH space", "✅ Metabolic indication — 72% base rate"]
+  },
+  {
+    ticker: "PTGX", drug: "Izokibep",
+    indication: "Psoriatic Arthritis", type: "BLA",
+    date: "2026-06-15", grade: "STRONG", poa: 76.3, score: 63.5,
+    flags: ["✅ Priority review", "✅ Orphan designation"]
+  },
+  {
+    ticker: "KYMR", drug: "KYM-001",
+    indication: "Cutaneous T-Cell Lymphoma", type: "BLA",
+    date: "2026-06-30", grade: "ELITE", poa: 88.1, score: 77.6,
+    flags: ["✅ Breakthrough designation", "✅ Rare/Orphan — 86% base rate", "✅ AdCom 12-1"]
+  },
+  {
+    ticker: "ARDX", drug: "Tenapanor",
+    indication: "Hyperphosphatemia in CKD", type: "sNDA",
+    date: "2026-07-08", grade: "WATCH", poa: 53.2, score: 38.9,
+    flags: ["🚨 Prior CRL — clinical endpoints", "⚠️ Endpoint controversy"]
+  },
+  {
+    ticker: "FOLD", drug: "Pegtibatinase",
+    indication: "Classical Homocystinuria", type: "BLA",
+    date: "2026-07-22", grade: "ELITE", poa: 85.4, score: 79.1,
+    flags: ["✅ Rare/Orphan — 86% base rate", "✅ Breakthrough designation", "✅ No approved therapies"]
+  },
+  {
+    ticker: "CPRX", drug: "Cosibelimab",
+    indication: "Cutaneous Squamous Cell Carcinoma", type: "BLA",
+    date: "2026-08-04", grade: "STRONG", poa: 70.5, score: 58.2,
+    flags: ["✅ Oncology — 85% base rate", "⚠️ Competitive checkpoint space"]
+  },
+];
+
+const _supabase = (typeof getSupabase === 'function') ? getSupabase() : null;
+
+let isPaid = false;
+
+// Render table immediately with locked state, then upgrade if paid
+renderTable();
+
+(async () => {
+  try {
+    if (typeof scGetSession !== 'function') return;
+    const session = await scGetSession();
+    if (session) {
+      const navCtas = document.querySelectorAll('.nav-cta');
+      navCtas.forEach(el => { el.textContent = 'Dashboard →'; el.href = '/dashboard.html'; });
+
+      const profile = await scGetProfile(session.user.id);
+      if (profile?.is_paid) {
+        isPaid = true;
+        renderTable(); // Re-render with unlocked scores
+      }
+    }
+  } catch (e) {
+    console.warn('[SC] Calendar auth check failed:', e);
+  }
+})();
+
+function daysUntil(dateStr) {
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  const target = new Date(dateStr);
+  return Math.round((target - today) / 86400000);
+}
+
+function daysBadge(days) {
+  if (days <= 14)  return `<span class="days-badge days-hot">${days}d</span>`;
+  if (days <= 30)  return `<span class="days-badge days-warm">${days}d</span>`;
+  if (days <= 90)  return `<span class="days-badge days-watch">${days}d</span>`;
+  return `<span class="days-badge days-far">${days}d</span>`;
+}
+
+function gradeBadge(grade) {
+  const map = {
+    ELITE:  ['grade-elite',  '🚀 ELITE'],
+    STRONG: ['grade-strong', '⚡ STRONG'],
+    WATCH:  ['grade-watch',  '🟡 WATCH'],
+    WEAK:   ['grade-weak',   '⚪ WEAK'],
+  };
+  const [cls, label] = map[grade] || ['grade-weak', grade];
+  return `<span class="grade-badge ${cls}">${label}</span>`;
+}
+
+function scoreCell(val, sub, locked) {
+  if (locked) {
+    return `<div class="locked score-cell">
+      <div class="score-val">${val}</div>
+      <div class="score-sub">${sub}</div>
+      <span class="lock-icon">🔒</span>
+    </div>`;
+  }
+  return `<div class="score-cell">
+    <div class="score-val">${val}</div>
+    <div class="score-sub">${sub}</div>
+  </div>`;
+}
+
+let currentFilter = 'all';
+let currentGrade  = null;
+let sortCol       = 'date';
+let sortDir       = 1;
+
+function renderTable() {
+  let data = [...PDUFA_DATA];
+
+  if (currentFilter !== 'all') {
+    const maxDays = parseInt(currentFilter);
+    data = data.filter(d => daysUntil(d.date) <= maxDays);
+  }
+
+  if (currentGrade) {
+    data = data.filter(d => d.grade === currentGrade);
+  }
+
+  data.sort((a, b) => {
+    let va, vb;
+    if (sortCol === 'date')   { va = a.date;  vb = b.date; }
+    else if (sortCol === 'ticker') { va = a.ticker; vb = b.ticker; }
+    else if (sortCol === 'grade') {
+      const order = { ELITE:4, STRONG:3, WATCH:2, WEAK:1 };
+      va = order[a.grade] || 0; vb = order[b.grade] || 0;
+    }
+    else if (sortCol === 'poa')   { va = a.poa;   vb = b.poa; }
+    else if (sortCol === 'score') { va = a.score; vb = b.score; }
+    else { va = a[sortCol]; vb = b[sortCol]; }
+    if (va < vb) return -1 * sortDir;
+    if (va > vb) return  1 * sortDir;
+    return 0;
+  });
+
+  document.getElementById('entry-count').textContent = `${data.length} entries`;
+
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = data.map(d => {
+    const days = daysUntil(d.date);
+    const locked = !isPaid;
+    return `
+      <tr class="${locked ? 'locked-row' : ''}" data-locked="${locked}" onclick="handleRowClick(this, ${locked})">
+        <td>
+          <div class="ticker-cell">
+            <span class="ticker-sym">${d.ticker}</span>
+            ${daysBadge(days)}
+          </div>
+        </td>
+        <td>
+          <div class="drug-name">${d.drug}</div>
+          <div class="drug-ind">${d.indication}</div>
+        </td>
+        <td>
+          <div style="font-family:var(--mono);font-size:0.78rem;color:var(--white)">${d.date}</div>
+          <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.1rem">${days} days</div>
+        </td>
+        <td>
+          <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.08em">${d.type}</span>
+        </td>
+        <td>${gradeBadge(d.grade)}</td>
+        <td>${scoreCell(d.poa.toFixed(1) + '%', 'approval prob.', locked)}</td>
+        <td>${scoreCell(d.score.toFixed(1), 'final score', locked)}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function handleRowClick(row, locked) {
+  if (locked) {
+    document.getElementById('modal-overlay').classList.add('open');
+  } else {
+    const ticker = row.querySelector('.ticker-sym').textContent.trim();
+    window.location.href = `/catalyst-detail.html?ticker=${ticker}`;
+  }
+}
+
+document.querySelectorAll('[data-filter]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.filter;
+    renderTable();
+  });
+});
+
+document.querySelectorAll('[data-grade]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('[data-grade]').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentGrade = btn.dataset.grade === 'all-grades' ? null : btn.dataset.grade;
+    renderTable();
+  });
+});
+
+document.querySelectorAll('[data-col]').forEach(th => {
+  th.addEventListener('click', () => {
+    if (sortCol === th.dataset.col) { sortDir *= -1; }
+    else { sortCol = th.dataset.col; sortDir = 1; }
+    document.querySelectorAll('th').forEach(h => h.classList.remove('sorted'));
+    th.classList.add('sorted');
+    th.querySelector('.sort-arrow').textContent = sortDir === 1 ? '↑' : '↓';
+    renderTable();
+  });
+});
+
+document.getElementById('modal-close').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('open');
+});
+document.getElementById('modal-overlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('open');
+});
+
+renderTable();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "PASTE_YOUR_CF_ANALYTICS_TOKEN"}'></script>
+</body>
+</html>
