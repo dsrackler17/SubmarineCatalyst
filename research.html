@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Research Tool — Submarine Catalyst</title>
+<meta name="description" content="AI-powered biotech catalyst research tool. Analyze any PDUFA setup, drug pathway, or FDA regulatory question with domain-specific AI intelligence.">
+<meta property="og:title" content="AI Research Tool — Submarine Catalyst">
+<meta property="og:description" content="AI-powered biotech catalyst intelligence, on demand. Analyze PDUFA setups, drug pathways, and FDA regulatory questions.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@DRackler">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<style>
+:root {
+  --navy:#040d1a; --deep:#07152b; --surface:#0b1f3a; --panel:#0f2647;
+  --border:#1a3a5c; --accent:#00d4ff; --accent2:#00ff9d; --amber:#f5a623;
+  --red:#ff4444; --text:#c8dff0; --muted:#5a7a99; --white:#eaf4ff;
+  --mono:'Space Mono',monospace; --serif:'DM Serif Display',serif; --sans:'DM Sans',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 2rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;}
+.nav-logo{display:flex;align-items:center;gap:0.65rem;text-decoration:none;}
+.sonar-icon{width:26px;height:26px;}
+.sonar-icon svg{width:100%;height:100%;}
+.nav-wordmark{font-family:var(--mono);font-size:0.78rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-center{display:flex;align-items:center;gap:1.5rem;list-style:none;}
+.nav-center a{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-center a:hover,.nav-center a.active{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:1rem;}
+.nav-user{font-family:var(--mono);font-size:0.65rem;color:var(--muted);}
+.nav-signout{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:0.3rem 0.75rem;transition:all 0.2s;}
+.nav-signout:hover{color:var(--red);border-color:rgba(255,68,68,0.4);}
+
+main{flex:1;display:flex;flex-direction:column;max-width:900px;width:100%;margin:0 auto;padding:2rem;}
+
+.tool-header{margin-bottom:1.5rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);}
+.tool-eyebrow{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;}
+.tool-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.tool-title{font-family:var(--serif);font-size:1.6rem;color:var(--white);margin-bottom:0.35rem;}
+.tool-sub{font-size:0.85rem;color:var(--muted);font-weight:300;}
+
+.suggestions{display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1.5rem;}
+.suggestion{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.04em;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:0.45rem 0.85rem;cursor:pointer;transition:all 0.2s;}
+.suggestion:hover{color:var(--accent);border-color:var(--accent);background:rgba(0,212,255,0.04);}
+
+.chat-area{flex:1;display:flex;flex-direction:column;background:var(--surface);border:1px solid var(--border);overflow:hidden;min-height:450px;position:relative;}
+.chat-area::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+
+.chat-messages{flex:1;overflow-y:auto;padding:1.5rem;display:flex;flex-direction:column;gap:1.25rem;}
+.msg{max-width:85%;animation:msgIn 0.3s ease both;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+.msg-user{align-self:flex-end;background:rgba(0,212,255,0.1);border:1px solid rgba(0,212,255,0.25);padding:0.85rem 1.1rem;font-size:0.88rem;color:var(--white);}
+.msg-ai{align-self:flex-start;background:var(--panel);border:1px solid var(--border);padding:1rem 1.25rem;font-size:0.88rem;color:var(--text);line-height:1.75;font-weight:300;}
+.msg-ai strong{color:var(--white);font-weight:500;}
+.msg-ai code{font-family:var(--mono);font-size:0.78rem;background:rgba(0,212,255,0.08);padding:0.15rem 0.4rem;color:var(--accent);}
+.share-row{margin-top:0.75rem;padding-top:0.6rem;border-top:1px solid var(--border);}
+.share-x-btn{display:inline-flex;align-items:center;gap:0.4rem;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.06em;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:0.3rem 0.7rem;transition:all 0.2s;}
+.share-x-btn:hover{color:var(--white);border-color:var(--white);}
+.msg-system{align-self:center;font-family:var(--mono);font-size:0.68rem;color:var(--muted);letter-spacing:0.06em;padding:0.5rem;}
+
+.typing{display:flex;gap:4px;padding:1rem 1.25rem;align-self:flex-start;}
+.typing span{width:6px;height:6px;background:var(--accent);border-radius:50%;animation:bounce 1.2s ease infinite;}
+.typing span:nth-child(2){animation-delay:0.15s;}
+.typing span:nth-child(3){animation-delay:0.3s;}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-6px);}}
+
+.chat-input-area{display:flex;border-top:1px solid var(--border);background:var(--deep);}
+.chat-input{flex:1;background:transparent;border:none;color:var(--white);font-family:var(--mono);font-size:0.82rem;padding:1rem 1.25rem;outline:none;}
+.chat-input::placeholder{color:var(--muted);}
+.chat-send{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);border:none;padding:0 1.5rem;cursor:pointer;font-weight:700;transition:opacity 0.2s;}
+.chat-send:hover{opacity:0.85;}
+.chat-send:disabled{opacity:0.3;cursor:not-allowed;}
+
+.gate-overlay{position:absolute;inset:0;background:rgba(4,13,26,0.92);backdrop-filter:blur(8px);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:10;text-align:center;padding:2rem;}
+.gate-icon{font-size:2.5rem;margin-bottom:1rem;}
+.gate-title{font-family:var(--serif);font-size:1.5rem;color:var(--white);margin-bottom:0.5rem;}
+.gate-text{font-size:0.88rem;color:var(--muted);font-weight:300;max-width:380px;margin-bottom:1.5rem;line-height:1.7;}
+.gate-btn{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);border:none;padding:0.75rem 1.75rem;cursor:pointer;font-weight:700;text-decoration:none;transition:opacity 0.2s;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));}
+.gate-btn:hover{opacity:0.85;}
+
+.usage-bar{display:flex;align-items:center;justify-content:space-between;padding:0.6rem 1.25rem;background:var(--deep);border-top:1px solid var(--border);font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.06em;}
+
+footer{border-top:1px solid var(--border);padding:1rem 2rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+
+@media(max-width:768px){nav{padding:0.9rem 1.25rem;}.nav-center{display:none;}main{padding:1.25rem;}.suggestions{flex-direction:column;}.msg{max-width:95%;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="sonar-icon">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Submarine Catalyst sonar icon">
+        <circle cx="16" cy="16" r="15" stroke="#1a3a5c" stroke-width="1"/>
+        <circle cx="16" cy="16" r="10" stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="5" stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="2" fill="#00d4ff"/>
+        <line x1="16" y1="16" x2="24" y2="4" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="24" cy="4" r="1.5" fill="#00ff9d"><animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/></circle>
+        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3"><animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/></path>
+      </svg>
+    </div>
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <ul class="nav-center">
+    <li><a href="/dashboard.html">Dashboard</a></li>
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/research.html" class="active">AI Research</a></li>
+  </ul>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user">—</span>
+    <a href="#" class="nav-signout" id="signout-btn">Sign Out</a>
+  </div>
+</nav>
+
+<main>
+  <div class="tool-header">
+    <div class="tool-eyebrow">AI Research Tool</div>
+    <h1 class="tool-title">Biotech catalyst intelligence, on demand.</h1>
+    <p class="tool-sub">Ask about any ticker, drug, PDUFA setup, or regulatory pathway. Powered by AI with biotech domain expertise.</p>
+  </div>
+
+  <div class="suggestions" id="suggestions">
+    <button class="suggestion" onclick="askSuggestion(this)">Analyze RCKT PDUFA setup</button>
+    <button class="suggestion" onclick="askSuggestion(this)">What is FILSPARI's approval pathway?</button>
+    <button class="suggestion" onclick="askSuggestion(this)">Compare TVTX vs IMVT risk/reward</button>
+    <button class="suggestion" onclick="askSuggestion(this)">Explain accelerated approval risks</button>
+    <button class="suggestion" onclick="askSuggestion(this)">What does a 10-0 AdCom vote mean?</button>
+  </div>
+
+  <div class="chat-area" id="chat-area">
+    <div class="gate-overlay" id="gate" style="display:none;">
+      <div class="gate-icon">🔒</div>
+      <div class="gate-title">Pro subscribers only.</div>
+      <div class="gate-text">The AI Research Tool is available to active Submarine Catalyst subscribers. Get unlimited access to AI-powered biotech analysis.</div>
+      <a href="/signup.html" class="gate-btn">Subscribe — $79/mo</a>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <div class="msg-system">Ask a question about any biotech ticker, PDUFA event, or FDA regulatory pathway.</div>
+    </div>
+
+    <div class="usage-bar">
+      <span id="usage-text">Ready</span>
+      <span>Powered by AI · Not investment advice</span>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Ask about a ticker, drug, or catalyst..." autocomplete="off" />
+      <button class="chat-send" id="chat-send" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <span style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</span>
+  <span>Not investment advice · AI-generated analysis · Verify all claims independently</span>
+  <div style="display:flex;gap:1.5rem">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+</footer>
+
+<script>
+const EDGE_URL = SC_CONFIG.supabaseUrl + '/functions/v1/ai-research';
+let sessionToken = null;
+let messageHistory = [];
+
+function addMessage(role, text) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = role === 'user' ? 'msg msg-user' : 'msg msg-ai';
+  if (role === 'ai') {
+    let formatted = text
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`(.*?)`/g, '<code>$1</code>')
+      .replace(/\n/g, '<br>');
+    // Add share button to AI responses
+    const shareText = text.replace(/\*\*/g, '').replace(/`/g, '').substring(0, 200);
+    const tweetText = encodeURIComponent('🧬 AI Research via @DRackler\'s Submarine Catalyst:\n\n"' + shareText.trim() + '..."\n\nsubmarinecatalyst.com/research.html');
+    formatted += '<div class="share-row"><a href="https://x.com/intent/tweet?text=' + tweetText + '" target="_blank" rel="noopener" class="share-x-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Share on X</a></div>';
+    div.innerHTML = formatted;
+  } else {
+    div.textContent = text;
+  }
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function showTyping() {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'typing';
+  div.id = 'typing-indicator';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+}
+
+function hideTyping() {
+  const el = document.getElementById('typing-indicator');
+  if (el) el.remove();
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send');
+  const text = input.value.trim();
+  if (!text || !sessionToken) return;
+
+  input.value = '';
+  btn.disabled = true;
+  document.getElementById('usage-text').textContent = 'Analyzing...';
+  document.getElementById('suggestions').style.display = 'none';
+
+  addMessage('user', text);
+  messageHistory.push({ role: 'user', content: text });
+  showTyping();
+
+  try {
+    const res = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + sessionToken,
+      },
+      body: JSON.stringify({
+        messages: messageHistory.slice(-10), // Last 10 messages for context
+      }),
+    });
+
+    hideTyping();
+
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.error || 'Request failed');
+    }
+
+    const data = await res.json();
+    const reply = data.reply || 'No response received.';
+    addMessage('ai', reply);
+    messageHistory.push({ role: 'assistant', content: reply });
+    document.getElementById('usage-text').textContent = 'Ready';
+  } catch (err) {
+    hideTyping();
+    addMessage('ai', '**Error:** ' + err.message + '. Please try again.');
+    document.getElementById('usage-text').textContent = 'Error — try again';
+  }
+
+  btn.disabled = false;
+  input.focus();
+}
+
+function askSuggestion(el) {
+  document.getElementById('chat-input').value = el.textContent;
+  sendMessage();
+}
+
+// Enter key to send
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+
+// Auth guard
+(async () => {
+  const session = await scRequireAuth();
+  if (!session) return;
+
+  sessionToken = session.access_token;
+  document.getElementById('nav-user').textContent = session.user.email;
+
+  document.getElementById('signout-btn').addEventListener('click', async e => {
+    e.preventDefault();
+    await scSignOut();
+  });
+
+  const profile = await scGetProfile(session.user.id);
+  if (!profile?.is_paid) {
+    document.getElementById('gate').style.display = 'flex';
+    document.getElementById('chat-input').disabled = true;
+    document.getElementById('chat-send').disabled = true;
+  }
+})();
+</script>
+</body>
+</html>
