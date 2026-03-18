@@ -426,6 +426,10 @@ function populatePage(d, isPaid) {
     return;
   }
 
+  // ─── PAID USER: Remove all blur ────────────────────────────────────────────
+  document.querySelectorAll('.locked-block').forEach(function(el) { el.classList.remove('locked-block'); });
+  document.querySelectorAll('.lockable').forEach(function(el) { el.style.filter='none'; el.style.userSelect='auto'; el.style.pointerEvents='auto'; });
+
   // ─── PAID USER: Generate AI analysis ───────────────────────────────────────
   document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
 
