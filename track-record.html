@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Track Record — Submarine Catalyst</title>
+<meta name="description" content="Historical PDUFA prediction outcomes from Submarine Catalyst's scoring engine. Every call documented with predicted PoA vs actual FDA decision.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@DRackler">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;cursor:pointer;text-decoration:none;transition:background 0.2s,color 0.2s;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+
+main{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:3rem 2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:600px;line-height:1.7;}
+
+.stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:3rem;}
+.stat-cell{background:var(--surface);padding:1.5rem;text-align:center;}
+.stat-label{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem;}
+.stat-val{font-family:var(--serif);font-size:2rem;line-height:1;}
+.stat-val.green{color:var(--accent2);}
+.stat-val.cyan{color:var(--accent);}
+.stat-val.white{color:var(--white);}
+.stat-val.amber{color:var(--amber);}
+.stat-sub{font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.3rem;}
+
+.section-title{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
+
+.outcome-table{width:100%;border-collapse:collapse;margin-bottom:3rem;}
+.outcome-table th{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0.75rem 1rem;border-bottom:2px solid var(--border);white-space:nowrap;}
+.outcome-table td{font-family:var(--mono);font-size:0.78rem;padding:0.85rem 1rem;border-bottom:1px solid rgba(26,58,92,0.4);color:var(--text);vertical-align:top;}
+.outcome-table tr:hover{background:rgba(0,212,255,0.03);}
+
+.ticker-cell{font-weight:700;color:var(--white);letter-spacing:0.06em;}
+.result-approved{color:var(--accent2);font-weight:700;}
+.result-crl{color:var(--red);font-weight:700;}
+.result-delayed{color:var(--amber);font-weight:700;}
+.result-pending{color:var(--muted);font-style:italic;}
+
+.poa-cell{color:var(--accent);}
+.correct{color:var(--accent2);}
+.incorrect{color:var(--red);}
+
+.methodology{background:var(--surface);border:1px solid var(--border);padding:2rem;margin-bottom:3rem;position:relative;overflow:hidden;}
+.methodology::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.methodology h3{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;}
+.methodology p{font-size:0.9rem;color:var(--muted);font-weight:300;line-height:1.85;margin-bottom:0.75rem;}
+
+.disclaimer{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin-bottom:2rem;}
+
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+
+@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}.stats-strip{grid-template-columns:1fr 1fr;}.outcome-table{font-size:0.7rem;display:block;overflow-x:auto;}main{padding:2rem 1.25rem;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/track-record.html" class="active">Track Record</a></li>
+    <li><a href="/#pricing">Pricing</a></li>
+    <li><a href="/#faq">FAQ</a></li>
+  </ul>
+  <a href="/signup.html" class="nav-cta">Get Access</a>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Performance</div>
+  <h1 class="page-title">Track Record</h1>
+  <p class="page-sub">Every PDUFA prediction documented against the actual FDA outcome. No cherry-picking. Wins and losses both logged.</p>
+
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="stat-label">Completed Events</div>
+      <div class="stat-val white" id="stat-total">5</div>
+      <div class="stat-sub">scored & logged</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Correct Calls</div>
+      <div class="stat-val green" id="stat-correct">3</div>
+      <div class="stat-sub">approved as predicted</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Accuracy</div>
+      <div class="stat-val cyan" id="stat-accuracy">100%</div>
+      <div class="stat-sub">on resolved events (3/3)</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Delayed</div>
+      <div class="stat-val amber" id="stat-pending">2</div>
+      <div class="stat-sub">AQST + LNTH pushed back</div>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    ⚠️ Small sample size. 3 resolved events is not statistically significant — 100% accuracy on 3 calls doesn't predict future results. 2 additional events were delayed by the company (not CRL or rejection). This track record will become meaningful after 20+ completed PDUFA outcomes. Every future event will be logged here — wins and losses alike. Past performance does not guarantee future results.
+  </div>
+
+  <div class="section-title">Resolved Events</div>
+  <table class="outcome-table">
+    <thead>
+      <tr>
+        <th>Ticker</th>
+        <th>Drug / Indication</th>
+        <th>PDUFA Date</th>
+        <th>PoA Score</th>
+        <th>Grade</th>
+        <th>FDA Outcome</th>
+        <th>Accurate?</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td class="ticker-cell">VNDA</td>
+        <td>Bysanti · Gastroparesis</td>
+        <td>2025-02-21</td>
+        <td class="poa-cell">78%</td>
+        <td>STRONG</td>
+        <td class="result-approved">✅ APPROVED</td>
+        <td class="correct">✓ YES</td>
+      </tr>
+      <tr>
+        <td class="ticker-cell">FBIO</td>
+        <td>Lymphir · CTCL</td>
+        <td>2025-08-14</td>
+        <td class="poa-cell">74%</td>
+        <td>STRONG</td>
+        <td class="result-approved">✅ APPROVED</td>
+        <td class="correct">✓ YES</td>
+      </tr>
+      <tr>
+        <td class="ticker-cell">VNDA</td>
+        <td>Tradipitant · Gastroparesis (2nd event)</td>
+        <td>2025-12-27</td>
+        <td class="poa-cell">76%</td>
+        <td>STRONG</td>
+        <td class="result-approved">✅ APPROVED</td>
+        <td class="correct">✓ YES</td>
+      </tr>
+      <tr>
+        <td class="ticker-cell">AQST</td>
+        <td>Anaphylm · Anaphylaxis</td>
+        <td>2025-11-15</td>
+        <td class="poa-cell">68%</td>
+        <td>WATCH</td>
+        <td class="result-delayed">⏸ DELAYED</td>
+        <td style="color:var(--muted)">—</td>
+      </tr>
+      <tr>
+        <td class="ticker-cell">LNTH</td>
+        <td>Flurpiridaz F 18 · Myocardial Perfusion</td>
+        <td>2026-03-29</td>
+        <td class="poa-cell">77.5%</td>
+        <td>STRONG</td>
+        <td class="result-delayed">⏸ DELAYED 3 months</td>
+        <td style="color:var(--muted)">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="section-title">Upcoming — Publicly Timestamped</div>
+  <table class="outcome-table">
+    <thead>
+      <tr>
+        <th>Ticker</th>
+        <th>Drug / Indication</th>
+        <th>PDUFA Date</th>
+        <th>PoA Score</th>
+        <th>Grade</th>
+        <th>FDA Outcome</th>
+        <th>Accurate?</th>
+      </tr>
+    </thead>
+    <tbody id="upcoming-body">
+      <tr>
+        <td class="ticker-cell">RCKT</td>
+        <td>Kresladi · LAD-I Gene Therapy</td>
+        <td>2026-03-28</td>
+        <td class="poa-cell">77.5%</td>
+        <td>STRONG</td>
+        <td class="result-pending">Pending — 10 days</td>
+        <td style="color:var(--muted)">—</td>
+      </tr>
+      <tr>
+        <td class="ticker-cell">TVTX</td>
+        <td>FILSPARI · FSGS</td>
+        <td>2026-04-13</td>
+        <td class="poa-cell">72.0%</td>
+        <td>STRONG</td>
+        <td class="result-pending">Pending — 26 days</td>
+        <td style="color:var(--muted)">—</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="methodology">
+    <h3>How We Track Accuracy</h3>
+    <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against our predicted PoA score and grade.</p>
+    <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection.</p>
+    <p>Delayed events are not counted as wins or losses — the binary event hasn't resolved yet.</p>
+    <p>The self-calibrating weight system uses this outcome data to adjust the PoA/Convexity blend. After 10+ completed events, the model's weights auto-recalibrate based on which factors actually predicted approval in real data.</p>
+    <p>This page will be updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
+  </div>
+
+  <div style="text-align:center;margin:2rem 0;">
+    <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $79/month</a>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · 60+ scored events · AI research tool</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/calendar.html">Calendar</a>
+  </div>
+</footer>
+</body>
+</html>
