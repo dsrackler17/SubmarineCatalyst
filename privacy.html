@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Privacy Policy — Submarine Catalyst</title>
+<meta name="description" content="Privacy Policy for Submarine Catalyst PDUFA scoring platform.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-right{font-family:var(--mono);font-size:0.72rem;color:var(--muted);}
+.nav-right a{color:var(--accent);text-decoration:none;}
+.nav-right a:hover{text-decoration:underline;}
+main{flex:1;max-width:800px;margin:0 auto;padding:4rem 2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-updated{font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-bottom:3rem;letter-spacing:0.06em;}
+h2{font-family:var(--mono);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin:2.5rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+p{color:var(--text);font-weight:300;line-height:1.85;margin-bottom:1rem;font-size:0.95rem;}
+ul{margin:0 0 1rem 1.5rem;color:var(--text);font-weight:300;line-height:1.85;font-size:0.95rem;}
+li{margin-bottom:0.4rem;}
+strong{color:var(--white);font-weight:500;}
+a{color:var(--accent);}
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+@media(max-width:640px){nav{padding:1rem 1.25rem;}main{padding:2.5rem 1.25rem;}footer{padding:1rem 1.25rem;flex-direction:column;gap:0.75rem;text-align:center;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <span class="nav-right"><a href="/">← Home</a></span>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Legal</div>
+  <h1 class="page-title">Privacy Policy</h1>
+  <p class="page-updated">Last updated: March 18, 2026</p>
+
+  <h2>1. Overview</h2>
+  <p>Submarine Catalyst ("we," "us," "our") operates submarinecatalyst.com. This Privacy Policy describes how we collect, use, and protect your information when you use our Service.</p>
+
+  <h2>2. Information We Collect</h2>
+  <p><strong>Account Information:</strong> When you create an account, we collect your email address and a hashed password. We do not store plaintext passwords. Authentication is handled by Supabase.</p>
+  <p><strong>Payment Information:</strong> Payment processing is handled entirely by Stripe. We do not store credit card numbers, CVVs, or full payment details on our servers. We receive a Stripe customer ID and subscription status to manage your access.</p>
+  <p><strong>Usage Data:</strong> We collect basic analytics through Cloudflare Web Analytics, which is privacy-friendly and does not use cookies or track individual users across the web. This includes page views, load times, and general traffic patterns.</p>
+  <p><strong>AI Research Queries:</strong> When you use the AI Research Tool, your queries are sent to our server to generate responses. We do not permanently store your AI conversation history.</p>
+
+  <h2>3. How We Use Your Information</h2>
+  <ul>
+    <li>To provide and maintain the Service</li>
+    <li>To manage your account and subscription status</li>
+    <li>To process payments through Stripe</li>
+    <li>To send service-related communications (account verification, password resets)</li>
+    <li>To improve the Service based on aggregate usage patterns</li>
+  </ul>
+
+  <h2>4. Information Sharing</h2>
+  <p>We do not sell, trade, or rent your personal information to third parties. We share information only with:</p>
+  <ul>
+    <li><strong>Supabase:</strong> Authentication and database hosting provider</li>
+    <li><strong>Stripe:</strong> Payment processing provider</li>
+    <li><strong>Anthropic:</strong> AI model provider for the Research Tool (queries are sent without personally identifying information)</li>
+    <li><strong>Cloudflare:</strong> DNS and analytics provider</li>
+    <li><strong>GitHub:</strong> Website hosting provider</li>
+  </ul>
+  <p>Each provider operates under their own privacy policy and data protection practices.</p>
+
+  <h2>5. Email Communications</h2>
+  <p>If you subscribe to our email list through the landing page, your email is collected via Formspree and used solely for Submarine Catalyst updates. You can unsubscribe at any time. We do not share email list subscribers with third parties.</p>
+
+  <h2>6. Data Security</h2>
+  <p>We implement reasonable security measures to protect your information. All data transmission uses HTTPS encryption. Authentication tokens are managed securely through Supabase. However, no method of electronic transmission or storage is 100% secure, and we cannot guarantee absolute security.</p>
+
+  <h2>7. Data Retention</h2>
+  <p>We retain your account information for as long as your account is active. If you cancel your subscription, your account data is retained but your access to premium features is revoked. You may request account deletion by contacting us.</p>
+
+  <h2>8. Cookies</h2>
+  <p>Submarine Catalyst uses minimal cookies. Supabase authentication may store a session token in your browser's local storage to keep you logged in. We do not use advertising cookies, tracking pixels, or third-party marketing cookies. Cloudflare Web Analytics does not use cookies.</p>
+
+  <h2>9. Children's Privacy</h2>
+  <p>The Service is not intended for individuals under the age of 18. We do not knowingly collect personal information from children. If you believe a child has provided us with personal information, please contact us and we will delete it.</p>
+
+  <h2>10. Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li>Access the personal information we hold about you</li>
+    <li>Request correction of inaccurate information</li>
+    <li>Request deletion of your account and associated data</li>
+    <li>Unsubscribe from email communications at any time</li>
+    <li>Cancel your subscription at any time</li>
+  </ul>
+
+  <h2>11. California Residents</h2>
+  <p>If you are a California resident, you have additional rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information is collected, the right to delete it, and the right to opt out of the sale of personal information. We do not sell personal information.</p>
+
+  <h2>12. Changes to This Policy</h2>
+  <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated date. Continued use of the Service after changes constitutes acceptance of the updated policy.</p>
+
+  <h2>13. Contact</h2>
+  <p>Questions about this Privacy Policy may be directed to: <strong>support@submarinecatalyst.com</strong></p>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+</footer>
+</body>
+</html>
