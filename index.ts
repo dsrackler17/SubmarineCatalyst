@@ -28,7 +28,7 @@ Guidelines:
 - When analyzing a ticker, structure your response with: company/drug overview, regulatory pathway, key risk flags, and setup assessment.
 - Always note that this is analysis, not investment advice. Trading PDUFA events carries substantial risk.
 - If asked about something outside biotech/FDA, briefly answer but redirect to your area of expertise.
-- Use markdown formatting: **bold** for key terms, \`code\` for tickers/numbers.
+- Use markdown formatting: **bold** for key terms, backticks for tickers/numbers.
 - Keep responses thorough but focused. Traders want signal, not noise.`;
 
 const corsHeaders = {
@@ -37,66 +37,77 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const rateLimits = new Map();
+const RATE_LIMIT_MAX = 20;
+const RATE_LIMIT_WINDOW = 3600;
+
+function checkRateLimit(userId: string) {
+  const now = Math.floor(Date.now() / 1000);
+  if (!rateLimits.has(userId)) {
+    rateLimits.set(userId, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_MAX - 1 };
+  }
+  const entry = rateLimits.get(userId);
+  if (now - entry.windowStart >= RATE_LIMIT_WINDOW) {
+    rateLimits.set(userId, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_MAX - 1 };
+  }
+  if (entry.count >= RATE_LIMIT_MAX) {
+    const resetIn = RATE_LIMIT_WINDOW - (now - entry.windowStart);
+    return { allowed: false, remaining: 0, resetIn };
+  }
+  entry.count++;
+  return { allowed: true, remaining: RATE_LIMIT_MAX - entry.count };
+}
+
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
-  if (req.method !== "POST") {
-    return new Response(JSON.stringify({ error: "Method not allowed" }), {
-      status: 405,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-
-  // Verify the user is authenticated and has an active subscription
   const authHeader = req.headers.get("Authorization");
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+  if (!authHeader?.startsWith("Bearer ")) {
     return new Response(JSON.stringify({ error: "Not authenticated" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 
   const token = authHeader.replace("Bearer ", "");
 
   try {
-    // Verify JWT and get user
     const { data: { user }, error: authError } = await supabaseAdmin.auth.getUser(token);
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Invalid session" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Check subscription
     const { data: profile } = await supabaseAdmin
-      .from("profiles")
-      .select("is_paid")
-      .eq("id", user.id)
-      .single();
+      .from("profiles").select("is_paid").eq("id", user.id).single();
 
     if (!profile?.is_paid) {
       return new Response(JSON.stringify({ error: "Active subscription required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Parse request
+    const rateCheck = checkRateLimit(user.id);
+    if (!rateCheck.allowed) {
+      return new Response(JSON.stringify({
+        error: `Rate limit exceeded. ${RATE_LIMIT_MAX} requests per hour. Try again in ${rateCheck.resetIn}s.`,
+      }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": String(rateCheck.resetIn) },
+      });
+    }
+
     const body = await req.json();
     const messages = body.messages || [];
-
     if (!messages.length) {
-      return new Response(JSON.stringify({ error: "No messages provided" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      return new Response(JSON.stringify({ error: "No messages" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Call Anthropic API
     const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -108,7 +119,7 @@ serve(async (req) => {
         model: "claude-sonnet-4-20250514",
         max_tokens: 2000,
         system: SYSTEM_PROMPT,
-        messages: messages.map(m => ({
+        messages: messages.map((m: any) => ({
           role: m.role === "assistant" ? "assistant" : "user",
           content: m.content,
         })),
@@ -116,27 +127,23 @@ serve(async (req) => {
     });
 
     if (!anthropicRes.ok) {
-      const errText = await anthropicRes.text();
-      console.error("Anthropic API error:", anthropicRes.status, errText);
+      console.error("Anthropic error:", anthropicRes.status, await anthropicRes.text());
       return new Response(JSON.stringify({ error: "AI service temporarily unavailable" }), {
-        status: 502,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const aiData = await anthropicRes.json();
     const reply = aiData.content?.[0]?.text || "No response generated.";
 
-    return new Response(JSON.stringify({ reply }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    return new Response(JSON.stringify({ reply, rateLimit: { remaining: rateCheck.remaining, limit: RATE_LIMIT_MAX } }), {
+      status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
 
   } catch (err) {
     console.error("ai-research error:", err);
     return new Response(JSON.stringify({ error: "Internal error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

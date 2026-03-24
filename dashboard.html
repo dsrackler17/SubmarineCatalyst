@@ -307,7 +307,7 @@
             </div>
             <div class="account-field">
               <div class="account-field-label">Plan</div>
-              <div class="account-field-val">$79 / month</div>
+              <div class="account-field-val">$49.99 / month</div>
             </div>
           </div>
           <div>
@@ -518,19 +518,31 @@ function switchTab(btn, id) {
         .order('score', { ascending: false });
 
       if (!error && events && events.length > 0) {
-        SCANNER_DATA = events.map(e => ({
-          ticker: e.ticker,
-          drug: e.drug || '',
-          indication: e.indication || 'Unknown',
-          type: e.type || 'PDUFA',
-          date: e.date,
-          grade: e.grade || 'WATCH',
-          poa: Number(e.poa) || 0,
-          convexity: Number(e.score) * 0.6 || 0,
-          score: Number(e.score) || 0,
-          flags: e.flags || [],
-        }));
-        console.log('[SC] Loaded ' + SCANNER_DATA.length + ' live events');
+        // ── SMART FILTER: Exclude large-cap pharma that only move 4-6% on PDUFA ──
+        // These are $10B+ companies where FDA events are already priced in
+        const LARGE_CAP_EXCLUDE = [
+          'PFE','JNJ','MRK','ABBV','LLY','BMY','AMGN','GILD','REGN','VRTX',
+          'AZN','NVS','SNY','GSK','NVO','MRNA','BIIB','AZN','TEVA','TAK',
+          'ALNY','SGEN','BMRN','INCY','JAZZ','HZNP','SRPT','UTHR','EXEL',
+          'NBIX','RARE','IONS','PCVX','SMMT','ZTS','BAX','BDX','SYK','MDT',
+          'ABT','TMO','DHR','ISRG','EW','BSX','CI','HUM','UNH','CVS'
+        ];
+
+        SCANNER_DATA = events
+          .filter(e => !LARGE_CAP_EXCLUDE.includes(e.ticker))
+          .map(e => ({
+            ticker: e.ticker,
+            drug: e.drug || '',
+            indication: e.indication || 'Unknown',
+            type: e.type || 'PDUFA',
+            date: e.date,
+            grade: e.grade || 'WATCH',
+            poa: Number(e.poa) || 0,
+            convexity: Number(e.score) * 0.6 || 0,
+            score: Number(e.score) || 0,
+            flags: e.flags || [],
+          }));
+        console.log('[SC] Loaded ' + SCANNER_DATA.length + ' filtered events (excluded large-cap)');
       }
     }
   } catch (e) {
