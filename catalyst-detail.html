@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script src="/js/config.js"></script>
 <style>
 :root {
@@ -484,7 +485,7 @@ async function generateAISummary(d) {
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/`(.*?)`/g, '<code>$1</code>')
         .replace(/\n/g, '<br>');
-      document.getElementById('summary-text').innerHTML = text;
+      document.getElementById('summary-text').innerHTML = DOMPurify.sanitize(text);
     } else {
       document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber)">AI analysis temporarily unavailable. The scores and risk flags above are from the live scanner.</span>';
     }

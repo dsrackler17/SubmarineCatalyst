@@ -17,7 +17,8 @@ const SC_CONFIG = {
   stripePortalUrl: null,
 
   // Admin email(s) — used for admin panel access control
-  adminEmails: ['davis@submarinecatalyst.com'],
+  // Admin check handled server-side via is_admin column in profiles table
+  adminEmails: [],
 
   // Site
   siteName: 'Submarine Catalyst',

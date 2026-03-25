@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script src="/js/config.js"></script>
 <style>
   :root {
@@ -329,11 +330,14 @@ function renderStats() {
 }
 
 function renderUsers(users) {
+  // HTML escape helper to prevent XSS
+  function esc(str) { var d = document.createElement('div'); d.textContent = str || '—'; return d.innerHTML; }
+
   if (!users.length) {
     document.getElementById('users-table-wrap').innerHTML = '<div class="loading-row" style="color:var(--muted);">No users found.</div>';
     return;
   }
-  document.getElementById('users-table-wrap').innerHTML = `
+  document.getElementById('users-table-wrap').innerHTML = DOMPurify.sanitize(`
     <table class="data-table">
       <thead><tr><th>Email</th><th>Status</th><th>Access Method</th><th>Code Used</th><th>Joined</th><th>Actions</th></tr></thead>
       <tbody>
@@ -342,17 +346,17 @@ function renderUsers(users) {
           const statusBadge = u.is_paid ? `<span class="badge badge-green">Active</span>` : `<span class="badge badge-red">Inactive</span>`;
           const adminBadge  = u.is_admin ? `&nbsp;<span class="badge badge-accent">Admin</span>` : '';
           const methodColor = {stripe:'badge-accent', access_code:'badge-amber', manual:'badge-amber', admin:'badge-accent'}[u.access_method] || 'badge-muted';
-          const methodBadge = `<span class="badge ${methodColor}">${u.access_method || '—'}</span>`;
-          const codeLabel   = u.access_code_label || u.access_code_used || '—';
+          const methodBadge = `<span class="badge ${methodColor}">${esc(u.access_method)}</span>`;
+          const codeLabel   = esc(u.access_code_label || u.access_code_used);
           const actionBtns  = u.is_admin ? '<span style="color:var(--muted);font-size:0.62rem;">admin</span>' : (
             u.is_paid
-              ? `<button class="btn btn-revoke" onclick="revokeAccess('${u.id}','${u.email}')">Revoke</button>`
-              : `<button class="btn btn-grant"  onclick="grantAccess('${u.id}','${u.email}')">Grant</button>`
+              ? `<button class="btn btn-revoke" onclick="revokeAccess('${u.id}','${esc(u.email)}')">Revoke</button>`
+              : `<button class="btn btn-grant"  onclick="grantAccess('${u.id}','${esc(u.email)}')">Grant</button>`
           );
-          return `<tr><td>${u.email||'—'}</td><td>${statusBadge}${adminBadge}</td><td>${methodBadge}</td><td style="color:var(--muted);font-size:0.68rem;">${codeLabel}</td><td style="color:var(--muted);">${joined}</td><td>${actionBtns}</td></tr>`;
+          return `<tr><td>${esc(u.email)}</td><td>${statusBadge}${adminBadge}</td><td>${methodBadge}</td><td style="color:var(--muted);font-size:0.68rem;">${codeLabel}</td><td style="color:var(--muted);">${joined}</td><td>${actionBtns}</td></tr>`;
         }).join('')}
       </tbody>
-    </table>`;
+    </table>`);
 }
 
 function filterUsers() {
@@ -365,11 +369,12 @@ function renderCodes(codes) {
     document.getElementById('codes-table-wrap').innerHTML = '<div class="loading-row" style="color:var(--muted);">No codes yet. Generate one above.</div>';
     return;
   }
-  document.getElementById('codes-table-wrap').innerHTML = `
+  document.getElementById('codes-table-wrap').innerHTML = DOMPurify.sanitize(`
     <table class="data-table">
       <thead><tr><th>Code</th><th>Label</th><th>Status</th><th>Redeemed By</th><th>Redeemed At</th><th>Expires</th><th>Created</th><th>Actions</th></tr></thead>
       <tbody>
         ${codes.map(c => {
+          function esc(str) { var d = document.createElement('div'); d.textContent = str || '—'; return d.innerHTML; }
           const created    = new Date(c.created_at).toLocaleDateString('en-US',{year:'2-digit',month:'short',day:'numeric'});
           const redeemedAt = c.redeemed_at ? new Date(c.redeemed_at).toLocaleDateString('en-US',{year:'2-digit',month:'short',day:'numeric'}) : '—';
           const expires    = c.expires_at ? new Date(c.expires_at).toLocaleDateString('en-US',{year:'2-digit',month:'short',day:'numeric'}) : 'Never';
@@ -380,12 +385,12 @@ function renderCodes(codes) {
           else if (isExpired)     statusBadge = '<span class="badge badge-red">Expired</span>';
           else                    statusBadge = '<span class="badge badge-accent">Available</span>';
           const redeemedUser  = allUsers.find(u => u.id === c.redeemed_by);
-          const redeemedEmail = redeemedUser ? `<span style="color:var(--text)">${redeemedUser.email}</span>` : (c.redeemed_by ? `<span style="color:var(--muted);font-size:0.62rem;">${c.redeemed_by.slice(0,8)}...</span>` : '—');
-          const deactBtn = (c.is_active && !c.redeemed_by) ? `<button class="btn btn-deact" onclick="deactivateCode('${c.id}','${c.code}')">Deactivate</button>` : `<span style="color:var(--muted);font-size:0.62rem;">—</span>`;
-          return `<tr><td style="color:var(--accent2);letter-spacing:0.1em;">${c.code}</td><td style="color:var(--text);">${c.label||'—'}</td><td>${statusBadge}</td><td>${redeemedEmail}</td><td style="color:var(--muted);">${redeemedAt}</td><td style="color:var(--muted);">${expires}</td><td style="color:var(--muted);">${created}</td><td>${deactBtn}</td></tr>`;
+          const redeemedEmail = redeemedUser ? `<span style="color:var(--text)">${esc(redeemedUser.email)}</span>` : (c.redeemed_by ? `<span style="color:var(--muted);font-size:0.62rem;">${esc(c.redeemed_by.slice(0,8))}...</span>` : '—');
+          const deactBtn = (c.is_active && !c.redeemed_by) ? `<button class="btn btn-deact" onclick="deactivateCode('${c.id}','${esc(c.code)}')">Deactivate</button>` : `<span style="color:var(--muted);font-size:0.62rem;">—</span>`;
+          return `<tr><td style="color:var(--accent2);letter-spacing:0.1em;">${esc(c.code)}</td><td style="color:var(--text);">${esc(c.label)}</td><td>${statusBadge}</td><td>${redeemedEmail}</td><td style="color:var(--muted);">${redeemedAt}</td><td style="color:var(--muted);">${expires}</td><td style="color:var(--muted);">${created}</td><td>${deactBtn}</td></tr>`;
         }).join('')}
       </tbody>
-    </table>`;
+    </table>`);
 }
 
 async function grantAccess(userId, email) {

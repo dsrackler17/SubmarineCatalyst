@@ -12,6 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script src="/js/config.js"></script>
 <style>
 :root {
@@ -189,7 +190,7 @@ function addMessage(role, text) {
     const shareText = text.replace(/\*\*/g, '').replace(/`/g, '').substring(0, 200);
     const tweetText = encodeURIComponent('🧬 AI Research via @DRackler\'s Submarine Catalyst:\n\n"' + shareText.trim() + '..."\n\nsubmarinecatalyst.com/research.html');
     formatted += '<div class="share-row"><a href="https://x.com/intent/tweet?text=' + tweetText + '" target="_blank" rel="noopener" class="share-x-btn"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg> Share on X</a></div>';
-    div.innerHTML = formatted;
+    div.innerHTML = DOMPurify.sanitize(formatted, { ADD_ATTR: ['target', 'rel'] });
   } else {
     div.textContent = text;
   }
