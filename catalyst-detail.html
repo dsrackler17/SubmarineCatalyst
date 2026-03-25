@@ -512,38 +512,39 @@ async function generateAISummary(d) {
     return;
   }
 
-  // Fetch from Supabase
-  var sb = getSupabase();
+  // Fetch from server-side gated endpoint
   var eventData = null;
 
-  if (sb) {
-    try {
-      var result = await sb
-        .from('pdufa_events')
-        .select('*')
-        .eq('ticker', ticker)
-        .order('date', { ascending: true })
-        .limit(1);
+  try {
+    var session = await scGetSession();
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?ticker=' + ticker, {
+      headers: {
+        'Authorization': 'Bearer ' + (session?.access_token || ''),
+        'Content-Type': 'application/json',
+      },
+    });
 
-      if (!result.error && result.data && result.data.length > 0) {
-        var e = result.data[0];
-        eventData = {
-          ticker: e.ticker,
-          drug: e.drug || '',
-          indication: e.indication || 'Unknown',
-          type: e.type || 'PDUFA',
-          date: e.date,
-          grade: e.grade || 'WATCH',
-          poa: Number(e.poa) || 0,
-          score: Number(e.score) || 0,
-          flags: e.flags || [],
-          notes: e.notes || '',
-          source_url: e.source_url || '',
-        };
-      }
-    } catch (err) {
-      console.warn('[SC] Failed to fetch event data:', err);
+    var result = await res.json();
+    if (result.event) {
+      var e = result.event;
+      eventData = {
+        ticker: e.ticker,
+        drug: e.drug || '',
+        indication: e.indication || 'Unknown',
+        type: e.type || 'PDUFA',
+        date: e.date,
+        grade: e.grade || 'WATCH',
+        poa: Number(e.poa) || 0,
+        score: Number(e.score) || 0,
+        flags: e.flags || [],
+        notes: e.notes || '',
+        source_url: e.source_url || '',
+      };
+      // Override isPaid from server response
+      if (result.isPaid === false) isPaid = false;
     }
+  } catch (err) {
+    console.warn('[SC] Failed to fetch event data:', err);
   }
 
   if (!eventData) {

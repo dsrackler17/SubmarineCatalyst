@@ -507,43 +507,55 @@ function switchTab(btn, id) {
     document.getElementById('welcome-banner').style.display = 'block';
   }
 
-  // Fetch live scanner data from Supabase
+  // ── PAYWALL GATE: Unpaid users see subscribe prompt instead of scanner ──
+  if (!isPaid) {
+    document.getElementById('scanner-grid').innerHTML = [
+      '<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;">',
+      '  <div style="font-size:2rem;margin-bottom:1rem;">🔒</div>',
+      '  <div style="font-family:var(--serif);font-size:1.5rem;color:var(--white);margin-bottom:0.75rem;">Subscription Required</div>',
+      '  <p style="font-family:var(--sans);font-size:0.9rem;color:var(--muted);max-width:400px;margin:0 auto 1.5rem;line-height:1.7;">Access the full scanner with 60+ scored PDUFA events, AI research tool, and deep dive analysis.</p>',
+      '  <a href="javascript:void(0)" onclick="scCheckout(\'' + user.id + '\',\'' + user.email + '\')" style="display:inline-block;font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.75rem 2rem;text-decoration:none;font-weight:700;cursor:pointer;">Subscribe — $49.99/month</a>',
+      '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime</p>',
+      '</div>',
+    ].join('\n');
+    document.getElementById('stat-elite').textContent = '—';
+    document.getElementById('stat-30d').textContent = '—';
+    document.getElementById('stat-poa').textContent = '—';
+    document.getElementById('stat-scan').textContent = '—';
+    return;
+  }
+
+  // Fetch live scanner data from SERVER-SIDE gated endpoint
   try {
-    const sb = getSupabase();
-    if (sb) {
-      const { data: events, error } = await sb
-        .from('pdufa_events')
-        .select('*')
-        .gte('date', new Date().toISOString().split('T')[0])
-        .order('score', { ascending: false });
+    const session = await scGetSession();
+    const res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+      headers: {
+        'Authorization': 'Bearer ' + (session?.access_token || ''),
+        'Content-Type': 'application/json',
+      },
+    });
 
-      if (!error && events && events.length > 0) {
-        // ── SMART FILTER: Exclude large-cap pharma that only move 4-6% on PDUFA ──
-        // These are $10B+ companies where FDA events are already priced in
-        const LARGE_CAP_EXCLUDE = [
-          'PFE','JNJ','MRK','ABBV','LLY','BMY','AMGN','GILD','REGN','VRTX',
-          'AZN','NVS','SNY','GSK','NVO','MRNA','BIIB','AZN','TEVA','TAK',
-          'ALNY','SGEN','BMRN','INCY','JAZZ','HZNP','SRPT','UTHR','EXEL',
-          'NBIX','RARE','IONS','PCVX','SMMT','ZTS','BAX','BDX','SYK','MDT',
-          'ABT','TMO','DHR','ISRG','EW','BSX','CI','HUM','UNH','CVS'
-        ];
+    const result = await res.json();
 
-        SCANNER_DATA = events
-          .filter(e => !LARGE_CAP_EXCLUDE.includes(e.ticker))
-          .map(e => ({
-            ticker: e.ticker,
-            drug: e.drug || '',
-            indication: e.indication || 'Unknown',
-            type: e.type || 'PDUFA',
-            date: e.date,
-            grade: e.grade || 'WATCH',
-            poa: Number(e.poa) || 0,
-            convexity: Number(e.score) * 0.6 || 0,
-            score: Number(e.score) || 0,
-            flags: e.flags || [],
-          }));
-        console.log('[SC] Loaded ' + SCANNER_DATA.length + ' filtered events (excluded large-cap)');
-      }
+    if (result.error === 'subscription_required') {
+      // Unpaid user — paywall already shown above
+      console.log('[SC] Unpaid user — scanner data blocked server-side');
+    } else if (result.events && result.events.length > 0) {
+      SCANNER_DATA = result.events.map(function(e) {
+        return {
+          ticker: e.ticker,
+          drug: e.drug || '',
+          indication: e.indication || 'Unknown',
+          type: e.type || 'PDUFA',
+          date: e.date,
+          grade: e.grade || 'WATCH',
+          poa: Number(e.poa) || 0,
+          convexity: Number(e.score) * 0.6 || 0,
+          score: Number(e.score) || 0,
+          flags: e.flags || [],
+        };
+      });
+      console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
     }
   } catch (e) {
     console.warn('[SC] Failed to fetch live data:', e);
