@@ -243,24 +243,23 @@
 <script>
 // ─── CONFIG ──────────────────────────────────────────────────────────────────
 
-// ⚠️  FILL THIS IN MANUALLY — get it from your Supabase Edge Function secrets
-// This is the secret you set when deploying the admin-api Edge Function.
-// Never commit it to a public GitHub repo.
-const ADMIN_SECRET  = 'PASTE_YOUR_ADMIN_SECRET_HERE';
-
-const API_URL       = SC_CONFIG.supabaseUrl + '/functions/v1/admin-api';
-
-
+const API_URL = SC_CONFIG.supabaseUrl + '/functions/v1/admin-api';
 
 let allUsers = [];
 let allCodes = [];
 
 async function adminCall(action, extra = {}) {
+  // Use session token instead of shared secret — server verifies is_admin
+  const session = await scGetSession();
+  if (!session) {
+    window.location.replace('/login.html');
+    return { error: 'Not authenticated' };
+  }
   const res = await fetch(API_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-admin-secret': ADMIN_SECRET,
+      'Authorization': 'Bearer ' + session.access_token,
     },
     body: JSON.stringify({ action, ...extra }),
   });
