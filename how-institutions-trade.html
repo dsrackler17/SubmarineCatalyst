@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>How Institutions Trade PDUFA Events — Submarine Catalyst</title>
+<meta name="description" content="Understanding how institutional short selling and sell-the-news dynamics affect biotech PDUFA trades. Learn what retail traders miss.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@DRackler">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;cursor:pointer;text-decoration:none;transition:background 0.2s,color 0.2s;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+
+main{flex:1;max-width:800px;width:100%;margin:0 auto;padding:3rem 2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:600px;line-height:1.7;}
+
+h2{font-family:var(--mono);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin:2.5rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+h3{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.08em;color:var(--white);margin:1.5rem 0 0.75rem;}
+p{color:var(--text);font-weight:300;line-height:1.85;margin-bottom:1rem;font-size:0.95rem;}
+strong{color:var(--white);font-weight:500;}
+code{color:var(--accent);font-family:var(--mono);font-size:0.85rem;}
+
+.callout{background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+.callout::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.callout-red::before{background:var(--red);}
+.callout-green::before{background:var(--accent2);}
+.callout-amber::before{background:var(--amber);}
+.callout-blue::before{background:var(--accent);}
+.callout-title{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem;}
+.callout-red .callout-title{color:var(--red);}
+.callout-green .callout-title{color:var(--accent2);}
+.callout-amber .callout-title{color:var(--amber);}
+.callout-blue .callout-title{color:var(--accent);}
+
+.example-box{background:var(--deep);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;font-family:var(--mono);font-size:0.78rem;line-height:1.8;color:var(--text);}
+.example-label{color:var(--accent);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;}
+
+.disclaimer{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin:2rem 0;}
+
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+
+@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}main{padding:2rem 1.25rem;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
+    <li><a href="/#pricing">Pricing</a></li>
+  </ul>
+  <a href="/signup.html" class="nav-cta">Get Access</a>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Education</div>
+  <h1 class="page-title">How Institutions Trade PDUFA Events</h1>
+  <p class="page-sub">Why stocks drop on good news, how short selling works around FDA catalysts, and what retail traders miss.</p>
+
+  <div class="disclaimer">
+    ⚠️ This is educational content about market dynamics, not investment advice. Understanding these mechanics doesn't guarantee profitable trades. All PDUFA trades carry substantial binary risk.
+  </div>
+
+  <h2>The Retail Trap</h2>
+  <p>Here's what typically happens to retail biotech traders: They find a stock with an upcoming PDUFA date. They research the drug, read the clinical data, check the AdCom vote. Everything looks bullish. They buy shares. The FDA approves the drug. And the stock drops 20%.</p>
+  <p>This isn't bad luck. It's a predictable pattern that institutions exploit every PDUFA cycle. Understanding why it happens is the difference between being the person who buys the top and the person who avoids the trap.</p>
+
+  <h2>How Short Selling Works</h2>
+  <p>Short selling is borrowing shares you don't own, selling them at the current price, and buying them back later at a lower price. The difference is your profit.</p>
+  <p>When an institution shorts a biotech stock before a PDUFA date, they're betting that even if the drug gets approved, the stock will drop because the approval was already expected. They don't need the drug to fail — they just need the stock to not go up.</p>
+
+  <div class="callout callout-red">
+    <div class="callout-title">The institutional playbook</div>
+    <p style="margin-bottom:0;">Institutions accumulate a long position months before the PDUFA. The stock runs up as retail traders pile in expecting approval. On approval day, institutions sell their entire long position into the retail buying frenzy — or worse, they go short. Retail buys at the top. Institutions sell at the top. The stock drops. Institutions cover their shorts at lower prices. Retail holds the bag.</p>
+  </div>
+
+  <h2>Why Stocks Drop on FDA Approval</h2>
+
+  <h3>1. "Buy the rumor, sell the news"</h3>
+  <p>If everyone expects approval, the approval is <strong>already reflected in the stock price</strong> before the FDA announces it. The announcement itself adds no new information. Smart money sells because the catalyst they were holding for has been consumed.</p>
+
+  <h3>2. Short sellers pile on after the catalyst</h3>
+  <p>Some institutions specifically wait for approval to initiate short positions. Their thesis: the stock is now at peak optimism, the catalyst is gone, and the hard work of commercialization begins. Most FDA-approved drugs take 12-18 months to generate meaningful revenue. That's a long time for the stock to drift down.</p>
+
+  <h3>3. Dilution follows approval</h3>
+  <p>Many small-cap biotechs need to raise capital to commercialize their newly approved drug. Within weeks of approval, they announce a secondary offering — issuing new shares that dilute existing holders. Institutions know this is coming. Retail doesn't.</p>
+
+  <h3>4. The revenue reality check</h3>
+  <p>Approval is just permission to sell the drug. It doesn't guarantee sales. A rare disease drug might treat 5,000 patients globally. An orphan gene therapy might treat 200. The stock was priced as if approval = revenue, but approval just means the work of building a commercial operation begins.</p>
+
+  <div class="example-box">
+    <div class="example-label">Real Example — RCKT (March 28, 2026)</div>
+    Scanner PoA: 77.5% — APPROVED ✓<br>
+    Actual stock move: <strong style="color:var(--red)">-20%</strong><br><br>
+    Why: Unanimous 10-0 AdCom vote meant zero surprise. Resubmission after CRL meant market already expected approval. Gene therapy for LAD-I treats ~30 patients/year in the US. Limited commercial revenue potential. Jefferies analyst said "the approval was never meant to drive meaningful sales."<br><br>
+    The scanner correctly predicted approval. But if it had also shown HIGH sell-the-news risk, a trader could have avoided the position or played it differently.
+  </div>
+
+  <h2>What Short Interest Tells You</h2>
+  <p><strong>Short interest</strong> is the percentage of a stock's float that has been sold short. High short interest before a PDUFA can mean two very different things:</p>
+
+  <div class="callout callout-green">
+    <div class="callout-title">Bullish signal — Short squeeze potential</div>
+    <p style="margin-bottom:0;">If short interest is above 20% and the drug gets approved with better-than-expected data, short sellers are forced to buy back shares to cover their positions. This creates a feedback loop — buying pressure drives the price higher, which forces more shorts to cover, which drives it higher. This is how you get +50-100% moves on approval. <code>VNDA</code> had elevated short interest and ran +45%.</p>
+  </div>
+
+  <div class="callout callout-red">
+    <div class="callout-title">Bearish signal — Smart money is positioned against you</div>
+    <p style="margin-bottom:0;">If short interest is high and the approval was widely expected (high PoA, unanimous AdCom), the shorts aren't worried about a squeeze. They're positioned for the sell-the-news drop. After approval, the catalyst is gone and the shorts have time on their side as the stock drifts down toward commercial reality.</p>
+  </div>
+
+  <p>The key question isn't "is short interest high?" — it's "is the approval a surprise or not?" High short interest + surprise approval = squeeze. High short interest + expected approval = shorts were right.</p>
+
+  <h2>How to Use This Information</h2>
+
+  <h3>Before the PDUFA:</h3>
+  <p>Check the <strong>Sell-The-News Risk</strong> score on every event in the scanner. HIGH risk doesn't mean avoid the trade — it means adjust your expectations. A HIGH STN risk event might still be tradeable if you buy early and sell into the run-up before the decision instead of holding through it.</p>
+
+  <h3>Position sizing:</h3>
+  <p>LOW STN risk = full conviction size. The approval isn't priced in, the market will be surprised, and the move has room to run.</p>
+  <p>MODERATE STN risk = standard size. Some upside on approval but don't expect fireworks.</p>
+  <p>HIGH STN risk = reduce size or skip. If you play it, take profits before the decision or accept that the stock might drop on good news.</p>
+
+  <h3>The sell-before-the-event strategy:</h3>
+  <p>Many experienced biotech traders buy 2-4 weeks before the PDUFA and sell 1-3 days before the decision. They capture the run-up as retail traders pile in, then exit before the binary event. They don't care if it gets approved or not — they made their money on the momentum leading up to it. This is what institutions do at scale.</p>
+
+  <div class="callout callout-blue">
+    <div class="callout-title">What Submarine Catalyst does differently</div>
+    <p style="margin-bottom:0;">Most PDUFA scanners only answer one question: will it get approved? That's table stakes. Our scanner answers two: will it get approved, AND will the approval actually make you money? The Sell-The-News Risk Score, short interest analysis, and price target scenarios exist because we learned the hard way — with RCKT — that approval ≠ profit. The model now reflects that reality.</p>
+  </div>
+
+  <h2>The Bottom Line</h2>
+  <p>Institutions have more capital, better data, faster execution, and decades of experience trading FDA events. The playing field isn't level. But it doesn't need to be. You don't need to beat them — you need to stop being their exit liquidity.</p>
+  <p>Understanding sell-the-news dynamics, short interest mechanics, and dilution risk turns you from a retail trader holding the bag into a retail trader who sees the same playbook institutions are running. The edge isn't inside information — it's pattern recognition applied systematically.</p>
+  <p>That's what the scanner was built for.</p>
+
+  <div style="text-align:center;margin:3rem 0;">
+    <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $49.99/month</a>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · STN Risk scores · AI research tool · 60+ events</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/track-record.html">Track Record</a>
+  </div>
+</footer>
+</body>
+</html>
