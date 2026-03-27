@@ -124,10 +124,12 @@ footer a:hover{color:var(--accent);}
         <th>Ticker</th>
         <th>Drug / Indication</th>
         <th>PDUFA Date</th>
-        <th>PoA Score</th>
+        <th>PoA</th>
         <th>Grade</th>
+        <th>STN Risk</th>
         <th>FDA Outcome</th>
-        <th>Accurate?</th>
+        <th>Actual Move</th>
+        <th>PoA ✓</th>
       </tr>
     </thead>
     <tbody>
@@ -137,8 +139,10 @@ footer a:hover{color:var(--accent);}
         <td>2025-02-21</td>
         <td class="poa-cell">78%</td>
         <td>STRONG</td>
+        <td><span style="color:var(--amber);">MODERATE</span></td>
         <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">✓ YES</td>
+        <td class="correct">+45%</td>
+        <td class="correct">✓</td>
       </tr>
       <tr>
         <td class="ticker-cell">FBIO</td>
@@ -146,17 +150,21 @@ footer a:hover{color:var(--accent);}
         <td>2025-08-14</td>
         <td class="poa-cell">74%</td>
         <td>STRONG</td>
+        <td><span style="color:var(--amber);">ELEVATED</span></td>
         <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">✓ YES</td>
+        <td style="color:var(--muted);">+3%</td>
+        <td class="correct">✓</td>
       </tr>
       <tr>
         <td class="ticker-cell">VNDA</td>
-        <td>Tradipitant · Gastroparesis (2nd event)</td>
+        <td>Tradipitant · Gastroparesis (2nd)</td>
         <td>2025-12-27</td>
         <td class="poa-cell">76%</td>
         <td>STRONG</td>
+        <td><span style="color:var(--amber);">MODERATE</span></td>
         <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">✓ YES</td>
+        <td class="correct">+28%</td>
+        <td class="correct">✓</td>
       </tr>
       <tr>
         <td class="ticker-cell">AQST</td>
@@ -164,8 +172,10 @@ footer a:hover{color:var(--accent);}
         <td>2025-11-15</td>
         <td class="poa-cell">68%</td>
         <td>WATCH</td>
+        <td style="color:var(--muted);">—</td>
         <td class="result-delayed">⏸ DELAYED</td>
-        <td style="color:var(--muted)">—</td>
+        <td style="color:var(--muted);">—</td>
+        <td style="color:var(--muted);">—</td>
       </tr>
       <tr>
         <td class="ticker-cell">LNTH</td>
@@ -173,8 +183,10 @@ footer a:hover{color:var(--accent);}
         <td>2026-03-29</td>
         <td class="poa-cell">77.5%</td>
         <td>STRONG</td>
-        <td class="result-delayed">⏸ DELAYED 3 months</td>
-        <td style="color:var(--muted)">—</td>
+        <td style="color:var(--muted);">—</td>
+        <td class="result-delayed">⏸ DELAYED 3mo</td>
+        <td style="color:var(--muted);">—</td>
+        <td style="color:var(--muted);">—</td>
       </tr>
       <tr>
         <td class="ticker-cell">DNLI</td>
@@ -182,8 +194,10 @@ footer a:hover{color:var(--accent);}
         <td>2026-03-25</td>
         <td class="poa-cell">77.5%</td>
         <td>STRONG</td>
+        <td><span style="color:var(--accent2);">LOW</span></td>
         <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">✓ YES</td>
+        <td class="correct">+8%</td>
+        <td class="correct">✓</td>
       </tr>
       <tr>
         <td class="ticker-cell">RCKT</td>
@@ -191,8 +205,10 @@ footer a:hover{color:var(--accent);}
         <td>2026-03-28</td>
         <td class="poa-cell">77.5%</td>
         <td>STRONG</td>
+        <td><span style="color:var(--red);">HIGH</span></td>
         <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">✓ YES</td>
+        <td class="incorrect">-20%</td>
+        <td class="correct">✓</td>
       </tr>
     </tbody>
   </table>
@@ -204,10 +220,12 @@ footer a:hover{color:var(--accent);}
         <th>Ticker</th>
         <th>Drug / Indication</th>
         <th>PDUFA Date</th>
-        <th>PoA Score</th>
+        <th>PoA</th>
         <th>Grade</th>
+        <th>STN Risk</th>
         <th>FDA Outcome</th>
-        <th>Accurate?</th>
+        <th>Actual Move</th>
+        <th>PoA ✓</th>
       </tr>
     </thead>
     <tbody id="upcoming-body">
@@ -217,8 +235,10 @@ footer a:hover{color:var(--accent);}
         <td>2026-04-13</td>
         <td class="poa-cell">72.0%</td>
         <td>STRONG</td>
+        <td><span style="color:var(--amber);">MODERATE</span></td>
         <td class="result-pending">Pending — 16 days</td>
-        <td style="color:var(--muted)">—</td>
+        <td style="color:var(--muted);">—</td>
+        <td style="color:var(--muted);">—</td>
       </tr>
     </tbody>
   </table>
@@ -226,9 +246,21 @@ footer a:hover{color:var(--accent);}
   <div class="methodology">
     <h3>How We Track Accuracy</h3>
     <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against our predicted PoA score and grade.</p>
-    <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection.</p>
-    <p>Delayed events are not counted as wins or losses — the binary event hasn't resolved yet.</p>
-    <p>The self-calibrating weight system uses this outcome data to adjust the PoA/Convexity blend. After 10+ completed events, the model's weights auto-recalibrate based on which factors actually predicted approval in real data.</p>
+    <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection. Delayed events are not counted as wins or losses.</p>
+    <h3 style="margin-top:2rem;">Sell-The-News (STN) Risk Score — NEW</h3>
+    <p>Approval ≠ stock move. The scanner now includes a <strong style="color:var(--white)">Post-Approval Move Score</strong> that predicts whether an FDA approval will actually move the stock. This was added after observing that RCKT was approved (PoA correct) but the stock dropped 20% — a textbook sell-the-news event.</p>
+    <p>The STN Risk score evaluates:</p>
+    <p style="margin-left:1rem;">
+      <strong style="color:var(--accent)">• PoA priced-in factor</strong> — Higher PoA = more priced in = less upside on approval<br>
+      <strong style="color:var(--accent)">• Application type</strong> — sNDA/supplements are incremental, not transformative<br>
+      <strong style="color:var(--accent)">• Revenue potential</strong> — Small/rare indication vs large market blockbuster<br>
+      <strong style="color:var(--accent)">• AdCom unanimity</strong> — Unanimous vote = zero surprise value in approval<br>
+      <strong style="color:var(--accent)">• Resubmission status</strong> — Post-CRL approval was already expected<br>
+      <strong style="color:var(--accent)">• Competitive landscape</strong> — Crowded market reduces differentiation<br>
+      <strong style="color:var(--accent)">• First-in-class / PRV eligible</strong> — Unique value drivers that support price<br>
+    </p>
+    <p>Risk levels: <span style="color:var(--accent2)">VERY LOW</span> → <span style="color:var(--accent2)">LOW</span> → <span style="color:var(--amber)">MODERATE</span> → <span style="color:var(--amber)">ELEVATED</span> → <span style="color:var(--red)">HIGH</span></p>
+    <p>The PoA model tells you <strong style="color:var(--white)">IF</strong> it gets approved. The STN risk tells you <strong style="color:var(--white)">if that approval is worth trading</strong>.</p>
     <p>This page will be updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
   </div>
 
