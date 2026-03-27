@@ -314,6 +314,30 @@ footer a:hover { color:var(--accent); }
         </div>
       </div>
 
+      <div class="detail-section locked-block" id="section-stn">
+        <div class="section-title">Sell-The-News Risk Assessment</div>
+        <div class="lockable">
+          <div id="stn-content"></div>
+        </div>
+        <div class="lock-overlay hidden" id="lock-stn">
+          <div class="lock-icon-lg">🔒</div>
+          <div class="lock-msg">STN risk assessment visible to subscribers</div>
+          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+        </div>
+      </div>
+
+      <div class="detail-section locked-block" id="section-targets">
+        <div class="section-title">Price Targets & Scenarios</div>
+        <div class="lockable">
+          <div id="targets-content"></div>
+        </div>
+        <div class="lock-overlay hidden" id="lock-targets">
+          <div class="lock-icon-lg">🔒</div>
+          <div class="lock-msg">Price targets visible to subscribers</div>
+          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+        </div>
+      </div>
+
     </div>
 
     <div class="sidebar">
@@ -322,6 +346,16 @@ footer a:hover { color:var(--accent); }
         <div class="sidebar-title">Risk Flags</div>
         <div class="lockable" id="risk-flags"></div>
         <div class="lock-overlay hidden" id="lock-flags">
+          <div class="lock-icon-lg">🔒</div>
+          <div class="lock-msg">Visible to subscribers</div>
+          <a href="/signup.html" class="lock-cta">Unlock</a>
+        </div>
+      </div>
+
+      <div class="sidebar-section locked-block" id="section-stn-badge">
+        <div class="sidebar-title">Sell-The-News Risk</div>
+        <div class="lockable" id="stn-badge"></div>
+        <div class="lock-overlay hidden" id="lock-stn-badge">
           <div class="lock-icon-lg">🔒</div>
           <div class="lock-msg">Visible to subscribers</div>
           <a href="/signup.html" class="lock-cta">Unlock</a>
@@ -422,7 +456,7 @@ function populatePage(d, isPaid) {
   if (!isPaid) {
     // Show lock overlays for non-paid
     document.getElementById('upgrade-bar').classList.remove('hidden');
-    ['lock-summary','lock-poa','lock-convex','lock-timeline','lock-flags','lock-sources']
+    ['lock-summary','lock-poa','lock-convex','lock-timeline','lock-stn','lock-targets','lock-flags','lock-sources','lock-stn-badge']
       .forEach(function(id) { var el = document.getElementById(id); if(el) el.classList.remove('hidden'); });
     return;
   }
@@ -433,6 +467,32 @@ function populatePage(d, isPaid) {
 
   // ─── PAID USER: Generate AI analysis ───────────────────────────────────────
   document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
+
+  // STN Risk badge in sidebar
+  var stnRisk = d.sell_news_risk || 'MODERATE';
+  var stnColor = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[stnRisk] || 'var(--muted)';
+  var stnEmoji = {'HIGH':'🚨','ELEVATED':'⚠️','MODERATE':'🟡','LOW':'✅','VERY LOW':'✅'}[stnRisk] || '🟡';
+  document.getElementById('stn-badge').innerHTML = DOMPurify.sanitize(
+    '<div style="text-align:center;padding:1rem 0;">' +
+    '<div style="font-family:var(--serif);font-size:1.8rem;color:' + stnColor + ';">' + stnEmoji + ' ' + stnRisk + '</div>' +
+    '<div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.5rem;">Sell-The-News Risk Level</div>' +
+    (d.expected_move ? '<div style="font-family:var(--sans);font-size:0.78rem;color:var(--text);margin-top:0.75rem;line-height:1.6;">' + d.expected_move + '</div>' : '') +
+    '</div>'
+  );
+
+  // STN Content — move flags
+  var mFlags = d.move_flags || [];
+  if (mFlags.length > 0) {
+    document.getElementById('stn-content').innerHTML = DOMPurify.sanitize(
+      '<div style="margin-bottom:1rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);letter-spacing:0.06em;">Move Score: <strong style="color:' + stnColor + ';">' + (d.move_score || 0) + '/100</strong> (higher = more sell-the-news risk)</div>' +
+      mFlags.map(function(f) { return '<div class="flag-item">' + f + '</div>'; }).join('')
+    );
+  } else {
+    document.getElementById('stn-content').innerHTML = '<div style="color:var(--muted);font-family:var(--mono);font-size:0.72rem;">Move score analysis will populate after scoring runs.</div>';
+  }
+
+  // Targets section — loading state, filled by AI
+  document.getElementById('targets-content').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating price target analysis for ' + d.ticker + '...</span>';
 
   // PoA breakdown from scored data
   document.getElementById('poa-bars').innerHTML = [
@@ -468,7 +528,20 @@ async function generateAISummary(d) {
     if (!session) return;
 
     var EDGE_URL = SC_CONFIG.supabaseUrl + '/functions/v1/ai-research';
-    var prompt = 'Give me a concise executive summary for the ' + d.ticker + ' PDUFA setup. Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '. Current PoA score: ' + (d.poa || 0).toFixed(1) + '%. Risk flags: ' + (d.flags || []).join(', ') + '. Notes: ' + (d.notes || 'none') + '. Keep it to 2-3 paragraphs focused on regulatory pathway, key risks, and setup assessment.';
+    var stnRisk = d.sell_news_risk || 'MODERATE';
+
+    var prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide TWO clearly separated sections using these exact headers:\n\n' +
+      '**EXECUTIVE SUMMARY**\n' +
+      'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '. Scanner PoA: ' + (d.poa || 0).toFixed(1) + '%. Sell-the-news risk: ' + stnRisk + '. Risk flags: ' + (d.flags || []).join(', ') + '. Notes: ' + (d.notes || 'none') + '.\n' +
+      'Write 2-3 paragraphs covering: regulatory pathway assessment, key risk factors, sell-the-news dynamics (is approval priced in? will the stock move?), and overall setup quality.\n\n' +
+      '**PRICE TARGETS & SCENARIOS**\n' +
+      'Based on the drug\'s commercial potential, indication size, competitive landscape, and current market dynamics, provide:\n' +
+      '1. Bull case: What happens if approval + strong commercial signal? Give a realistic price range or % move.\n' +
+      '2. Base case: Approval as expected. What is the likely move given sell-the-news risk level of ' + stnRisk + '?\n' +
+      '3. Bear case: CRL or approval with disappointing label/restrictions. Expected downside.\n' +
+      '4. Analyst consensus: If known, mention analyst price targets or consensus rating. If not known, say so.\n' +
+      '5. Key question: What is the single most important factor that determines whether this approval moves the stock?\n\n' +
+      'Be specific with numbers and percentages where possible. This is for traders sizing positions around a binary event. End with the standard disclaimer.';
 
     var res = await fetch(EDGE_URL, {
       method: 'POST',
@@ -481,16 +554,47 @@ async function generateAISummary(d) {
 
     if (res.ok) {
       var data = await res.json();
-      var text = (data.reply || 'Analysis unavailable.')
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/`(.*?)`/g, '<code>$1</code>')
-        .replace(/\n/g, '<br>');
-      document.getElementById('summary-text').innerHTML = DOMPurify.sanitize(text);
+      var fullText = data.reply || 'Analysis unavailable.';
+
+      // Split into sections
+      var summaryText = fullText;
+      var targetsText = '';
+
+      var targetSplit = fullText.split(/\*\*PRICE TARGETS? & SCENARIOS?\*\*/i);
+      if (targetSplit.length >= 2) {
+        summaryText = targetSplit[0].replace(/\*\*EXECUTIVE SUMMARY\*\*/i, '').trim();
+        targetsText = targetSplit[1].trim();
+      } else {
+        // Try alternative split
+        var altSplit = fullText.split(/##\s*PRICE TARGETS?|##\s*Price Targets?/i);
+        if (altSplit.length >= 2) {
+          summaryText = altSplit[0].replace(/\*\*EXECUTIVE SUMMARY\*\*/i, '').replace(/##\s*EXECUTIVE SUMMARY/i, '').trim();
+          targetsText = altSplit[1].trim();
+        }
+      }
+
+      // Clean up markdown
+      var formatText = function(t) {
+        return t
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+          .replace(/`(.*?)`/g, '<code>$1</code>')
+          .replace(/\n/g, '<br>');
+      };
+
+      document.getElementById('summary-text').innerHTML = DOMPurify.sanitize(formatText(summaryText));
+
+      if (targetsText) {
+        document.getElementById('targets-content').innerHTML = DOMPurify.sanitize(formatText(targetsText));
+      } else {
+        document.getElementById('targets-content').innerHTML = DOMPurify.sanitize(formatText(summaryText.substring(summaryText.length / 2)));
+      }
     } else {
       document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber)">AI analysis temporarily unavailable. The scores and risk flags above are from the live scanner.</span>';
+      document.getElementById('targets-content').innerHTML = '<span style="color:var(--amber)">Price target analysis temporarily unavailable.</span>';
     }
   } catch (e) {
     document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber)">AI analysis temporarily unavailable. The scores and risk flags above are from the live scanner.</span>';
+    document.getElementById('targets-content').innerHTML = '<span style="color:var(--amber)">Price target analysis temporarily unavailable.</span>';
   }
 }
 
@@ -540,6 +644,10 @@ async function generateAISummary(d) {
         flags: e.flags || [],
         notes: e.notes || '',
         source_url: e.source_url || '',
+        sell_news_risk: e.sell_news_risk || 'MODERATE',
+        move_score: Number(e.move_score) || 0,
+        expected_move: e.expected_move || '',
+        move_flags: e.move_flags || [],
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;
