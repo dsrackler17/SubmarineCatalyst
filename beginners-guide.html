@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beginner's Guide to Biotech PDUFA Trading — Submarine Catalyst</title>
+<meta name="description" content="Complete beginner's guide to biotech catalyst trading. Learn what PDUFA dates, CRLs, AdCom votes, NDA/BLA filings, and approval probability mean for biotech stocks.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@DRackler">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;cursor:pointer;text-decoration:none;transition:background 0.2s,color 0.2s;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+
+main{flex:1;max-width:800px;width:100%;margin:0 auto;padding:3rem 2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:600px;line-height:1.7;}
+
+h2{font-family:var(--mono);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin:2.5rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+h3{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.08em;color:var(--white);margin:1.5rem 0 0.75rem;}
+p{color:var(--text);font-weight:300;line-height:1.85;margin-bottom:1rem;font-size:0.95rem;}
+strong{color:var(--white);font-weight:500;}
+code{color:var(--accent);font-family:var(--mono);font-size:0.85rem;background:rgba(0,212,255,0.08);padding:0.15rem 0.4rem;border-radius:2px;}
+
+.term-block{background:var(--surface);border:1px solid var(--border);padding:1.25rem 1.5rem;margin:1rem 0;position:relative;overflow:hidden;}
+.term-block::before{content:'';position:absolute;top:0;left:0;bottom:0;width:3px;}
+.term-blue::before{background:var(--accent);}
+.term-green::before{background:var(--accent2);}
+.term-red::before{background:var(--red);}
+.term-amber::before{background:var(--amber);}
+.term-name{font-family:var(--mono);font-size:0.82rem;font-weight:700;color:var(--white);letter-spacing:0.06em;margin-bottom:0.5rem;}
+.term-full{font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.08em;margin-bottom:0.5rem;}
+.term-def{font-size:0.9rem;color:var(--text);font-weight:300;line-height:1.8;margin:0;}
+.term-example{font-family:var(--mono);font-size:0.72rem;color:var(--amber);margin-top:0.5rem;}
+
+.callout{background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+.callout::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
+
+.toc{background:var(--surface);border:1px solid var(--border);padding:1.5rem 2rem;margin-bottom:2.5rem;}
+.toc-title{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;}
+.toc a{display:block;font-family:var(--sans);font-size:0.88rem;color:var(--text);text-decoration:none;padding:0.3rem 0;transition:color 0.2s;}
+.toc a:hover{color:var(--accent);}
+
+.disclaimer{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin:2rem 0;}
+
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+
+@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}main{padding:2rem 1.25rem;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
+    <li><a href="/how-institutions-trade.html">Education</a></li>
+    <li><a href="/#pricing">Pricing</a></li>
+  </ul>
+  <a href="/signup.html" class="nav-cta">Get Access</a>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Education</div>
+  <h1 class="page-title">Beginner's Guide to Biotech PDUFA Trading</h1>
+  <p class="page-sub">Everything you need to understand the terminology, the process, and the scores on Submarine Catalyst. Start here if you're new to biotech catalyst trading.</p>
+
+  <div class="disclaimer">
+    ⚠️ This is educational content about biotech trading mechanics, not investment advice. Trading biotech binary events carries substantial risk of loss. Never trade with money you can't afford to lose.
+  </div>
+
+  <div class="toc">
+    <div class="toc-title">Contents</div>
+    <a href="#what-is-pdufa">What is a PDUFA Date?</a>
+    <a href="#fda-process">The FDA Approval Process</a>
+    <a href="#application-types">Application Types: NDA, BLA, sNDA, ANDA</a>
+    <a href="#outcomes">Possible Outcomes: Approval, CRL, Delay</a>
+    <a href="#adcom">Advisory Committees (AdCom)</a>
+    <a href="#designations">Special Designations: Breakthrough, Orphan, Fast Track</a>
+    <a href="#scanner-terms">Submarine Catalyst Scanner Terms</a>
+    <a href="#trading-terms">Trading Terms for PDUFA Events</a>
+    <a href="#how-to-read">How to Read a Scanner Card</a>
+    <a href="#next-steps">Next Steps</a>
+  </div>
+
+  <h2 id="what-is-pdufa">What is a PDUFA Date?</h2>
+  <div class="term-block term-blue">
+    <div class="term-name">PDUFA Date</div>
+    <div class="term-full">Prescription Drug User Fee Act Target Action Date</div>
+    <p class="term-def">The deadline by which the FDA must respond to a drug application. When a pharmaceutical company submits a new drug for approval, the FDA sets a date — typically 10-12 months out — by which they will give their decision. This date is the PDUFA date.</p>
+    <div class="term-example">Example: "RCKT has a PDUFA date of March 28, 2026" means the FDA will decide on RCKT's drug by that date.</div>
+  </div>
+  <p>PDUFA dates are the most important catalysts in biotech trading. They're the moments when the FDA says yes or no, and stocks can move 20-100% in either direction within hours. That's why traders plan around them and why Submarine Catalyst scores every one.</p>
+  <p>The FDA can act on or before the PDUFA date. Early approvals happen — DNLI was approved days before its scheduled date. The FDA rarely extends beyond the PDUFA date without notifying the company first.</p>
+
+  <h2 id="fda-process">The FDA Approval Process</h2>
+  <p>Before a drug reaches its PDUFA date, it goes through years of development. Here's the simplified timeline:</p>
+
+  <div class="term-block term-green">
+    <div class="term-name">Preclinical → Phase 1 → Phase 2 → Phase 3 → FDA Filing → PDUFA</div>
+    <p class="term-def"><strong>Preclinical:</strong> Lab and animal testing. No humans involved yet. Most drugs fail here.<br><br>
+    <strong>Phase 1:</strong> First human testing. 20-100 healthy volunteers. Tests safety and dosing. "Is this drug safe?"<br><br>
+    <strong>Phase 2:</strong> Expanded testing. 100-300 patients with the disease. Tests whether the drug actually works. "Does it do anything?"<br><br>
+    <strong>Phase 3:</strong> Large-scale trials. 1,000-5,000+ patients. The definitive test. Results from Phase 3 are what the FDA bases their decision on. "Does it work well enough to approve?"<br><br>
+    <strong>FDA Filing (NDA/BLA):</strong> The company submits all their data to the FDA. The FDA sets the PDUFA date.<br><br>
+    <strong>PDUFA Date:</strong> The FDA gives their decision. This is where the scanner focuses.</p>
+  </div>
+
+  <h2 id="application-types">Application Types</h2>
+
+  <div class="term-block term-blue">
+    <div class="term-name">NDA</div>
+    <div class="term-full">New Drug Application</div>
+    <p class="term-def">An application to approve a new chemical drug (small molecule). Most common type. Think pills and tablets.</p>
+    <div class="term-example">Example: A new diabetes pill would be filed as an NDA.</div>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">BLA</div>
+    <div class="term-full">Biologics License Application</div>
+    <p class="term-def">An application to approve a biological product — things made from living cells like antibodies, gene therapies, and vaccines. These are typically more complex and expensive than small molecule drugs.</p>
+    <div class="term-example">Example: RCKT's Kresladi gene therapy was filed as a BLA.</div>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">sNDA / sBLA</div>
+    <div class="term-full">Supplemental NDA / Supplemental BLA</div>
+    <p class="term-def">An application to expand the use of an already-approved drug to a new indication (disease), a new patient population, or a new dosage form. The drug is already on the market — this just adds another approved use.</p>
+    <div class="term-example">Example: TVTX's sparsentan is already approved — the sNDA is to add FSGS as a new indication.</div>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">ANDA</div>
+    <div class="term-full">Abbreviated New Drug Application</div>
+    <p class="term-def">An application to approve a generic version of an already-approved drug. These are cheaper and faster because the drug has already been proven to work — the generic just needs to show it's the same.</p>
+  </div>
+
+  <p><strong>Why this matters for trading:</strong> An NDA or BLA for a first-ever drug is a much bigger catalyst than an sNDA for a label expansion. First approvals can move a stock 30-100%. Label expansions typically move 5-15%. The scanner accounts for this in both the PoA score and the Sell-The-News Risk assessment.</p>
+
+  <h2 id="outcomes">Possible FDA Outcomes</h2>
+
+  <div class="term-block term-green">
+    <div class="term-name">Approval</div>
+    <p class="term-def">The FDA says yes. The company can begin selling the drug. This is the outcome biotech longs are hoping for. However, approval does NOT always mean the stock goes up — see our <a href="/how-institutions-trade.html" style="color:var(--accent);">education page on sell-the-news dynamics</a>.</p>
+  </div>
+
+  <div class="term-block term-red">
+    <div class="term-name">CRL</div>
+    <div class="term-full">Complete Response Letter</div>
+    <p class="term-def">The FDA says no — for now. A CRL identifies issues the company must fix before the drug can be reconsidered. Issues range from minor (manufacturing quality, labeling) to severe (clinical data insufficient, safety concerns). The stock typically drops 30-70% on a CRL.</p>
+    <div class="term-example">Important distinction: A CRL for manufacturing issues (CMC) is much more fixable than a CRL for clinical failure. RCKT received a CRL for CMC issues only — the drug worked, they just needed to fix the manufacturing process. That's why the resubmission was expected to succeed.</div>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">Delay / Extension</div>
+    <p class="term-def">The FDA pushes the PDUFA date back, usually by 3 months. This happens when the company submits significant new information late in the review, triggering a "major amendment" that resets the review clock. Not as bad as a CRL but still negative — the stock typically drops 10-25%.</p>
+    <div class="term-example">Example: LNTH's PDUFA was delayed 3 months. AQST was also delayed. Neither was a rejection — the event just hasn't resolved yet.</div>
+  </div>
+
+  <div class="term-block term-red">
+    <div class="term-name">RTF</div>
+    <div class="term-full">Refuse to File</div>
+    <p class="term-def">The FDA rejects the application before even reviewing it. The submission was so incomplete that the FDA won't begin the review process. This is the worst possible outcome — it means the application was fundamentally flawed. Extremely rare but devastating (usually -50% or worse).</p>
+  </div>
+
+  <h2 id="adcom">Advisory Committees (AdCom)</h2>
+
+  <div class="term-block term-blue">
+    <div class="term-name">AdCom Vote</div>
+    <div class="term-full">FDA Advisory Committee Meeting</div>
+    <p class="term-def">Before some PDUFA decisions, the FDA convenes a panel of outside experts to review the drug and vote on whether it should be approved. The FDA isn't required to follow the vote, but they almost always do. AdCom votes are highly predictive of FDA decisions.</p>
+  </div>
+
+  <p><strong>How to read AdCom votes:</strong></p>
+  <p><strong>Unanimous (10-0, 12-0, etc.):</strong> Extremely bullish. Historically ~99% of unanimous positive votes lead to approval. However, because the outcome is so expected, the stock often doesn't move much on the actual approval — the move already happened when the AdCom vote was announced. This is a classic sell-the-news setup.</p>
+  <p><strong>Strong (8-2, 9-3):</strong> Very bullish. 90%+ approval rate. Some uncertainty remains, so the stock can still pop on approval.</p>
+  <p><strong>Close (6-4, 5-4):</strong> Uncertain. 60-70% approval rate. Significant upside if approved because the market wasn't sure. But also real risk of a CRL.</p>
+  <p><strong>Negative (3-7, 2-8):</strong> Bearish. FDA rarely approves against a negative vote. The stock has likely already dropped on the AdCom result.</p>
+
+  <h2 id="designations">Special FDA Designations</h2>
+
+  <div class="term-block term-green">
+    <div class="term-name">Breakthrough Therapy Designation</div>
+    <p class="term-def">Given to drugs that show substantial improvement over existing treatments for serious conditions. The FDA provides more intensive guidance and expedited review. Drugs with breakthrough designation have historically higher approval rates (~90%).</p>
+  </div>
+
+  <div class="term-block term-green">
+    <div class="term-name">Orphan Drug Designation</div>
+    <p class="term-def">Given to drugs treating rare diseases affecting fewer than 200,000 patients in the US. Benefits include tax credits, reduced fees, and 7 years of market exclusivity after approval. Orphan drugs have a high approval rate (~86%) but limited revenue potential due to the small patient population.</p>
+  </div>
+
+  <div class="term-block term-green">
+    <div class="term-name">Priority Review</div>
+    <p class="term-def">The FDA reviews the application in 6 months instead of the standard 10-12 months. Given to drugs that offer significant improvement over available therapies. Priority review drugs have higher approval rates (~81%).</p>
+  </div>
+
+  <div class="term-block term-green">
+    <div class="term-name">Fast Track</div>
+    <p class="term-def">Allows the company to submit sections of the application on a rolling basis instead of all at once. Speeds up the path to the PDUFA date. Slightly higher approval rates (~80%).</p>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">Accelerated Approval</div>
+    <p class="term-def">The FDA approves a drug based on a surrogate endpoint (like tumor shrinkage) rather than the ultimate clinical outcome (like survival). The drug reaches the market faster, but the company must run a confirmatory trial afterward. If the confirmatory trial fails, the FDA can withdraw the approval. This adds ongoing risk even after the PDUFA is resolved.</p>
+  </div>
+
+  <div class="term-block term-green">
+    <div class="term-name">PRV</div>
+    <div class="term-full">Priority Review Voucher</div>
+    <p class="term-def">A transferable voucher awarded to companies that get certain drugs approved (tropical disease, rare pediatric, etc.). The voucher can be sold to any other company for $100-110M+ — it lets the buyer skip to the front of the FDA review line for any future drug. PRV eligibility adds significant value on approval beyond just the drug revenue.</p>
+  </div>
+
+  <h2 id="scanner-terms">Submarine Catalyst Scanner Terms</h2>
+
+  <div class="term-block term-blue">
+    <div class="term-name">PoA — Probability of Approval</div>
+    <p class="term-def">The scanner's estimate of how likely the FDA is to approve this drug, expressed as a percentage. Calculated using indication-specific base rates from published medical literature (Hay et al. 2014, Wong et al. 2019), modified by AdCom votes, review pathway, special designations, prior CRL history, and SEC filing signals.</p>
+    <div class="term-example">Example: RCKT had a PoA of 77.5% — the scanner estimated a 77.5% chance of approval. It was approved.</div>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">Convexity Score</div>
+    <p class="term-def">Measures the trade asymmetry — how much the stock could move up relative to how much it could move down. A high convexity score means the potential upside significantly exceeds the potential downside. Factors include proximity to PDUFA date, how depressed the stock price is relative to its 52-week high, short interest (squeeze potential), and market cap.</p>
+    <div class="term-example">A small-cap stock trading at 50% of its 52-week high with 20% short interest has high convexity — the squeeze potential on approval is massive.</div>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">Final Score</div>
+    <p class="term-def">A composite score (0-100) combining the PoA (60% weight) and Convexity (40% weight). This is the scanner's overall assessment of the setup quality — not just whether it gets approved, but whether it's a good trade.</p>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">STN Risk — Sell-The-News Risk</div>
+    <p class="term-def">A score (0-100) predicting whether an FDA approval will actually move the stock price up. A HIGH STN risk means the approval is likely already priced in and the stock may drop on good news. A LOW STN risk means there's genuine surprise value in the approval and the stock should move up. This score exists because of the RCKT lesson — approval ≠ stock move.</p>
+    <div class="term-example">Levels: VERY LOW → LOW → MODERATE → ELEVATED → HIGH</div>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">Scanner Grades</div>
+    <p class="term-def">
+      <code>🚀 ELITE</code> — Final Score ≥ 72. Highest conviction setup. Strong PoA + strong trade asymmetry.<br>
+      <code>⚡ STRONG</code> — Final Score ≥ 58. Above-average setup worth serious consideration.<br>
+      <code>🟡 WATCH</code> — Final Score ≥ 42. Moderate setup. May have good PoA but limited trade asymmetry, or vice versa.<br>
+      <code>⚪ WEAK</code> — Final Score < 42. Below-average setup. High risk or low asymmetry.
+    </p>
+  </div>
+
+  <h2 id="trading-terms">Trading Terms for PDUFA Events</h2>
+
+  <div class="term-block term-amber">
+    <div class="term-name">Binary Event</div>
+    <p class="term-def">An event with two possible outcomes — the drug is approved or it's not. PDUFA dates are binary events. The stock will move significantly in one direction or the other. There's no middle ground, which is why position sizing and risk management are critical.</p>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">Sell-The-News</div>
+    <p class="term-def">When a stock drops after positive news because the good news was already expected and priced into the stock before the announcement. The announcement removes the catalyst people were holding for, and they sell. This is the most common way retail traders lose money on biotech — buying before a PDUFA expecting a pop that never comes.</p>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">Short Interest</div>
+    <p class="term-def">The percentage of a stock's available shares that have been sold short (borrowed and sold with the expectation of buying back lower). High short interest can mean institutions are betting against the stock — or it can mean a short squeeze is possible if the stock moves up sharply and shorts are forced to cover.</p>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">Short Squeeze</div>
+    <p class="term-def">When a stock with high short interest moves up sharply, forcing short sellers to buy back shares to cut their losses. Their buying pushes the price even higher, forcing more shorts to cover, creating a feedback loop. This is how some biotech stocks move +50-100% on approval when short interest is elevated.</p>
+  </div>
+
+  <div class="term-block term-red">
+    <div class="term-name">Dilution</div>
+    <p class="term-def">When a company issues new shares to raise money, reducing the value of existing shares. Many small-cap biotechs dilute within weeks of FDA approval to fund the drug's commercial launch. If you hold through approval, watch for secondary offering announcements — they typically drop the stock 10-20%.</p>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">CMC</div>
+    <div class="term-full">Chemistry, Manufacturing, and Controls</div>
+    <p class="term-def">The manufacturing quality standards the FDA requires. A CRL for CMC issues means the drug works but the manufacturing process isn't good enough yet. These are generally fixable, and resubmissions after CMC-only CRLs have high approval rates. A CRL for clinical issues is much more serious.</p>
+  </div>
+
+  <h2 id="how-to-read">How to Read a Scanner Card</h2>
+
+  <div class="callout">
+    <p>When you look at a ticker on the Submarine Catalyst scanner, here's what to focus on:</p>
+    <p><strong>1. PoA Score</strong> — Is approval likely? Above 70% is strong. Below 55% means real CRL risk.</p>
+    <p><strong>2. STN Risk</strong> — Will approval actually move the stock? HIGH means be careful. LOW means upside potential.</p>
+    <p><strong>3. Grade</strong> — ELITE and STRONG setups have the best risk/reward. WATCH means proceed with caution.</p>
+    <p><strong>4. Flags</strong> — Read every flag. They tell you the specific factors driving the scores. A "Prior CRL" flag is very different from a "Breakthrough Designation" flag.</p>
+    <p><strong>5. Days to PDUFA</strong> — Events within 30 days are imminent. This is when you should be finalizing your position or deciding to sit it out.</p>
+    <p style="margin-bottom:0;"><strong>6. Deep Dive</strong> — Click any ticker for the full AI-generated analysis with bull/base/bear price scenarios.</p>
+  </div>
+
+  <h2 id="next-steps">Next Steps</h2>
+  <p><strong>Read:</strong> <a href="/how-institutions-trade.html" style="color:var(--accent);">How Institutions Trade PDUFA Events</a> — understand sell-the-news dynamics and short selling mechanics.</p>
+  <p><strong>Browse:</strong> <a href="/calendar.html" style="color:var(--accent);">PDUFA Calendar</a> — see all 60+ upcoming FDA events with dates and basic info.</p>
+  <p><strong>Verify:</strong> <a href="/track-record.html" style="color:var(--accent);">Track Record</a> — see every prediction we've made and how it played out, including actual stock moves.</p>
+  <p><strong>Subscribe:</strong> Unlock full scanner scores, STN Risk ratings, AI deep dives, and price target scenarios for every event.</p>
+
+  <div style="text-align:center;margin:3rem 0;">
+    <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $49.99/month</a>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · STN Risk scores · AI research tool · 60+ events</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/track-record.html">Track Record</a>
+  </div>
+</footer>
+</body>
+</html>
