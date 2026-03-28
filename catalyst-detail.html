@@ -250,8 +250,8 @@ footer a:hover { color:var(--accent); }
       <div class="stat-val" id="stat-poa">—</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Convexity</div>
-      <div class="stat-val cyan" id="stat-convexity">—</div>
+      <div class="stat-label">STN Risk</div>
+      <div class="stat-val" id="stat-stn">—</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">Final Score</div>
@@ -418,7 +418,10 @@ function populatePage(d, isPaid) {
   document.getElementById('countdown-date').textContent = d.date;
 
   document.getElementById('stat-poa').textContent       = (d.poa || 0).toFixed(1) + '%';
-  document.getElementById('stat-convexity').textContent = (d.score * 0.6 || 0).toFixed(1);
+  var stnRisk = d.sell_news_risk || 'MODERATE';
+  var stnEl = document.getElementById('stat-stn');
+  stnEl.textContent = stnRisk;
+  stnEl.style.color = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[stnRisk] || 'var(--muted)';
   document.getElementById('stat-final').textContent     = (d.score || 0).toFixed(1);
   document.getElementById('stat-type').textContent      = d.type || 'PDUFA';
 
@@ -429,6 +432,8 @@ function populatePage(d, isPaid) {
     ['Indication',    d.indication || 'Unknown'],
     ['Grade',         d.grade || 'WATCH'],
     ['PoA',           (d.poa || 0).toFixed(1) + '%'],
+    ['STN Risk',      d.sell_news_risk || 'MODERATE'],
+    ['Move Score',    (d.move_score || 0) + '/100'],
     ['Final Score',   (d.score || 0).toFixed(1)],
   ].map(function(pair) {
     return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';

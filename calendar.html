@@ -450,6 +450,7 @@
         <th data-col="type">Type</th>
         <th data-col="grade">Grade <span class="sort-arrow">↕</span></th>
         <th data-col="poa" class="score-cell">PoA % <span class="sort-arrow">↕</span></th>
+        <th data-col="stn" class="score-cell">STN Risk</th>
         <th data-col="score" class="score-cell">Final Score <span class="sort-arrow">↕</span></th>
       </tr>
     </thead>
@@ -536,6 +537,8 @@ let sortDir       = 1;
           poa: Number(e.poa) || 0,
           score: Number(e.score) || 0,
           flags: e.flags || [],
+          sell_news_risk: e.sell_news_risk || 'MODERATE',
+          move_score: Number(e.move_score) || 0,
         };
       });
       if (result.isPaid) isPaid = true;
@@ -653,6 +656,7 @@ function renderTable() {
         </td>
         <td>${gradeBadge(d.grade)}</td>
         <td>${scoreCell(d.poa.toFixed(1) + '%', 'approval prob.', locked)}</td>
+        <td>${locked ? scoreCell('🔒', 'stn risk', true) : '<span style="font-family:var(--mono);font-size:0.72rem;font-weight:700;color:' + ({HIGH:'var(--red)',ELEVATED:'var(--amber)',MODERATE:'var(--amber)',LOW:'var(--accent2)','VERY LOW':'var(--accent2)'}[d.sell_news_risk] || 'var(--muted)') + '">' + (d.sell_news_risk || 'MOD') + '</span>'}</td>
         <td>${scoreCell(d.score.toFixed(1), 'final score', locked)}</td>
       </tr>
     `;

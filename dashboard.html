@@ -128,6 +128,8 @@
   .score-box-val.green { color: var(--accent2); }
   .score-box-val.cyan  { color: var(--accent); }
   .score-box-val.white { color: var(--white); }
+  .score-box-val.amber { color: var(--amber); }
+  .score-box-val.red   { color: var(--red); }
 
   .card-flags { display: flex; flex-direction: column; gap: 0.2rem; }
   .card-flag  { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; }
@@ -399,14 +401,19 @@ function renderScanner() {
             <div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div>
           </div>
           <div class="score-box">
-            <div class="score-box-label">Convexity</div>
-            <div class="score-box-val cyan">${(d.convexity || 0).toFixed(1)}</div>
+            <div class="score-box-label">STN Risk</div>
+            <div class="score-box-val ${d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? 'green' : 'amber'}">${d.sell_news_risk || 'MOD'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">Move Score</div>
+            <div class="score-box-val ${d.move_score >= 70 ? 'red' : d.move_score >= 50 ? 'amber' : 'cyan'}">${d.move_score || 0}</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">Final</div>
             <div class="score-box-val white">${(d.score || 0).toFixed(1)}</div>
           </div>
         </div>
+        ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
         <div class="card-flags">
           ${(d.flags || []).map(f=>`<div class="card-flag">${f}</div>`).join('')}
         </div>
@@ -554,6 +561,9 @@ function switchTab(btn, id) {
           convexity: Number(e.score) * 0.6 || 0,
           score: Number(e.score) || 0,
           flags: e.flags || [],
+          sell_news_risk: e.sell_news_risk || 'MODERATE',
+          move_score: Number(e.move_score) || 0,
+          expected_move: e.expected_move || '',
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
