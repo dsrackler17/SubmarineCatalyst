@@ -254,7 +254,11 @@ footer a:hover { color:var(--accent); }
       <div class="stat-val" id="stat-stn">—</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Final Score</div>
+      <div class="stat-label">Dilution Risk</div>
+      <div class="stat-val" id="stat-dilution">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Net Edge Score</div>
       <div class="stat-val white" id="stat-final">—</div>
     </div>
     <div class="stat-cell">
@@ -422,7 +426,11 @@ function populatePage(d, isPaid) {
   var stnEl = document.getElementById('stat-stn');
   stnEl.textContent = stnRisk;
   stnEl.style.color = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[stnRisk] || 'var(--muted)';
-  document.getElementById('stat-final').textContent     = (d.score || 0).toFixed(1);
+  var dilRisk = d.dilution_risk || 'UNKNOWN';
+  var dilEl = document.getElementById('stat-dilution');
+  dilEl.textContent = dilRisk;
+  dilEl.style.color = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)','UNKNOWN':'var(--muted)'}[dilRisk] || 'var(--muted)';
+  document.getElementById('stat-final').textContent     = (d.net_edge_score || d.score || 0).toFixed(1);
   document.getElementById('stat-type').textContent      = d.type || 'PDUFA';
 
   document.getElementById('key-metrics').innerHTML = [
@@ -434,7 +442,13 @@ function populatePage(d, isPaid) {
     ['PoA',           (d.poa || 0).toFixed(1) + '%'],
     ['STN Risk',      d.sell_news_risk || 'MODERATE'],
     ['Move Score',    (d.move_score || 0) + '/100'],
-    ['Final Score',   (d.score || 0).toFixed(1)],
+    ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
+    ['Dilution Score', (d.dilution_score || 0) + '/100'],
+    ['Runway',        d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown'],
+    ['Insider Signal', d.insider_signal || 'NEUTRAL'],
+    ['Shelf Active',  d.shelf_active ? 'YES' : 'No'],
+    ['ATM Active',    d.atm_active ? 'YES' : 'No'],
+    ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
   ].map(function(pair) {
     return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
   }).join('');
@@ -535,18 +549,36 @@ async function generateAISummary(d) {
     var EDGE_URL = SC_CONFIG.supabaseUrl + '/functions/v1/ai-research';
     var stnRisk = d.sell_news_risk || 'MODERATE';
 
-    var prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide TWO clearly separated sections using these exact headers:\n\n' +
+    var prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
       '**EXECUTIVE SUMMARY**\n' +
-      'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '. Scanner PoA: ' + (d.poa || 0).toFixed(1) + '%. Sell-the-news risk: ' + stnRisk + '. Risk flags: ' + (d.flags || []).join(', ') + '. Notes: ' + (d.notes || 'none') + '.\n' +
-      'Write 2-3 paragraphs covering: regulatory pathway assessment, key risk factors, sell-the-news dynamics (is approval priced in? will the stock move?), and overall setup quality.\n\n' +
+      'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '.\n' +
+      'Scanner data — PoA: ' + (d.poa || 0).toFixed(1) + '%. STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
+      'Runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '. ' +
+      'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Net insider buys (90d): ' + (d.insider_net_buys || 0) + '. ' +
+      'Shelf active: ' + (d.shelf_active ? 'YES' : 'No') + '. ATM active: ' + (d.atm_active ? 'YES' : 'No') + '. ' +
+      'Partnership detected: ' + (d.partnership_detected ? 'YES' : 'No') + '. ' +
+      'Net Edge Score: ' + (d.net_edge_score || d.score || 0).toFixed(1) + '/100. Grade: ' + (d.grade || 'WATCH') + '.\n' +
+      'Risk flags: ' + (d.flags || []).join(', ') + '.\n' +
+      'Dilution flags: ' + (d.dilution_flags || []).join(', ') + '.\n' +
+      'Notes: ' + (d.notes || 'none') + '.\n' +
+      'Write 2-3 paragraphs covering: regulatory pathway assessment, key risk factors, sell-the-news dynamics, dilution risk assessment, and overall setup quality.\n\n' +
+      '**SEC FILING & DILUTION RISK ANALYSIS**\n' +
+      'For ' + d.ticker + ', analyze the following dilution risk factors:\n' +
+      '1. Has the company filed any recent 424B5 prospectus supplements, S-3 shelf registrations, or S-1 registration statements?\n' +
+      '2. Does the company have an active ATM facility? Scanner says: ' + (d.atm_active ? 'YES — ACTIVE ATM DETECTED' : 'No active ATM detected') + '\n' +
+      '3. Shelf registration status: ' + (d.shelf_active ? 'ACTIVE — company can sell shares at any time' : 'No active shelf detected') + '\n' +
+      '4. Cash runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown — check latest 10-Q') + '. Will they need to raise capital?\n' +
+      '5. Is this a "shorting the launch" setup — commercial launch costs exceeding cash position?\n' +
+      '6. Dilution score from scanner: ' + (d.dilution_score || 0) + '/100 (' + (d.dilution_risk || 'UNKNOWN') + ')\n\n' +
       '**PRICE TARGETS & SCENARIOS**\n' +
-      'Based on the drug\'s commercial potential, indication size, competitive landscape, and current market dynamics, provide:\n' +
-      '1. Bull case: What happens if approval + strong commercial signal? Give a realistic price range or % move.\n' +
-      '2. Base case: Approval as expected. What is the likely move given sell-the-news risk level of ' + stnRisk + '?\n' +
-      '3. Bear case: CRL or approval with disappointing label/restrictions. Expected downside.\n' +
-      '4. Analyst consensus: If known, mention analyst price targets or consensus rating. If not known, say so.\n' +
-      '5. Key question: What is the single most important factor that determines whether this approval moves the stock?\n\n' +
-      'Be specific with numbers and percentages where possible. This is for traders sizing positions around a binary event. End with the standard disclaimer.';
+      'Based on the drug\'s commercial potential, indication size, competitive landscape, SEC filing signals, dilution risk profile, and current market dynamics:\n' +
+      '1. Bull case: Approval + no dilution + strong commercial signal. Realistic % move.\n' +
+      '2. Base case: Approval as expected. Likely move given STN risk of ' + stnRisk + ' and dilution risk of ' + (d.dilution_risk || 'UNKNOWN') + '.\n' +
+      '3. Bear case: CRL, or approval with immediate dilution. Expected downside.\n' +
+      '4. Analyst consensus if known.\n' +
+      '5. Key question: Single most important factor for whether this approval moves the stock.\n' +
+      '6. Optimal trade strategy: Given STN + dilution profile, should trader hold through PDUFA, sell before, buy after, or avoid entirely?\n\n' +
+      'Be specific with numbers and percentages. This is for traders sizing positions around a binary event. End with disclaimer.';
 
     var res = await fetch(EDGE_URL, {
       method: 'POST',
@@ -563,22 +595,30 @@ async function generateAISummary(d) {
 
       // Split into sections
       var summaryText = fullText;
+      var secText = '';
       var targetsText = '';
 
-      var targetSplit = fullText.split(/\*\*PRICE TARGETS? & SCENARIOS?\*\*/i);
-      if (targetSplit.length >= 2) {
-        summaryText = targetSplit[0].replace(/\*\*EXECUTIVE SUMMARY\*\*/i, '').trim();
-        targetsText = targetSplit[1].trim();
+      // Try splitting by our headers
+      var parts = fullText.split(/\*\*(?:SEC FILING|SEC Filing|DILUTION RISK|Dilution Risk)[^*]*\*\*/i);
+      if (parts.length >= 2) {
+        summaryText = parts[0].replace(/\*\*EXECUTIVE SUMMARY\*\*/i, '').trim();
+        var remainder = parts[1];
+        var targetParts = remainder.split(/\*\*PRICE TARGETS?[^*]*\*\*/i);
+        if (targetParts.length >= 2) {
+          secText = targetParts[0].trim();
+          targetsText = targetParts[1].trim();
+        } else {
+          secText = remainder.trim();
+        }
       } else {
-        // Try alternative split
-        var altSplit = fullText.split(/##\s*PRICE TARGETS?|##\s*Price Targets?/i);
-        if (altSplit.length >= 2) {
-          summaryText = altSplit[0].replace(/\*\*EXECUTIVE SUMMARY\*\*/i, '').replace(/##\s*EXECUTIVE SUMMARY/i, '').trim();
-          targetsText = altSplit[1].trim();
+        // Fallback: try splitting by price targets only
+        var targetSplit = fullText.split(/\*\*PRICE TARGETS?[^*]*\*\*/i);
+        if (targetSplit.length >= 2) {
+          summaryText = targetSplit[0].replace(/\*\*EXECUTIVE SUMMARY\*\*/i, '').trim();
+          targetsText = targetSplit[1].trim();
         }
       }
 
-      // Clean up markdown
       var formatText = function(t) {
         return t
           .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
@@ -588,10 +628,20 @@ async function generateAISummary(d) {
 
       document.getElementById('summary-text').innerHTML = DOMPurify.sanitize(formatText(summaryText));
 
+      // SEC/Dilution section goes into STN content area
+      if (secText) {
+        var existingSTN = document.getElementById('stn-content').innerHTML;
+        document.getElementById('stn-content').innerHTML = DOMPurify.sanitize(
+          existingSTN + '<div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);">' +
+          '<div style="font-family:var(--mono);font-size:0.72rem;letter-spacing:0.08em;color:var(--accent);margin-bottom:0.75rem;">SEC FILING & DILUTION ANALYSIS</div>' +
+          '<div style="font-size:0.88rem;line-height:1.8;">' + formatText(secText) + '</div></div>'
+        );
+      }
+
       if (targetsText) {
         document.getElementById('targets-content').innerHTML = DOMPurify.sanitize(formatText(targetsText));
       } else {
-        document.getElementById('targets-content').innerHTML = DOMPurify.sanitize(formatText(summaryText.substring(summaryText.length / 2)));
+        document.getElementById('targets-content').innerHTML = '<span style="color:var(--amber)">Price target analysis will be available shortly.</span>';
       }
     } else {
       document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber)">AI analysis temporarily unavailable. The scores and risk flags above are from the live scanner.</span>';
@@ -653,6 +703,17 @@ async function generateAISummary(d) {
         move_score: Number(e.move_score) || 0,
         expected_move: e.expected_move || '',
         move_flags: e.move_flags || [],
+        net_edge_score: Number(e.net_edge_score) || Number(e.score) || 0,
+        dilution_risk: e.dilution_risk || 'UNKNOWN',
+        dilution_score: Number(e.dilution_score) || 0,
+        dilution_flags: e.dilution_flags || [],
+        runway_months: e.runway_months,
+        runway_risk: e.runway_risk || 'UNKNOWN',
+        insider_signal: e.insider_signal || 'NEUTRAL',
+        insider_net_buys: Number(e.insider_net_buys) || 0,
+        shelf_active: e.shelf_active || false,
+        atm_active: e.atm_active || false,
+        partnership_detected: e.partnership_detected || false,
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;
