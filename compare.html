@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compare PDUFA Setups — Submarine Catalyst</title>
+<meta name="description" content="Side-by-side comparison of biotech PDUFA events. Compare approval probability, sell-the-news risk, dilution radar, and strategic layers across multiple tickers.">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+<script src="/js/config.js"></script>
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;text-decoration:none;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+
+main{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-sub{font-size:0.9rem;color:var(--muted);font-weight:300;margin-bottom:2rem;max-width:600px;line-height:1.7;}
+
+.selector-bar{display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:2rem;align-items:center;}
+.ticker-chip{font-family:var(--mono);font-size:0.72rem;padding:0.4rem 0.9rem;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;letter-spacing:0.06em;transition:all 0.2s;}
+.ticker-chip:hover{border-color:var(--accent);color:var(--accent);}
+.ticker-chip.selected{background:rgba(0,212,255,0.12);border-color:var(--accent);color:var(--accent);font-weight:700;}
+.compare-btn{font-family:var(--mono);font-size:0.72rem;padding:0.5rem 1.5rem;background:var(--accent);color:var(--navy);border:none;cursor:pointer;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;}
+.compare-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+.comparison-grid{display:grid;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;}
+.comp-header{background:var(--panel);padding:0.75rem 1rem;font-family:var(--mono);font-size:0.65rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);text-align:center;position:sticky;top:0;}
+.comp-label{background:var(--deep);padding:0.65rem 1rem;font-family:var(--mono);font-size:0.68rem;color:var(--muted);letter-spacing:0.06em;display:flex;align-items:center;}
+.comp-cell{background:var(--surface);padding:0.65rem 1rem;font-family:var(--mono);font-size:0.75rem;color:var(--text);text-align:center;display:flex;align-items:center;justify-content:center;}
+.comp-cell.green{color:var(--accent2);}
+.comp-cell.red{color:var(--red);}
+.comp-cell.amber{color:var(--amber);}
+.comp-cell.cyan{color:var(--accent);}
+
+.bar-container{width:100%;background:var(--deep);height:20px;position:relative;overflow:hidden;}
+.bar-fill{height:100%;transition:width 0.6s ease;}
+.bar-fill.green{background:linear-gradient(90deg,rgba(0,255,157,0.3),rgba(0,255,157,0.7));}
+.bar-fill.red{background:linear-gradient(90deg,rgba(255,68,68,0.3),rgba(255,68,68,0.7));}
+.bar-fill.amber{background:linear-gradient(90deg,rgba(245,166,35,0.3),rgba(245,166,35,0.7));}
+.bar-fill.cyan{background:linear-gradient(90deg,rgba(0,212,255,0.3),rgba(0,212,255,0.7));}
+.bar-label{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:0.62rem;font-weight:700;}
+
+.takeaway-section{background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.takeaway-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.takeaway-ticker{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--white);letter-spacing:0.08em;margin-bottom:0.5rem;}
+.takeaway-text{font-size:0.85rem;color:var(--text);font-weight:300;line-height:1.8;}
+.loading-msg{text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);}
+
+.gate-overlay{position:fixed;inset:0;background:rgba(4,13,26,0.95);display:flex;align-items:center;justify-content:center;z-index:100;flex-direction:column;gap:1.5rem;}
+.gate-msg{font-family:var(--serif);font-size:1.5rem;color:var(--white);text-align:center;}
+.gate-sub{font-family:var(--sans);font-size:0.9rem;color:var(--muted);text-align:center;max-width:400px;}
+.gate-btn{font-family:var(--mono);font-size:0.78rem;padding:0.75rem 2rem;background:var(--accent);color:var(--navy);border:none;text-decoration:none;font-weight:700;letter-spacing:0.08em;}
+
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}main{padding:1.5rem 1rem;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo"><span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/compare.html" class="active">Compare</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
+    <li><a href="/how-institutions-trade.html">Education</a></li>
+  </ul>
+  <a href="/dashboard.html" class="nav-cta" id="nav-cta">Dashboard →</a>
+</nav>
+
+<div class="gate-overlay" id="gate" style="display:none;">
+  <div class="gate-msg">🔒 Comparison Tool</div>
+  <div class="gate-sub">Compare PDUFA setups side by side with all risk layers. Requires an active subscription.</div>
+  <a href="/signup.html" class="gate-btn">Subscribe — $49.99/mo</a>
+</div>
+
+<main>
+  <div class="page-eyebrow">Intelligence Tool</div>
+  <h1 class="page-title">Compare PDUFA Setups</h1>
+  <p class="page-sub">Select 2-4 tickers to compare side by side. Every risk layer included — PoA, STN Risk, Dilution Radar, Net Edge Score.</p>
+
+  <div class="selector-bar" id="ticker-bar">
+    <span style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);">Loading tickers...</span>
+  </div>
+
+  <button class="compare-btn" id="compare-btn" disabled onclick="runComparison()">Compare Selected</button>
+
+  <div id="comparison-output" style="margin-top:2rem;"></div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/track-record.html">Track Record</a>
+  </div>
+</footer>
+
+<script>
+let allEvents = [];
+let selectedTickers = new Set();
+
+function riskColor(risk) {
+  var m = {'HIGH':'red','EXTREME':'red','ELEVATED':'amber','MODERATE':'amber','LOW':'green','VERY LOW':'green','MINIMAL':'green'};
+  return m[risk] || 'white';
+}
+
+function barHTML(value, max, colorClass, label) {
+  var pct = Math.min(100, Math.max(0, (value / max) * 100));
+  return '<div class="bar-container"><div class="bar-fill ' + colorClass + '" style="width:' + pct + '%"></div><span class="bar-label" style="color:var(--' + (colorClass === 'green' ? 'accent2' : colorClass === 'red' ? 'red' : 'accent') + ')">' + label + '</span></div>';
+}
+
+function toggleTicker(ticker) {
+  if (selectedTickers.has(ticker)) {
+    selectedTickers.delete(ticker);
+  } else if (selectedTickers.size < 4) {
+    selectedTickers.add(ticker);
+  }
+  // Update UI
+  document.querySelectorAll('.ticker-chip').forEach(function(el) {
+    el.classList.toggle('selected', selectedTickers.has(el.dataset.ticker));
+  });
+  document.getElementById('compare-btn').disabled = selectedTickers.size < 2;
+}
+
+function runComparison() {
+  var selected = allEvents.filter(function(e) { return selectedTickers.has(e.ticker); });
+  if (selected.length < 2) return;
+
+  var cols = selected.length + 1;
+  var gridCols = 'grid-template-columns: 180px repeat(' + selected.length + ', 1fr)';
+
+  var rows = [
+    ['', 'Ticker'],
+    ['', 'Drug'],
+    ['', 'Indication'],
+    ['', 'PDUFA Date'],
+    ['', 'Days Out'],
+    ['', 'Application Type'],
+    ['', 'Grade'],
+    ['bar', 'PoA Score'],
+    ['risk', 'STN Risk'],
+    ['risk', 'Dilution Risk'],
+    ['bar', 'Net Edge Score'],
+    ['bar', 'Move Score'],
+    ['', 'Expected Move'],
+    ['', 'Runway'],
+    ['', 'Insider Signal'],
+    ['', 'Shelf Active'],
+    ['', 'ATM Active'],
+    ['', 'Partnership'],
+  ];
+
+  var html = '<div class="comparison-grid" style="' + gridCols + '">';
+
+  // Header row
+  html += '<div class="comp-header" style="visibility:hidden;">—</div>';
+  selected.forEach(function(e) {
+    var gradeColor = e.grade === 'ELITE' ? 'cyan' : e.grade === 'STRONG' ? 'green' : e.grade === 'WATCH' ? 'amber' : 'red';
+    html += '<div class="comp-header" style="font-size:0.82rem;color:var(--' + gradeColor + ')">' + e.ticker + '</div>';
+  });
+
+  rows.forEach(function(row) {
+    var type = row[0];
+    var label = row[1];
+    html += '<div class="comp-label">' + label + '</div>';
+
+    selected.forEach(function(e) {
+      var days = Math.round((new Date(e.date) - new Date()) / 86400000);
+      var val = '';
+      var cls = '';
+
+      switch(label) {
+        case 'Ticker': val = e.ticker; cls = 'cyan'; break;
+        case 'Drug': val = (e.drug || '—').substring(0, 40); break;
+        case 'Indication': val = (e.indication || '—').substring(0, 30); break;
+        case 'PDUFA Date': val = e.date; break;
+        case 'Days Out': val = days >= 0 ? days + 'd' : 'Resolved'; cls = days <= 14 ? 'red' : days <= 30 ? 'amber' : ''; break;
+        case 'Application Type': val = e.type || 'PDUFA'; break;
+        case 'Grade': val = e.grade; cls = e.grade === 'ELITE' ? 'cyan' : e.grade === 'STRONG' ? 'green' : e.grade === 'WATCH' ? 'amber' : 'red'; break;
+        case 'PoA Score': val = barHTML(e.poa, 100, e.poa >= 75 ? 'green' : e.poa >= 60 ? 'cyan' : 'amber', (e.poa || 0).toFixed(1) + '%'); break;
+        case 'STN Risk': val = e.sell_news_risk || 'MOD'; cls = riskColor(e.sell_news_risk); break;
+        case 'Dilution Risk': val = e.dilution_risk || '—'; cls = riskColor(e.dilution_risk); break;
+        case 'Net Edge Score': val = barHTML(e.net_edge_score || e.score, 100, (e.net_edge_score || e.score) >= 72 ? 'green' : (e.net_edge_score || e.score) >= 58 ? 'cyan' : 'amber', (e.net_edge_score || e.score || 0).toFixed(1)); break;
+        case 'Move Score': val = barHTML(e.move_score, 100, e.move_score >= 70 ? 'red' : e.move_score >= 50 ? 'amber' : 'green', (e.move_score || 0) + '/100'); break;
+        case 'Expected Move': val = (e.expected_move || '—').substring(0, 50); break;
+        case 'Runway': val = e.runway_months ? Math.round(e.runway_months) + 'mo' : '—'; cls = e.runway_months && e.runway_months < 12 ? 'red' : e.runway_months && e.runway_months > 24 ? 'green' : ''; break;
+        case 'Insider Signal': val = e.insider_signal || 'NEUTRAL'; cls = e.insider_signal === 'BULLISH' ? 'green' : e.insider_signal === 'BEARISH' ? 'red' : ''; break;
+        case 'Shelf Active': val = e.shelf_active ? '⚠️ YES' : '✅ No'; cls = e.shelf_active ? 'amber' : 'green'; break;
+        case 'ATM Active': val = e.atm_active ? '🚨 YES' : '✅ No'; cls = e.atm_active ? 'red' : 'green'; break;
+        case 'Partnership': val = e.partnership_detected ? '✅ YES' : '—'; cls = e.partnership_detected ? 'green' : ''; break;
+      }
+
+      if (type === 'bar') {
+        html += '<div class="comp-cell">' + val + '</div>';
+      } else {
+        html += '<div class="comp-cell ' + cls + '">' + val + '</div>';
+      }
+    });
+  });
+
+  // Flags row — full width per ticker
+  html += '</div>';
+
+  // Key flags section
+  html += '<div style="margin-top:1.5rem;">';
+  selected.forEach(function(e) {
+    var flags = (e.flags || []).slice(0, 6);
+    html += '<div class="takeaway-section">';
+    html += '<div class="takeaway-ticker">' + e.ticker + ' — Key Risk Flags</div>';
+    html += '<div class="takeaway-text">';
+    if (flags.length > 0) {
+      flags.forEach(function(f) { html += '<div style="margin-bottom:0.3rem;">' + DOMPurify.sanitize(f) + '</div>'; });
+    } else {
+      html += '<div style="color:var(--muted)">No specific flags detected</div>';
+    }
+    html += '</div></div>';
+  });
+  html += '</div>';
+
+  // AI comparison prompt
+  html += '<div class="takeaway-section" id="ai-comparison">';
+  html += '<div class="takeaway-ticker">AI Comparison Analysis</div>';
+  html += '<div class="takeaway-text" id="ai-comparison-text" style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating side-by-side analysis...</div>';
+  html += '</div>';
+
+  document.getElementById('comparison-output').innerHTML = html;
+
+  // Generate AI comparison
+  generateAIComparison(selected);
+}
+
+async function generateAIComparison(events) {
+  try {
+    var session = await scGetSession();
+    if (!session) return;
+
+    var tickerSummaries = events.map(function(e) {
+      return e.ticker + ': ' + (e.drug || 'unknown') + ' | ' + (e.indication || 'unknown') + ' | PDUFA ' + e.date + ' | PoA ' + (e.poa || 0).toFixed(1) + '% | STN ' + (e.sell_news_risk || 'MOD') + ' | Dilution ' + (e.dilution_risk || 'UNKNOWN') + ' | Net Edge ' + (e.net_edge_score || e.score || 0).toFixed(1) + ' | Grade ' + (e.grade || 'WATCH') + ' | Shelf: ' + (e.shelf_active ? 'YES' : 'No') + ' | ATM: ' + (e.atm_active ? 'YES' : 'No');
+    }).join('\n');
+
+    var prompt = 'Compare these PDUFA setups side by side. For each, assess which is the better trade and why:\n\n' + tickerSummaries + '\n\n' +
+      'Provide:\n1. Which setup has the best risk/reward and why\n2. Which has the highest dilution risk\n3. Which has the most sell-the-news exposure\n4. Recommended position sizing relative to each other (e.g., "full size on X, half size on Y, avoid Z")\n5. One key lesson or pattern from this comparison\n\nBe specific and direct. This is for a trader deciding how to allocate across these events.';
+
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/ai-research', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
+    });
+
+    if (res.ok) {
+      var data = await res.json();
+      var text = (data.reply || 'Analysis unavailable.')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/`(.*?)`/g, '<code>$1</code>')
+        .replace(/\n/g, '<br>');
+      document.getElementById('ai-comparison-text').innerHTML = DOMPurify.sanitize(text);
+    } else {
+      document.getElementById('ai-comparison-text').innerHTML = '<span style="color:var(--amber)">AI comparison temporarily unavailable.</span>';
+    }
+  } catch (e) {
+    document.getElementById('ai-comparison-text').innerHTML = '<span style="color:var(--amber)">AI comparison temporarily unavailable.</span>';
+  }
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function() {
+  var session = await scRequireAuth();
+  if (!session) return;
+
+  var profile = await scGetProfile(session.user.id);
+  if (!profile || !profile.is_paid) {
+    document.getElementById('gate').style.display = 'flex';
+    return;
+  }
+
+  // Fetch all events from server
+  try {
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+      headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+    });
+    var result = await res.json();
+    if (result.events) {
+      allEvents = result.events;
+
+      // Build ticker chips
+      var bar = document.getElementById('ticker-bar');
+      bar.innerHTML = allEvents.map(function(e) {
+        var days = Math.round((new Date(e.date) - new Date()) / 86400000);
+        var urgency = days <= 14 ? 'color:var(--red)' : days <= 30 ? 'color:var(--amber)' : '';
+        return '<div class="ticker-chip" data-ticker="' + e.ticker + '" onclick="toggleTicker(\'' + e.ticker + '\')" style="' + urgency + '">' + e.ticker + ' <span style="font-size:0.58rem;color:var(--muted);">' + days + 'd</span></div>';
+      }).join('');
+    }
+  } catch (e) {
+    console.warn('Failed to load events:', e);
+  }
+})();
+</script>
+</body>
+</html>
