@@ -10,7 +10,7 @@ const SC_CONFIG = {
   supabaseKey:  'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU',
 
   // Stripe Payment Link (append ?client_reference_id=USER_ID&prefilled_email=EMAIL)
-  stripePaymentLink: 'https://buy.stripe.com/9B628qb5U2Ml6iOf9o8IU02',
+  stripePaymentLink: 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03',
 
   // Stripe Customer Portal (set this after activating in Stripe Dashboard → Settings → Billing → Customer Portal)
   // Example: 'https://billing.stripe.com/p/login/xxxxx'
