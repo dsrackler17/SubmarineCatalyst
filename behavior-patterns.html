@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post-Catalyst Behavior Patterns — Submarine Catalyst</title>
+<meta name="description" content="Understand how biotech stocks behave after FDA catalysts. Data-driven behavioral patterns including post-approval spikes, deep dives, sustained ascents, and buyout signals.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@DRackler">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;text-decoration:none;transition:background 0.2s,color 0.2s;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+main{flex:1;max-width:800px;width:100%;margin:0 auto;padding:3rem 2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:600px;line-height:1.7;}
+h2{font-family:var(--mono);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin:2.5rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+p{color:var(--text);font-weight:300;line-height:1.85;margin-bottom:1rem;font-size:0.95rem;}
+strong{color:var(--white);font-weight:500;}
+
+.pattern-card{background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+.pattern-card::before{content:'';position:absolute;top:0;left:0;bottom:0;width:4px;}
+.pattern-green::before{background:var(--accent2);}
+.pattern-red::before{background:var(--red);}
+.pattern-amber::before{background:var(--amber);}
+.pattern-cyan::before{background:var(--accent);}
+.pattern-icon{font-size:1.5rem;margin-bottom:0.75rem;}
+.pattern-name{font-family:var(--mono);font-size:0.88rem;font-weight:700;color:var(--white);letter-spacing:0.06em;margin-bottom:0.25rem;}
+.pattern-sub{font-family:var(--mono);font-size:0.62rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem;}
+.pattern-desc{font-size:0.9rem;color:var(--text);font-weight:300;line-height:1.85;margin-bottom:0.75rem;}
+.pattern-factors{font-family:var(--mono);font-size:0.72rem;color:var(--muted);line-height:1.8;}
+.pattern-example{background:var(--deep);border-left:3px solid var(--accent);padding:0.75rem 1rem;margin-top:0.75rem;font-family:var(--mono);font-size:0.72rem;color:var(--text);line-height:1.7;}
+
+.disclaimer{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin:2rem 0;}
+.callout{background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+.callout::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent);}
+
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}main{padding:2rem 1.25rem;}}
+</style>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo"><span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
+    <li><a href="/how-institutions-trade.html">Education</a></li>
+  </ul>
+  <a href="/signup.html" class="nav-cta">Get Access</a>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Behavioral Intelligence</div>
+  <h1 class="page-title">Post-Catalyst Behavior Patterns</h1>
+  <p class="page-sub">How biotech stocks typically behave after FDA catalysts. Not predictions. Not signals. Behavioral tendencies drawn from historical data and observed patterns.</p>
+
+  <div class="disclaimer">
+    ⚠️ These are behavioral patterns based on historical observation — not predictions, not guarantees, and not trading signals. Every PDUFA event is unique. Past patterns do not guarantee future behavior. Different traders have different plans, risk tolerances, and timeframes. Use this as context, not conviction.
+  </div>
+
+  <h2>Understanding Post-Catalyst Behavior</h2>
+  <p>When the FDA makes a decision, the stock doesn't just go up or down. The behavior unfolds in phases — an initial reaction, a secondary adjustment, and a longer-term trajectory. Understanding these phases helps you plan entries, exits, and position sizes before the event happens.</p>
+  <p>The scanner assigns each upcoming PDUFA event a set of behavioral probability estimates based on the setup's characteristics. These are not prediction scores — they describe <strong>how stocks with similar setups have historically behaved.</strong></p>
+
+  <h2>The Five Behavioral Patterns</h2>
+
+  <div class="pattern-card pattern-green">
+    <div class="pattern-icon">📡</div>
+    <div class="pattern-name">Post-Approval Spike</div>
+    <div class="pattern-sub">Sonar Contact — Short-term upward reaction</div>
+    <p class="pattern-desc">A sharp initial move upward in the hours following FDA approval. This is the most common retail expectation — the "pop" on good news. The spike typically occurs in after-hours or premarket trading and may fade once the regular session opens.</p>
+    <div class="pattern-factors">
+      <strong style="color:var(--white);">Higher probability when:</strong><br>
+      → Low PoA (surprise approval) · Low STN Risk · Depressed stock price<br>
+      → High short interest (squeeze) · First-ever approval for company<br>
+      → Large market indication · No active ATM/shelf
+    </div>
+    <div class="pattern-example">
+      <strong>Real example:</strong> VNDA — 78% PoA, LOW STN Risk. Spiked +45% on approval. Large market (gastroparesis), depressed price, genuine surprise value despite high PoA.
+    </div>
+  </div>
+
+  <div class="pattern-card pattern-red">
+    <div class="pattern-icon">🔻</div>
+    <div class="pattern-name">Deep Dive</div>
+    <div class="pattern-sub">Emergency Descent — Significant drop after catalyst</div>
+    <p class="pattern-desc">A significant decline in the days following a catalyst — even on positive news. This is the sell-the-news phenomenon at its most severe. The stock may spike briefly, then reverse hard as institutions sell into retail buying, dilution is announced, or the market re-prices commercial reality.</p>
+    <div class="pattern-factors">
+      <strong style="color:var(--white);">Higher probability when:</strong><br>
+      → HIGH STN Risk · Unanimous AdCom (priced in) · Resubmission after CRL<br>
+      → Active ATM/shelf registration · Runway &lt;12 months · Insider selling<br>
+      → Ultra-rare indication (limited revenue) · sNDA/supplement (incremental)
+    </div>
+    <div class="pattern-example">
+      <strong>Real example:</strong> RCKT — 77.5% PoA, HIGH STN Risk. Approved, then dropped -20%. Unanimous AdCom, resubmission, ultra-rare gene therapy (~30 patients/yr), $100M ATM filed 18 days before PDUFA. Every deep dive indicator was present.
+    </div>
+  </div>
+
+  <div class="pattern-card pattern-cyan">
+    <div class="pattern-icon">🔼</div>
+    <div class="pattern-name">Strong Ascend</div>
+    <div class="pattern-sub">Surface Breach — Sustained upward movement</div>
+    <p class="pattern-desc">Not just a spike, but sustained upward movement over days to weeks following approval. This happens when the market gradually prices in the full commercial value of the drug, institutional buyers accumulate, and no dilution occurs to cap the rally.</p>
+    <div class="pattern-factors">
+      <strong style="color:var(--white);">Higher probability when:</strong><br>
+      → First-in-class drug · Large addressable market · No competition<br>
+      → Partnership/co-commercialization in place · Strong runway (&gt;24 months)<br>
+      → Insider buying cluster · No shelf/ATM · Low institutional ownership (room to accumulate)
+    </div>
+    <div class="pattern-example">
+      <strong>Real example:</strong> VNDA 2nd approval — 76% PoA, MODERATE STN. Gained +28% and held. Known drug, known market, no dilution overhang, commercial infrastructure already in place from first approval.
+    </div>
+  </div>
+
+  <div class="pattern-card pattern-amber">
+    <div class="pattern-icon">🏷️</div>
+    <div class="pattern-name">Buyout Wave</div>
+    <div class="pattern-sub">Acquisition Sonar — Likelihood of takeover interest</div>
+    <p class="pattern-desc">Some approvals make the company an acquisition target. Large pharma companies regularly acquire smaller biotechs after FDA approval to add the drug to their portfolio without the development risk. This pattern typically takes weeks to months to develop but can result in premium buyout offers well above the post-approval price.</p>
+    <div class="pattern-factors">
+      <strong style="color:var(--white);">Higher probability when:</strong><br>
+      → First-in-class with large market · Small-cap with single approved product<br>
+      → Drug fills gap in large pharma portfolio · Clean label (no REMS/black box)<br>
+      → Company has no commercial infrastructure (easier to acquire than to compete)<br>
+      → PRV eligible (additional value) · Therapeutic area with active M&amp;A history
+    </div>
+    <div class="pattern-example">
+      <strong>Historical context:</strong> Biotech acquisitions frequently occur within 12-24 months of FDA approval. The acquirer lets the small company absorb the approval risk, then buys at a premium once the drug is de-risked. Companies with PRV eligibility add $100M+ in immediate value.
+    </div>
+  </div>
+
+  <div class="pattern-card pattern-amber">
+    <div class="pattern-icon">〰️</div>
+    <div class="pattern-name">Surface-Level Reaction</div>
+    <div class="pattern-sub">Neutral Buoyancy — Muted or flat response</div>
+    <p class="pattern-desc">Sometimes the market barely reacts to an approval. The stock moves 0-5% and then drifts. This doesn't mean the approval is bad — it means the market already fully priced it in, or the commercial opportunity isn't exciting enough to drive new buying.</p>
+    <div class="pattern-factors">
+      <strong style="color:var(--white);">Higher probability when:</strong><br>
+      → Very high PoA (&gt;85%) and everyone expected it · sNDA for known drug<br>
+      → Large-cap company where one drug doesn't move the needle<br>
+      → Competitive market with existing treatments · Stock already at fair value<br>
+      → ELEVATED STN Risk with no squeeze catalyst
+    </div>
+    <div class="pattern-example">
+      <strong>Real example:</strong> FBIO — 74% PoA, ELEVATED STN. Approved, moved only +3%. Orphan/CTCL indication with limited revenue ceiling, expected approval, no short squeeze catalyst.
+    </div>
+  </div>
+
+  <h2>How the Scanner Uses These Patterns</h2>
+
+  <div class="callout">
+    <p>Each PDUFA event in the scanner is assessed against all five patterns simultaneously. The combination of PoA, STN Risk, Dilution Radar, runway, insider activity, and market cap tier determines which behavioral pattern is most likely.</p>
+    <p>A single event can have elevated probability for multiple patterns. For example, RCKT had moderate probability of both a post-approval spike (which happened briefly in premarket) AND a deep dive (which dominated by market open). The scanner flagged HIGH STN Risk, which correctly predicted the deep dive would overpower the spike.</p>
+    <p style="margin-bottom:0;"><strong>The goal isn't to predict the exact move. The goal is to understand which behaviors are most likely so you can plan your trade accordingly</strong> — when to take profits, when to hold, when to avoid, and how to size your position relative to the risk.</p>
+  </div>
+
+  <h2>Full Biotech Universe Coverage</h2>
+  <p>Submarine Catalyst now tracks PDUFA events across the <strong>entire biotech universe</strong> — small-cap, mid-cap, and large-cap companies. This matters because behavioral patterns differ significantly by market cap tier:</p>
+  <p><strong>Small-cap ($0-$2B):</strong> Highest volatility. Most susceptible to deep dives from dilution. But also the highest spike and buyout wave potential. This is where the asymmetric trades live.</p>
+  <p><strong>Mid-cap ($2B-$10B):</strong> More institutional coverage means more efficient pricing. Spikes are moderate (+10-25%). Deep dives are less common but still occur on sNDA/label expansion events. Buyout potential is real but at higher premiums.</p>
+  <p><strong>Large-cap ($10B+):</strong> Surface-level reactions are the norm. One drug approval rarely moves the needle. These are tracked for completeness and for understanding competitive dynamics that affect smaller companies in the same therapeutic area.</p>
+
+  <h2>How to Use This</h2>
+  <p>Before every PDUFA trade, check which behavioral pattern the scanner flags as most likely. Then build your plan around that pattern — not around hope.</p>
+  <p>If the scanner says HIGH STN Risk and the deep dive pattern is elevated, plan to sell into the premarket spike or avoid the trade entirely. If the scanner says LOW STN Risk and the spike pattern is elevated, size accordingly and set your profit target before the event.</p>
+  <p>The traders who consistently make money on PDUFA events are the ones who plan for specific behaviors instead of just betting on direction. This page — and the scanner — exists to make that planning systematic.</p>
+
+  <div style="text-align:center;margin:3rem 0;">
+    <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:1rem;">
+      <a href="/beginners-guide.html" style="color:var(--accent);">New to PDUFA trading? Start with the Beginner's Guide →</a>
+    </p>
+    <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $49.99/month</a>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · All risk layers · AI research · Behavioral patterns</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/track-record.html">Track Record</a>
+  </div>
+</footer>
+</body>
+</html>

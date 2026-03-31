@@ -259,6 +259,7 @@ footer a:hover { color: var(--accent); }
     <li><a href="#origin">Origin</a></li>
     <li><a href="/track-record.html">Track Record</a></li>
     <li><a href="/how-institutions-trade.html">Education</a></li>
+    <li><a href="/behavior-patterns.html">Patterns</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
   <a href="#pricing" class="nav-cta">Get Access</a>
@@ -311,10 +312,12 @@ footer a:hover { color: var(--accent); }
     <h2 class="section-heading">Not a screener. An evidence model.</h2>
     <p class="section-sub">Every score is a weighted synthesis of seven independent signal layers — not one metric dressed up as many.</p>
     <div class="how-grid">
-      <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision date — new drugs, label expansions, resubmissions — gets queued for scoring automatically.</p></div>
+      <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
       <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
-      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, patient population size, competitive dynamics, and institutional positioning. HIGH risk means take profits fast — or skip the trade entirely.</p></div>
-      <div class="how-card"><span class="how-num">04</span><div class="how-title">Final Score + Grade</div><p class="how-desc">PoA and STN Risk are combined into a 0–100 final score. ELITE / STRONG / WATCH / WEAK tiers surface the best setups — events where the approval is likely AND the stock will actually move.</p></div>
+      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and institutional positioning. Calibrated against real outcomes — RCKT (-20%), VNDA (+45%).</p></div>
+      <div class="how-card"><span class="how-num">04</span><div class="how-title">Dilution Radar</div><p class="how-desc">Scans SEC EDGAR for 424B5 filings, S-3 shelf registrations, ATM offerings, and sales agent changes near PDUFA dates. Detects the capital raises that destroy post-approval gains before you buy.</p></div>
+      <div class="how-card"><span class="how-num">05</span><div class="how-title">Net Edge Score</div><p class="how-desc">Combines PoA, STN Risk, Dilution Radar, cash runway, and insider activity into a single composite. One number that answers "is this a good trade" — not just "will it get approved."</p></div>
+      <div class="how-card"><span class="how-num">06</span><div class="how-title">Behavioral Patterns</div><p class="how-desc">Classifies each event into five post-catalyst behaviors: Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction. Not predictions — behavioral tendencies drawn from historical data.</p></div>
     </div>
   </div>
 </section>
@@ -354,6 +357,19 @@ footer a:hover { color: var(--accent); }
   </div>
 </section>
 
+<section id="coverage" style="padding:4rem 3rem;">
+  <div class="section reveal">
+    <div class="section-label">Full Coverage</div>
+    <h2 class="section-heading">The entire biotech universe. One platform.</h2>
+    <p class="section-sub">Submarine Catalyst tracks every FDA binary event across the full market cap spectrum — not just the small-caps that retail traders already know about.</p>
+    <div class="how-grid">
+      <div class="how-card"><span class="how-num" style="color:var(--accent2)">SC</span><div class="how-title">Small-Cap ($0–$2B)</div><p class="how-desc">Highest volatility. Highest spike potential. Highest dilution risk. Where the asymmetric PDUFA trades live — and where the scanner's STN Risk and Dilution Radar add the most value.</p></div>
+      <div class="how-card"><span class="how-num" style="color:var(--accent)">MC</span><div class="how-title">Mid-Cap ($2B–$10B)</div><p class="how-desc">More institutional coverage, more efficient pricing. Moderate moves on approval (+10-25%). Sell-the-news risk is higher. sNDA/label expansions are common. Where the smart money operates.</p></div>
+      <div class="how-card"><span class="how-num" style="color:var(--amber)">LC</span><div class="how-title">Large-Cap ($10B+)</div><p class="how-desc">One drug rarely moves the needle. Tracked for competitive dynamics, pipeline intelligence, and the ripple effects a large-cap approval has on smaller companies in the same therapeutic area.</p></div>
+    </div>
+  </div>
+</section>
+
 <section id="pricing">
   <div class="section reveal">
     <div class="section-label">Pricing</div>
@@ -362,13 +378,15 @@ footer a:hover { color: var(--accent); }
     <div class="pricing-wrapper">
       <ul class="pricing-context">
         <strong>What you get</strong>
-        <li>Full scanner output on every PDUFA event — PoA, STN Risk, Dilution Radar, Net Edge Score</li>
+        <li>Full biotech universe coverage — small-cap, mid-cap, and large-cap PDUFA events</li>
+        <li>Full scanner output on every event — PoA, STN Risk, Dilution Radar, Net Edge Score</li>
         <li>AI Research Tool — deep dives with price targets and dilution analysis on any ticker</li>
         <li>Dilution Radar — real-time EDGAR scanning for 424B5, ATM, shelf, and insider filings</li>
-        <li>Sell-The-News Risk Score — predict which approvals will actually move the stock</li>
+        <li>Compare Tool — side-by-side analysis of 2-4 tickers with AI recommendations</li>
+        <li>Post-catalyst behavioral patterns — Spike, Deep Dive, Ascend, Buyout Wave, Surface</li>
         <li>Cash runway monitoring and insider activity signals</li>
-        <li>Full education platform — beginner's guide + institutional trading dynamics</li>
-        <li>Track record with actual post-approval stock moves documented</li>
+        <li>Full education platform — beginner's guide, institutional dynamics, behavioral patterns</li>
+        <li>Track record with actual post-approval stock moves — wins and losses documented transparently</li>
       </ul>
       <div class="pricing-card">
         <span class="pricing-badge">PRO ACCESS</span>
