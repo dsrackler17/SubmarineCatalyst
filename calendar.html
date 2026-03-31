@@ -3,712 +3,414 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PDUFA Calendar — Submarine Catalyst</title>
-<meta name="description" content="Complete PDUFA calendar with approval probability scores, convexity analysis, and risk flags for every upcoming FDA binary event.">
+<title>Biotech Catalyst Calendar — Submarine Catalyst</title>
+<meta name="description" content="Complete biotech catalyst calendar covering PDUFA dates, clinical readouts, earnings, AdCom meetings, buyout signals, and conference presentations. Full universe coverage across all market caps.">
 <meta name="twitter:site" content="@DRackler">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script src="/js/config.js"></script>
 <style>
-  :root {
-    --navy:    #040d1a;
-    --deep:    #07152b;
-    --surface: #0b1f3a;
-    --panel:   #0f2647;
-    --border:  #1a3a5c;
-    --accent:  #00d4ff;
-    --accent2: #00ff9d;
-    --amber:   #f5a623;
-    --red:     #ff4444;
-    --text:    #c8dff0;
-    --muted:   #5a7a99;
-    --white:   #eaf4ff;
-    --mono:    'Space Mono', monospace;
-    --serif:   'DM Serif Display', serif;
-    --sans:    'DM Sans', sans-serif;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--navy);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-  nav, main, footer { position: relative; z-index: 1; }
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:1.5rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);text-decoration:none;}
+.nav-links a:hover,.nav-links a.active{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.4rem 1rem;text-decoration:none;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
 
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.25rem 3rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(4,13,26,0.92);
-    backdrop-filter: blur(12px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
-  .sonar-icon { width: 28px; height: 28px; }
-  .sonar-icon svg { width: 100%; height: 100%; }
-  .nav-wordmark {
-    font-family: var(--mono);
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-  .nav-wordmark span { color: var(--accent); }
-  .nav-links { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
-  .nav-links a {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--muted);
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .nav-links a:hover, .nav-links a.active { color: var(--accent); }
-  .nav-cta {
-    font-family: var(--mono);
-    font-size: 0.7rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    background: transparent;
-    border: 1px solid var(--accent);
-    color: var(--accent);
-    padding: 0.45rem 1.1rem;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.2s, color 0.2s;
-  }
-  .nav-cta:hover { background: var(--accent); color: var(--navy); }
+main{flex:1;max-width:1300px;width:100%;margin:0 auto;padding:2rem 2rem;}
+.page-header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.25rem;display:flex;align-items:center;gap:0.5rem;}
+.page-eyebrow::before{content:'';display:block;width:1rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:1.8rem;color:var(--white);}
+.page-stats{display:flex;gap:1.5rem;}
+.page-stat{text-align:center;}
+.page-stat-val{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--accent);}
+.page-stat-label{font-family:var(--mono);font-size:0.58rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
 
-  .page-header {
-    border-bottom: 1px solid var(--border);
-    background: var(--deep);
-    padding: 2.5rem 3rem 2rem;
-  }
-  .page-header-inner {
-    max-width: 1300px;
-    margin: 0 auto;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 2rem;
-    flex-wrap: wrap;
-  }
-  .page-eyebrow {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.22em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 0.5rem;
-  }
-  .page-title {
-    font-family: var(--serif);
-    font-size: 2rem;
-    color: var(--white);
-    line-height: 1.15;
-    margin-bottom: 0.3rem;
-  }
-  .page-meta {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    color: var(--muted);
-    letter-spacing: 0.08em;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  .live-dot {
-    display: inline-block;
-    width: 6px;
-    height: 6px;
-    background: var(--accent2);
-    border-radius: 50%;
-    animation: pulse 2s ease infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
+/* Tab bar */
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem;overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.tab-btn{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;padding:0.75rem 1.25rem;cursor:pointer;white-space:nowrap;transition:all 0.2s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-count{font-size:0.58rem;color:var(--muted);margin-left:0.35rem;font-weight:400;}
+.tab-btn.active .tab-count{color:var(--accent);}
 
-  .filters {
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 1.25rem 3rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    border-bottom: 1px solid var(--border);
-  }
-  .filter-label {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--muted);
-  }
-  .filter-btn {
-    font-family: var(--mono);
-    font-size: 0.65rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 0.3rem 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s;
-  }
-  .filter-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .filter-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,212,255,0.07); }
-  .filter-sep { width: 1px; height: 20px; background: var(--border); margin: 0 0.25rem; }
+/* Filters */
+.filter-bar{display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center;}
+.filter-select{font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;cursor:pointer;letter-spacing:0.04em;}
+.filter-select:focus{border-color:var(--accent);outline:none;}
+.filter-label{font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;}
+.search-input{font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:180px;letter-spacing:0.04em;}
+.search-input:focus{border-color:var(--accent);outline:none;}
 
-  main {
-    max-width: 1300px;
-    margin: 0 auto;
-    padding: 2rem 3rem 5rem;
-  }
+/* Table */
+.cal-table{width:100%;border-collapse:collapse;font-size:0.78rem;}
+.cal-table th{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);text-align:left;padding:0.6rem 0.75rem;border-bottom:1px solid var(--border);background:var(--deep);position:sticky;top:0;z-index:2;cursor:pointer;}
+.cal-table th:hover{color:var(--white);}
+.cal-table td{padding:0.55rem 0.75rem;border-bottom:1px solid rgba(26,58,92,0.4);font-family:var(--mono);font-size:0.72rem;color:var(--text);vertical-align:middle;}
+.cal-table tr:hover td{background:rgba(0,212,255,0.03);}
+.cal-table tr{cursor:pointer;}
 
-  .calendar-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-family: var(--mono);
-    font-size: 0.75rem;
-  }
-  .calendar-table thead tr { border-bottom: 1px solid var(--border); }
-  .calendar-table th {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    color: var(--muted);
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-weight: 400;
-    white-space: nowrap;
-    cursor: pointer;
-    user-select: none;
-    transition: color 0.2s;
-  }
-  .calendar-table th:hover { color: var(--accent); }
-  .calendar-table th .sort-arrow { margin-left: 0.3rem; opacity: 0.4; }
-  .calendar-table th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
-  .calendar-table tbody tr {
-    border-bottom: 1px solid rgba(26,58,92,0.4);
-    transition: background 0.15s;
-    cursor: pointer;
-  }
-  .calendar-table tbody tr:hover { background: rgba(0,212,255,0.03); }
-  .calendar-table td { padding: 1rem 1rem; vertical-align: middle; }
+.ticker-cell{font-weight:700;color:var(--white);letter-spacing:0.06em;}
+.days-pill{font-size:0.58rem;padding:0.15rem 0.5rem;border-radius:2px;margin-left:0.5rem;font-weight:700;}
+.days-hot{border:1px solid rgba(255,68,68,0.5);color:var(--red);background:rgba(255,68,68,0.08);}
+.days-warm{border:1px solid rgba(245,166,35,0.5);color:var(--amber);background:rgba(245,166,35,0.08);}
+.days-cool{border:1px solid rgba(0,212,255,0.3);color:var(--accent);background:rgba(0,212,255,0.05);}
 
-  .ticker-cell { display: flex; align-items: center; gap: 0.75rem; }
-  .ticker-sym {
-    font-family: var(--mono);
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--white);
-    letter-spacing: 0.06em;
-  }
+.event-badge{font-family:var(--mono);font-size:0.58rem;padding:0.2rem 0.5rem;letter-spacing:0.06em;font-weight:700;display:inline-block;}
+.badge-pdufa{background:rgba(0,212,255,0.12);color:var(--accent);border:1px solid rgba(0,212,255,0.3);}
+.badge-clinical{background:rgba(0,255,157,0.1);color:var(--accent2);border:1px solid rgba(0,255,157,0.3);}
+.badge-earnings{background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.3);}
+.badge-adcom{background:rgba(138,99,255,0.1);color:#a78bfa;border:1px solid rgba(138,99,255,0.3);}
+.badge-buyout{background:rgba(255,68,68,0.08);color:var(--red);border:1px solid rgba(255,68,68,0.25);}
+.badge-conference{background:rgba(200,223,240,0.08);color:var(--text);border:1px solid rgba(200,223,240,0.2);}
+.badge-other{background:rgba(90,122,153,0.1);color:var(--muted);border:1px solid rgba(90,122,153,0.3);}
 
-  .days-badge {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.06em;
-    padding: 0.15rem 0.5rem;
-    border: 1px solid;
-  }
-  .days-hot   { border-color: rgba(255,68,68,0.5);    color: var(--red);    background: rgba(255,68,68,0.08); }
-  .days-warm  { border-color: rgba(245,166,35,0.5);   color: var(--amber);  background: rgba(245,166,35,0.08); }
-  .days-watch { border-color: rgba(0,212,255,0.4);    color: var(--accent); background: rgba(0,212,255,0.06); }
-  .days-far   { border-color: rgba(90,122,153,0.4);   color: var(--muted);  background: transparent; }
+.score-cell{text-align:center;font-weight:700;}
+.pattern-pill{font-size:0.56rem;padding:0.12rem 0.4rem;border-radius:2px;margin:0.1rem 0;display:inline-block;font-family:var(--mono);}
 
-  .drug-name  { color: var(--text); font-family: var(--sans); font-size: 0.85rem; font-weight: 400; }
-  .drug-ind   { color: var(--muted); font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.05em; margin-top: 0.15rem; }
+.empty-state{text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);}
+.disclaimer-bar{font-family:var(--mono);font-size:0.6rem;color:var(--amber);padding:0.5rem 0.75rem;background:rgba(245,166,35,0.04);border:1px solid rgba(245,166,35,0.15);margin-bottom:1.25rem;letter-spacing:0.03em;line-height:1.6;}
 
-  .grade-badge {
-    display: inline-block;
-    font-family: var(--mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    padding: 0.2rem 0.6rem;
-    border: 1px solid;
-    white-space: nowrap;
-  }
-  .grade-elite  { color: var(--accent2);  border-color: rgba(0,255,157,0.4);  background: rgba(0,255,157,0.08); }
-  .grade-strong { color: var(--accent);   border-color: rgba(0,212,255,0.4);  background: rgba(0,212,255,0.08); }
-  .grade-watch  { color: var(--amber);    border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
-  .grade-weak   { color: var(--muted);    border-color: rgba(90,122,153,0.4); background: transparent; }
+.gate-overlay{position:fixed;inset:0;background:rgba(4,13,26,0.95);display:none;align-items:center;justify-content:center;z-index:100;flex-direction:column;gap:1.5rem;}
+.gate-msg{font-family:var(--serif);font-size:1.5rem;color:var(--white);}
+.gate-sub{font-family:var(--sans);font-size:0.9rem;color:var(--muted);text-align:center;max-width:400px;}
+.gate-btn{font-family:var(--mono);font-size:0.78rem;padding:0.75rem 2rem;background:var(--accent);color:var(--navy);border:none;text-decoration:none;font-weight:700;}
 
-  .score-cell { text-align: center; }
-  .score-val  { font-size: 0.9rem; font-weight: 700; color: var(--accent2); }
-  .score-sub  { font-size: 0.6rem; color: var(--muted); margin-top: 0.1rem; }
-
-  .locked { position: relative; display: inline-block; }
-  .locked .score-val, .locked .poa-val { filter: blur(5px); user-select: none; pointer-events: none; }
-  .lock-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 0.75rem; opacity: 0.7; pointer-events: none; }
-
-  .modal-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(4,13,26,0.85);
-    backdrop-filter: blur(6px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s;
-  }
-  .modal-overlay.open { opacity: 1; pointer-events: all; }
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--accent);
-    padding: 2.5rem;
-    max-width: 420px;
-    width: 90%;
-    position: relative;
-    animation: modalUp 0.3s ease both;
-  }
-  @keyframes modalUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to   { transform: translateY(0);    opacity: 1; }
-  }
-  .modal::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-  }
-  .modal-close {
-    position: absolute;
-    top: 1rem; right: 1rem;
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-family: var(--mono);
-    font-size: 1rem;
-    cursor: pointer;
-    line-height: 1;
-  }
-  .modal-close:hover { color: var(--white); }
-  .modal-eyebrow {
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 0.75rem;
-  }
-  .modal-title { font-family: var(--serif); font-size: 1.75rem; color: var(--white); margin-bottom: 0.75rem; line-height: 1.2; }
-  .modal-body { font-size: 0.88rem; color: var(--muted); font-weight: 300; margin-bottom: 1.75rem; line-height: 1.65; }
-  .modal-cta {
-    display: block;
-    width: 100%;
-    font-family: var(--mono);
-    font-size: 0.78rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    background: var(--accent);
-    color: var(--navy);
-    border: none;
-    padding: 0.85rem;
-    cursor: pointer;
-    font-weight: 700;
-    text-decoration: none;
-    text-align: center;
-    transition: opacity 0.2s;
-    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
-  }
-  .modal-cta:hover { opacity: 0.85; }
-  .modal-note { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); text-align: center; margin-top: 0.6rem; }
-
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 1.5rem 3rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-family: var(--mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.08em;
-    color: var(--muted);
-    background: var(--deep);
-  }
-  footer a { color: var(--muted); text-decoration: none; }
-  footer a:hover { color: var(--accent); }
-  .footer-links { display: flex; gap: 1.5rem; }
-  .footer-disclaimer { max-width: 500px; text-align: center; line-height: 1.6; }
-
-  @media (max-width: 1024px) {
-    nav { padding: 1rem 1.5rem; }
-    .nav-links { display: none; }
-    .page-header { padding: 2rem 1.5rem 1.5rem; }
-    .filters { padding: 1rem 1.5rem; }
-    main { padding: 1.5rem 1.5rem 4rem; }
-  }
-  @media (max-width: 768px) {
-    .calendar-table th:nth-child(4),
-    .calendar-table td:nth-child(4) { display: none; }
-    footer { flex-direction: column; gap: 0.75rem; text-align: center; padding: 1rem 1.5rem; }
-  }
+footer{border-top:1px solid var(--border);padding:1rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.6rem;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+@media(max-width:768px){
+  nav{padding:0.75rem 1rem;}.nav-links{display:none;}
+  main{padding:1rem;}
+  .page-header{flex-direction:column;align-items:flex-start;}
+  .tab-btn{padding:0.6rem 0.75rem;font-size:0.6rem;}
+  .cal-table{font-size:0.68rem;}
+  .cal-table td,.cal-table th{padding:0.4rem 0.5rem;}
+}
 </style>
 </head>
 <body>
-
 <nav>
-  <a href="/" class="nav-logo">
-    <div class="sonar-icon">
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Submarine Catalyst sonar icon">
-        <circle cx="16" cy="16" r="15" stroke="#1a3a5c" stroke-width="1"/>
-        <circle cx="16" cy="16" r="10" stroke="#1a3a5c" stroke-width="0.75"/>
-        <circle cx="16" cy="16" r="5"  stroke="#1a3a5c" stroke-width="0.75"/>
-        <circle cx="16" cy="16" r="2"  fill="#00d4ff"/>
-        <line x1="16" y1="16" x2="24" y2="4" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="24" cy="4" r="1.5" fill="#00ff9d">
-          <animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/>
-        </circle>
-        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3">
-          <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/>
-        </path>
-      </svg>
-    </div>
-    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
-  </a>
+  <a href="/" class="nav-logo"><span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span></a>
   <ul class="nav-links">
     <li><a href="/calendar.html" class="active">Calendar</a></li>
-    <li><a href="/dashboard.html">Dashboard</a></li>
-    <li><a href="/research.html">AI Research</a></li>
+    <li><a href="/compare.html">Compare</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
     <li><a href="/how-institutions-trade.html">Education</a></li>
+    <li><a href="/behavior-patterns.html">Patterns</a></li>
   </ul>
-  <a href="/signup.html" class="nav-cta">Get Access</a>
+  <a href="/dashboard.html" class="nav-cta" id="nav-cta">Dashboard →</a>
 </nav>
 
-<div class="page-header">
-  <div class="page-header-inner">
-    <div>
-      <div class="page-eyebrow">FDA PDUFA Intelligence</div>
-      <h1 class="page-title">Upcoming Catalyst Calendar</h1>
-      <div class="page-meta">
-        <span class="live-dot"></span>
-        <span>Updated daily</span>
-        <span>·</span>
-        <span id="entry-count">— entries</span>
-        <span>·</span>
-        <span>Scores visible to subscribers only</span>
-      </div>
-    </div>
-    <a href="/signup.html" class="nav-cta" style="white-space:nowrap;">Unlock All Scores →</a>
-  </div>
-</div>
-
-<div class="filters">
-  <span class="filter-label">Window:</span>
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="30">≤ 30d</button>
-  <button class="filter-btn" data-filter="60">≤ 60d</button>
-  <button class="filter-btn" data-filter="90">≤ 90d</button>
-  <div class="filter-sep"></div>
-  <span class="filter-label">Grade:</span>
-  <button class="filter-btn" data-grade="ELITE">Elite</button>
-  <button class="filter-btn" data-grade="STRONG">Strong</button>
-  <button class="filter-btn" data-grade="WATCH">Watch</button>
-  <button class="filter-btn" data-grade="all-grades">All Grades</button>
+<div class="gate-overlay" id="gate">
+  <div class="gate-msg">🔒 Full Calendar Access</div>
+  <div class="gate-sub">Scores, risk layers, and behavioral patterns require an active subscription. Calendar dates are visible to all.</div>
+  <a href="/signup.html" class="gate-btn">Subscribe — $49.99/mo</a>
 </div>
 
 <main>
-  <table class="calendar-table" id="calendar-table">
-    <thead>
-      <tr>
-        <th data-col="ticker">Ticker <span class="sort-arrow">↕</span></th>
-        <th data-col="drug">Drug / Indication</th>
-        <th data-col="date">PDUFA Date <span class="sort-arrow">↕</span></th>
-        <th data-col="type">Type</th>
-        <th data-col="grade">Grade <span class="sort-arrow">↕</span></th>
-        <th data-col="poa" class="score-cell">PoA % <span class="sort-arrow">↕</span></th>
-        <th data-col="stn" class="score-cell">STN Risk</th>
-        <th data-col="score" class="score-cell">Final Score <span class="sort-arrow">↕</span></th>
-      </tr>
-    </thead>
-    <tbody id="table-body"></tbody>
-  </table>
-</main>
-
-<div class="modal-overlay" id="modal-overlay">
-  <div class="modal">
-    <button class="modal-close" id="modal-close">✕</button>
-    <div class="modal-eyebrow">Pro Feature</div>
-    <h2 class="modal-title">Scores are locked.</h2>
-    <p class="modal-body">
-      PoA percentages, final scores, convexity breakdowns, and risk flags are visible to active subscribers only.
-      Get full scanner output on every PDUFA event in the calendar.
-    </p>
-    <a href="/signup.html" class="modal-cta">Subscribe — $49.99/month</a>
-    <p class="modal-note">Cancel anytime &nbsp;·&nbsp; Billed monthly via Stripe</p>
+  <div class="page-header">
+    <div>
+      <div class="page-eyebrow">Full Biotech Universe</div>
+      <h1 class="page-title">Catalyst Intelligence Calendar</h1>
+    </div>
+    <div class="page-stats">
+      <div class="page-stat"><div class="page-stat-val" id="stat-total">—</div><div class="page-stat-label">Total Events</div></div>
+      <div class="page-stat"><div class="page-stat-val" id="stat-30d">—</div><div class="page-stat-label">Next 30 Days</div></div>
+      <div class="page-stat"><div class="page-stat-val" id="stat-elite">—</div><div class="page-stat-label">Elite Setups</div></div>
+      <div class="page-stat"><div class="page-stat-val" id="stat-updated">—</div><div class="page-stat-label">Last Scan</div></div>
+    </div>
   </div>
-</div>
+
+  <div class="disclaimer-bar">
+    ⚠️ Scores, behavioral patterns, and risk assessments are quantitative model outputs — not predictions or investment advice. All trading decisions are solely yours. <a href="/track-record.html" style="color:var(--accent);">View full track record →</a>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="tab-bar" id="tab-bar">
+    <button class="tab-btn active" data-tab="all" onclick="switchTab('all')">All Events <span class="tab-count" id="count-all"></span></button>
+    <button class="tab-btn" data-tab="pdufa" onclick="switchTab('pdufa')">PDUFA / FDA <span class="tab-count" id="count-pdufa"></span></button>
+    <button class="tab-btn" data-tab="clinical" onclick="switchTab('clinical')">Clinical Readouts <span class="tab-count" id="count-clinical"></span></button>
+    <button class="tab-btn" data-tab="adcom" onclick="switchTab('adcom')">AdCom <span class="tab-count" id="count-adcom"></span></button>
+    <button class="tab-btn" data-tab="earnings" onclick="switchTab('earnings')">Earnings <span class="tab-count" id="count-earnings"></span></button>
+    <button class="tab-btn" data-tab="buyout" onclick="switchTab('buyout')">Buyout Signals <span class="tab-count" id="count-buyout"></span></button>
+    <button class="tab-btn" data-tab="stn" onclick="switchTab('stn')">STN Risk <span class="tab-count" id="count-stn"></span></button>
+    <button class="tab-btn" data-tab="conference" onclick="switchTab('conference')">Conferences <span class="tab-count" id="count-conference"></span></button>
+    <button class="tab-btn" data-tab="dilution" onclick="switchTab('dilution')">Dilution Watch <span class="tab-count" id="count-dilution"></span></button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <input type="text" class="search-input" id="search-input" placeholder="Search ticker..." oninput="applyFilters()">
+    <span class="filter-label">Cap:</span>
+    <select class="filter-select" id="filter-cap" onchange="applyFilters()">
+      <option value="all">All Cap</option>
+      <option value="small">Small ($0-$2B)</option>
+      <option value="mid">Mid ($2B-$10B)</option>
+      <option value="large">Large ($10B+)</option>
+    </select>
+    <span class="filter-label">Grade:</span>
+    <select class="filter-select" id="filter-grade" onchange="applyFilters()">
+      <option value="all">All Grades</option>
+      <option value="ELITE">ELITE</option>
+      <option value="STRONG">STRONG</option>
+      <option value="WATCH">WATCH</option>
+      <option value="WEAK">WEAK</option>
+    </select>
+    <span class="filter-label">Window:</span>
+    <select class="filter-select" id="filter-window" onchange="applyFilters()">
+      <option value="all">All Dates</option>
+      <option value="7">Next 7 Days</option>
+      <option value="14">Next 14 Days</option>
+      <option value="30">Next 30 Days</option>
+      <option value="60">Next 60 Days</option>
+      <option value="90">Next 90 Days</option>
+    </select>
+  </div>
+
+  <!-- Calendar Table -->
+  <div id="cal-body">
+    <div class="empty-state">Loading catalyst events...</div>
+  </div>
+</main>
 
 <footer>
   <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
-  <div class="footer-disclaimer">
-    Not investment advice. Scores are quantitative signals only. Trading binary events involves substantial risk of loss.
-  </div>
-  <div class="footer-links">
+  <div style="display:flex;gap:1.5rem;">
     <a href="/privacy.html">Privacy</a>
     <a href="/terms.html">Terms</a>
-    <a href="/login.html">Login</a>
+    <a href="/track-record.html">Track Record</a>
+    <a href="/behavior-patterns.html">Patterns</a>
   </div>
 </footer>
 
 <script>
-// ─── LIVE PDUFA DATA — fetched from Supabase ─────────────────────────────────
-let PDUFA_DATA = [];
+var ALL_EVENTS = [];
+var currentTab = 'all';
+var isPaid = false;
 
-let isPaid = false;
-let currentFilter = 'all';
-let currentGrade  = null;
-let sortCol       = 'date';
-let sortDir       = 1;
+function daysUntil(dateStr) { return Math.round((new Date(dateStr) - new Date()) / 86400000); }
 
-// Render immediately with whatever we have, then fetch live data
-(async () => {
-  // 1. Check auth first
-  let session = null;
-  try {
-    if (typeof scGetSession === 'function') {
-      session = await scGetSession();
-      if (session) {
-        const navCtas = document.querySelectorAll('.nav-cta');
-        navCtas.forEach(el => { el.textContent = 'Dashboard →'; el.href = '/dashboard.html'; });
-
-        const profile = await scGetProfile(session.user.id);
-        if (profile?.is_paid) {
-          isPaid = true;
-        }
-      }
-    }
-  } catch (e) {
-    console.warn('[SC] Calendar auth check failed:', e);
-  }
-
-  // 2. Fetch live events from server-side gated endpoint
-  try {
-    const res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=calendar', {
-      headers: {
-        'Authorization': 'Bearer ' + (session?.access_token || ''),
-        'Content-Type': 'application/json',
-      },
-    });
-
-    const result = await res.json();
-    if (result.events && result.events.length > 0) {
-      PDUFA_DATA = result.events.map(function(e) {
-        return {
-          ticker: e.ticker,
-          drug: e.drug || '',
-          indication: e.indication || 'Unknown',
-          type: e.type || 'PDUFA',
-          date: e.date,
-          grade: e.grade || 'WATCH',
-          poa: Number(e.poa) || 0,
-          score: Number(e.score) || 0,
-          flags: e.flags || [],
-          sell_news_risk: e.sell_news_risk || 'MODERATE',
-          move_score: Number(e.move_score) || 0,
-        };
-      });
-      if (result.isPaid) isPaid = true;
-      console.log('[SC] Loaded ' + PDUFA_DATA.length + ' events from server');
-    } else {
-      console.warn('[SC] No events returned from server');
-    }
-  } catch (e) {
-    console.warn('[SC] Failed to fetch live events:', e);
-  }
-
-  // 3. Render
-  if (PDUFA_DATA.length === 0) {
-    document.getElementById('entry-count').textContent = 'Syncing calendar...';
-    document.getElementById('table-body').innerHTML = `
-      <tr><td colspan="7" style="text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">
-        Calendar is syncing from the PDUFA database. Check back shortly.
-      </td></tr>`;
-  } else {
-    renderTable();
-  }
-})();
-
-function daysUntil(dateStr) {
-  const today = new Date();
-  today.setHours(0,0,0,0);
-  const target = new Date(dateStr);
-  return Math.round((target - today) / 86400000);
+function daysPill(days) {
+  if (days < 0) return '<span class="days-pill days-hot">RESOLVED</span>';
+  if (days <= 7) return '<span class="days-pill days-hot">' + days + 'd</span>';
+  if (days <= 30) return '<span class="days-pill days-warm">' + days + 'd</span>';
+  return '<span class="days-pill days-cool">' + days + 'd</span>';
 }
 
-function daysBadge(days) {
-  if (days <= 14)  return `<span class="days-badge days-hot">${days}d</span>`;
-  if (days <= 30)  return `<span class="days-badge days-warm">${days}d</span>`;
-  if (days <= 90)  return `<span class="days-badge days-watch">${days}d</span>`;
-  return `<span class="days-badge days-far">${days}d</span>`;
+function eventBadge(type) {
+  var t = (type || '').toLowerCase();
+  if (t.includes('pdufa') || t.includes('nda') || t.includes('bla') || t.includes('snda')) return '<span class="event-badge badge-pdufa">PDUFA</span>';
+  if (t.includes('clinical') || t.includes('readout') || t.includes('phase') || t.includes('data')) return '<span class="event-badge badge-clinical">CLINICAL</span>';
+  if (t.includes('adcom') || t.includes('advisory')) return '<span class="event-badge badge-adcom">ADCOM</span>';
+  if (t.includes('earning')) return '<span class="event-badge badge-earnings">EARNINGS</span>';
+  if (t.includes('buyout') || t.includes('acquisition') || t.includes('m&a')) return '<span class="event-badge badge-buyout">BUYOUT</span>';
+  if (t.includes('conference') || t.includes('abstract') || t.includes('presentation')) return '<span class="event-badge badge-conference">CONF</span>';
+  return '<span class="event-badge badge-pdufa">PDUFA</span>';
 }
 
-function gradeBadge(grade) {
-  const map = {
-    ELITE:  ['grade-elite',  '🚀 ELITE'],
-    STRONG: ['grade-strong', '⚡ STRONG'],
-    WATCH:  ['grade-watch',  '🟡 WATCH'],
-    WEAK:   ['grade-weak',   '⚪ WEAK'],
-  };
-  const [cls, label] = map[grade] || ['grade-weak', grade];
-  return `<span class="grade-badge ${cls}">${label}</span>`;
+function riskColor(risk) {
+  return {'HIGH':'var(--red)','EXTREME':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)','MINIMAL':'var(--accent2)'}[risk] || 'var(--muted)';
 }
 
-function scoreCell(val, sub, locked) {
-  if (locked) {
-    return `<div class="locked score-cell">
-      <div class="score-val">${val}</div>
-      <div class="score-sub">${sub}</div>
-      <span class="lock-icon">🔒</span>
-    </div>`;
+function classifyEvent(e) {
+  var t = ((e.type || '') + ' ' + (e.notes || '') + ' ' + (e.drug || '')).toLowerCase();
+  var tags = [];
+  if (t.includes('pdufa') || t.includes('nda') || t.includes('bla') || t.includes('snda') || t.includes('fda')) tags.push('pdufa');
+  if (t.includes('clinical') || t.includes('readout') || t.includes('phase') || t.includes('data release')) tags.push('clinical');
+  if (t.includes('adcom') || t.includes('advisory committee')) tags.push('adcom');
+  if (t.includes('earning')) tags.push('earnings');
+  if (t.includes('conference') || t.includes('abstract') || t.includes('asco') || t.includes('aacr')) tags.push('conference');
+  if (e.sell_news_risk === 'HIGH' || e.sell_news_risk === 'ELEVATED') tags.push('stn');
+  if (e.dilution_risk === 'HIGH' || e.dilution_risk === 'EXTREME') tags.push('dilution');
+  if (e.atm_active || e.shelf_active) tags.push('dilution');
+  // Buyout signals: small-cap + first-in-class + partnership or no commercial infra
+  var flags = (e.flags || []).join(' ').toLowerCase();
+  if (flags.includes('first-in-class') || flags.includes('first in class') || flags.includes('prv') || flags.includes('acquisition') || e.partnership_detected) tags.push('buyout');
+  if (tags.length === 0) tags.push('pdufa'); // default
+  return tags;
+}
+
+function matchesTab(e, tab) {
+  if (tab === 'all') return true;
+  return (e._tags || []).includes(tab);
+}
+
+function matchesFilters(e) {
+  var search = document.getElementById('search-input').value.toUpperCase().trim();
+  if (search && !e.ticker.includes(search) && !(e.drug || '').toUpperCase().includes(search)) return false;
+
+  var cap = document.getElementById('filter-cap').value;
+  if (cap !== 'all') {
+    // Use market_cap if available, otherwise estimate from score metadata
+    // For now, show all since we don't have market cap data for every event
   }
-  return `<div class="score-cell">
-    <div class="score-val">${val}</div>
-    <div class="score-sub">${sub}</div>
-  </div>`;
+
+  var grade = document.getElementById('filter-grade').value;
+  if (grade !== 'all' && e.grade !== grade) return false;
+
+  var window = document.getElementById('filter-window').value;
+  if (window !== 'all') {
+    var days = daysUntil(e.date);
+    if (days < 0 || days > parseInt(window)) return false;
+  }
+
+  return true;
 }
 
 function renderTable() {
-  let data = [...PDUFA_DATA];
+  var filtered = ALL_EVENTS.filter(function(e) {
+    return matchesTab(e, currentTab) && matchesFilters(e);
+  });
 
-  if (currentFilter !== 'all') {
-    const maxDays = parseInt(currentFilter);
-    data = data.filter(d => daysUntil(d.date) <= maxDays);
+  if (filtered.length === 0) {
+    document.getElementById('cal-body').innerHTML = '<div class="empty-state">No events match the current filters.</div>';
+    return;
   }
 
-  if (currentGrade) {
-    data = data.filter(d => d.grade === currentGrade);
-  }
+  filtered.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
 
-  data.sort((a, b) => {
-    let va, vb;
-    if (sortCol === 'date')   { va = a.date;  vb = b.date; }
-    else if (sortCol === 'ticker') { va = a.ticker; vb = b.ticker; }
-    else if (sortCol === 'grade') {
-      const order = { ELITE:4, STRONG:3, WATCH:2, WEAK:1 };
-      va = order[a.grade] || 0; vb = order[b.grade] || 0;
+  var html = '<table class="cal-table"><thead><tr>';
+  html += '<th>Ticker</th><th>Type</th><th>Drug / Event</th><th>Date</th>';
+  if (isPaid) {
+    html += '<th>PoA</th><th>STN Risk</th><th>Dilution</th><th>Net Edge</th><th>Grade</th><th>Pattern</th>';
+  }
+  html += '</tr></thead><tbody>';
+
+  filtered.forEach(function(e) {
+    var days = daysUntil(e.date);
+    var link = '/catalyst-detail.html?ticker=' + e.ticker;
+
+    html += '<tr onclick="window.location.href=\'' + link + '\'">';
+    html += '<td class="ticker-cell">' + e.ticker + daysPill(days) + '</td>';
+    html += '<td>' + eventBadge(e.type) + '</td>';
+    html += '<td style="font-family:var(--sans);font-size:0.75rem;color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (e.drug || e.indication || '—') + '</td>';
+    html += '<td>' + e.date + '</td>';
+
+    if (isPaid) {
+      var poaColor = e.poa >= 75 ? 'var(--accent2)' : e.poa >= 60 ? 'var(--accent)' : 'var(--amber)';
+      html += '<td class="score-cell" style="color:' + poaColor + '">' + (e.poa || 0).toFixed(1) + '%</td>';
+      html += '<td class="score-cell" style="color:' + riskColor(e.sell_news_risk) + '">' + (e.sell_news_risk || '—') + '</td>';
+      html += '<td class="score-cell" style="color:' + riskColor(e.dilution_risk) + '">' + (e.dilution_risk || '—') + '</td>';
+      var neScore = e.net_edge_score || e.score || 0;
+      var neColor = neScore >= 72 ? 'var(--accent2)' : neScore >= 58 ? 'var(--accent)' : neScore >= 42 ? 'var(--amber)' : 'var(--red)';
+      html += '<td class="score-cell" style="color:' + neColor + '">' + neScore.toFixed(1) + '</td>';
+      var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[e.grade] || 'var(--muted)';
+      html += '<td class="score-cell" style="color:' + gColor + '">' + (e.grade || '—') + '</td>';
+
+      // Behavioral pattern pill
+      var pattern = '—';
+      if (e.sell_news_risk === 'HIGH') pattern = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 Deep Dive</span>';
+      else if (e.sell_news_risk === 'LOW' || e.sell_news_risk === 'VERY LOW') pattern = '<span class="pattern-pill" style="background:rgba(0,255,157,0.1);color:var(--accent2);">📡 Spike</span>';
+      else if (e.sell_news_risk === 'ELEVATED') pattern = '<span class="pattern-pill" style="background:rgba(245,166,35,0.1);color:var(--amber);">〰️ Surface</span>';
+      else pattern = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 Ascend</span>';
+      html += '<td>' + pattern + '</td>';
     }
-    else if (sortCol === 'poa')   { va = a.poa;   vb = b.poa; }
-    else if (sortCol === 'score') { va = a.score; vb = b.score; }
-    else { va = a[sortCol]; vb = b[sortCol]; }
-    if (va < vb) return -1 * sortDir;
-    if (va > vb) return  1 * sortDir;
-    return 0;
+
+    html += '</tr>';
   });
 
-  document.getElementById('entry-count').textContent = `${data.length} entries`;
-
-  const tbody = document.getElementById('table-body');
-  tbody.innerHTML = data.map(d => {
-    const days = daysUntil(d.date);
-    const locked = !isPaid;
-    return `
-      <tr class="${locked ? 'locked-row' : ''}" data-locked="${locked}" onclick="handleRowClick(this, ${locked})">
-        <td>
-          <div class="ticker-cell">
-            <span class="ticker-sym">${d.ticker}</span>
-            ${daysBadge(days)}
-          </div>
-        </td>
-        <td>
-          <div class="drug-name">${d.drug}</div>
-          <div class="drug-ind">${d.indication}</div>
-        </td>
-        <td>
-          <div style="font-family:var(--mono);font-size:0.78rem;color:var(--white)">${d.date}</div>
-          <div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.1rem">${days} days</div>
-        </td>
-        <td>
-          <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.08em">${d.type}</span>
-        </td>
-        <td>${gradeBadge(d.grade)}</td>
-        <td>${scoreCell(d.poa.toFixed(1) + '%', 'approval prob.', locked)}</td>
-        <td>${locked ? scoreCell('🔒', 'stn risk', true) : '<span style="font-family:var(--mono);font-size:0.72rem;font-weight:700;color:' + ({HIGH:'var(--red)',ELEVATED:'var(--amber)',MODERATE:'var(--amber)',LOW:'var(--accent2)','VERY LOW':'var(--accent2)'}[d.sell_news_risk] || 'var(--muted)') + '">' + (d.sell_news_risk || 'MOD') + '</span>'}</td>
-        <td>${scoreCell(d.score.toFixed(1), 'final score', locked)}</td>
-      </tr>
-    `;
-  }).join('');
+  html += '</tbody></table>';
+  document.getElementById('cal-body').innerHTML = html;
 }
 
-function handleRowClick(row, locked) {
-  if (locked) {
-    document.getElementById('modal-overlay').classList.add('open');
-  } else {
-    const ticker = row.querySelector('.ticker-sym').textContent.trim();
-    window.location.href = `/catalyst-detail.html?ticker=${ticker}`;
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(function(el) {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  renderTable();
+}
+
+function applyFilters() { renderTable(); }
+
+function updateCounts() {
+  var tabs = ['all','pdufa','clinical','adcom','earnings','buyout','stn','conference','dilution'];
+  tabs.forEach(function(tab) {
+    var count = tab === 'all' ? ALL_EVENTS.length : ALL_EVENTS.filter(function(e) { return (e._tags || []).includes(tab); }).length;
+    var el = document.getElementById('count-' + tab);
+    if (el) el.textContent = '(' + count + ')';
+  });
+
+  var now = new Date();
+  document.getElementById('stat-total').textContent = ALL_EVENTS.length;
+  document.getElementById('stat-30d').textContent = ALL_EVENTS.filter(function(e) { var d = daysUntil(e.date); return d >= 0 && d <= 30; }).length;
+  document.getElementById('stat-elite').textContent = ALL_EVENTS.filter(function(e) { return e.grade === 'ELITE'; }).length;
+  document.getElementById('stat-updated').textContent = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function() {
+  var sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseAnonKey);
+  var { data: { session } } = await sb.auth.getSession();
+
+  if (session) {
+    var navCta = document.getElementById('nav-cta');
+    if (navCta) { navCta.textContent = 'Dashboard →'; navCta.href = '/dashboard.html'; }
+
+    // Check paid status
+    var { data: profile } = await sb.from('profiles').select('is_paid').eq('id', session.user.id).single();
+    isPaid = profile && profile.is_paid === true;
   }
-}
 
-document.querySelectorAll('[data-filter]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentFilter = btn.dataset.filter;
-    renderTable();
-  });
-});
+  // Fetch events — paid users get full data from edge function, free users get basic calendar
+  if (isPaid && session) {
+    try {
+      var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+        headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+      });
+      var result = await res.json();
+      if (result.events) {
+        ALL_EVENTS = result.events.map(function(e) {
+          e._tags = classifyEvent(e);
+          return e;
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to load paid data:', err);
+    }
+  }
 
-document.querySelectorAll('[data-grade]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-grade]').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    currentGrade = btn.dataset.grade === 'all-grades' ? null : btn.dataset.grade;
-    renderTable();
-  });
-});
+  // Fallback: load basic calendar data from Supabase directly
+  if (ALL_EVENTS.length === 0) {
+    var { data: events } = await sb.from('pdufa_events')
+      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected')
+      .gte('date', new Date().toISOString().split('T')[0])
+      .order('date', { ascending: true });
 
-document.querySelectorAll('[data-col]').forEach(th => {
-  th.addEventListener('click', () => {
-    if (sortCol === th.dataset.col) { sortDir *= -1; }
-    else { sortCol = th.dataset.col; sortDir = 1; }
-    document.querySelectorAll('th').forEach(h => h.classList.remove('sorted'));
-    th.classList.add('sorted');
-    th.querySelector('.sort-arrow').textContent = sortDir === 1 ? '↑' : '↓';
-    renderTable();
-  });
-});
+    if (events) {
+      ALL_EVENTS = events.map(function(e) {
+        e.poa = Number(e.poa) || 0;
+        e.score = Number(e.score) || 0;
+        e.net_edge_score = Number(e.net_edge_score) || Number(e.score) || 0;
+        e._tags = classifyEvent(e);
+        if (!isPaid) {
+          e.poa = 0; e.score = 0; e.net_edge_score = 0;
+          e.sell_news_risk = '🔒'; e.dilution_risk = '🔒'; e.grade = '🔒';
+        }
+        return e;
+      });
+    }
+  }
 
-document.getElementById('modal-close').addEventListener('click', () => {
-  document.getElementById('modal-overlay').classList.remove('open');
-});
-document.getElementById('modal-overlay').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('open');
-});
+  updateCounts();
+  renderTable();
 
-renderTable();
+  if (!isPaid) {
+    // Show gate after slight delay
+    // Don't block — let them see dates, just lock scores
+  }
+})();
 </script>
 </body>
 </html>
