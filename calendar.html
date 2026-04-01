@@ -425,81 +425,68 @@ function updateCounts() {
         return e;
       });
     }
+  }
 
-    // Load catalyst events (non-PDUFA)
-    var { data: catEvents } = await sb.from('catalyst_events')
+  // ── ALWAYS LOAD: Catalyst events (non-PDUFA) ───────────────────────
+  try {
+    var { data: catEvents2 } = await sb.from('catalyst_events')
       .select('ticker, company_name, event_type, event_date, event_description, source, relevance_score, behavioral_pattern, flags, market_cap_tier')
       .gte('event_date', new Date().toISOString().split('T')[0])
       .order('event_date', { ascending: true });
 
-    if (catEvents) {
-      var mapped = catEvents.map(function(e) {
+    if (catEvents2 && catEvents2.length > 0) {
+      var catKeys = {};
+      ALL_EVENTS.forEach(function(e) { catKeys[e.ticker + '|' + e.date] = true; });
+
+      var catMapped = catEvents2.filter(function(e) {
+        return !catKeys[e.ticker + '|' + e.event_date];
+      }).map(function(e) {
         return {
-          ticker: e.ticker,
-          drug: e.event_description || '',
-          indication: '',
-          type: e.event_type || 'OTHER',
-          date: e.event_date,
-          grade: '—',
-          poa: 0,
-          score: Number(e.relevance_score) || 0,
-          flags: e.flags || [],
-          notes: e.event_description || '',
-          sell_news_risk: '—',
-          dilution_risk: '—',
-          net_edge_score: 0,
-          atm_active: false,
-          shelf_active: false,
-          partnership_detected: false,
-          company_name: e.company_name || '',
-          market_cap_tier: e.market_cap_tier || 'UNKNOWN',
-          _tags: [e.event_type ? e.event_type.toLowerCase() : 'other'],
-          _source: 'catalyst',
+          ticker: e.ticker, drug: e.event_description || '', indication: '',
+          type: e.event_type || 'OTHER', date: e.event_date, grade: '—',
+          poa: 0, score: Number(e.relevance_score) || 0, flags: e.flags || [],
+          notes: e.event_description || '', sell_news_risk: '—', dilution_risk: '—',
+          net_edge_score: 0, atm_active: false, shelf_active: false,
+          partnership_detected: false, buyout_score: 0, buyout_risk: '—',
+          company_name: e.company_name || '', market_cap_tier: e.market_cap_tier || 'UNKNOWN',
+          _tags: [e.event_type ? e.event_type.toLowerCase() : 'other'], _source: 'catalyst',
         };
       });
-      ALL_EVENTS = ALL_EVENTS.concat(mapped);
+      ALL_EVENTS = ALL_EVENTS.concat(catMapped);
+      console.log('[SC] Loaded ' + catMapped.length + ' catalyst events');
     }
+  } catch (err) { console.warn('Catalyst events load failed:', err); }
 
-    // Load all biotech universe tickers (for the full company browser)
-    var { data: allCompanies } = await sb.from('biotech_universe')
+  // ── ALWAYS LOAD: Full biotech universe ─────────────────────────────
+  try {
+    var { data: universe } = await sb.from('biotech_universe')
       .select('ticker, company_name, market_cap_tier')
       .eq('active', true)
       .order('ticker', { ascending: true });
 
-    if (allCompanies) {
-      // Add companies that don't already have events
-      var existingTickers = {};
-      ALL_EVENTS.forEach(function(e) { existingTickers[e.ticker] = true; });
+    if (universe && universe.length > 0) {
+      var existing = {};
+      ALL_EVENTS.forEach(function(e) { existing[e.ticker] = true; });
 
-      var companyEntries = allCompanies.filter(function(c) {
-        return !existingTickers[c.ticker];
+      var uniEntries = universe.filter(function(c) {
+        return !existing[c.ticker];
       }).map(function(c) {
         return {
-          ticker: c.ticker,
-          drug: c.company_name || '',
-          indication: '',
-          type: 'COMPANY',
-          date: '—',
-          grade: '—',
-          poa: 0,
-          score: 0,
-          flags: [],
-          notes: '',
-          sell_news_risk: '—',
-          dilution_risk: '—',
-          net_edge_score: 0,
-          atm_active: false,
-          shelf_active: false,
-          partnership_detected: false,
-          company_name: c.company_name || '',
+          ticker: c.ticker, drug: c.company_name || '', indication: '',
+          type: 'COMPANY', date: '—', grade: '—',
+          poa: 0, score: 0, flags: [], notes: '',
+          sell_news_risk: '—', dilution_risk: '—', net_edge_score: 0,
+          atm_active: false, shelf_active: false, partnership_detected: false,
+          buyout_score: 0, buyout_risk: '—',
+          company_name: c.company_name || c.ticker,
           market_cap_tier: c.market_cap_tier || 'UNKNOWN',
-          _tags: ['company'],
-          _source: 'universe',
+          _tags: ['company'], _source: 'universe',
         };
       });
-      ALL_EVENTS = ALL_EVENTS.concat(companyEntries);
+      ALL_EVENTS = ALL_EVENTS.concat(uniEntries);
+      console.log('[SC] Loaded ' + uniEntries.length + ' universe companies (total: ' + ALL_EVENTS.length + ')');
     }
-  }
+  } catch (err) { console.warn('Universe load failed:', err); }
 
   updateCounts();
   renderTable();
