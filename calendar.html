@@ -351,15 +351,20 @@ function updateCounts() {
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (async function() {
-  var sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseAnonKey);
-  var { data: { session } } = await sb.auth.getSession();
+  var sb = getSupabase();
+  if (!sb) {
+    document.getElementById('cal-body').innerHTML = '<div class="empty-state">Failed to initialize. Please refresh.</div>';
+    return;
+  }
+
+  var session = await scGetSession();
 
   if (session) {
     var navCta = document.getElementById('nav-cta');
     if (navCta) { navCta.textContent = 'Dashboard →'; navCta.href = '/dashboard.html'; }
 
     // Check paid status
-    var { data: profile } = await sb.from('profiles').select('is_paid').eq('id', session.user.id).single();
+    var profile = await scGetProfile(session.user.id);
     isPaid = profile && profile.is_paid === true;
   }
 
