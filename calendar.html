@@ -239,7 +239,14 @@ function classifyEvent(e) {
   var flags = (e.flags || []).join(' ').toLowerCase();
   if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') tags.push('buyout');
   if (flags.includes('first-in-class') || flags.includes('first in class') || flags.includes('prv') || flags.includes('acquisition') || e.partnership_detected) tags.push('buyout');
-  if (tags.length === 0) tags.push('pdufa');
+  // Only default to PDUFA if type explicitly says so
+  if (tags.length === 0) {
+    if (e.type === 'COMPANY' || e._source === 'universe' || e._source === 'earnings') {
+      // No default category for companies — they just show in All Companies
+    } else {
+      tags.push('pdufa');
+    }
+  }
   // Every entry shows in All Companies tab
   tags.push('company');
   return tags;
@@ -315,22 +322,43 @@ function renderTable() {
     html += '<td style="font-family:var(--mono);font-size:0.62rem;color:' + capColor + ';font-weight:700;">' + (e.market_cap_tier || '—') + '</td>';
 
     if (isPaid) {
-      var poaColor = e.poa >= 75 ? 'var(--accent2)' : e.poa >= 60 ? 'var(--accent)' : 'var(--amber)';
-      html += '<td class="score-cell" style="color:' + poaColor + '">' + (e.poa || 0).toFixed(1) + '%</td>';
-      html += '<td class="score-cell" style="color:' + riskColor(e.sell_news_risk) + '">' + (e.sell_news_risk || '—') + '</td>';
-      html += '<td class="score-cell" style="color:' + riskColor(e.dilution_risk) + '">' + (e.dilution_risk || '—') + '</td>';
-      var neScore = e.net_edge_score || e.score || 0;
-      var neColor = neScore >= 72 ? 'var(--accent2)' : neScore >= 58 ? 'var(--accent)' : neScore >= 42 ? 'var(--amber)' : 'var(--red)';
-      html += '<td class="score-cell" style="color:' + neColor + '">' + neScore.toFixed(1) + '</td>';
-      var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[e.grade] || 'var(--muted)';
-      html += '<td class="score-cell" style="color:' + gColor + '">' + (e.grade || '—') + '</td>';
+      if (e._source === 'universe' || e._source === 'earnings') {
+        // Company/earnings row — show buyout and grade instead of PoA/STN
+        html += '<td class="score-cell" style="color:var(--muted);">—</td>'; // PoA
+        html += '<td class="score-cell" style="color:var(--muted);">—</td>'; // STN
+        html += '<td class="score-cell" style="color:var(--muted);">—</td>'; // Dilution
+        var bColor = {'HIGH':'var(--accent2)','MODERATE':'var(--accent)','LOW':'var(--amber)','UNLIKELY':'var(--muted)'}[e.buyout_risk] || 'var(--muted)';
+        html += '<td class="score-cell" style="color:' + bColor + '">' + (e.buyout_score || 0) + '</td>'; // Net Edge = buyout score
+        var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[e.grade] || 'var(--muted)';
+        html += '<td class="score-cell" style="color:' + gColor + '">' + (e.grade || 'WATCH') + '</td>';
+      } else {
+        // PDUFA row — full scores
+        var poaColor = e.poa >= 75 ? 'var(--accent2)' : e.poa >= 60 ? 'var(--accent)' : 'var(--amber)';
+        html += '<td class="score-cell" style="color:' + poaColor + '">' + (e.poa || 0).toFixed(1) + '%</td>';
+        html += '<td class="score-cell" style="color:' + riskColor(e.sell_news_risk) + '">' + (e.sell_news_risk || '—') + '</td>';
+        html += '<td class="score-cell" style="color:' + riskColor(e.dilution_risk) + '">' + (e.dilution_risk || '—') + '</td>';
+        var neScore = e.net_edge_score || e.score || 0;
+        var neColor = neScore >= 72 ? 'var(--accent2)' : neScore >= 58 ? 'var(--accent)' : neScore >= 42 ? 'var(--amber)' : 'var(--red)';
+        html += '<td class="score-cell" style="color:' + neColor + '">' + neScore.toFixed(1) + '</td>';
+        var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[e.grade] || 'var(--muted)';
+        html += '<td class="score-cell" style="color:' + gColor + '">' + (e.grade || '—') + '</td>';
+      }
 
       // Behavioral pattern pill
       var pattern = '—';
-      if (e.sell_news_risk === 'HIGH') pattern = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 Deep Dive</span>';
-      else if (e.sell_news_risk === 'LOW' || e.sell_news_risk === 'VERY LOW') pattern = '<span class="pattern-pill" style="background:rgba(0,255,157,0.1);color:var(--accent2);">📡 Spike</span>';
-      else if (e.sell_news_risk === 'ELEVATED') pattern = '<span class="pattern-pill" style="background:rgba(245,166,35,0.1);color:var(--amber);">〰️ Surface</span>';
-      else pattern = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 Ascend</span>';
+      if (e._source === 'universe' || e._source === 'earnings') {
+        if (e.buyout_risk === 'HIGH') pattern = '<span class="pattern-pill" style="background:rgba(245,166,35,0.12);color:var(--amber);">🏷️ Buyout</span>';
+        else if (e.buyout_risk === 'MODERATE') pattern = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🏷️ Possible</span>';
+        else pattern = '<span class="pattern-pill" style="background:rgba(90,122,153,0.1);color:var(--muted);">— Monitor</span>';
+      } else if (e.sell_news_risk === 'HIGH') {
+        pattern = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 Deep Dive</span>';
+      } else if (e.sell_news_risk === 'LOW' || e.sell_news_risk === 'VERY LOW') {
+        pattern = '<span class="pattern-pill" style="background:rgba(0,255,157,0.1);color:var(--accent2);">📡 Spike</span>';
+      } else if (e.sell_news_risk === 'ELEVATED') {
+        pattern = '<span class="pattern-pill" style="background:rgba(245,166,35,0.1);color:var(--amber);">〰️ Surface</span>';
+      } else if (e.sell_news_risk !== '—') {
+        pattern = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 Ascend</span>';
+      }
       html += '<td>' + pattern + '</td>';
     }
 
@@ -480,20 +508,54 @@ function updateCounts() {
       var existing = {};
       ALL_EVENTS.forEach(function(e) { existing[e.ticker] = true; });
 
+      // Estimate next earnings date based on current quarter
+      function estimateNextEarnings(ticker) {
+        var now = new Date();
+        var month = now.getMonth();
+        var year = now.getFullYear();
+        // Simple hash from ticker for consistent day assignment
+        var hash = 0;
+        for (var i = 0; i < ticker.length; i++) hash = ((hash << 5) - hash) + ticker.charCodeAt(i);
+        var day = 1 + (Math.abs(hash) % 25); // day 1-25
+
+        var windows = [
+          { m: 1, label: 'Q4 Earnings' },
+          { m: 4, label: 'Q1 Earnings' },
+          { m: 7, label: 'Q2 Earnings' },
+          { m: 10, label: 'Q3 Earnings' }
+        ];
+        for (var i = 0; i < windows.length; i++) {
+          var target = new Date(year, windows[i].m, day);
+          if (target > now) return { date: target.toISOString().split('T')[0], label: windows[i].label };
+        }
+        return { date: (year + 1) + '-02-' + day.toString().padStart(2,'0'), label: 'Q4 Earnings' };
+      }
+
+      // Grade company by cap tier and buyout potential
+      function gradeCompany(cap, bScore) {
+        if (cap === 'SMALL' && bScore >= 40) return 'STRONG';
+        if (cap === 'SMALL') return 'WATCH';
+        if (cap === 'MID' && bScore >= 40) return 'STRONG';
+        if (cap === 'MID') return 'WATCH';
+        if (cap === 'LARGE') return 'WATCH';
+        return 'WEAK';
+      }
+
       var uniEntries = universe.filter(function(c) {
         return !existing[c.ticker];
       }).map(function(c) {
-        // Estimate buyout potential by cap tier
         var bRisk = 'UNLIKELY';
         var bScore = 15;
         if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
         else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
 
+        var capGrade = gradeCompany(c.market_cap_tier, bScore);
+
         var entry = {
           ticker: c.ticker, drug: c.company_name || '', indication: '',
-          type: 'COMPANY', date: '—', grade: '—',
-          poa: 0, score: 0, flags: [], notes: '',
-          sell_news_risk: '—', dilution_risk: '—', net_edge_score: 0,
+          type: 'COMPANY', date: '—', grade: capGrade,
+          poa: 0, score: bScore, flags: [], notes: '',
+          sell_news_risk: '—', dilution_risk: '—', net_edge_score: bScore,
           atm_active: false, shelf_active: false, partnership_detected: false,
           buyout_score: bScore, buyout_risk: bRisk, buyout_flags: [],
           company_name: c.company_name || c.ticker,
@@ -504,6 +566,24 @@ function updateCounts() {
         return entry;
       });
       ALL_EVENTS = ALL_EVENTS.concat(uniEntries);
+
+      // Generate earnings entries for ALL universe companies
+      var earningsEntries = universe.map(function(c) {
+        var earn = estimateNextEarnings(c.ticker);
+        var capGrade = gradeCompany(c.market_cap_tier, c.market_cap_tier === 'SMALL' ? 45 : 25);
+        return {
+          ticker: c.ticker, drug: earn.label, indication: '',
+          type: 'EARNINGS', date: earn.date, grade: capGrade,
+          poa: 0, score: 0, flags: [earn.label], notes: earn.label,
+          sell_news_risk: '—', dilution_risk: '—', net_edge_score: 0,
+          atm_active: false, shelf_active: false, partnership_detected: false,
+          buyout_score: 0, buyout_risk: '—', buyout_flags: [],
+          company_name: c.company_name || c.ticker,
+          market_cap_tier: c.market_cap_tier || 'UNKNOWN',
+          _tags: ['earnings', 'company'], _source: 'earnings',
+        };
+      });
+      ALL_EVENTS = ALL_EVENTS.concat(earningsEntries);
       
       // Re-classify all events now that enrichment is done
       ALL_EVENTS.forEach(function(e) {
