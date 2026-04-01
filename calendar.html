@@ -304,7 +304,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>Score</th><th>Risk</th><th>Grade</th><th>Signal</th>';
+    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Signal</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -326,13 +326,17 @@ function renderTable() {
       // Extract just drug name from raw text
       var rawDrug = e.drug || e.indication || '';
       if (rawDrug.length > 50) {
-        // Try to extract meaningful part
         var parts = rawDrug.split('—');
         if (parts.length > 1) rawDrug = parts[0].trim();
         else if (rawDrug.indexOf(' is ') > 0) rawDrug = rawDrug.substring(0, rawDrug.indexOf(' is '));
         else if (rawDrug.indexOf(' for ') > 0) rawDrug = rawDrug.substring(0, rawDrug.indexOf(' for ') + 20);
       }
-      catalyst = rawDrug.substring(0, 50);
+      catalyst = rawDrug.substring(0, 40);
+      // Add TAM ratio badge
+      var tr = Number(e.tam_ratio) || 0;
+      if (tr >= 10) catalyst += ' <span style="font-size:0.52rem;color:var(--accent2);font-weight:700;">TAM ' + tr + 'x 🚀</span>';
+      else if (tr >= 3) catalyst += ' <span style="font-size:0.52rem;color:var(--accent);font-weight:700;">TAM ' + tr + 'x</span>';
+      else if (tr > 0 && tr < 1) catalyst += ' <span style="font-size:0.52rem;color:var(--red);">TAM ' + tr + 'x</span>';
     } else {
       catalyst = (e.drug || e.notes || 'Catalyst Event').substring(0, 50);
     }
@@ -350,20 +354,32 @@ function renderTable() {
     html += '<td style="font-family:var(--mono);font-size:0.62rem;color:' + capColor + ';font-weight:700;">' + capLabel + '</td>';
 
     if (isPaid) {
+      // TAM Ratio column
+      var tamRatio = Number(e.tam_ratio) || 0;
+      var tamColor = tamRatio >= 10 ? 'var(--accent2)' : tamRatio >= 3 ? 'var(--accent)' : tamRatio >= 1 ? 'var(--amber)' : 'var(--muted)';
+      var tamDisplay = tamRatio > 0 ? tamRatio.toFixed(1) + 'x' : '—';
+      html += '<td class="score-cell" style="color:' + tamColor + ';font-weight:700;">' + tamDisplay + '</td>';
+
       if (e._source === 'pdufa' || e._source === 'catalyst') {
-        // PDUFA/catalyst — show PoA + STN combined
-        var poaColor = e.poa >= 75 ? 'var(--accent2)' : e.poa >= 60 ? 'var(--accent)' : e.poa > 0 ? 'var(--amber)' : 'var(--muted)';
-        html += '<td class="score-cell" style="color:' + poaColor + '">' + (e.poa > 0 ? e.poa.toFixed(0) + '%' : '—') + '</td>';
-        html += '<td class="score-cell" style="color:' + riskColor(e.sell_news_risk) + ';font-size:0.62rem;">' + (e.sell_news_risk !== '—' ? e.sell_news_risk : '—') + '</td>';
+        // PDUFA/catalyst — show PoA + STN
+        var poaVal = Number(e.poa) || 0;
+        var poaColor = poaVal >= 75 ? 'var(--accent2)' : poaVal >= 60 ? 'var(--accent)' : poaVal > 0 ? 'var(--amber)' : 'var(--muted)';
+        html += '<td class="score-cell" style="color:' + poaColor + '">' + (poaVal > 0 ? poaVal.toFixed(0) + '%' : '—') + '</td>';
+        var stnVal = e.sell_news_risk || '—';
+        html += '<td class="score-cell" style="color:' + riskColor(stnVal) + ';font-size:0.62rem;">' + stnVal + '</td>';
       } else {
-        // Universe/earnings — show buyout score
-        var bColor = {'HIGH':'var(--accent2)','MODERATE':'var(--accent)','LOW':'var(--amber)','UNLIKELY':'var(--muted)'}[e.buyout_risk] || 'var(--muted)';
-        html += '<td class="score-cell" style="color:' + bColor + ';font-size:0.62rem;">' + (e.buyout_risk !== '—' && e.buyout_risk !== 'UNLIKELY' ? e.buyout_score : '—') + '</td>';
-        html += '<td class="score-cell" style="color:var(--muted);font-size:0.62rem;">' + (e.buyout_risk !== '—' && e.buyout_risk !== 'UNLIKELY' ? e.buyout_risk : '—') + '</td>';
+        // Universe/earnings — show buyout data or dashes
+        var bScore = Number(e.buyout_score) || 0;
+        var bRisk = e.buyout_risk || '—';
+        var bColor = {'HIGH':'var(--accent2)','MODERATE':'var(--accent)','LOW':'var(--amber)'}[bRisk] || 'var(--muted)';
+        html += '<td class="score-cell" style="color:' + bColor + ';font-size:0.62rem;">' + (bScore > 15 ? bScore : '—') + '</td>';
+        html += '<td class="score-cell" style="color:' + bColor + ';font-size:0.62rem;">' + (bRisk !== '—' && bRisk !== 'UNLIKELY' ? bRisk : '—') + '</td>';
       }
 
-      var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[e.grade] || 'var(--muted)';
-      html += '<td class="score-cell" style="color:' + gColor + '">' + (e.grade || '—') + '</td>';
+      var gradeVal = e.grade || 'WATCH';
+      if (gradeVal === '—') gradeVal = 'WATCH';
+      var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[gradeVal] || 'var(--amber)';
+      html += '<td class="score-cell" style="color:' + gColor + '">' + gradeVal + '</td>';
 
       // Signal column — clean behavioral pattern
       var signal = '';
@@ -444,6 +460,14 @@ function updateCounts() {
       var result = await res.json();
       if (result.events) {
         ALL_EVENTS = result.events.map(function(e) {
+          // Determine source type based on data
+          if (e.poa > 0 || (e.type && e.type.toUpperCase().includes('PDUFA'))) {
+            e._source = 'pdufa';
+          } else if (e.event_type === 'CLINICAL' || e.event_type === 'EARNINGS' || e.event_type === 'CONFERENCE') {
+            e._source = 'catalyst';
+          } else {
+            e._source = 'pdufa'; // default for edge function data
+          }
           e._tags = classifyEvent(e);
           return e;
         });

@@ -421,8 +421,8 @@ function renderScanner() {
             <div class="score-box-val ${d.buyout_risk === 'HIGH' ? 'green' : d.buyout_risk === 'MODERATE' ? 'cyan' : 'white'}">${d.buyout_risk || '—'}</div>
           </div>
           <div class="score-box">
-            <div class="score-box-label">Move Score</div>
-            <div class="score-box-val ${d.move_score >= 70 ? 'red' : d.move_score >= 50 ? 'amber' : 'cyan'}">${d.move_score || 0}/100</div>
+            <div class="score-box-label">TAM/Cap</div>
+            <div class="score-box-val ${(d.tam_ratio || 0) >= 10 ? 'green' : (d.tam_ratio || 0) >= 3 ? 'cyan' : (d.tam_ratio || 0) >= 1 ? 'amber' : 'red'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
           </div>
         </div>
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
@@ -587,6 +587,8 @@ function switchTab(btn, id) {
           buyout_score: Number(e.buyout_score) || 0,
           buyout_risk: e.buyout_risk || 'UNLIKELY',
           buyout_flags: e.buyout_flags || [],
+          tam_ratio: Number(e.tam_ratio) || 0,
+          tam_label: e.tam_label || '',
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
