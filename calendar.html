@@ -147,6 +147,7 @@ footer a:hover{color:var(--accent);}
     <button class="tab-btn" data-tab="stn" onclick="switchTab('stn')">STN Risk <span class="tab-count" id="count-stn"></span></button>
     <button class="tab-btn" data-tab="conference" onclick="switchTab('conference')">Conferences <span class="tab-count" id="count-conference"></span></button>
     <button class="tab-btn" data-tab="dilution" onclick="switchTab('dilution')">Dilution Watch <span class="tab-count" id="count-dilution"></span></button>
+    <button class="tab-btn" data-tab="company" onclick="switchTab('company')">All Companies <span class="tab-count" id="count-company"></span></button>
   </div>
 
   <!-- Filters -->
@@ -216,6 +217,7 @@ function eventBadge(type) {
   if (t.includes('earning')) return '<span class="event-badge badge-earnings">EARNINGS</span>';
   if (t.includes('buyout') || t.includes('acquisition') || t.includes('m&a')) return '<span class="event-badge badge-buyout">BUYOUT</span>';
   if (t.includes('conference') || t.includes('abstract') || t.includes('presentation')) return '<span class="event-badge badge-conference">CONF</span>';
+  if (t.includes('company')) return '<span class="event-badge badge-other">BIOTECH</span>';
   return '<span class="event-badge badge-pdufa">PDUFA</span>';
 }
 
@@ -252,17 +254,18 @@ function matchesFilters(e) {
 
   var cap = document.getElementById('filter-cap').value;
   if (cap !== 'all') {
-    // Use market_cap if available, otherwise estimate from score metadata
-    // For now, show all since we don't have market cap data for every event
+    var capMap = {'small':'SMALL','mid':'MID','large':'LARGE'};
+    if (e.market_cap_tier !== capMap[cap]) return false;
   }
 
   var grade = document.getElementById('filter-grade').value;
   if (grade !== 'all' && e.grade !== grade) return false;
 
-  var window = document.getElementById('filter-window').value;
-  if (window !== 'all') {
+  var window_val = document.getElementById('filter-window').value;
+  if (window_val !== 'all') {
+    if (e.date === '—') return false;
     var days = daysUntil(e.date);
-    if (days < 0 || days > parseInt(window)) return false;
+    if (days < 0 || days > parseInt(window_val)) return false;
   }
 
   return true;
@@ -278,24 +281,36 @@ function renderTable() {
     return;
   }
 
-  filtered.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+  filtered.sort(function(a, b) {
+    // Events with dates first, then companies alphabetically
+    if (a.date === '—' && b.date !== '—') return 1;
+    if (a.date !== '—' && b.date === '—') return -1;
+    if (a.date === '—' && b.date === '—') return a.ticker.localeCompare(b.ticker);
+    return new Date(a.date) - new Date(b.date);
+  });
 
   var html = '<table class="cal-table"><thead><tr>';
-  html += '<th>Ticker</th><th>Type</th><th>Drug / Event</th><th>Date</th>';
+  html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Event / Drug</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
     html += '<th>PoA</th><th>STN Risk</th><th>Dilution</th><th>Net Edge</th><th>Grade</th><th>Pattern</th>';
   }
+  html += '<th style="text-align:center;">Deep Dive</th>';
   html += '</tr></thead><tbody>';
 
   filtered.forEach(function(e) {
-    var days = daysUntil(e.date);
+    var days = e.date !== '—' ? daysUntil(e.date) : null;
     var link = '/catalyst-detail.html?ticker=' + e.ticker;
 
     html += '<tr onclick="window.location.href=\'' + link + '\'">';
-    html += '<td class="ticker-cell">' + e.ticker + daysPill(days) + '</td>';
+    html += '<td class="ticker-cell">' + e.ticker + (days !== null ? daysPill(days) : '') + '</td>';
+    html += '<td style="font-family:var(--sans);font-size:0.7rem;color:var(--muted);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (e.company_name || e.drug || '—') + '</td>';
     html += '<td>' + eventBadge(e.type) + '</td>';
-    html += '<td style="font-family:var(--sans);font-size:0.75rem;color:var(--text);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (e.drug || e.indication || '—') + '</td>';
-    html += '<td>' + e.date + '</td>';
+    html += '<td style="font-family:var(--sans);font-size:0.75rem;color:var(--text);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (e.drug || e.indication || '—') + '</td>';
+    html += '<td>' + (e.date !== '—' ? e.date : '<span style="color:var(--muted)">No event</span>') + '</td>';
+
+    // Market cap tier badge
+    var capColor = {'LARGE':'var(--amber)','MID':'var(--accent)','SMALL':'var(--accent2)'}[e.market_cap_tier] || 'var(--muted)';
+    html += '<td style="font-family:var(--mono);font-size:0.62rem;color:' + capColor + ';font-weight:700;">' + (e.market_cap_tier || '—') + '</td>';
 
     if (isPaid) {
       var poaColor = e.poa >= 75 ? 'var(--accent2)' : e.poa >= 60 ? 'var(--accent)' : 'var(--amber)';
@@ -317,6 +332,7 @@ function renderTable() {
       html += '<td>' + pattern + '</td>';
     }
 
+    html += '<td style="text-align:center;"><a href="' + link + '" style="color:var(--accent);font-family:var(--mono);font-size:0.62rem;text-decoration:none;letter-spacing:0.06em;" onclick="event.stopPropagation();">ANALYZE →</a></td>';
     html += '</tr>';
   });
 
@@ -335,7 +351,7 @@ function switchTab(tab) {
 function applyFilters() { renderTable(); }
 
 function updateCounts() {
-  var tabs = ['all','pdufa','clinical','adcom','earnings','buyout','stn','conference','dilution'];
+  var tabs = ['all','pdufa','clinical','adcom','earnings','buyout','stn','conference','dilution','company'];
   tabs.forEach(function(tab) {
     var count = tab === 'all' ? ALL_EVENTS.length : ALL_EVENTS.filter(function(e) { return (e._tags || []).includes(tab); }).length;
     var el = document.getElementById('count-' + tab);
@@ -388,23 +404,99 @@ function updateCounts() {
 
   // Fallback: load basic calendar data from Supabase directly
   if (ALL_EVENTS.length === 0) {
-    var { data: events } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected')
+    // Load PDUFA events
+    var { data: pdufaEvents } = await sb.from('pdufa_events')
+      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 
-    if (events) {
-      ALL_EVENTS = events.map(function(e) {
+    if (pdufaEvents) {
+      ALL_EVENTS = pdufaEvents.map(function(e) {
         e.poa = Number(e.poa) || 0;
         e.score = Number(e.score) || 0;
         e.net_edge_score = Number(e.net_edge_score) || Number(e.score) || 0;
         e._tags = classifyEvent(e);
+        e._source = 'pdufa';
         if (!isPaid) {
           e.poa = 0; e.score = 0; e.net_edge_score = 0;
           e.sell_news_risk = '🔒'; e.dilution_risk = '🔒'; e.grade = '🔒';
         }
         return e;
       });
+    }
+
+    // Load catalyst events (non-PDUFA)
+    var { data: catEvents } = await sb.from('catalyst_events')
+      .select('ticker, company_name, event_type, event_date, event_description, source, relevance_score, behavioral_pattern, flags, market_cap_tier')
+      .gte('event_date', new Date().toISOString().split('T')[0])
+      .order('event_date', { ascending: true });
+
+    if (catEvents) {
+      var mapped = catEvents.map(function(e) {
+        return {
+          ticker: e.ticker,
+          drug: e.event_description || '',
+          indication: '',
+          type: e.event_type || 'OTHER',
+          date: e.event_date,
+          grade: '—',
+          poa: 0,
+          score: Number(e.relevance_score) || 0,
+          flags: e.flags || [],
+          notes: e.event_description || '',
+          sell_news_risk: '—',
+          dilution_risk: '—',
+          net_edge_score: 0,
+          atm_active: false,
+          shelf_active: false,
+          partnership_detected: false,
+          company_name: e.company_name || '',
+          market_cap_tier: e.market_cap_tier || 'UNKNOWN',
+          _tags: [e.event_type ? e.event_type.toLowerCase() : 'other'],
+          _source: 'catalyst',
+        };
+      });
+      ALL_EVENTS = ALL_EVENTS.concat(mapped);
+    }
+
+    // Load all biotech universe tickers (for the full company browser)
+    var { data: allCompanies } = await sb.from('biotech_universe')
+      .select('ticker, company_name, market_cap_tier')
+      .eq('active', true)
+      .order('ticker', { ascending: true });
+
+    if (allCompanies) {
+      // Add companies that don't already have events
+      var existingTickers = {};
+      ALL_EVENTS.forEach(function(e) { existingTickers[e.ticker] = true; });
+
+      var companyEntries = allCompanies.filter(function(c) {
+        return !existingTickers[c.ticker];
+      }).map(function(c) {
+        return {
+          ticker: c.ticker,
+          drug: c.company_name || '',
+          indication: '',
+          type: 'COMPANY',
+          date: '—',
+          grade: '—',
+          poa: 0,
+          score: 0,
+          flags: [],
+          notes: '',
+          sell_news_risk: '—',
+          dilution_risk: '—',
+          net_edge_score: 0,
+          atm_active: false,
+          shelf_active: false,
+          partnership_detected: false,
+          company_name: c.company_name || '',
+          market_cap_tier: c.market_cap_tier || 'UNKNOWN',
+          _tags: ['company'],
+          _source: 'universe',
+        };
+      });
+      ALL_EVENTS = ALL_EVENTS.concat(companyEntries);
     }
   }
 

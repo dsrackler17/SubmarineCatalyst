@@ -98,6 +98,21 @@ footer a:hover{color:var(--accent);}
   <div class="selector-bar" id="ticker-bar">
     <span style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);">Loading tickers...</span>
   </div>
+  <div style="display:flex;gap:0.75rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+    <input type="text" id="ticker-search" placeholder="Search ticker or company..." style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;width:280px;" oninput="filterChips()">
+    <select id="cap-filter" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;" onchange="filterChips()">
+      <option value="all">All Cap</option>
+      <option value="SMALL">Small Cap</option>
+      <option value="MID">Mid Cap</option>
+      <option value="LARGE">Large Cap</option>
+    </select>
+    <select id="type-filter" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;" onchange="filterChips()">
+      <option value="all">All Types</option>
+      <option value="pdufa">PDUFA Events</option>
+      <option value="company">All Companies</option>
+    </select>
+    <span id="chip-count" style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);"></span>
+  </div>
 
   <button class="compare-btn" id="compare-btn" disabled onclick="runComparison()">Compare Selected</button>
 
@@ -280,6 +295,32 @@ async function generateAIComparison(events) {
   }
 }
 
+function filterChips() {
+  var search = (document.getElementById('ticker-search').value || '').toUpperCase().trim();
+  var capFilter = document.getElementById('cap-filter').value;
+  var typeFilter = document.getElementById('type-filter').value;
+
+  var filtered = allEvents.filter(function(e) {
+    if (search && !e.ticker.includes(search) && !(e.company_name || e.drug || '').toUpperCase().includes(search)) return false;
+    if (capFilter !== 'all' && e.market_cap_tier !== capFilter) return false;
+    if (typeFilter === 'pdufa' && e._source !== 'pdufa') return false;
+    if (typeFilter === 'company' && e._source === 'pdufa') return false;
+    return true;
+  });
+
+  var bar = document.getElementById('ticker-bar');
+  bar.innerHTML = filtered.slice(0, 100).map(function(e) {
+    var days = e.date && e.date !== '—' ? Math.round((new Date(e.date) - new Date()) / 86400000) : null;
+    var urgency = days !== null && days <= 14 ? 'color:var(--red)' : days !== null && days <= 30 ? 'color:var(--amber)' : '';
+    var capColor = {'LARGE':'var(--amber)','MID':'var(--accent)','SMALL':'var(--accent2)'}[e.market_cap_tier] || '';
+    var label = days !== null ? days + 'd' : (e.market_cap_tier || '').substring(0,1);
+    var sel = selectedTickers.has(e.ticker) ? ' selected' : '';
+    return '<div class="ticker-chip' + sel + '" data-ticker="' + e.ticker + '" onclick="toggleTicker(\'' + e.ticker + '\')" style="' + urgency + '">' + e.ticker + ' <span style="font-size:0.58rem;color:' + (capColor || 'var(--muted)') + ';">' + label + '</span></div>';
+  }).join('');
+
+  document.getElementById('chip-count').textContent = filtered.length + ' companies' + (filtered.length > 100 ? ' (showing first 100)' : '');
+}
+
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (async function() {
   var session = await scRequireAuth();
@@ -291,26 +332,78 @@ async function generateAIComparison(events) {
     return;
   }
 
-  // Fetch all events from server
+  var sb = getSupabase();
+
+  // Fetch PDUFA events from server
   try {
     var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
       headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
     });
     var result = await res.json();
     if (result.events) {
-      allEvents = result.events;
-
-      // Build ticker chips
-      var bar = document.getElementById('ticker-bar');
-      bar.innerHTML = allEvents.map(function(e) {
-        var days = Math.round((new Date(e.date) - new Date()) / 86400000);
-        var urgency = days <= 14 ? 'color:var(--red)' : days <= 30 ? 'color:var(--amber)' : '';
-        return '<div class="ticker-chip" data-ticker="' + e.ticker + '" onclick="toggleTicker(\'' + e.ticker + '\')" style="' + urgency + '">' + e.ticker + ' <span style="font-size:0.58rem;color:var(--muted);">' + days + 'd</span></div>';
-      }).join('');
+      allEvents = result.events.map(function(e) {
+        e._source = 'pdufa';
+        e.company_name = e.company_name || e.drug || e.ticker;
+        e.market_cap_tier = e.market_cap_tier || 'UNKNOWN';
+        return e;
+      });
     }
   } catch (e) {
-    console.warn('Failed to load events:', e);
+    console.warn('Failed to load PDUFA events:', e);
   }
+
+  // Also load full biotech universe
+  try {
+    var { data: companies } = await sb.from('biotech_universe')
+      .select('ticker, company_name, market_cap_tier')
+      .eq('active', true)
+      .order('ticker', { ascending: true });
+
+    if (companies) {
+      var existingTickers = {};
+      allEvents.forEach(function(e) { existingTickers[e.ticker] = true; });
+
+      var companyEntries = companies.filter(function(c) {
+        return !existingTickers[c.ticker];
+      }).map(function(c) {
+        return {
+          ticker: c.ticker,
+          drug: c.company_name || '',
+          indication: '',
+          type: 'COMPANY',
+          date: '—',
+          grade: '—',
+          poa: 0,
+          score: 0,
+          flags: [],
+          notes: '',
+          sell_news_risk: '—',
+          dilution_risk: 'UNKNOWN',
+          net_edge_score: 0,
+          move_score: 0,
+          expected_move: '',
+          move_flags: [],
+          dilution_score: 0,
+          dilution_flags: [],
+          runway_months: null,
+          insider_signal: 'NEUTRAL',
+          insider_net_buys: 0,
+          shelf_active: false,
+          atm_active: false,
+          partnership_detected: false,
+          company_name: c.company_name || c.ticker,
+          market_cap_tier: c.market_cap_tier || 'UNKNOWN',
+          _source: 'universe',
+        };
+      });
+
+      allEvents = allEvents.concat(companyEntries);
+    }
+  } catch (e) {
+    console.warn('Failed to load biotech universe:', e);
+  }
+
+  filterChips();
 })();
 </script>
 </body>

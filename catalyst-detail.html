@@ -548,8 +548,32 @@ async function generateAISummary(d) {
 
     var EDGE_URL = SC_CONFIG.supabaseUrl + '/functions/v1/ai-research';
     var stnRisk = d.sell_news_risk || 'MODERATE';
+    var prompt;
 
-    var prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
+    if (d.type === 'COMPANY' || d.date === '—') {
+      // General biotech company deep dive (no PDUFA event)
+      prompt = 'Provide a comprehensive biotech intelligence deep dive on ' + d.ticker + ' (' + (d.company_name || d.ticker) + '). Provide THREE clearly separated sections using these exact headers:\n\n' +
+        '**COMPANY OVERVIEW & PIPELINE**\n' +
+        'Market cap tier: ' + (d.market_cap_tier || 'UNKNOWN') + '.\n' +
+        'Cover: What does this company do? What drugs/therapies are in their pipeline? What stage are they (preclinical, Phase 1/2/3, commercial)? What therapeutic areas do they focus on? Do they have any approved products generating revenue? What is their competitive position?\n\n' +
+        '**CATALYST ANALYSIS & BUYOUT POTENTIAL**\n' +
+        'Analyze:\n' +
+        '1. What are the next major catalysts for this company? (upcoming data readouts, PDUFA dates, conference presentations, earnings)\n' +
+        '2. Buyout potential: Is this company an acquisition target? What factors make it attractive or unattractive to larger pharma? Is their drug first-in-class? Do they have commercial infrastructure or would an acquirer need to build it?\n' +
+        '3. Post-catalyst behavioral pattern: Based on the company profile, which pattern is most likely after their next catalyst — Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction?\n' +
+        '4. Competitive landscape: Who are the main competitors? Is the market crowded or is there significant unmet need?\n' +
+        '5. Insider and institutional activity: Any notable buying/selling patterns?\n\n' +
+        '**INVESTMENT SCENARIOS**\n' +
+        'Based on the pipeline, competitive position, and catalyst timeline:\n' +
+        '1. Bull case: Everything goes right — key catalysts hit, no dilution, potential buyout. What could the stock realistically do?\n' +
+        '2. Base case: Mixed results, moderate pipeline progress. Expected trajectory.\n' +
+        '3. Bear case: Key catalyst fails, dilution, competitive threat. Downside risk.\n' +
+        '4. Key question: What is the single most important factor that will determine this company\'s trajectory over the next 12 months?\n' +
+        '5. Risk factors: What could go wrong that most investors aren\'t thinking about?\n\n' +
+        'Be specific with analysis. This is for investors evaluating whether to add this company to their watchlist. End with disclaimer.';
+    } else {
+      // PDUFA-specific deep dive (existing prompt)
+      prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
       '**EXECUTIVE SUMMARY**\n' +
       'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '.\n' +
       'Scanner data — PoA: ' + (d.poa || 0).toFixed(1) + '%. STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
@@ -579,6 +603,7 @@ async function generateAISummary(d) {
       '5. Key question: Single most important factor for whether this approval moves the stock.\n' +
       '6. Optimal trade strategy: Given STN + dilution profile, should trader hold through PDUFA, sell before, buy after, or avoid entirely?\n\n' +
       'Be specific with numbers and percentages. This is for traders sizing positions around a binary event. End with disclaimer.';
+    }
 
     var res = await fetch(EDGE_URL, {
       method: 'POST',
@@ -723,8 +748,83 @@ async function generateAISummary(d) {
   }
 
   if (!eventData) {
-    document.querySelector('main').innerHTML = '<div style="padding:4rem 0;text-align:center"><p style="font-family:var(--mono);color:var(--muted);font-size:0.8rem;margin-bottom:1.5rem">No data found for ticker: <strong style="color:var(--white)">' + ticker + '</strong></p><p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:1.5rem;">This ticker may not have an upcoming PDUFA date in our database.</p><a href="/calendar.html" style="font-family:var(--mono);font-size:0.72rem;color:var(--accent);text-decoration:none;">← Back to Calendar</a></div>';
-    return;
+    // No PDUFA event — check if ticker exists in biotech universe
+    try {
+      var sb = getSupabase();
+      var { data: company } = await sb.from('biotech_universe')
+        .select('ticker, company_name, market_cap_tier')
+        .eq('ticker', ticker)
+        .single();
+
+      if (company) {
+        eventData = {
+          ticker: company.ticker,
+          drug: '',
+          indication: 'Biotech Company',
+          type: 'COMPANY',
+          date: '—',
+          grade: '—',
+          poa: 0,
+          score: 0,
+          flags: [],
+          notes: '',
+          source_url: '',
+          sell_news_risk: '—',
+          move_score: 0,
+          expected_move: '',
+          move_flags: [],
+          net_edge_score: 0,
+          dilution_risk: 'UNKNOWN',
+          dilution_score: 0,
+          dilution_flags: [],
+          runway_months: null,
+          runway_risk: 'UNKNOWN',
+          insider_signal: 'NEUTRAL',
+          insider_net_buys: 0,
+          shelf_active: false,
+          atm_active: false,
+          partnership_detected: false,
+          company_name: company.company_name || ticker,
+          market_cap_tier: company.market_cap_tier || 'UNKNOWN',
+        };
+      }
+    } catch (err) {
+      console.warn('[SC] Universe lookup failed:', err);
+    }
+  }
+
+  if (!eventData) {
+    // Still no data — show generic analysis option
+    eventData = {
+      ticker: ticker,
+      drug: '',
+      indication: 'Unknown',
+      type: 'COMPANY',
+      date: '—',
+      grade: '—',
+      poa: 0,
+      score: 0,
+      flags: [],
+      notes: '',
+      source_url: '',
+      sell_news_risk: '—',
+      move_score: 0,
+      expected_move: '',
+      move_flags: [],
+      net_edge_score: 0,
+      dilution_risk: 'UNKNOWN',
+      dilution_score: 0,
+      dilution_flags: [],
+      runway_months: null,
+      runway_risk: 'UNKNOWN',
+      insider_signal: 'NEUTRAL',
+      insider_net_buys: 0,
+      shelf_active: false,
+      atm_active: false,
+      partnership_detected: false,
+      company_name: ticker,
+      market_cap_tier: 'UNKNOWN',
+    };
   }
 
   populatePage(eventData, isPaid);
