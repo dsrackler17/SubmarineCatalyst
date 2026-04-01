@@ -236,8 +236,9 @@ function classifyEvent(e) {
   if (e.sell_news_risk === 'HIGH' || e.sell_news_risk === 'ELEVATED') tags.push('stn');
   if (e.dilution_risk === 'HIGH' || e.dilution_risk === 'EXTREME') tags.push('dilution');
   if (e.atm_active || e.shelf_active) tags.push('dilution');
-  // Buyout signals: small-cap + first-in-class + partnership or no commercial infra
+  // Buyout signals: buyout_risk HIGH/MODERATE OR first-in-class + partnership
   var flags = (e.flags || []).join(' ').toLowerCase();
+  if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') tags.push('buyout');
   if (flags.includes('first-in-class') || flags.includes('first in class') || flags.includes('prv') || flags.includes('acquisition') || e.partnership_detected) tags.push('buyout');
   if (tags.length === 0) tags.push('pdufa'); // default
   return tags;

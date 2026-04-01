@@ -448,6 +448,8 @@ function populatePage(d, isPaid) {
     ['Insider Signal', d.insider_signal || 'NEUTRAL'],
     ['Shelf Active',  d.shelf_active ? 'YES' : 'No'],
     ['ATM Active',    d.atm_active ? 'YES' : 'No'],
+    ['Buyout Score',  (d.buyout_score || 0) + '/100'],
+    ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
     ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
   ].map(function(pair) {
     return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
@@ -739,6 +741,9 @@ async function generateAISummary(d) {
         shelf_active: e.shelf_active || false,
         atm_active: e.atm_active || false,
         partnership_detected: e.partnership_detected || false,
+        buyout_score: Number(e.buyout_score) || 0,
+        buyout_risk: e.buyout_risk || 'UNLIKELY',
+        buyout_flags: e.buyout_flags || [],
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;

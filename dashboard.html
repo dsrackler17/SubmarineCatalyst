@@ -120,7 +120,7 @@
   .card-drug       { font-size: 0.82rem; color: var(--text); margin-bottom: 0.2rem; font-weight: 300; }
   .card-indication { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); margin-bottom: 1rem; letter-spacing: 0.04em; }
 
-  .card-scores { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0; border: 1px solid var(--border); margin-bottom: 0.75rem; }
+  .card-scores { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0; border: 1px solid var(--border); margin-bottom: 0.75rem; }
   .score-box { padding: 0.6rem 0.75rem; border-right: 1px solid var(--border); text-align: center; }
   .score-box:last-child { border-right: none; }
   .score-box-label { font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
@@ -415,6 +415,16 @@ function renderScanner() {
             <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
           </div>
         </div>
+        <div class="card-scores" style="grid-template-columns:1fr 1fr;margin-top:-1px;">
+          <div class="score-box">
+            <div class="score-box-label">Buyout</div>
+            <div class="score-box-val ${d.buyout_risk === 'HIGH' ? 'green' : d.buyout_risk === 'MODERATE' ? 'cyan' : 'white'}">${d.buyout_risk || '—'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">Move Score</div>
+            <div class="score-box-val ${d.move_score >= 70 ? 'red' : d.move_score >= 50 ? 'amber' : 'cyan'}">${d.move_score || 0}/100</div>
+          </div>
+        </div>
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
         <div class="card-flags">
           ${(d.flags || []).map(f=>`<div class="card-flag">${f}</div>`).join('')}
@@ -574,6 +584,9 @@ function switchTab(btn, id) {
           insider_signal: e.insider_signal || 'NEUTRAL',
           shelf_active: e.shelf_active || false,
           atm_active: e.atm_active || false,
+          buyout_score: Number(e.buyout_score) || 0,
+          buyout_risk: e.buyout_risk || 'UNLIKELY',
+          buyout_flags: e.buyout_flags || [],
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
