@@ -255,10 +255,10 @@ footer a:hover { color: var(--accent); }
   <ul class="nav-links">
     <li><a href="/calendar.html">Calendar</a></li>
     <li><a href="/compare.html">Compare</a></li>
-    <li><a href="#proof">Track Record</a></li>
-    <li><a href="#how">Method</a></li>
-    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
     <li><a href="/how-institutions-trade.html">Education</a></li>
+    <li><a href="/behavior-patterns.html">Patterns</a></li>
+    <li><a href="#pricing">Pricing</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
   <a href="#pricing" class="nav-cta">Get Access</a>
@@ -363,7 +363,7 @@ footer a:hover { color: var(--accent); }
 <section id="how" style="background: var(--deep); border-top: 1px solid var(--border);">
   <div class="section reveal">
     <div class="section-label">The Method</div>
-    <h2 class="section-heading">Not a screener. A multi-layer intelligence model.</h2>
+    <h2 class="section-heading">Not a calendar. Not a screener. An intelligence platform.</h2>
     <p class="section-sub">Eight independent analysis layers. Every score is sourced, weighted, and documented. No black boxes.</p>
     <div class="how-grid">
       <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
@@ -381,32 +381,43 @@ footer a:hover { color: var(--accent); }
 <section id="signals" class="signals-section">
   <div class="section reveal">
     <div class="section-label">Signal Architecture</div>
-    <h2 class="section-heading">Seven layers, one number.</h2>
+    <h2 class="section-heading">Eight signal layers. One composite score.</h2>
     <p class="section-sub">Each signal is sourced, weighted, and documented. No black boxes. You can audit every modifier on every ticker.</p>
     <div class="signals-grid">
       <div class="signal-list">
-        <div class="signal-item"><span class="signal-icon">🧬</span><div><div class="signal-name">Indication Classifier</div><div class="signal-desc">Maps drug description to 16 therapeutic areas. Applies published FDA phase-3→approval rates per indication. Oncology: 85.5% · Rare/Orphan: 86.2% · CNS: 49%.</div></div><span class="signal-source">Hay 2014 · Wong 2019</span></div>
-        <div class="signal-item"><span class="signal-icon">📋</span><div><div class="signal-name">Review Pathway</div><div class="signal-desc">Breakthrough (90%), Priority NME (81%), Accelerated (72%), Resubmission (65%). Blended 50/50 with indication rate to avoid over-reliance on either signal.</div></div><span class="signal-source">FDA PDUFA reports</span></div>
-        <div class="signal-item"><span class="signal-icon">🗳️</span><div><div class="signal-name">AdCom Vote Parser</div><div class="signal-desc">Extracts numerical votes from text (e.g. "8-7", "14-0"). Unanimous → 1.25× multiplier. Close vote ≤2 margin → 0.82×. Negative vote → floor near 0.45×.</div></div><span class="signal-source">PMC10329213</span></div>
-        <div class="signal-item"><span class="signal-icon">📁</span><div><div class="signal-name">SEC EDGAR Enrichment</div><div class="signal-desc">Scans 8-K filings from the last 180 days for FDA communication signals: deficiency letters, manufacturing inspection results, complete response references, breakthrough designations.</div></div><span class="signal-source">SEC EDGAR API</span></div>
-        <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov Status</div><div class="signal-desc">Checks Phase 3 trial status for each drug. Completed trials get a 1.02× boost. Terminated or suspended trials trigger a 0.70× discount. Active enrollment noted.</div></div><span class="signal-source">CT.gov API v2</span></div>
-        <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity (25pts), price depression from 52w high (20pts), short squeeze potential (20pts), expected move magnitude via HV (15pts), liquidity (10pts), size tier (10pts).</div></div><span class="signal-source">Proprietary</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After 10+ completed PDUFA outcomes are logged, the PoA/Convexity blend recalibrates automatically based on which factor actually predicted approval in real data.</div></div><span class="signal-source">Outcome log v13</span></div>
+        <div class="signal-item"><span class="signal-icon">🧬</span><div><div class="signal-name">Indication Classifier</div><div class="signal-desc">Maps drug to 16 therapeutic areas. Applies published FDA phase-3→approval rates. Oncology: 85.5% · Rare/Orphan: 86.2% · CNS: 49%.</div></div><span class="signal-source">Hay 2014 · Wong 2019</span></div>
+        <div class="signal-item"><span class="signal-icon">📋</span><div><div class="signal-name">Review Pathway</div><div class="signal-desc">Breakthrough (90%), Priority NME (81%), Accelerated (72%), Resubmission (65%). Blended 50/50 with indication rate.</div></div><span class="signal-source">FDA PDUFA reports</span></div>
+        <div class="signal-item"><span class="signal-icon">🗳️</span><div><div class="signal-name">AdCom Vote Parser</div><div class="signal-desc">Extracts numerical votes (e.g. "8-7", "14-0"). Unanimous → 1.25× multiplier. Close vote → 0.82×. Also feeds STN Risk.</div></div><span class="signal-source">PMC10329213</span></div>
+        <div class="signal-item"><span class="signal-icon">📁</span><div><div class="signal-name">SEC EDGAR Scanner</div><div class="signal-desc">Scans 8-K, 424B5, S-3, and ATM filings for dilution signals, sales agent changes, and offering activity near PDUFA dates.</div></div><span class="signal-source">SEC EDGAR API</span></div>
+        <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
+        <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
+        <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 6/6 correct on approvals. STN Risk correctly flagged RCKT (-20%) and VNDA (+45%).</div></div><span class="signal-source">Live outcome log</span></div>
       </div>
       <div>
         <div class="score-panel">
-          <div class="score-panel-title">// RCKT — Score Breakdown</div>
-          <div class="score-bar-row"><span class="score-bar-label">Indication base</span><div class="score-bar-track"><div class="score-bar-fill" style="width:86%"></div></div><span class="score-bar-val">86%</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">Review pathway</span><div class="score-bar-track"><div class="score-bar-fill" style="width:65%; background: var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">65%</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">AdCom (10-0)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:99%; background: var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">×1.25</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">Prior CRL</span><div class="score-bar-track"><div class="score-bar-fill" style="width:58%; background: var(--amber)"></div></div><span class="score-bar-val" style="color:var(--amber)">×0.58</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">SEC signals</span><div class="score-bar-track"><div class="score-bar-fill" style="width:72%"></div></div><span class="score-bar-val">+3%</span></div>
+          <div class="score-panel-title">// RCKT — Why approval lost money</div>
+          <div class="score-bar-row"><span class="score-bar-label">PoA (approved ✓)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:77%"></div></div><span class="score-bar-val">77.5%</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">STN Risk</span><div class="score-bar-track"><div class="score-bar-fill" style="width:85%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">HIGH</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">Dilution ($100M ATM)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:70%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">HIGH</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">TAM / Cap</span><div class="score-bar-track"><div class="score-bar-fill" style="width:4%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">0.04x</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">Buyout</span><div class="score-bar-track"><div class="score-bar-fill" style="width:30%; background:var(--amber)"></div></div><span class="score-bar-val" style="color:var(--amber)">LOW</span></div>
           <hr class="score-divider">
-          <div class="score-bar-row" style="margin-bottom:1.25rem"><span class="score-bar-label">Proximity (11d)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:72%"></div></div><span class="score-bar-val">18/25</span></div>
-          <div class="score-bar-row" style="margin-bottom:1.25rem"><span class="score-bar-label">Price depression</span><div class="score-bar-track"><div class="score-bar-fill" style="width:80%"></div></div><span class="score-bar-val">16/20</span></div>
-          <div class="score-bar-row" style="margin-bottom:1.25rem"><span class="score-bar-label">Short squeeze</span><div class="score-bar-track"><div class="score-bar-fill" style="width:75%"></div></div><span class="score-bar-val">15/20</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">Actual move</span><div class="score-bar-track"><div class="score-bar-fill" style="width:20%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">-20%</span></div>
           <hr class="score-divider">
-          <div class="score-total-row"><div><div class="score-total-label">FINAL SCORE</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">PoA 60% · Conv 40%</div></div><div class="score-total-val">84.2</div></div>
+          <div class="score-total-row"><div><div class="score-total-label">THE LESSON</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">Approval ≠ profit. The scanner saw it.</div></div><div class="score-total-val" style="color:var(--red)">⚠️</div></div>
+        </div>
+
+        <div class="score-panel" style="margin-top:1px;">
+          <div class="score-panel-title">// VNDA — Why approval made money</div>
+          <div class="score-bar-row"><span class="score-bar-label">PoA (approved ✓)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:78%"></div></div><span class="score-bar-val">78%</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">STN Risk</span><div class="score-bar-track"><div class="score-bar-fill" style="width:25%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">LOW</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">Dilution</span><div class="score-bar-track"><div class="score-bar-fill" style="width:10%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">MINIMAL</span></div>
+          <div class="score-bar-row"><span class="score-bar-label">TAM / Cap</span><div class="score-bar-track"><div class="score-bar-fill" style="width:50%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">5.0x</span></div>
+          <hr class="score-divider">
+          <div class="score-bar-row"><span class="score-bar-label">Actual move</span><div class="score-bar-track"><div class="score-bar-fill" style="width:45%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">+45%</span></div>
+          <hr class="score-divider">
+          <div class="score-total-row"><div><div class="score-total-label">THE EDGE</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">Same PoA. Different trade. Scanner knew.</div></div><div class="score-total-val" style="color:var(--accent2)">✅</div></div>
         </div>
       </div>
     </div>
@@ -619,10 +630,15 @@ footer a:hover { color: var(--accent); }
 <footer>
   <a href="/" class="nav-wordmark" style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);text-decoration:none;letter-spacing:0.1em;">SUBMARINE CATALYST</a>
   <div class="footer-disclaimer">Not investment advice. All scores are quantitative signals only. Trading biotech binary events involves substantial risk of loss. Past scanner performance does not guarantee future results. For informational purposes only.</div>
-  <div style="display:flex;gap:1.5rem;align-items:center">
+  <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
     <a href="https://x.com/DRackler" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.4rem;">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
     </a>
+    <a href="/calendar.html">Calendar</a>
+    <a href="/track-record.html">Track Record</a>
+    <a href="/beginners-guide.html">Beginner's Guide</a>
+    <a href="/how-institutions-trade.html">Education</a>
+    <a href="/behavior-patterns.html">Patterns</a>
     <a href="/privacy.html">Privacy</a>
     <a href="/terms.html">Terms</a>
     <a href="/login.html">Login</a>
