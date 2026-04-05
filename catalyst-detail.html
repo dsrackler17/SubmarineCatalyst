@@ -452,7 +452,7 @@ function populatePage(d, isPaid) {
     ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
     ['Drug TAM',      d.tam_label || 'Unknown'],
     ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—'],
-    ['Trade Signal',  d.trade_recommendation || '—'],
+    ['Setup Quality', d.trade_recommendation || '—'],
     ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
   ].map(function(pair) {
     return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
@@ -587,7 +587,7 @@ async function generateAISummary(d) {
       'Shelf active: ' + (d.shelf_active ? 'YES' : 'No') + '. ATM active: ' + (d.atm_active ? 'YES' : 'No') + '. ' +
       'Partnership detected: ' + (d.partnership_detected ? 'YES' : 'No') + '. ' +
       'Drug TAM: ' + (d.tam_label || 'Unknown') + '. TAM/Cap ratio: ' + (d.tam_ratio || 'Unknown') + 'x. ' +
-      'Scanner trade signal: ' + (d.trade_recommendation || 'Unknown') + '. ' +
+      'Scanner setup quality: ' + (d.trade_recommendation || 'Unknown') + '. ' +
       'Net Edge Score: ' + (d.net_edge_score || d.score || 0).toFixed(1) + '/100. Grade: ' + (d.grade || 'WATCH') + '.\n' +
       'Risk flags: ' + (d.flags || []).join(', ') + '.\n' +
       'Dilution flags: ' + (d.dilution_flags || []).join(', ') + '.\n' +
@@ -608,8 +608,8 @@ async function generateAISummary(d) {
       '3. Bear case: CRL, or approval with immediate dilution. Expected downside.\n' +
       '4. Analyst consensus if known.\n' +
       '5. Key question: Single most important factor for whether this approval moves the stock.\n' +
-      '6. Optimal trade strategy: Given STN + dilution profile, should trader hold through PDUFA, sell before, buy after, or avoid entirely?\n\n' +
-      'Be specific with numbers and percentages. This is for traders sizing positions around a binary event. End with disclaimer.';
+      '6. Setup assessment: Given the STN + dilution + TAM profile, characterize the overall setup quality — what risk factors would a systematic model flag, and what historical pattern does this most closely resemble?\n\n' +
+      'Be specific with numbers and percentages. This is for researchers evaluating the risk/reward profile of a binary event. End with disclaimer that this is quantitative analysis, not investment advice.';
     }
 
     var res = await fetch(EDGE_URL, {
