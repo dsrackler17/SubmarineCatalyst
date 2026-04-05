@@ -426,6 +426,7 @@ function renderScanner() {
           </div>
         </div>
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
+        ${d.trade_recommendation ? '<div style="font-family:var(--mono);font-size:0.68rem;font-weight:700;margin-top:0.5rem;padding:0.5rem;text-align:center;letter-spacing:0.06em;background:' + ({'HOLD THROUGH':'rgba(0,255,157,0.08)','LEAN HOLD':'rgba(0,255,157,0.06)','SELL BEFORE':'rgba(245,166,35,0.08)','TRADE CAREFULLY':'rgba(245,166,35,0.06)','AVOID':'rgba(255,68,68,0.08)'}[d.trade_recommendation] || 'rgba(0,212,255,0.05)') + ';color:' + ({'HOLD THROUGH':'var(--accent2)','LEAN HOLD':'var(--accent2)','SELL BEFORE':'var(--amber)','TRADE CAREFULLY':'var(--amber)','AVOID':'var(--red)'}[d.trade_recommendation] || 'var(--muted)') + ';border:1px solid ' + ({'HOLD THROUGH':'rgba(0,255,157,0.2)','LEAN HOLD':'rgba(0,255,157,0.15)','SELL BEFORE':'rgba(245,166,35,0.2)','TRADE CAREFULLY':'rgba(245,166,35,0.15)','AVOID':'rgba(255,68,68,0.2)'}[d.trade_recommendation] || 'var(--border)') + ';">' + ({'HOLD THROUGH':'✅','LEAN HOLD':'✅','SELL BEFORE':'⚠️','TRADE CAREFULLY':'⚠️','AVOID':'🚨'}[d.trade_recommendation] || '') + ' ' + d.trade_recommendation + '</div>' : ''}
         <div class="card-flags">
           ${(d.flags || []).map(f=>`<div class="card-flag">${f}</div>`).join('')}
         </div>
@@ -589,6 +590,8 @@ function switchTab(btn, id) {
           buyout_flags: e.buyout_flags || [],
           tam_ratio: Number(e.tam_ratio) || 0,
           tam_label: e.tam_label || '',
+          trade_recommendation: e.trade_recommendation || '',
+          trade_reasoning: e.trade_reasoning || '',
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
