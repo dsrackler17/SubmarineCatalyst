@@ -425,8 +425,18 @@ function renderScanner() {
             <div class="score-box-val ${(d.tam_ratio || 0) >= 10 ? 'green' : (d.tam_ratio || 0) >= 3 ? 'cyan' : (d.tam_ratio || 0) >= 1 ? 'amber' : 'red'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
           </div>
         </div>
+        ${(() => {
+          // Dilution Radar: visual warning when cash runway conflicts with PDUFA timing
+          var rm = d.runway_months ? Math.round(d.runway_months) : null;
+          var daysOut = Math.round((new Date(d.date) - new Date()) / 86400000);
+          if (rm !== null && rm < 6 && daysOut > 0) {
+            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:var(--red);line-height:1.5;">⚠️ DILUTION RADAR: ' + rm + '-month cash runway with PDUFA ' + daysOut + ' days out. Capital raise risk is elevated near approval.</div>';
+          } else if (rm !== null && rm < 12 && daysOut > 60) {
+            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.15);color:var(--amber);line-height:1.5;">📊 RUNWAY NOTE: ' + rm + '-month cash runway. Monitor for SEC filings as PDUFA approaches.</div>';
+          }
+          return '';
+        })()}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
-        ${d.trade_recommendation ? '<div style="font-family:var(--mono);font-size:0.68rem;font-weight:700;margin-top:0.5rem;padding:0.5rem;text-align:center;letter-spacing:0.06em;background:' + ({'STRONG SETUP':'rgba(0,255,157,0.08)','FAVORABLE':'rgba(0,255,157,0.06)','MIXED SETUP':'rgba(245,166,35,0.08)','CAUTIOUS':'rgba(245,166,35,0.06)','UNFAVORABLE':'rgba(255,68,68,0.08)'}[d.trade_recommendation] || 'rgba(0,212,255,0.05)') + ';color:' + ({'STRONG SETUP':'var(--accent2)','FAVORABLE':'var(--accent2)','MIXED SETUP':'var(--amber)','CAUTIOUS':'var(--amber)','UNFAVORABLE':'var(--red)'}[d.trade_recommendation] || 'var(--muted)') + ';border:1px solid ' + ({'STRONG SETUP':'rgba(0,255,157,0.2)','FAVORABLE':'rgba(0,255,157,0.15)','MIXED SETUP':'rgba(245,166,35,0.2)','CAUTIOUS':'rgba(245,166,35,0.15)','UNFAVORABLE':'rgba(255,68,68,0.2)'}[d.trade_recommendation] || 'var(--border)') + ';">' + ({'STRONG SETUP':'✅','FAVORABLE':'✅','MIXED SETUP':'⚠️','CAUTIOUS':'⚠️','UNFAVORABLE':'🚨'}[d.trade_recommendation] || '') + ' ' + d.trade_recommendation + '</div>' : ''}
         <div class="card-flags">
           ${(d.flags || []).map(f=>`<div class="card-flag">${f}</div>`).join('')}
         </div>
@@ -590,8 +600,6 @@ function switchTab(btn, id) {
           buyout_flags: e.buyout_flags || [],
           tam_ratio: Number(e.tam_ratio) || 0,
           tam_label: e.tam_label || '',
-          trade_recommendation: e.trade_recommendation || '',
-          trade_reasoning: e.trade_reasoning || '',
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');

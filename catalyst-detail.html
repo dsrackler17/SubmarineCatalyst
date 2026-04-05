@@ -452,7 +452,6 @@ function populatePage(d, isPaid) {
     ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
     ['Drug TAM',      d.tam_label || 'Unknown'],
     ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—'],
-    ['Setup Quality', d.trade_recommendation || '—'],
     ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
   ].map(function(pair) {
     return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
@@ -587,7 +586,6 @@ async function generateAISummary(d) {
       'Shelf active: ' + (d.shelf_active ? 'YES' : 'No') + '. ATM active: ' + (d.atm_active ? 'YES' : 'No') + '. ' +
       'Partnership detected: ' + (d.partnership_detected ? 'YES' : 'No') + '. ' +
       'Drug TAM: ' + (d.tam_label || 'Unknown') + '. TAM/Cap ratio: ' + (d.tam_ratio || 'Unknown') + 'x. ' +
-      'Scanner setup quality: ' + (d.trade_recommendation || 'Unknown') + '. ' +
       'Net Edge Score: ' + (d.net_edge_score || d.score || 0).toFixed(1) + '/100. Grade: ' + (d.grade || 'WATCH') + '.\n' +
       'Risk flags: ' + (d.flags || []).join(', ') + '.\n' +
       'Dilution flags: ' + (d.dilution_flags || []).join(', ') + '.\n' +
@@ -752,8 +750,6 @@ async function generateAISummary(d) {
         drug_tam_estimate: Number(e.drug_tam_estimate) || 0,
         tam_ratio: Number(e.tam_ratio) || 0,
         tam_label: e.tam_label || '',
-        trade_recommendation: e.trade_recommendation || '',
-        trade_reasoning: e.trade_reasoning || '',
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;
