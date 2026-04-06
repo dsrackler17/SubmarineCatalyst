@@ -527,11 +527,11 @@ function renderBuyoutGrid() {
           ticker: c.ticker,
           company_name: c.company_name || c.ticker,
           market_cap_tier: c.market_cap_tier || 'SMALL',
-          market_cap: 0,
+          market_cap: Number(c.estimated_market_cap) || 0,
           buyout_score: Number(c.buyout_score) || 0,
           buyout_risk: c.buyout_risk || 'UNLIKELY',
           buyout_flags: [],
-          tam_ratio: 0,
+          tam_ratio: Number(c.tam_ratio) || 0,
           partnership_detected: false,
           pdufa_date: '',
           poa: 0,
@@ -547,6 +547,8 @@ function renderBuyoutGrid() {
         if (existing && c.approved_drug) {
           existing.approved_drug = c.approved_drug;
           existing.approval_date = c.last_approval_date || '';
+          if (!existing.tam_ratio && c.tam_ratio) existing.tam_ratio = Number(c.tam_ratio);
+          if (!existing.market_cap && c.estimated_market_cap) existing.market_cap = Number(c.estimated_market_cap);
           if (c.buyout_score > existing.buyout_score) {
             existing.buyout_score = c.buyout_score;
             existing.buyout_risk = c.buyout_risk;
@@ -777,12 +779,22 @@ function switchTab(btn, id) {
   // Load recently approved companies for buyout scanner
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, drug_tam_billions, estimated_market_cap')
       .eq('is_acquired', false)
       .not('last_approval_date', 'is', null)
       .order('buyout_score', { ascending: false });
 
     if (approvedCompanies && approvedCompanies.length > 0) {
+      // Compute TAM/Cap ratios from live data
+      approvedCompanies.forEach(function(c) {
+        var tam = Number(c.drug_tam_billions) || 0;
+        var mcap = Number(c.estimated_market_cap) || 0;
+        if (tam > 0 && mcap > 0) {
+          c.tam_ratio = Math.round((tam * 1e9 / mcap) * 10) / 10;
+        } else {
+          c.tam_ratio = 0;
+        }
+      });
       window.BUYOUT_DATA = approvedCompanies;
       console.log('[SC] Loaded ' + approvedCompanies.length + ' recently approved companies for buyout scanner');
     } else {
