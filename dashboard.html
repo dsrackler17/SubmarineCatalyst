@@ -226,10 +226,22 @@
     <div class="sidebar-section">
       <span class="sidebar-label">Scanner</span>
       <button class="sidebar-item active" onclick="switchTab(this,'scanner')">
-        <span class="sidebar-icon">📡</span> Live Scanner
+        <span class="sidebar-icon">📡</span> PDUFA Scanner
+      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'buyout')">
+        <span class="sidebar-icon">🏷️</span> Buyout Scanner
       </button>
       <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')">
-        <span class="sidebar-icon">📅</span> PDUFA Calendar
+        <span class="sidebar-icon">📅</span> Calendar
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Tools</span>
+      <button class="sidebar-item" onclick="window.location.href='/compare.html'">
+        <span class="sidebar-icon">⚖️</span> Compare
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/buyout-scanner.html'">
+        <span class="sidebar-icon">🔍</span> Full Buyout View
       </button>
     </div>
     <div class="sidebar-section">
@@ -271,17 +283,41 @@
     </div>
 
     <div class="section-tabs">
-      <button class="tab-btn active" onclick="switchTab(this,'scanner')">Live Scanner</button>
-      <button class="tab-btn" onclick="switchTab(this,'calendar-tab')">Calendar View</button>
+      <button class="tab-btn active" onclick="switchTab(this,'scanner')">PDUFA Scanner</button>
+      <button class="tab-btn" onclick="switchTab(this,'buyout')">Buyout Scanner</button>
+      <button class="tab-btn" onclick="switchTab(this,'calendar-tab')">Calendar</button>
       <button class="tab-btn" onclick="switchTab(this,'account')">Account</button>
     </div>
 
     <div class="tab-panel active" id="tab-scanner">
       <div class="section-header">
-        <h2 class="section-title">Scanner Output</h2>
+        <h2 class="section-title">PDUFA Scanner</h2>
         <span class="section-meta" id="scan-timestamp">Fetching latest...</span>
       </div>
       <div class="scanner-grid" id="scanner-grid"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-buyout">
+      <div class="section-header">
+        <h2 class="section-title">Buyout Scanner</h2>
+        <a href="/buyout-scanner.html" style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;">Open Full View →</a>
+      </div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&A activity.</p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <input type="text" id="buyout-search" placeholder="Search ticker..." oninput="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;width:200px;">
+        <select id="buyout-filter" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Risk Levels</option>
+          <option value="HIGH">HIGH Only</option>
+          <option value="MODERATE">MODERATE+</option>
+        </select>
+        <select id="buyout-catalyst" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Companies</option>
+          <option value="pdufa">With PDUFA Catalyst</option>
+          <option value="none">No PDUFA (M&A Only)</option>
+        </select>
+      </div>
+      <div class="scanner-grid" id="buyout-grid"></div>
+      <div id="buyout-count" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:0.75rem;"></div>
     </div>
 
     <div class="tab-panel" id="tab-calendar-tab">
@@ -459,6 +495,100 @@ function renderScanner() {
 }
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
+function renderBuyoutGrid() {
+  var search = (document.getElementById('buyout-search').value || '').toUpperCase();
+  var riskFilter = document.getElementById('buyout-filter').value;
+  var catFilter = document.getElementById('buyout-catalyst').value;
+
+  // Combine PDUFA events + universe companies, dedupe
+  var all = [];
+  var seen = {};
+
+  // PDUFA events first (have real buyout scores)
+  SCANNER_DATA.forEach(function(d) {
+    if (!seen[d.ticker]) {
+      seen[d.ticker] = true;
+      all.push({
+        ticker: d.ticker,
+        company_name: d.company_name || d.drug || d.ticker,
+        market_cap_tier: d.market_cap_tier || 'SMALL',
+        market_cap: Number(d.market_cap) || 0,
+        buyout_score: Number(d.buyout_score) || 0,
+        buyout_risk: d.buyout_risk || 'UNLIKELY',
+        buyout_flags: d.buyout_flags || [],
+        tam_ratio: Number(d.tam_ratio) || 0,
+        partnership_detected: d.partnership_detected || false,
+        pdufa_date: d.date || '',
+        poa: Number(d.poa) || 0,
+        grade: d.grade || 'WATCH',
+        has_pdufa: true,
+      });
+    }
+  });
+
+  // Filter
+  var filtered = all.filter(function(d) {
+    if (search && !d.ticker.includes(search) && !(d.company_name || '').toUpperCase().includes(search)) return false;
+    if (riskFilter === 'HIGH' && d.buyout_risk !== 'HIGH') return false;
+    if (riskFilter === 'MODERATE' && d.buyout_risk !== 'HIGH' && d.buyout_risk !== 'MODERATE') return false;
+    if (catFilter === 'pdufa' && !d.has_pdufa) return false;
+    if (catFilter === 'none' && d.has_pdufa) return false;
+    return d.buyout_score > 0;
+  });
+
+  // Sort by buyout score descending
+  filtered.sort(function(a, b) { return (b.buyout_score || 0) - (a.buyout_score || 0); });
+
+  var display = filtered.slice(0, 50);
+
+  if (display.length === 0) {
+    document.getElementById('buyout-grid').innerHTML = '<div style="padding:2rem;text-align:center;font-family:var(--mono);font-size:0.75rem;color:var(--muted);grid-column:1/-1;">No companies match filters.</div>';
+    document.getElementById('buyout-count').textContent = '';
+    return;
+  }
+
+  document.getElementById('buyout-grid').innerHTML = display.map(function(d) {
+    var days = d.pdufa_date ? Math.round((new Date(d.pdufa_date) - new Date()) / 86400000) : null;
+    var daysLabel = days !== null && days >= 0 ? days + 'd' : '';
+    var scoreColor = d.buyout_score >= 70 ? 'green' : d.buyout_score >= 50 ? 'cyan' : d.buyout_score >= 30 ? 'amber' : 'white';
+    var riskColor = d.buyout_risk === 'HIGH' ? 'green' : d.buyout_risk === 'MODERATE' ? 'cyan' : 'amber';
+    var capLabel = {'SMALL':'SM','MID':'MID','LARGE':'LRG'}[d.market_cap_tier] || '—';
+
+    // Format market cap
+    var mcap = '';
+    if (d.market_cap >= 1e9) mcap = '$' + (d.market_cap / 1e9).toFixed(1) + 'B';
+    else if (d.market_cap >= 1e6) mcap = '$' + (d.market_cap / 1e6).toFixed(0) + 'M';
+
+    // Factor pills (max 3)
+    var pills = '';
+    if (d.buyout_flags && d.buyout_flags.length > 0) {
+      pills = d.buyout_flags.slice(0, 3).map(function(f) {
+        var clean = f.replace(/^[🏷️✅⚠️🚨📋]\s*/, '').substring(0, 35);
+        var cls = f.includes('🏷️') || f.includes('✅') ? 'style="color:var(--accent2);font-size:0.55rem;"' : 'style="color:var(--amber);font-size:0.55rem;"';
+        return '<div ' + cls + '>' + clean + '</div>';
+      }).join('');
+    }
+
+    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;">' +
+      '<div class="card-header">' +
+        '<div class="card-ticker">' + d.ticker + (daysLabel ? ' <span class="card-days">' + daysLabel + '</span>' : '') + '</div>' +
+        '<div class="card-grade ' + riskColor + '">' + d.buyout_risk + '</div>' +
+      '</div>' +
+      '<div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (d.company_name || d.ticker) + '</div>' +
+      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;">' +
+        '<div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + d.buyout_score + '/100</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white">' + capLabel + (mcap ? ' ' + mcap : '') + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ' + (d.tam_ratio >= 5 ? 'green' : d.tam_ratio >= 1 ? 'cyan' : 'white') + '">' + (d.tam_ratio > 0 ? d.tam_ratio + 'x' : '—') + '</div></div>' +
+      '</div>' +
+      (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent);margin-top:0.4rem;">PoA: ' + d.poa.toFixed(0) + '% · Grade: ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
+      (pills ? '<div style="margin-top:0.4rem;display:flex;flex-direction:column;gap:0.15rem;">' + pills + '</div>' : '') +
+      '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.5rem;letter-spacing:0.06em;">View deep dive →</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('buyout-count').textContent = display.length + ' of ' + filtered.length + ' companies shown';
+}
+
 function switchTab(btn, id) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -610,6 +740,7 @@ function switchTab(btn, id) {
   }
 
   renderScanner();
+  renderBuyoutGrid();
 })();
 </script>
 </body>
