@@ -1,6 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTYLL5DC4Y"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JTYLL5DC4Y');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Beginner's Guide to Biotech PDUFA Trading — Submarine Catalyst</title>
@@ -264,6 +267,73 @@ footer a:hover{color:var(--accent);}
     </p>
   </div>
 
+  <div class="term-block term-blue">
+    <div class="term-name">Setup Quality Rating</div>
+    <p class="term-def">The scanner's overall assessment of setup quality based on all eight risk layers combined. This is not a recommendation — it's a composite research signal that describes the data profile of the setup.</p>
+    <p class="term-def">
+      <code style="color:var(--accent2)">✅ STRONG SETUP</code> — Multiple favorable signals across all risk layers. Approval not priced in, limited dilution risk, favorable TAM ratio.<br>
+      <code style="color:var(--accent2)">✅ FAVORABLE</code> — Above-average signal alignment. Most risk layers positive with manageable concerns.<br>
+      <code style="color:var(--amber)">⚠️ MIXED SETUP</code> — Conflicting signals. Some positive indicators offset by elevated sell-the-news or dilution risk.<br>
+      <code style="color:var(--amber)">⚠️ CAUTIOUS</code> — Elevated risk profile. Multiple warning signals present across risk layers.<br>
+      <code style="color:var(--red)">🚨 UNFAVORABLE</code> — Significant negative signals. Approval likely priced in, dilution threat elevated, or TAM insufficient.
+    </p>
+    <div class="term-example">RCKT was a textbook UNFAVORABLE setup: HIGH STN Risk, HIGH dilution (active $100M ATM), TAM/Cap of 0.04x (drug market was 25x smaller than the company). The scanner correctly identified this profile — the drug was approved and the stock still dropped 20%.</div>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">TAM / Market Cap Ratio</div>
+    <p class="term-def">Compares the estimated Total Addressable Market (annual peak revenue) of the drug's indication to the company's current market cap. This ratio tells you whether the stock has room to move on approval. A company worth $500M with a drug targeting a $10B market has a 20x TAM/Cap ratio — significant upside potential. A company worth $2B with a drug targeting a $200M market has a 0.1x ratio — the drug can't meaningfully move the stock.</p>
+    <p class="term-def">
+      <code style="color:var(--accent2)">🚀 10x+</code> — Drug market dwarfs company value. Massive potential upside on approval.<br>
+      <code style="color:var(--accent)">✅ 3x–10x</code> — Significant upside. Drug market substantially exceeds company value.<br>
+      <code style="color:var(--amber)">⚠️ 1x–3x</code> — Moderate. Drug market roughly equals company value.<br>
+      <code style="color:var(--red)">🔴 <1x</code> — Limited upside. Drug market is smaller than the company — stock may not move much even on good news.
+    </p>
+    <div class="term-example">VNDA: Gastroparesis market ~$1.5B, company market cap ~$300M. TAM/Cap = 5x. Stock moved +45% on approval. RCKT: LAD-I market ~$20M, company market cap ~$500M. TAM/Cap = 0.04x. Stock dropped -20% on approval. Same PoA. Completely different TAM/Cap. Different outcome.</div>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">Buyout Probability</div>
+    <p class="term-def">A 0-100 score estimating how likely the company is to become an acquisition target. Biotech M&A is a major source of returns — small companies with first-in-class approved drugs are frequently acquired at 40-100% premiums. The scanner evaluates: first-in-class status, orphan drug designation, PRV (Priority Review Voucher) eligibility, existing partnerships, commercial infrastructure, market cap tier, and therapeutic area M&A history.</p>
+    <p class="term-def">
+      <code style="color:var(--accent2)">HIGH (70+)</code> — Prime acquisition target. Multiple buyout indicators present.<br>
+      <code style="color:var(--accent)">MODERATE (50-69)</code> — Potential acquisition interest. Some favorable indicators.<br>
+      <code style="color:var(--amber)">LOW (30-49)</code> — Limited acquisition likelihood based on current profile.<br>
+      <code style="color:var(--muted)">UNLIKELY (<30)</code> — Large or established company, unlikely single-asset acquisition play.
+    </p>
+    <div class="term-example">A small-cap biotech with a first-in-class orphan drug, no sales force, and an existing partnership with a large pharma company is a HIGH buyout probability setup. The partner may exercise an acquisition option or right of first refusal post-approval.</div>
+  </div>
+
+  <div class="term-block term-amber">
+    <div class="term-name">Dilution Radar</div>
+    <p class="term-def">Real-time scanning of SEC EDGAR filings for capital raise signals near PDUFA dates. Many biotech companies raise money immediately after approval — diluting shareholders and destroying post-approval gains. The radar detects these signals before they happen.</p>
+    <p class="term-def">
+      <code style="color:var(--red)">🚨 424B5</code> — Prospectus supplement filed. The company is actively preparing to sell shares. Highest urgency dilution signal.<br>
+      <code style="color:var(--red)">🚨 ATM Active</code> — At-the-market offering in place. Company can sell shares daily without announcement.<br>
+      <code style="color:var(--amber)">⚠️ S-3 Shelf</code> — Shelf registration active. Company can issue shares at any time without further SEC approval.<br>
+      <code style="color:var(--amber)">⚠️ Sales Agent Change</code> — New investment bank added as sales agent — often precedes a capital raise.
+    </p>
+    <div class="term-example">RCKT filed a $100M ATM offering with Cantor Fitzgerald just 18 days before their PDUFA date. This was a dilution signal hiding in plain sight. The Dilution Radar now catches these filings automatically.</div>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">CRL History & Resubmission Class</div>
+    <p class="term-def">A Complete Response Letter (CRL) is the FDA's way of saying "not approved yet — fix these issues." The scanner tracks CRL history because it directly impacts both approval probability and sell-the-news dynamics.</p>
+    <p class="term-def">
+      <code style="color:var(--accent)">CRL for CMC</code> — FDA rejected due to manufacturing/chemistry issues. These are typically fixable and resubmission success rates are high (~88%).<br>
+      <code style="color:var(--red)">CRL for Clinical</code> — FDA rejected due to efficacy or safety concerns. Much harder to fix. Resubmission carries meaningful risk.<br>
+      <code style="color:var(--accent)">Class 1 Resubmission</code> — 6-month FDA review. Company submitting significant new data in response to CRL.<br>
+      <code style="color:var(--amber)">Class 2 Resubmission</code> — 2-month FDA review. Limited new data — typically a label change or CMC fix.
+    </p>
+    <p class="term-def">Why CRL history matters for sell-the-news: When a drug gets a CRL and then resubmits, the market already expects approval on the second attempt. This creates HIGH STN Risk — the approval is priced in before it happens. RCKT was a resubmission after CRL, with a unanimous AdCom. The market expected approval. It got approved. The stock dropped 20%.</p>
+  </div>
+
+  <div class="term-block term-blue">
+    <div class="term-name">CMC — Chemistry, Manufacturing, Controls</div>
+    <p class="term-def">CMC refers to the manufacturing and quality control aspects of a drug. FDA rejections for CMC issues are generally more fixable than clinical rejections — they involve things like facility inspections, manufacturing processes, stability data, or packaging. The scanner flags active CMC concerns because they can cause unexpected CRLs even when the clinical data is strong.</p>
+    <div class="term-example">A drug with excellent Phase 3 data can still receive a CRL if the FDA finds issues during a manufacturing facility inspection. CMC CRLs typically lead to successful resubmission within 6-12 months.</div>
+  </div>
+
   <h2 id="trading-terms">Trading Terms for PDUFA Events</h2>
 
   <div class="term-block term-amber">
@@ -323,24 +393,29 @@ footer a:hover{color:var(--accent);}
 
   <div class="callout">
     <p>When you look at a ticker on the Submarine Catalyst scanner, here's what to focus on:</p>
-    <p><strong>1. PoA Score</strong> — Is approval likely? Above 70% is strong. Below 55% means real CRL risk.</p>
-    <p><strong>2. STN Risk</strong> — Will approval actually move the stock? HIGH means be careful. LOW means upside potential.</p>
-    <p><strong>3. Grade</strong> — ELITE and STRONG setups have the best risk/reward. WATCH means proceed with caution.</p>
-    <p><strong>4. Flags</strong> — Read every flag. They tell you the specific factors driving the scores. A "Prior CRL" flag is very different from a "Breakthrough Designation" flag.</p>
-    <p><strong>5. Days to PDUFA</strong> — Events within 30 days are imminent. This is when you should be finalizing your position or deciding to sit it out.</p>
-    <p style="margin-bottom:0;"><strong>6. Deep Dive</strong> — Click any ticker for the full AI-generated analysis with bull/base/bear price scenarios.</p>
+    <p><strong>1. Setup Quality</strong> — The big-picture signal. STRONG SETUP and FAVORABLE mean multiple risk layers are aligned positively. CAUTIOUS and UNFAVORABLE mean warning signals are present. Start here.</p>
+    <p><strong>2. PoA Score</strong> — Is approval likely? Above 70% is strong. Below 55% means real CRL risk.</p>
+    <p><strong>3. STN Risk</strong> — Will approval actually move the stock? HIGH means approval is likely priced in. LOW means genuine surprise value remains.</p>
+    <p><strong>4. TAM / Cap Ratio</strong> — Can the stock actually move? A 10x+ ratio means massive upside potential. Below 1x means the drug market is smaller than the company — limited room even on good news.</p>
+    <p><strong>5. Dilution Radar</strong> — Is a capital raise hiding in SEC filings? ATM offerings, 424B5 filings, and shelf registrations near PDUFA dates are the signals that destroy post-approval gains.</p>
+    <p><strong>6. Buyout Probability</strong> — Could this company get acquired? First-in-class orphan drugs with no commercial infrastructure are prime targets for 40-100% acquisition premiums.</p>
+    <p><strong>7. CRL History</strong> — Has this drug been rejected before? CRL-for-CMC is fixable. CRL-for-clinical is risky. Resubmissions have HIGH STN Risk because approval is expected.</p>
+    <p><strong>8. Grade</strong> — ELITE and STRONG setups have the best composite scores. WATCH means proceed with caution.</p>
+    <p><strong>9. Flags</strong> — Read every flag. They tell you the specific factors driving the scores.</p>
+    <p style="margin-bottom:0;"><strong>10. Deep Dive</strong> — Click any ticker for the full AI-generated analysis with pipeline overview, price scenarios, and buyout assessment.</p>
   </div>
 
   <h2 id="next-steps">Next Steps</h2>
   <p><strong>Read:</strong> <a href="/how-institutions-trade.html" style="color:var(--accent);">How Institutions Trade PDUFA Events</a> — understand sell-the-news dynamics and short selling mechanics.</p>
   <p><strong>Study:</strong> <a href="/behavior-patterns.html" style="color:var(--accent);">Post-Catalyst Behavior Patterns</a> — learn the five ways stocks typically behave after FDA decisions.</p>
-  <p><strong>Browse:</strong> <a href="/calendar.html" style="color:var(--accent);">PDUFA Calendar</a> — see all 60+ upcoming FDA events with dates and basic info.</p>
+  <p><strong>Browse:</strong> <a href="/calendar.html" style="color:var(--accent);">Full Calendar</a> — see all 870+ biotech companies with PDUFA events, earnings, and buyout signals.</p>
+  <p><strong>Compare:</strong> <a href="/compare.html" style="color:var(--accent);">Compare Tool</a> — pick any 2-4 companies and compare every risk layer side by side.</p>
   <p><strong>Verify:</strong> <a href="/track-record.html" style="color:var(--accent);">Track Record</a> — see every prediction we've made and how it played out, including actual stock moves.</p>
-  <p><strong>Subscribe:</strong> Unlock full scanner scores, STN Risk ratings, AI deep dives, and price target scenarios for every event.</p>
+  <p><strong>Subscribe:</strong> Unlock full scanner scores, setup quality ratings, AI deep dives, and all risk layers for every event.</p>
 
   <div style="text-align:center;margin:3rem 0;">
     <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $29.99/month</a>
-    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · STN Risk scores · AI research tool · 60+ events</p>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">870+ companies · Setup quality · TAM/Cap · Buyout scoring · Dilution radar · AI deep dives</p>
   </div>
 </main>
 
