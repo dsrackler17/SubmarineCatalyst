@@ -194,10 +194,7 @@
     <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
   </a>
   <ul class="nav-center">
-    <li><a href="/calendar.html">Calendar</a></li>
     <li><a href="/dashboard.html" class="active">Dashboard</a></li>
-    <li><a href="/research.html">AI Research</a></li>
-    <li><a href="/compare.html">Compare</a></li>
     <li><a href="/how-institutions-trade.html">Education</a></li>
     <li><a href="/behavior-patterns.html">Patterns</a></li>
   </ul>
@@ -223,21 +220,24 @@
 
   <aside class="sidebar">
     <div class="sidebar-section">
-      <span class="sidebar-label">Scanner</span>
+      <span class="sidebar-label">Scanners</span>
       <button class="sidebar-item active" onclick="switchTab(this,'scanner')">
         <span class="sidebar-icon">📡</span> PDUFA Scanner
       </button>
       <button class="sidebar-item" onclick="switchTab(this,'buyout')">
         <span class="sidebar-icon">🏷️</span> Buyout Scanner
       </button>
-      <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')">
-        <span class="sidebar-icon">📅</span> Calendar
-      </button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
+      <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')">
+        <span class="sidebar-icon">📅</span> Calendar
+      </button>
       <button class="sidebar-item" onclick="window.location.href='/compare.html'">
         <span class="sidebar-icon">⚖️</span> Compare
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/research.html'">
+        <span class="sidebar-icon">🤖</span> AI Research
       </button>
     </div>
     <div class="sidebar-section">
@@ -276,13 +276,6 @@
         <div class="stat-val white" style="font-size:1.1rem;margin-top:0.25rem" id="stat-scan">—</div>
         <div class="stat-sub">auto-updates daily</div>
       </div>
-    </div>
-
-    <div class="section-tabs">
-      <button class="tab-btn active" onclick="switchTab(this,'scanner')">PDUFA Scanner</button>
-      <button class="tab-btn" onclick="switchTab(this,'buyout')">Buyout Scanner</button>
-      <button class="tab-btn" onclick="switchTab(this,'calendar-tab')">Calendar</button>
-      <button class="tab-btn" onclick="switchTab(this,'account')">Account</button>
     </div>
 
     <div class="tab-panel active" id="tab-scanner">
