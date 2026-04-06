@@ -195,7 +195,6 @@
   </a>
   <ul class="nav-center">
     <li><a href="/calendar.html">Calendar</a></li>
-    <li><a href="/buyout-scanner.html">Buyout Scanner</a></li>
     <li><a href="/dashboard.html" class="active">Dashboard</a></li>
     <li><a href="/research.html">AI Research</a></li>
     <li><a href="/compare.html">Compare</a></li>
@@ -239,9 +238,6 @@
       <span class="sidebar-label">Tools</span>
       <button class="sidebar-item" onclick="window.location.href='/compare.html'">
         <span class="sidebar-icon">⚖️</span> Compare
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/buyout-scanner.html'">
-        <span class="sidebar-icon">🔍</span> Full Buyout View
       </button>
     </div>
     <div class="sidebar-section">
@@ -300,7 +296,6 @@
     <div class="tab-panel" id="tab-buyout">
       <div class="section-header">
         <h2 class="section-title">Buyout Scanner</h2>
-        <a href="/buyout-scanner.html" style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;">Open Full View →</a>
       </div>
       <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&A activity.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
@@ -312,8 +307,9 @@
         </select>
         <select id="buyout-catalyst" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Companies</option>
-          <option value="pdufa">With PDUFA Catalyst</option>
-          <option value="none">No PDUFA (M&A Only)</option>
+          <option value="approved">Recently Approved (no acquirer yet)</option>
+          <option value="pdufa">With Upcoming PDUFA</option>
+          <option value="both">Approved + PDUFA</option>
         </select>
       </div>
       <div class="scanner-grid" id="buyout-grid"></div>
@@ -500,11 +496,11 @@ function renderBuyoutGrid() {
   var riskFilter = document.getElementById('buyout-filter').value;
   var catFilter = document.getElementById('buyout-catalyst').value;
 
-  // Combine PDUFA events + universe companies, dedupe
+  // Combine PDUFA events + recently approved companies, dedupe
   var all = [];
   var seen = {};
 
-  // PDUFA events first (have real buyout scores)
+  // PDUFA events first (have real buyout scores from scorer)
   SCANNER_DATA.forEach(function(d) {
     if (!seen[d.ticker]) {
       seen[d.ticker] = true;
@@ -522,17 +518,59 @@ function renderBuyoutGrid() {
         poa: Number(d.poa) || 0,
         grade: d.grade || 'WATCH',
         has_pdufa: true,
+        approved_drug: '',
+        approval_date: '',
+        source: 'pdufa',
       });
     }
   });
+
+  // Recently approved companies from universe (loaded into BUYOUT_DATA)
+  if (window.BUYOUT_DATA) {
+    window.BUYOUT_DATA.forEach(function(c) {
+      if (!seen[c.ticker]) {
+        seen[c.ticker] = true;
+        all.push({
+          ticker: c.ticker,
+          company_name: c.company_name || c.ticker,
+          market_cap_tier: c.market_cap_tier || 'SMALL',
+          market_cap: 0,
+          buyout_score: Number(c.buyout_score) || 0,
+          buyout_risk: c.buyout_risk || 'UNLIKELY',
+          buyout_flags: [],
+          tam_ratio: 0,
+          partnership_detected: false,
+          pdufa_date: '',
+          poa: 0,
+          grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
+          has_pdufa: false,
+          approved_drug: c.approved_drug || '',
+          approval_date: c.last_approval_date || '',
+          source: 'approved',
+        });
+      } else {
+        // Enrich existing entry with approval data
+        var existing = all.find(function(a) { return a.ticker === c.ticker; });
+        if (existing && c.approved_drug) {
+          existing.approved_drug = c.approved_drug;
+          existing.approval_date = c.last_approval_date || '';
+          if (c.buyout_score > existing.buyout_score) {
+            existing.buyout_score = c.buyout_score;
+            existing.buyout_risk = c.buyout_risk;
+          }
+        }
+      }
+    });
+  }
 
   // Filter
   var filtered = all.filter(function(d) {
     if (search && !d.ticker.includes(search) && !(d.company_name || '').toUpperCase().includes(search)) return false;
     if (riskFilter === 'HIGH' && d.buyout_risk !== 'HIGH') return false;
     if (riskFilter === 'MODERATE' && d.buyout_risk !== 'HIGH' && d.buyout_risk !== 'MODERATE') return false;
+    if (catFilter === 'approved' && !d.approved_drug) return false;
     if (catFilter === 'pdufa' && !d.has_pdufa) return false;
-    if (catFilter === 'none' && d.has_pdufa) return false;
+    if (catFilter === 'both' && !d.approved_drug && !d.has_pdufa) return false;
     return d.buyout_score > 0;
   });
 
@@ -581,6 +619,8 @@ function renderBuyoutGrid() {
         '<div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ' + (d.tam_ratio >= 5 ? 'green' : d.tam_ratio >= 1 ? 'cyan' : 'white') + '">' + (d.tam_ratio > 0 ? d.tam_ratio + 'x' : '—') + '</div></div>' +
       '</div>' +
       (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent);margin-top:0.4rem;">PoA: ' + d.poa.toFixed(0) + '% · Grade: ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
+      (d.approved_drug ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent2);margin-top:0.3rem;">✅ APPROVED: ' + d.approved_drug + (d.approval_date ? ' (' + d.approval_date + ')' : '') + '</div>' : '') +
+      (!d.approved_drug && !d.poa ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.4rem;">No recent approval · Pipeline analysis</div>' : '') +
       (pills ? '<div style="margin-top:0.4rem;display:flex;flex-direction:column;gap:0.15rem;">' + pills + '</div>' : '') +
       '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.5rem;letter-spacing:0.06em;">View deep dive →</div>' +
     '</div>';
@@ -740,6 +780,26 @@ function switchTab(btn, id) {
   }
 
   renderScanner();
+
+  // Load recently approved companies for buyout scanner
+  try {
+    var { data: approvedCompanies } = await sb.from('biotech_universe')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk')
+      .eq('is_acquired', false)
+      .not('last_approval_date', 'is', null)
+      .order('buyout_score', { ascending: false });
+
+    if (approvedCompanies && approvedCompanies.length > 0) {
+      window.BUYOUT_DATA = approvedCompanies;
+      console.log('[SC] Loaded ' + approvedCompanies.length + ' recently approved companies for buyout scanner');
+    } else {
+      window.BUYOUT_DATA = [];
+    }
+  } catch (err) {
+    console.warn('[SC] Failed to load approved companies:', err);
+    window.BUYOUT_DATA = [];
+  }
+
   renderBuyoutGrid();
 })();
 </script>
