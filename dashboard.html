@@ -441,16 +441,63 @@ function renderScanner() {
             <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
           </div>
         </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr;margin-top:-1px;">
+        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">
           <div class="score-box">
             <div class="score-box-label">Buyout</div>
-            <div class="score-box-val ${d.buyout_risk === 'HIGH' ? 'green' : d.buyout_risk === 'MODERATE' ? 'cyan' : 'white'}">${d.buyout_risk || '—'}</div>
+            <div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">Acquirer</div>
+            <div class="score-box-val white" style="font-size:0.65rem;">${d.acquirer_urgency_top || '—'}</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">TAM/Cap</div>
-            <div class="score-box-val ${(d.tam_ratio || 0) >= 10 ? 'green' : (d.tam_ratio || 0) >= 3 ? 'cyan' : (d.tam_ratio || 0) >= 1 ? 'amber' : 'red'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
+            <div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
           </div>
         </div>
+        ${(() => {
+          // Buyout timeline + acquirer context
+          if (!d.buyout_score || d.buyout_score < 35) return '';
+          var tl = d.buyout_timeline || '';
+          var buyer = d.acquirer_urgency_top || '';
+          var partner = d.has_partnership && d.partner_name ? d.partner_name : '';
+          var tlColor = d.buyout_score >= 75 ? 'var(--accent2)' : d.buyout_score >= 55 ? 'var(--accent)' : 'var(--amber)';
+          var lines = [];
+          if (tl) lines.push(tl);
+          if (partner) lines.push('🤝 Existing partner: ' + partner + ' — acquirer already knows the asset');
+          else if (buyer && buyer !== '—' && buyer !== 'None' && buyer !== 'Uncertain') lines.push('🎯 Most likely buyer: ' + buyer);
+          if (d.buyout_score >= 70) lines.push('💰 At 60% premium: $' + (((d.estimated_market_cap || 0) * 1.6) / 1e9).toFixed(1) + 'B takeout');
+          if (!lines.length) return '';
+          return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid ' + tlColor + ';line-height:1.7;color:var(--text);">' + lines.join('<br>') + '</div>';
+        })()}
+        ${(() => {
+          // Enrichment bar: partnership + revenue + approval status
+          var parts = [];
+          if (d.has_partnership && d.partner_name) parts.push('🤝 ' + d.partner_name);
+          if (d.revenue_M >= 50) parts.push('💰 $' + Math.round(d.revenue_M) + 'M rev');
+          else if (d.revenue_M > 0) parts.push('📊 $' + Math.round(d.revenue_M) + 'M rev');
+          if (d.months_since_approval && d.months_since_approval <= 12) parts.push('🆕 Approved ' + d.months_since_approval + 'mo ago');
+          else if (d.months_since_approval && d.months_since_approval <= 24) parts.push('✅ ' + d.months_since_approval + 'mo since approval');
+          else if (d.months_since_approval && d.months_since_approval > 24) parts.push('📊 Established ' + d.months_since_approval + 'mo');
+          if (d.institutional_pct >= 70) parts.push('🏛️ Inst. ' + Math.round(d.institutional_pct) + '%');
+          if (parts.length > 0) {
+            return '<div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.4rem;display:flex;flex-wrap:wrap;gap:0.5rem;">' + parts.map(function(p){return '<span style="background:rgba(0,212,255,0.05);padding:0.15rem 0.4rem;border:1px solid rgba(0,212,255,0.1);">' + p + '</span>'}).join('') + '</div>';
+          }
+          return '';
+        })()}
+        ${(() => {
+          // Latest news headline
+          var news = d.news_items || [];
+          if (news.length > 0) {
+            var n = news[0];
+            var sig = n.signal || '📰';
+            var hl = (n.headline || '').slice(0, 90);
+            var dt = n.date || '';
+            var typeColor = n.type === 'M&A' ? 'var(--accent2)' : n.type === 'CATALYST' ? 'var(--accent)' : n.type === 'RISK' ? 'var(--amber)' : 'var(--muted)';
+            return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.4rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + typeColor + ';line-height:1.5;color:var(--text);">' + sig + ' ' + hl + (hl.length >= 90 ? '…' : '') + '<span style="color:var(--muted);margin-left:0.5rem;">' + dt + '</span></div>';
+          }
+          return '';
+        })()}
         ${(() => {
           // Dilution Radar: visual warning when cash runway conflicts with PDUFA timing
           var rm = d.runway_months ? Math.round(d.runway_months) : null;
@@ -503,8 +550,11 @@ function renderBuyoutGrid() {
         market_cap_tier: d.market_cap_tier || 'SMALL',
         market_cap: Number(d.market_cap) || 0,
         buyout_score: Number(d.buyout_score) || 0,
-        buyout_risk: d.buyout_risk || 'UNLIKELY',
+        buyout_risk: d.buyout_risk || 'LOW',
         buyout_flags: d.buyout_flags || [],
+        buyout_acquirers: d.buyout_acquirers || [],
+        buyout_premium: Number(d.buyout_premium) || 0,
+        buyout_areas: d.buyout_areas || [],
         tam_ratio: Number(d.tam_ratio) || 0,
         partnership_detected: d.partnership_detected || false,
         pdufa_date: d.date || '',
@@ -529,8 +579,11 @@ function renderBuyoutGrid() {
           market_cap_tier: c.market_cap_tier || 'SMALL',
           market_cap: Number(c.estimated_market_cap) || 0,
           buyout_score: Number(c.buyout_score) || 0,
-          buyout_risk: c.buyout_risk || 'UNLIKELY',
+          buyout_risk: c.buyout_risk || 'LOW',
           buyout_flags: [],
+          buyout_acquirers: c.buyout_acquirers || [],
+          buyout_premium: Number(c.buyout_premium) || 0,
+          buyout_areas: c.buyout_areas || [],
           tam_ratio: Number(c.tam_ratio) || 0,
           partnership_detected: false,
           pdufa_date: '',
@@ -609,10 +662,17 @@ function renderBuyoutGrid() {
       '</div>' +
       '<div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (d.company_name || d.ticker) + '</div>' +
       '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;">' +
-        '<div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + d.buyout_score + '/100</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + d.buyout_score + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Premium</div><div class="score-box-val white">' + (d.buyout_premium ? Math.round(d.buyout_premium * 100) + '%' : '—') + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white">' + capLabel + (mcap ? ' ' + mcap : '') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ' + (d.tam_ratio >= 5 ? 'green' : d.tam_ratio >= 1 ? 'cyan' : 'white') + '">' + (d.tam_ratio > 0 ? d.tam_ratio + 'x' : '—') + '</div></div>' +
       '</div>' +
+      (d.buyout_acquirers && d.buyout_acquirers.length > 0 ?
+        '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);color:var(--accent);line-height:1.6;">' +
+          '🎯 Top buyers: ' + d.buyout_acquirers.slice(0, 3).map(function(a) {
+            var name = typeof a === 'string' ? a : (a.name || a.ticker || '?');
+            return name;
+          }).join(', ') +
+        '</div>' : '') +
       (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent);margin-top:0.4rem;">PoA: ' + d.poa.toFixed(0) + '% · Grade: ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
       (d.approved_drug ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent2);margin-top:0.3rem;">✅ APPROVED: ' + d.approved_drug + (d.approval_date ? ' (' + d.approval_date + ')' : '') + '</div>' : '') +
       (!d.approved_drug && !d.poa ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.4rem;">No recent approval · Pipeline analysis</div>' : '') +
@@ -762,10 +822,26 @@ function switchTab(btn, id) {
           shelf_active: e.shelf_active || false,
           atm_active: e.atm_active || false,
           buyout_score: Number(e.buyout_score) || 0,
-          buyout_risk: e.buyout_risk || 'UNLIKELY',
+          buyout_risk: e.buyout_risk || 'LOW',
           buyout_flags: e.buyout_flags || [],
+          buyout_acquirers: e.buyout_acquirers || [],
+          buyout_premium: Number(e.buyout_premium) || 0,
+          buyout_areas: e.buyout_areas || [],
+          buyout_components: e.buyout_components || {},
           tam_ratio: Number(e.tam_ratio) || 0,
           tam_label: e.tam_label || '',
+          // v3.1 enrichment
+          news_items: e.news_items || [],
+          has_partnership: e.has_partnership || false,
+          partner_name: e.partner_name || '',
+          acquirer_urgency_top: e.acquirer_urgency_top || '',
+          months_since_approval: e.months_since_approval || null,
+          revenue_M: Number(e.revenue_M) || 0,
+          institutional_pct: Number(e.institutional_pct) || 0,
+          has_approved_drug: e.has_approved_drug || false,
+          buyout_timeline: e.buyout_timeline || '',
+          buyout_timeline_months: e.buyout_timeline_months || null,
+          estimated_market_cap: Number(e.estimated_market_cap) || 0,
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
@@ -779,7 +855,7 @@ function switchTab(btn, id) {
   // Load recently approved companies for buyout scanner
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, drug_tam_billions, estimated_market_cap')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, drug_tam_billions, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_M, institutional_pct')
       .eq('is_acquired', false)
       .not('last_approval_date', 'is', null)
       .order('buyout_score', { ascending: false });
