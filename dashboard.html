@@ -283,6 +283,31 @@
         <h2 class="section-title">PDUFA Scanner</h2>
         <span class="section-meta" id="scan-timestamp">Fetching latest...</span>
       </div>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
+        <select id="scanner-sort" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="score">Sort: Net Edge ↓</option>
+          <option value="date_asc">Sort: Soonest First</option>
+          <option value="date_desc">Sort: Furthest First</option>
+          <option value="poa">Sort: PoA ↓</option>
+          <option value="buyout">Sort: Buyout Score ↓</option>
+          <option value="tam">Sort: TAM/Cap ↓</option>
+        </select>
+        <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Grades</option>
+          <option value="elite">🚀 ELITE only</option>
+          <option value="strong">⚡ STRONG+</option>
+          <option value="watch">🟡 WATCH+</option>
+        </select>
+        <select id="scanner-timeframe" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Dates</option>
+          <option value="30">Next 30 days</option>
+          <option value="60">Next 60 days</option>
+          <option value="90">Next 90 days</option>
+          <option value="180">Next 6 months</option>
+        </select>
+        <input type="text" id="scanner-search" placeholder="Search ticker..." oninput="renderScanner()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
+        <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);" id="scanner-count"></span>
+      </div>
       <div class="scanner-grid" id="scanner-grid"></div>
     </div>
 
@@ -407,7 +432,39 @@ function renderScanner() {
     return;
   }
 
-  const sorted = [...SCANNER_DATA].sort((a,b) => b.score - a.score);
+  const sortBy = (document.getElementById('scanner-sort')?.value) || 'score';
+  const gradeFilter = (document.getElementById('scanner-grade')?.value) || 'all';
+  const timeframe = parseInt((document.getElementById('scanner-timeframe')?.value) || '0');
+  const search = ((document.getElementById('scanner-search')?.value) || '').toUpperCase();
+
+  // Filter
+  let filtered = SCANNER_DATA.filter(d => {
+    if (search && !d.ticker.toUpperCase().includes(search)) return false;
+    if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
+    if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
+    if (gradeFilter === 'watch' && d.grade === 'WEAK') return false;
+    if (timeframe > 0) {
+      const days = daysUntil(d.date);
+      if (days < 0 || days > timeframe) return false;
+    }
+    return true;
+  });
+
+  // Sort
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortBy) {
+      case 'date_asc':  return daysUntil(a.date) - daysUntil(b.date);
+      case 'date_desc': return daysUntil(b.date) - daysUntil(a.date);
+      case 'poa':       return (b.poa || 0) - (a.poa || 0);
+      case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
+      case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
+      default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
+    }
+  });
+
+  // Count display
+  const countEl = document.getElementById('scanner-count');
+  if (countEl) countEl.textContent = sorted.length + ' of ' + SCANNER_DATA.length + ' events';
   document.getElementById('scanner-grid').innerHTML = sorted.map((d,i) => {
     const days = daysUntil(d.date);
     return `
