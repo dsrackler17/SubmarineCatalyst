@@ -855,9 +855,9 @@ function switchTab(btn, id) {
   // Load recently approved companies for buyout scanner
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, drug_tam_billions, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_M, institutional_pct')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_M, institutional_pct')
       .eq('is_acquired', false)
-      .not('last_approval_date', 'is', null)
+      .gt('buyout_score', 0)
       .order('buyout_score', { ascending: false });
 
     if (approvedCompanies && approvedCompanies.length > 0) {
