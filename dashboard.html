@@ -570,7 +570,7 @@ function renderScanner() {
         })()}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
         <div class="card-flags">
-          ${(d.flags || []).map(f=>`<div class="card-flag">${f}</div>`).join('')}
+          ${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market')).map(f=>`<div class="card-flag">${f}</div>`).join('')}
         </div>
         ${(() => {
           var cmcf = d.cmc_flags || [];
