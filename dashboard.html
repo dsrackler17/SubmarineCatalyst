@@ -574,11 +574,13 @@ function renderScanner() {
         </div>
         ${(() => {
           var cmcf = d.cmc_flags || [];
-          if (!cmcf.length || d.cmc_risk === 'LOW' || d.cmc_risk === 'UNKNOWN') return '';
-          var bgColor = d.cmc_risk === 'HIGH' ? 'rgba(255,68,68,0.06)' : 'rgba(245,166,35,0.05)';
-          var borderCol = d.cmc_risk === 'HIGH' ? 'var(--red)' : 'var(--amber)';
+          var risk = d.cmc_risk || 'UNKNOWN';
+          if (!cmcf.length && risk === 'UNKNOWN') return '';
+          var bgColor = risk === 'HIGH' ? 'rgba(255,68,68,0.06)' : risk === 'ELEVATED' ? 'rgba(245,166,35,0.06)' : risk === 'MODERATE' ? 'rgba(0,212,255,0.03)' : 'rgba(0,255,157,0.03)';
+          var borderCol = risk === 'HIGH' ? 'var(--red)' : risk === 'ELEVATED' ? 'var(--amber)' : risk === 'MODERATE' ? 'var(--accent)' : 'var(--accent2)';
+          var riskLabel = risk === 'HIGH' ? '🚨 HIGH' : risk === 'ELEVATED' ? '⚠️ ELEVATED' : risk === 'MODERATE' ? '📊 MODERATE' : '✅ LOW';
           return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.4rem 0.5rem;background:' + bgColor + ';border-left:2px solid ' + borderCol + ';line-height:1.6;color:var(--text);">' +
-            '<strong style="color:' + borderCol + ';">CMC/SUPPLY CHAIN:</strong><br>' +
+            '<strong style="color:' + borderCol + ';">SUPPLY CHAIN [' + riskLabel + ']:</strong><br>' +
             cmcf.slice(0, 2).join('<br>') + '</div>';
         })()}
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">
