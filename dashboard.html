@@ -537,6 +537,8 @@ function renderScanner() {
           else if (d.months_since_approval && d.months_since_approval <= 24) parts.push('✅ ' + d.months_since_approval + 'mo since approval');
           else if (d.months_since_approval && d.months_since_approval > 24) parts.push('📊 Established ' + d.months_since_approval + 'mo');
           if (d.institutional_pct >= 70) parts.push('🏛️ Inst. ' + Math.round(d.institutional_pct) + '%');
+          if (d.cmc_risk && d.cmc_risk !== 'UNKNOWN' && d.cmc_risk !== 'LOW') parts.push((d.cmc_risk === 'HIGH' ? '🚨' : '⚠️') + ' CMC: ' + d.cmc_risk);
+          if (d.buyout_probability_pct && d.buyout_probability_pct >= 20) parts.push('🎯 ' + d.buyout_probability_pct + '% buyout prob');
           if (parts.length > 0) {
             return '<div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.4rem;display:flex;flex-wrap:wrap;gap:0.5rem;">' + parts.map(function(p){return '<span style="background:rgba(0,212,255,0.05);padding:0.15rem 0.4rem;border:1px solid rgba(0,212,255,0.1);">' + p + '</span>'}).join('') + '</div>';
           }
@@ -570,6 +572,15 @@ function renderScanner() {
         <div class="card-flags">
           ${(d.flags || []).map(f=>`<div class="card-flag">${f}</div>`).join('')}
         </div>
+        ${(() => {
+          var cmcf = d.cmc_flags || [];
+          if (!cmcf.length || d.cmc_risk === 'LOW' || d.cmc_risk === 'UNKNOWN') return '';
+          var bgColor = d.cmc_risk === 'HIGH' ? 'rgba(255,68,68,0.06)' : 'rgba(245,166,35,0.05)';
+          var borderCol = d.cmc_risk === 'HIGH' ? 'var(--red)' : 'var(--amber)';
+          return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.4rem 0.5rem;background:' + bgColor + ';border-left:2px solid ' + borderCol + ';line-height:1.6;color:var(--text);">' +
+            '<strong style="color:' + borderCol + ';">CMC/SUPPLY CHAIN:</strong><br>' +
+            cmcf.slice(0, 2).join('<br>') + '</div>';
+        })()}
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">
           View deep dive →
         </div>
@@ -988,6 +999,9 @@ function switchTab(btn, id) {
           buyout_timeline: e.buyout_timeline || '',
           buyout_timeline_months: e.buyout_timeline_months || null,
           estimated_market_cap: Number(e.estimated_market_cap) || 0,
+          cmc_risk: e.cmc_risk || 'UNKNOWN',
+          cmc_flags: e.cmc_flags || [],
+          buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
