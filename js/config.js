@@ -1,7 +1,7 @@
 const SC_CONFIG = {
   supabaseUrl:  'https://dipagzqrvivposqjkdkx.supabase.co',
   supabaseKey:  'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU',
-  stripePaymentLink: 'https://buy.stripe.com/7sYdR85LA1IhgXs0eu8IU01',
+  stripePaymentLink: 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03',
   stripePortalUrl: 'billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00'
 
 ,
