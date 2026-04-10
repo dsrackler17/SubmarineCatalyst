@@ -268,7 +268,17 @@ footer a:hover { color:var(--accent); }
       <div class="stat-label">Application</div>
       <div class="stat-val amber" id="stat-type">—</div>
     </div>
+    <div class="stat-cell">
+      <div class="stat-label">Chart Setup</div>
+      <div class="stat-val" id="stat-chart-setup">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">30d Trend</div>
+      <div class="stat-val" id="stat-trend-30d">—</div>
+    </div>
   </div>
+
+  <div id="trade-signal-banner" style="display:none;font-family:var(--mono);font-size:0.75rem;letter-spacing:0.06em;padding:0.65rem 1.25rem;margin-bottom:1.5rem;border:1px solid;border-radius:2px;"></div>
 
   <div class="disclaimer-box">
     ⚠️ This page contains quantitative scanner output only. It is not investment advice. All trading decisions are solely yours. Trading biotech binary events involves substantial risk of loss.
@@ -456,6 +466,8 @@ function populatePage(d, isPaid) {
     ['Drug TAM',      d.tam_label || 'Unknown'],
     ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—'],
     ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
+    ['Chart Setup',   window._taSetupLabel || '—'],
+    ['30d Trend',     window._taTrend30d !== undefined ? (window._taTrend30d > 0 ? '+' : '') + window._taTrend30d + '%' : '—'],
   ].map(function(pair) {
     return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
   }).join('');
@@ -732,7 +744,6 @@ async function generateAISummary(d) {
         flags: e.flags || [],
         notes: e.notes || '',
         source_url: e.source_url || '',
-        description: e.description || '',
         sell_news_risk: e.sell_news_risk || 'MODERATE',
         move_score: Number(e.move_score) || 0,
         expected_move: e.expected_move || '',
@@ -747,21 +758,13 @@ async function generateAISummary(d) {
         insider_net_buys: Number(e.insider_net_buys) || 0,
         shelf_active: e.shelf_active || false,
         atm_active: e.atm_active || false,
-        partnership_detected: e.has_partnership || e.partnership_detected || false,
-        partner_name: e.partner_name || '',
-        acquirer_urgency_top: e.acquirer_urgency_top || '',
+        partnership_detected: e.partnership_detected || false,
         buyout_score: Number(e.buyout_score) || 0,
         buyout_risk: e.buyout_risk || 'UNLIKELY',
         buyout_flags: e.buyout_flags || [],
-        buyout_timeline: e.buyout_timeline || '',
         drug_tam_estimate: Number(e.drug_tam_estimate) || 0,
         tam_ratio: Number(e.tam_ratio) || 0,
         tam_label: e.tam_label || '',
-        news_items: e.news_items || [],
-        revenue_m: Number(e.revenue_m) || 0,
-        estimated_market_cap: Number(e.estimated_market_cap) || 0,
-        months_since_approval: e.months_since_approval || null,
-        institutional_pct: Number(e.institutional_pct) || 0,
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;
@@ -851,6 +854,175 @@ async function generateAISummary(d) {
   }
 
   populatePage(eventData, isPaid);
+})();
+</script>
+
+<script>
+// ── Live TA Enrichment for Catalyst Detail Page ────────────────────────────
+(function() {
+  var FKEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+  var BASE  = 'https://finnhub.io/api/v1';
+
+  function taLabel(score) {
+    if (score >= 70) return { label: 'READY',    color: 'var(--accent2)' };
+    if (score >= 60) return { label: 'COILING',  color: 'var(--accent)'  };
+    if (score >= 50) return { label: 'BUILDING', color: 'var(--amber)'   };
+    if (score >= 30) return { label: 'EXTENDED', color: 'var(--red)'     };
+    return              { label: 'WEAK',     color: 'var(--red)'     };
+  }
+
+  function tradeSignal(taScore, days, stn, dil, net) {
+    if (dil === 'HIGH' || dil === 'EXTREME')
+      return { text: '⚠️ DILUTION RISK — elevated capital raise risk near PDUFA', color: 'var(--red)', border: 'rgba(255,68,68,0.4)', bg: 'rgba(255,68,68,0.06)' };
+    if (stn === 'HIGH' && days <= 7)
+      return { text: '🚨 STN HIGH — approval may be priced in. Risk/reward unfavorable for longs', color: 'var(--red)', border: 'rgba(255,68,68,0.4)', bg: 'rgba(255,68,68,0.06)' };
+    var score = Math.min(net, 100) * 0.4;
+    if (days >= 1 && days <= 7)       score += 30;
+    else if (days >= 8 && days <= 14) score += 22;
+    else if (days >= 15 && days <= 30) score += 10;
+    else if (days > 30) score -= 5;
+    if (stn === 'HIGH')     score -= 20;
+    else if (stn === 'ELEVATED') score -= 8;
+    else if (stn === 'LOW' || stn === 'VERY LOW') score += 10;
+    if (dil === 'HIGH' || dil === 'EXTREME') score -= 15;
+    else if (dil === 'MINIMAL') score += 5;
+    if (taScore >= 70) score += 15;
+    else if (taScore >= 60) score += 8;
+    else if (taScore <= 29) score -= 15;
+    else if (taScore <= 39) score -= 8;
+    score = Math.max(0, Math.round(score));
+    if (days < 0) return null;
+    if (score >= 65 && days <= 7)   return { text: '🔥 TRADE THIS WEEK — all layers aligned within optimal window', color: 'var(--accent2)', border: 'rgba(0,255,157,0.4)', bg: 'rgba(0,255,157,0.06)' };
+    if (score >= 55 && days <= 14)  return { text: '📡 WATCH CLOSELY — favorable setup, entering active window', color: 'var(--accent)', border: 'rgba(0,212,255,0.4)', bg: 'rgba(0,212,255,0.06)' };
+    if (score >= 45 && days <= 30)  return { text: '⏳ BUILDING WINDOW — monitor daily, approaching entry zone', color: 'var(--amber)', border: 'rgba(245,166,35,0.4)', bg: 'rgba(245,166,35,0.06)' };
+    if (days > 30)                  return { text: '📅 MONITOR — PDUFA ' + days + ' days out, revisit when closer', color: 'var(--muted)', border: 'rgba(90,122,153,0.3)', bg: 'transparent' };
+    return null;
+  }
+
+  async function enrichDetail() {
+    var params = new URLSearchParams(window.location.search);
+    var ticker = params.get('ticker');
+    if (!ticker) return;
+
+    try {
+      var [qr, mr] = await Promise.all([
+        fetch(BASE + '/quote?symbol=' + ticker + '&token=' + FKEY),
+        fetch(BASE + '/stock/metric?symbol=' + ticker + '&metric=all&token=' + FKEY),
+      ]);
+      if (!qr.ok || !mr.ok) return;
+      var [q, m] = await Promise.all([qr.json(), mr.json()]);
+
+      var price  = q.c  || 0;
+      var high52 = m.metric && m.metric['52WeekHigh'] || 0;
+      var low52  = m.metric && m.metric['52WeekLow']  || 0;
+      var ret4w  = m.metric && m.metric['4WeekPriceReturnDaily']  || null;
+      var ret13w = m.metric && m.metric['13WeekPriceReturnDaily'] || 0;
+      var trend  = ret4w !== null ? ret4w : (ret13w / 3);
+
+      // Candles for consolidation
+      var to = Math.floor(Date.now() / 1000);
+      var from = to - 30 * 86400;
+      var cr = await fetch(BASE + '/stock/candle?symbol=' + ticker + '&resolution=D&from=' + from + '&to=' + to + '&token=' + FKEY);
+      var candles = [];
+      if (cr.ok) {
+        var c = await cr.json();
+        if (c.s === 'ok' && Array.isArray(c.h)) {
+          var len = Math.min(c.h.length, 20);
+          for (var i = c.h.length - len; i < c.h.length; i++) {
+            candles.push({ h: c.h[i], l: c.l[i] });
+          }
+        }
+      }
+
+      // Compute TA score
+      var pos52 = (high52 > low52 && price > 0) ? Math.round(((price - low52) / (high52 - low52)) * 100) : 50;
+      var score = 50;
+      if      (pos52 >= 85) score -= 18;
+      else if (pos52 >= 70) score -= 8;
+      else if (pos52 >= 35) score += 12;
+      else if (pos52 >= 15) score += 6;
+      else                  score -= 10;
+
+      // Consolidation
+      var consolidating = false;
+      if (candles.length >= 14) {
+        var recent = candles.slice(-10), prior = candles.slice(-20, -10);
+        var atr = function(cs) { return cs.reduce(function(s,c) { return s + (c.h - c.l); }, 0) / cs.length; };
+        var ratio = prior.length ? atr(recent) / atr(prior) : 1;
+        if (ratio < 0.65) { consolidating = true; score += 22; }
+        else if (ratio < 0.82) { consolidating = true; score += 12; }
+        else if (ratio > 1.3) score -= 8;
+      }
+
+      if      (trend > 50)  score -= 22;
+      else if (trend > 30)  score -= 14;
+      else if (trend > 15)  score -= 4;
+      else if (trend >= 0)  score += 14;
+      else if (trend > -15) score -= 6;
+      else                  score -= 18;
+
+      // Days to PDUFA
+      var daysEl = document.getElementById('countdown-days');
+      var days = daysEl ? parseInt(daysEl.textContent) || 90 : 90;
+      if      (days <= 3)  score -= 6;
+      else if (days <= 14) score += 8;
+      else if (days <= 30) score += 4;
+      else if (days > 60)  score -= 4;
+
+      score = Math.max(0, Math.min(100, Math.round(score)));
+      var trendRounded = Math.round(trend * 10) / 10;
+      var ta = taLabel(score);
+
+      // Store globally for metrics table
+      window._taSetupLabel = ta.label;
+      window._taTrend30d   = trendRounded;
+
+      // Update stat cells
+      var setupEl = document.getElementById('stat-chart-setup');
+      if (setupEl) { setupEl.textContent = ta.label; setupEl.style.color = ta.color; setupEl.style.fontWeight = '700'; }
+
+      var trendEl = document.getElementById('stat-trend-30d');
+      if (trendEl) {
+        var trendStr = trendRounded > 0 ? '+' + trendRounded + '%' : trendRounded + '%';
+        trendEl.textContent = trendStr;
+        trendEl.style.color = trendRounded > 30 ? 'var(--red)' : trendRounded > 0 ? 'var(--accent2)' : 'var(--red)';
+        trendEl.style.fontWeight = '700';
+      }
+
+      // Trade signal banner
+      var stn = (document.getElementById('stat-stn') || {}).textContent || 'MODERATE';
+      var dilEl = document.getElementById('stat-dilution');
+      var dil = dilEl ? dilEl.textContent : 'UNKNOWN';
+      var net = parseFloat((document.getElementById('stat-final') || {}).textContent) || 0;
+      var sig = tradeSignal(score, days, stn, dil, net);
+
+      var bannerEl = document.getElementById('trade-signal-banner');
+      if (bannerEl && sig) {
+        bannerEl.textContent = sig.text;
+        bannerEl.style.color = sig.color;
+        bannerEl.style.borderColor = sig.border;
+        bannerEl.style.background = sig.bg;
+        bannerEl.style.display = 'block';
+      }
+
+      // Add consolidation note if detected
+      if (consolidating) {
+        var note = document.createElement('div');
+        note.style.cssText = 'font-family:var(--mono);font-size:0.62rem;color:var(--accent);margin-top:0.5rem;letter-spacing:0.05em;';
+        note.textContent = '📡 Consolidation pattern detected — chart is coiling before catalyst';
+        var strip = document.querySelector('.stat-strip');
+        if (strip) strip.parentNode.insertBefore(note, strip.nextSibling);
+      }
+
+    } catch(e) {
+      console.warn('[SC] TA enrichment failed:', e);
+    }
+  }
+
+  // Run after page data loads
+  window.addEventListener('load', function() {
+    setTimeout(enrichDetail, 800);
+  });
 })();
 </script>
 </body>
