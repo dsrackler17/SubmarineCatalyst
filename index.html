@@ -449,23 +449,28 @@ footer a:hover { color: var(--accent); }
         }, 400);
 
         try {
-          var headers = { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY };
-
-          // Fetch next 4 upcoming PDUFA events
+          // Use RPC function — no auth needed (SECURITY DEFINER bypasses RLS)
           var upResp = await fetch(
-            SUPA_URL + '/rest/v1/pdufa_events?select=ticker,grade,net_edge_score,score,poa,sell_news_risk,date&date=gte.' + today + '&order=date.asc&limit=4',
-            { headers: headers }
+            SUPA_URL + '/rest/v1/rpc/get_public_pdufa_preview',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY || 'anon' },
+              body: '{}'
+            }
           );
 
-          // Fetch recent resolved track record
+          // Track record — use anon key from config or fall back gracefully
+          var trHeaders = { 'Content-Type': 'application/json' };
+          if (SUPA_KEY) { trHeaders['apikey'] = SUPA_KEY; trHeaders['Authorization'] = 'Bearer ' + SUPA_KEY; }
           var trResp = await fetch(
             SUPA_URL + '/rest/v1/track_record?select=ticker,scanner_stn_risk,actual_result,call_correct,return_pct&order=pdufa_date.desc&limit=4',
-            { headers: headers }
+            { headers: trHeaders }
           );
 
           clearInterval(dotTimer);
           var upcoming = upResp.ok ? await upResp.json() : [];
           var recent   = trResp.ok ? await trResp.json() : [];
+          console.log('[SC Terminal] RPC upcoming:', upcoming.length, 'track_record:', recent.length, 'key present:', !!SUPA_KEY);
           renderTerminal(upcoming, recent);
         } catch(e) {
           clearInterval(dotTimer);
@@ -485,11 +490,23 @@ footer a:hover { color: var(--accent); }
         }
       }
 
-      // Run after config.js has loaded
+      // Wait for SC_CONFIG to be fully available (config.js is sync but race condition possible)
+      function waitForConfig(cb, attempts) {
+        attempts = attempts || 0;
+        if (window.SC_CONFIG && SC_CONFIG.supabaseUrl && SC_CONFIG.supabaseAnonKey) {
+          cb();
+        } else if (attempts < 20) {
+          setTimeout(function() { waitForConfig(cb, attempts + 1); }, 150);
+        } else {
+          // Give up waiting — run anyway with empty key (will show fallback)
+          cb();
+        }
+      }
+
       if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', loadTerminal);
+        document.addEventListener('DOMContentLoaded', function() { waitForConfig(loadTerminal); });
       } else {
-        setTimeout(loadTerminal, 100);
+        waitForConfig(loadTerminal);
       }
     })();
     </script>
