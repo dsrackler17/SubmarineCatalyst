@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 6/7 resolved events logged — 1 miss documented. TVTX + LGND PDUFA Apr 13. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 9-layer scoring model. 6/7 resolved events logged — 1 miss documented. TVTX + LGND PDUFA Apr 13. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -276,7 +276,7 @@ footer a:hover { color: var(--accent); }
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Web",
   "url": "https://submarinecatalyst.com",
-  "description": "Biotech PDUFA intelligence platform. 870+ companies tracked with 8-layer scoring: approval probability, sell-the-news risk, dilution detection, buyout probability, TAM/Cap analysis, and AI research. Built for biotech investors.",
+  "description": "Biotech PDUFA intelligence platform. 870+ companies tracked with 9-layer scoring: approval probability, sell-the-news risk, dilution detection, buyout probability, TAM/Cap analysis, chart setup timing, and AI research. Built for biotech investors.",
   "offers": {
     "@type": "Offer",
     "price": "29.99",
@@ -334,7 +334,7 @@ footer a:hover { color: var(--accent); }
   <div class="hero">
     <div class="hero-left">
       <div class="hero-eyebrow">Biotech Catalyst Research Terminal</div>
-      <h1 class="hero-headline">870+ companies. Eight scoring layers.<br><em>One screen.</em></h1>
+      <h1 class="hero-headline">870+ companies. Nine scoring layers.<br><em>One screen.</em></h1>
       <p class="hero-sub">Probability of approval, post-decision price behavior modeling, dilution detection, M&A scoring, supply chain risk classification, and TAM analysis — structured from FDA filings, SEC EDGAR, and clinical data. Updated daily. Built for biotech investors who do their own work.</p>
       <div id="auth-status" class="auth-status hidden"></div>
       <div class="hero-actions">
@@ -466,7 +466,7 @@ footer a:hover { color: var(--accent); }
   <div class="section reveal">
     <div class="section-label">The Method</div>
     <h2 class="section-heading">Not a calendar. Not a screener.<span class="diff-badge">vs BioPharma Catalyst</span><br>An intelligence platform.</h2>
-    <p class="section-sub">Eight independent analysis layers sourced from FDA filings, SEC EDGAR, and peer-reviewed literature (Hay et al. 2014 · Wong et al. 2019). Every score is documented. No black boxes. Unlike calendar-only tools, Submarine Catalyst models <em>both</em> approval probability and post-decision price behavior from the same dataset.</p>
+    <p class="section-sub">Nine independent analysis layers sourced from FDA filings, SEC EDGAR, and peer-reviewed literature (Hay et al. 2014 · Wong et al. 2019). Every score is documented. No black boxes. Unlike calendar-only tools, Submarine Catalyst models <em>both</em> approval probability and post-decision price behavior — and now answers the timing question: <a href="/chart-timing-biotech-pdufa.html" style="color:var(--accent);">is the chart ready right now?</a></p>
     <div class="how-grid">
       <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
       <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
@@ -476,6 +476,7 @@ footer a:hover { color: var(--accent); }
       <div class="how-card"><span class="how-num">06</span><div class="how-title">Behavioral Patterns</div><p class="how-desc">Classifies each event into five post-catalyst behaviors: Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction. Not predictions — behavioral tendencies drawn from historical data.</p></div>
       <div class="how-card"><span class="how-num">07</span><div class="how-title">TAM / Market Cap Ratio</div><p class="how-desc">Estimates the drug's Total Addressable Market and compares it to the company's market cap. A $500M company with a $10B drug market has 20x upside. A $2B company with a $200M drug market has limited room. TAM/Cap tells you if the stock can actually move.</p></div>
       <div class="how-card"><span class="how-num">08</span><div class="how-title">Buyout Probability</div><p class="how-desc">Scores acquisition likelihood from 8 factors: asset quality (approved + orphan + breakthrough), acquirer urgency from a 14-company Big Pharma patent cliff database (ABBV, MRK, PFE, LLY, BIIB and 9 others), strategic cluster, insider momentum, valuation gap, balance sheet, and penalty filters for litigation and management resistance.</p></div>
+      <div class="how-card"><span class="how-num">09</span><div class="how-title">Chart Setup (TA Timing)</div><p class="how-desc">Answers what PoA can't: is the chart ready right now or do you need to wait? Scores each setup as READY, COILING, BUILDING, EXTENDED, or WEAK using live Finnhub data — 52-week range position, 30-day price trend, consolidation detection, and PDUFA proximity. A 97% PoA stock in a downtrend is a worse trade than an 80% PoA stock coiling at support.</p></div>
     </div>
   </div>
 </section>
@@ -483,7 +484,7 @@ footer a:hover { color: var(--accent); }
 <section id="signals" class="signals-section">
   <div class="section reveal">
     <div class="section-label">Signal Architecture</div>
-    <h2 class="section-heading">Eight signal layers. One composite score.</h2>
+    <h2 class="section-heading">Nine signal layers. One composite score.</h2>
     <p class="section-sub">Each signal is sourced, weighted, and documented. No black boxes. You can audit every modifier on every ticker.</p>
     <div class="signals-grid">
       <div class="signal-list">
@@ -573,7 +574,7 @@ footer a:hover { color: var(--accent); }
             <li>Buyout Factor Score — 12-factor acquisition likelihood model</li>
             <li>TAM / Market Cap Ratio — drug market size vs company valuation</li>
             <li>CMC Recovery Filter — isolates manufacturing-only CRL resubmissions</li>
-            <li>Net Edge Score — composite of all eight layers into one classification</li>
+            <li>Net Edge Score — composite of all nine layers into one classification</li>
             <li>AI Research Module — quantitative deep dives on any ticker</li>
             <li>Compare Module — side-by-side multi-company analysis</li>
             <li>10-tab research calendar: PDUFA, Earnings, Buyout Factors, CMC Recovery, more</li>
@@ -614,7 +615,7 @@ footer a:hover { color: var(--accent); }
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
         <div class="stat-cell"><span class="stat-val">6/7</span><span class="stat-label">Resolved Events Logged</span></div>
-        <div class="stat-cell"><span class="stat-val">8</span><span class="stat-label">Scoring Layers</span></div>
+        <div class="stat-cell"><span class="stat-val">9</span><span class="stat-label">Scoring Layers</span></div>
         <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs Mapped</span></div>
       </div>
     </div>
@@ -649,7 +650,7 @@ footer a:hover { color: var(--accent); }
           <span>How accurate is the PoA (Probability of Approval) score?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable. The self-calibrating weight system improves accuracy as actual outcomes are logged.</div>
+        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by eight independent signal layers. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable. The self-calibrating weight system improves accuracy as actual outcomes are logged.</div>
       </div>
 
       <div class="faq-item">
@@ -743,6 +744,7 @@ footer a:hover { color: var(--accent); }
     <a href="/fda-complete-response-letter.html">CRL Guide</a>
     <a href="/fda-approval-rates-by-indication.html">Approval Rates</a>
     <a href="/sec-dilution-signals-biotech.html">Dilution Signals</a>
+    <a href="/chart-timing-biotech-pdufa.html">Chart Timing</a>
     <a href="/beginners-guide.html">Glossary</a>
     <a href="/how-institutions-trade.html">Methodology</a>
     <a href="/behavior-patterns.html">Patterns</a>
