@@ -256,7 +256,7 @@ footer a:hover { color: var(--accent); }
     <li><a href="/calendar.html">Calendar</a></li>
     <li><a href="/compare.html">Compare</a></li>
     <li><a href="/track-record.html">Track Record</a></li>
-    <li><a href="/how-institutions-trade.html">Education</a></li>
+    <li><a href="/how-institutions-trade.html">Methodology</a></li>
     <li><a href="/behavior-patterns.html">Patterns</a></li>
     <li><a href="#pricing">Pricing</a></li>
     <li><a href="#faq">FAQ</a></li>
@@ -265,21 +265,16 @@ footer a:hover { color: var(--accent); }
 </nav>
 
 <section>
-  <!-- Live urgency banner -->
-  <div style="background:rgba(0,212,255,0.06);border-bottom:1px solid rgba(0,212,255,0.15);padding:0.6rem 1rem;text-align:center;">
-    <span style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);letter-spacing:0.06em;">🔴 LIVE: TVTX PDUFA resolves Apr 13 — Scanner grade: WATCH | PoA: 65.7% | STN Risk: HIGH</span>
-    <span style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-left:1rem;">Latest resolved: REPL shorted +29.7%</span>
-  </div>
   <div class="hero">
     <div class="hero-left">
-      <div class="hero-eyebrow">8/8 Approval Classifications Correct · Live Trades Documented</div>
-      <h1 class="hero-headline">I shorted REPL through an FDA approval<br>and made <em>29.7%</em>.</h1>
-      <p class="hero-sub">The scanner said APPROVE with HIGH sell-the-news risk. Most traders bought. I shorted. The stock dropped 30% on the approval news. That's what eight analysis layers do — the scanner tells you not just <em>what</em> the FDA decides, but <em>what the stock does after</em>. 870+ biotech companies. Updated daily. $29.99/month.</p>
+      <div class="hero-eyebrow">Biotech Catalyst Research Terminal</div>
+      <h1 class="hero-headline">870+ companies. Eight scoring layers.<br><em>One screen.</em></h1>
+      <p class="hero-sub">Probability of approval, post-decision price behavior modeling, dilution detection, M&A scoring, supply chain risk classification, and TAM analysis — structured from FDA filings, SEC EDGAR, and clinical data. Updated daily. Built for biotech investors who do their own work.</p>
       <div id="auth-status" class="auth-status hidden"></div>
       <div class="hero-actions">
         <button id="signup-btn" class="btn-primary">Get Access</button>
         <button id="login-btn" class="btn-primary" style="background:var(--muted);">Login</button>
-        <span class="hero-note">$29.99/month · Cancel anytime · TVTX resolves in 3 days</span>
+        <span class="hero-note">$29.99/month · Cancel anytime</span>
       </div>
     </div>
 
@@ -313,122 +308,78 @@ footer a:hover { color: var(--accent); }
 
 <section id="proof" style="background:var(--navy);border-top:1px solid var(--border);padding:3rem 0;">
   <div class="section reveal" style="text-align:center;">
-    <div class="section-label" style="justify-content:center;">Live Track Record</div>
-    <h2 class="section-heading">8/8 correct classifications. Real trades. Real P&L.</h2>
-    <p class="section-sub" style="margin:0 auto 1.5rem;">Every call logged before the event. Every outcome documented — including the losses. The scanner doesn't just predict approvals. It tells you which approvals <em>make money</em> and which ones sell off.</p>
+    <div class="section-label" style="justify-content:center;">Model Validation</div>
+    <h2 class="section-heading">8/8 classifications correct. Transparent outcome data.</h2>
+    <p class="section-sub" style="margin:0 auto 2rem;">Every classification logged before the event resolved. Every outcome documented — including the losses. Full methodology and scoring breakdowns available to subscribers.</p>
 
-    <!-- REPL callout -->
-    <div style="max-width:800px;margin:0 auto 2rem;padding:1.25rem;background:rgba(0,255,157,0.04);border:1px solid rgba(0,255,157,0.15);text-align:left;">
-      <div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent2);letter-spacing:0.1em;margin-bottom:0.5rem;">LATEST RESOLVED TRADE — APRIL 10, 2026</div>
-      <div style="font-family:var(--serif);font-size:1.3rem;color:var(--white);margin-bottom:0.5rem;">REPL: Shorted at $7.88 → Covered at $5.54</div>
-      <div style="font-family:var(--mono);font-size:0.85rem;color:var(--accent2);font-weight:700;margin-bottom:0.75rem;">+29.7% return on a SHORT through an FDA approval.</div>
-      <p style="font-family:var(--sans);font-size:0.82rem;color:var(--text);line-height:1.7;">The scanner graded REPL as STRONG with 84% PoA — it expected approval. But it also flagged <strong>HIGH sell-the-news risk</strong>. That's the edge: knowing the drug gets approved but the stock drops anyway. Most retail traders buy approvals. The scanner told you to short this one.</p>
-    </div>
-
-    <!-- TVTX active callout -->
-    <div style="max-width:800px;margin:0 auto 2rem;padding:1.25rem;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);text-align:left;">
-      <div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent);letter-spacing:0.1em;margin-bottom:0.5rem;">🔴 ACTIVE TRADE — PDUFA APRIL 13, 2026</div>
-      <div style="font-family:var(--serif);font-size:1.2rem;color:var(--white);margin-bottom:0.5rem;">TVTX: Scanner says WATCH grade. 65.7% PoA. HIGH STN Risk.</div>
-      <p style="font-family:var(--sans);font-size:0.82rem;color:var(--text);line-height:1.7;">Lowest PoA in the active scanner. Surrogate endpoint positive but hard endpoint negative. Major amendment caused 3-month extension. Scanner flags this as the riskiest PDUFA in the current universe. <strong>Subscribers had this signal days ago.</strong></p>
-    </div>
-
-    <table style="width:100%;max-width:900px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
+    <table style="width:100%;max-width:700px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
       <thead>
         <tr>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">TICKER</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">DATE</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">SCANNER CALL</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">STN RISK</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">OUTCOME</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">MY TRADE</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">P&L</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">TICKER</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">SCANNER CALL</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">RESULT</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">POST-DECISION MOVE</th>
         </tr>
       </thead>
       <tbody>
-        <tr style="background:rgba(0,255,157,0.06);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">REPL</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Apr 10 '26</td>
+        <tr style="background:var(--surface);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">REPL</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (84%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → -30%</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">SHORT $7.88→$5.54</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.78rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+29.7%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--red);font-weight:700;border:1px solid var(--border);">-30%</td>
         </tr>
-        <tr style="background:rgba(0,212,255,0.06);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">TVTX 🔴</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Apr 13 '26</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">WATCH (65.7%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">PENDING</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">SHORT (active)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">—</td>
-        </tr>
-        <tr style="background:var(--surface);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Jun '25</td>
+        <tr style="background:var(--deep);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (78%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">🟡 MOD</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → +45%</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">LONG pre-PDUFA</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.78rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+45%</td>
-        </tr>
-        <tr style="background:var(--deep);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">RCKT</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Mar '26</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (85%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">✅ Approved → -20%</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">LONG — held for PRV</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--amber);font-weight:700;border:1px solid var(--border);">Holding</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+45%</td>
         </tr>
         <tr style="background:var(--surface);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">DNLI</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Nov '25</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (82%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">🟢 LOW</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → +8%</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">LONG pre-PDUFA</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.78rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+8%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">RCKT</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (85%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--red);font-weight:700;border:1px solid var(--border);">-20%</td>
         </tr>
         <tr style="background:var(--deep);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">FBIO</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Jul '25</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">DNLI</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (82%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+8%</td>
+        </tr>
+        <tr style="background:var(--surface);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">BIIB</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (90%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--amber);font-weight:700;border:1px solid var(--border);">-5%</td>
+        </tr>
+        <tr style="background:var(--deep);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">FBIO</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (55%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">⚠️ ELEV</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">✅ Approved → +3%</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">LONG — small size</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--muted);font-weight:700;border:1px solid var(--border);">+3%</td>
         </tr>
         <tr style="background:var(--surface);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">BIIB</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Apr '26</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (90%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">🟡 MOD</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">✅ Approved → -5%</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">LONG — took the L</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--red);font-weight:700;border:1px solid var(--border);">-5%</td>
-        </tr>
-        <tr style="background:var(--deep);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA 2</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Sep '25</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA 2</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (80%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">⚠️ ELEV</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → +28%</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">Tracked — not traded</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">—</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+28%</td>
+        </tr>
+        <tr style="background:rgba(0,212,255,0.06);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">TVTX 🔴</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">WATCH (65.7%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">Pending Apr 13</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">—</td>
         </tr>
       </tbody>
     </table>
 
-    <div style="max-width:900px;margin:1.5rem auto 0;text-align:left;">
-      <p style="font-family:var(--mono);font-size:0.72rem;color:var(--white);line-height:1.8;margin-bottom:0.75rem;"><strong>8/8 approval classifications correct.</strong> But that's table stakes. The scanner's value is the risk layers — separating which approvals run and which ones sell off. 3 of 8 approved drugs dropped post-approval. The STN Risk flag identified all 3 before the event.</p>
-      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">RCKT: Scanner said APPROVE + HIGH STN → approved, stock dropped 20%. I held for the PRV catalyst. REPL: Scanner said APPROVE + HIGH STN → I shorted at $7.88, covered at $5.54 for +29.7%. BIIB: I longed into approval — scanner's MODERATE STN flag warned of limited upside, stock dropped 5%. Same scanner. Different strategies. The data supports both.</p>
-      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative classifications, not trade recommendations. All trades shown are my own and documented for model validation purposes. Past classification accuracy does not guarantee future results.</p>
+    <div style="max-width:700px;margin:1.25rem auto 0;text-align:left;">
+      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">8/8 approval classifications correct. 3 of 8 approved drugs had negative post-decision moves. The scanner's risk layers separated which outcomes were profitable from which were not — before the decision date. Subscribers see the full scoring breakdown, risk layer methodology, and real-time classifications for all upcoming events.</p>
+      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative research classifications derived from public data. Not investment advice. Past classification accuracy does not guarantee future results.</p>
     </div>
 
-    <div style="margin-top:2rem;">
-      <a href="javascript:void(0)" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})" style="display:inline-block;font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent2);color:var(--navy);padding:0.75rem 2rem;text-decoration:none;font-weight:700;">See what the scanner says about TVTX →</a>
-      <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.5rem;">TVTX PDUFA resolves April 13. Subscribers have had the signal since April 7.</p>
+    <div style="margin-top:1.5rem;">
+      <a href="#pricing" style="display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.65rem 2rem;text-decoration:none;font-weight:700;">Access the Scanner →</a>
     </div>
   </div>
 </section>
@@ -710,7 +661,7 @@ footer a:hover { color: var(--accent); }
     <a href="/calendar.html">Calendar</a>
     <a href="/track-record.html">Track Record</a>
     <a href="/beginners-guide.html">Beginner's Guide</a>
-    <a href="/how-institutions-trade.html">Education</a>
+    <a href="/how-institutions-trade.html">Methodology</a>
     <a href="/behavior-patterns.html">Patterns</a>
     <a href="/privacy.html">Privacy</a>
     <a href="/terms.html">Terms</a>
