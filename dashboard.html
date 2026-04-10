@@ -194,7 +194,11 @@
     <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
   </a>
   <ul class="nav-center">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/buyout-scanner.html">Buyout Scanner</a></li>
     <li><a href="/dashboard.html" class="active">Dashboard</a></li>
+    <li><a href="/research.html">AI Research</a></li>
+    <li><a href="/compare.html">Compare</a></li>
     <li><a href="/how-institutions-trade.html">Education</a></li>
     <li><a href="/behavior-patterns.html">Patterns</a></li>
   </ul>
@@ -220,24 +224,12 @@
 
   <aside class="sidebar">
     <div class="sidebar-section">
-      <span class="sidebar-label">Scanners</span>
+      <span class="sidebar-label">Scanner</span>
       <button class="sidebar-item active" onclick="switchTab(this,'scanner')">
-        <span class="sidebar-icon">📡</span> PDUFA Scanner
+        <span class="sidebar-icon">📡</span> Live Scanner
       </button>
-      <button class="sidebar-item" onclick="switchTab(this,'buyout')">
-        <span class="sidebar-icon">🏷️</span> Buyout Scanner
-      </button>
-    </div>
-    <div class="sidebar-section">
-      <span class="sidebar-label">Tools</span>
       <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')">
-        <span class="sidebar-icon">📅</span> Calendar
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/compare.html'">
-        <span class="sidebar-icon">⚖️</span> Compare
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/research.html'">
-        <span class="sidebar-icon">🤖</span> AI Research
+        <span class="sidebar-icon">📅</span> PDUFA Calendar
       </button>
     </div>
     <div class="sidebar-section">
@@ -249,6 +241,12 @@
   </aside>
 
   <div class="dash-main">
+
+    <div id="live-event-banner" style="background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.3);padding:0.65rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);letter-spacing:0.04em;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--amber);animation:pulse 1.4s ease-in-out infinite;flex-shrink:0;"></span>
+      <span><strong>LIVE:</strong> REPL decision expected AH today (Apr 10) · TVTX + LGND PDUFA: April 13 (<span id="dash-countdown">...</span>)</span>
+      <span style="margin-left:auto;opacity:0.6;cursor:pointer;" onclick="this.parentElement.style.display='none'">✕</span>
+    </div>
 
     <div class="verifying-banner" id="verifying-banner" style="display:none;">
       <div class="spinner"></div>
@@ -278,60 +276,18 @@
       </div>
     </div>
 
-    <div class="tab-panel active" id="tab-scanner">
-      <div class="section-header">
-        <h2 class="section-title">PDUFA Scanner</h2>
-        <span class="section-meta" id="scan-timestamp">Fetching latest...</span>
-      </div>
-      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
-        <select id="scanner-sort" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
-          <option value="score">Sort: Net Edge ↓</option>
-          <option value="date_asc">Sort: Soonest First</option>
-          <option value="date_desc">Sort: Furthest First</option>
-          <option value="poa">Sort: PoA ↓</option>
-          <option value="buyout">Sort: Buyout Score ↓</option>
-          <option value="tam">Sort: TAM/Cap ↓</option>
-        </select>
-        <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
-          <option value="all">All Grades</option>
-          <option value="elite">🚀 ELITE only</option>
-          <option value="strong">⚡ STRONG+</option>
-          <option value="watch">🟡 WATCH+</option>
-        </select>
-        <select id="scanner-timeframe" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
-          <option value="all">All Dates</option>
-          <option value="30">Next 30 days</option>
-          <option value="60">Next 60 days</option>
-          <option value="90">Next 90 days</option>
-          <option value="180">Next 6 months</option>
-        </select>
-        <input type="text" id="scanner-search" placeholder="Search ticker..." oninput="renderScanner()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
-        <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);" id="scanner-count"></span>
-      </div>
-      <div class="scanner-grid" id="scanner-grid"></div>
+    <div class="section-tabs">
+      <button class="tab-btn active" onclick="switchTab(this,'scanner')">Live Scanner</button>
+      <button class="tab-btn" onclick="switchTab(this,'calendar-tab')">Calendar View</button>
+      <button class="tab-btn" onclick="switchTab(this,'account')">Account</button>
     </div>
 
-    <div class="tab-panel" id="tab-buyout">
+    <div class="tab-panel active" id="tab-scanner">
       <div class="section-header">
-        <h2 class="section-title">Buyout Scanner</h2>
+        <h2 class="section-title">Scanner Output</h2>
+        <span class="section-meta" id="scan-timestamp">Fetching latest...</span>
       </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&A activity.</p>
-      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
-        <input type="text" id="buyout-search" placeholder="Search ticker..." oninput="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;width:200px;">
-        <select id="buyout-filter" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
-          <option value="all">All Risk Levels</option>
-          <option value="HIGH">HIGH Only</option>
-          <option value="MODERATE">MODERATE+</option>
-        </select>
-        <select id="buyout-catalyst" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
-          <option value="all">All Companies</option>
-          <option value="approved">Recently Approved (no acquirer yet)</option>
-          <option value="pdufa">With Upcoming PDUFA</option>
-          <option value="both">Approved + PDUFA</option>
-        </select>
-      </div>
-      <div class="scanner-grid" id="buyout-grid"></div>
-      <div id="buyout-count" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:0.75rem;"></div>
+      <div class="scanner-grid" id="scanner-grid"></div>
     </div>
 
     <div class="tab-panel" id="tab-calendar-tab">
@@ -432,39 +388,7 @@ function renderScanner() {
     return;
   }
 
-  const sortBy = (document.getElementById('scanner-sort')?.value) || 'score';
-  const gradeFilter = (document.getElementById('scanner-grade')?.value) || 'all';
-  const timeframe = parseInt((document.getElementById('scanner-timeframe')?.value) || '0');
-  const search = ((document.getElementById('scanner-search')?.value) || '').toUpperCase();
-
-  // Filter
-  let filtered = SCANNER_DATA.filter(d => {
-    if (search && !d.ticker.toUpperCase().includes(search)) return false;
-    if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
-    if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
-    if (gradeFilter === 'watch' && d.grade === 'WEAK') return false;
-    if (timeframe > 0) {
-      const days = daysUntil(d.date);
-      if (days < 0 || days > timeframe) return false;
-    }
-    return true;
-  });
-
-  // Sort
-  const sorted = [...filtered].sort((a, b) => {
-    switch (sortBy) {
-      case 'date_asc':  return daysUntil(a.date) - daysUntil(b.date);
-      case 'date_desc': return daysUntil(b.date) - daysUntil(a.date);
-      case 'poa':       return (b.poa || 0) - (a.poa || 0);
-      case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
-      case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
-      default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
-    }
-  });
-
-  // Count display
-  const countEl = document.getElementById('scanner-count');
-  if (countEl) countEl.textContent = sorted.length + ' of ' + SCANNER_DATA.length + ' events';
+  const sorted = [...SCANNER_DATA].sort((a,b) => b.score - a.score);
   document.getElementById('scanner-grid').innerHTML = sorted.map((d,i) => {
     const days = daysUntil(d.date);
     return `
@@ -498,65 +422,16 @@ function renderScanner() {
             <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
           </div>
         </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">
+        <div class="card-scores" style="grid-template-columns:1fr 1fr;margin-top:-1px;">
           <div class="score-box">
             <div class="score-box-label">Buyout</div>
-            <div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">Acquirer</div>
-            <div class="score-box-val white" style="font-size:0.65rem;">${d.acquirer_urgency_top || '—'}</div>
+            <div class="score-box-val ${d.buyout_risk === 'HIGH' ? 'green' : d.buyout_risk === 'MODERATE' ? 'cyan' : 'white'}">${d.buyout_risk || '—'}</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">TAM/Cap</div>
-            <div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
+            <div class="score-box-val ${(d.tam_ratio || 0) >= 10 ? 'green' : (d.tam_ratio || 0) >= 3 ? 'cyan' : (d.tam_ratio || 0) >= 1 ? 'amber' : 'red'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
           </div>
         </div>
-        ${(() => {
-          // Buyout timeline + acquirer context
-          if (!d.buyout_score || d.buyout_score < 35) return '';
-          var tl = d.buyout_timeline || '';
-          var buyer = d.acquirer_urgency_top || '';
-          var partner = d.has_partnership && d.partner_name ? d.partner_name : '';
-          var tlColor = d.buyout_score >= 75 ? 'var(--accent2)' : d.buyout_score >= 55 ? 'var(--accent)' : 'var(--amber)';
-          var lines = [];
-          if (tl) lines.push(tl);
-          if (partner) lines.push('🤝 Existing partner: ' + partner + ' — acquirer already knows the asset');
-          else if (buyer && buyer !== '—' && buyer !== 'None' && buyer !== 'Uncertain') lines.push('🎯 Most likely buyer: ' + buyer);
-          if (d.buyout_score >= 70) lines.push('💰 At 60% premium: $' + (((d.estimated_market_cap || 0) * 1.6) / 1e9).toFixed(1) + 'B takeout');
-          if (!lines.length) return '';
-          return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid ' + tlColor + ';line-height:1.7;color:var(--text);">' + lines.join('<br>') + '</div>';
-        })()}
-        ${(() => {
-          // Enrichment bar: partnership + revenue + approval status
-          var parts = [];
-          if (d.has_partnership && d.partner_name) parts.push('🤝 ' + d.partner_name);
-          if (d.revenue_M >= 50) parts.push('💰 $' + Math.round(d.revenue_M) + 'M rev');
-          else if (d.revenue_M > 0) parts.push('📊 $' + Math.round(d.revenue_M) + 'M rev');
-          if (d.months_since_approval && d.months_since_approval <= 12) parts.push('🆕 Approved ' + d.months_since_approval + 'mo ago');
-          else if (d.months_since_approval && d.months_since_approval <= 24) parts.push('✅ ' + d.months_since_approval + 'mo since approval');
-          else if (d.months_since_approval && d.months_since_approval > 24) parts.push('📊 Established ' + d.months_since_approval + 'mo');
-          if (d.institutional_pct >= 70) parts.push('🏛️ Inst. ' + Math.round(d.institutional_pct) + '%');
-          if (d.cmc_risk && d.cmc_risk !== 'UNKNOWN' && d.cmc_risk !== 'LOW') parts.push((d.cmc_risk === 'HIGH' ? '🚨' : '⚠️') + ' CMC: ' + d.cmc_risk);
-          if (d.buyout_probability_pct && d.buyout_probability_pct >= 20) parts.push('🎯 ' + d.buyout_probability_pct + '% buyout prob');
-          if (parts.length > 0) {
-            return '<div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.4rem;display:flex;flex-wrap:wrap;gap:0.5rem;">' + parts.map(function(p){return '<span style="background:rgba(0,212,255,0.05);padding:0.15rem 0.4rem;border:1px solid rgba(0,212,255,0.1);">' + p + '</span>'}).join('') + '</div>';
-          }
-          return '';
-        })()}
-        ${(() => {
-          // Latest news headline
-          var news = d.news_items || [];
-          if (news.length > 0) {
-            var n = news[0];
-            var sig = n.signal || '📰';
-            var hl = (n.headline || '').slice(0, 90);
-            var dt = n.date || '';
-            var typeColor = n.type === 'M&A' ? 'var(--accent2)' : n.type === 'CATALYST' ? 'var(--accent)' : n.type === 'RISK' ? 'var(--amber)' : 'var(--muted)';
-            return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.4rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + typeColor + ';line-height:1.5;color:var(--text);">' + sig + ' ' + hl + (hl.length >= 90 ? '…' : '') + '<span style="color:var(--muted);margin-left:0.5rem;">' + dt + '</span></div>';
-          }
-          return '';
-        })()}
         ${(() => {
           // Dilution Radar: visual warning when cash runway conflicts with PDUFA timing
           var rm = d.runway_months ? Math.round(d.runway_months) : null;
@@ -570,19 +445,8 @@ function renderScanner() {
         })()}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
         <div class="card-flags">
-          ${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market')).map(f=>`<div class="card-flag">${f}</div>`).join('')}
+          ${(d.flags || []).map(f=>`<div class="card-flag">${f}</div>`).join('')}
         </div>
-        ${(() => {
-          var cmcf = d.cmc_flags || [];
-          var risk = d.cmc_risk || 'UNKNOWN';
-          if (!cmcf.length && risk === 'UNKNOWN') return '';
-          var bgColor = risk === 'HIGH' ? 'rgba(255,68,68,0.06)' : risk === 'ELEVATED' ? 'rgba(245,166,35,0.06)' : risk === 'MODERATE' ? 'rgba(0,212,255,0.03)' : 'rgba(0,255,157,0.03)';
-          var borderCol = risk === 'HIGH' ? 'var(--red)' : risk === 'ELEVATED' ? 'var(--amber)' : risk === 'MODERATE' ? 'var(--accent)' : 'var(--accent2)';
-          var riskLabel = risk === 'HIGH' ? '🚨 HIGH' : risk === 'ELEVATED' ? '⚠️ ELEVATED' : risk === 'MODERATE' ? '📊 MODERATE' : '✅ LOW';
-          return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.4rem 0.5rem;background:' + bgColor + ';border-left:2px solid ' + borderCol + ';line-height:1.6;color:var(--text);">' +
-            '<strong style="color:' + borderCol + ';">SUPPLY CHAIN [' + riskLabel + ']:</strong><br>' +
-            cmcf.slice(0, 2).join('<br>') + '</div>';
-        })()}
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">
           View deep dive →
         </div>
@@ -601,248 +465,6 @@ function renderScanner() {
 }
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
-function renderBuyoutGrid() {
-  var search = (document.getElementById('buyout-search').value || '').toUpperCase();
-  var riskFilter = document.getElementById('buyout-filter').value;
-  var catFilter = document.getElementById('buyout-catalyst').value;
-
-  // Combine PDUFA events + recently approved companies, dedupe
-  var all = [];
-  var seen = {};
-
-  // PDUFA events first (have real buyout scores from scorer)
-  SCANNER_DATA.forEach(function(d) {
-    if (!seen[d.ticker]) {
-      seen[d.ticker] = true;
-      all.push({
-        ticker: d.ticker,
-        company_name: d.company_name || d.drug || d.ticker,
-        market_cap_tier: d.market_cap_tier || 'SMALL',
-        market_cap: Number(d.estimated_market_cap || d.market_cap) || 0,
-        buyout_score: Number(d.buyout_score) || 0,
-        buyout_risk: d.buyout_risk || 'LOW',
-        buyout_flags: d.buyout_flags || [],
-        buyout_acquirers: d.buyout_acquirers || [],
-        buyout_premium: Number(d.buyout_premium) || 0,
-        buyout_areas: d.buyout_areas || [],
-        buyout_timeline: d.buyout_timeline || '',
-        buyout_timeline_months: d.buyout_timeline_months || null,
-        tam_ratio: Number(d.tam_ratio) || 0,
-        partnership_detected: d.has_partnership || d.partnership_detected || false,
-        partner_name: d.partner_name || '',
-        acquirer_urgency_top: d.acquirer_urgency_top || '',
-        revenue_m: Number(d.revenue_M || d.revenue_m) || 0,
-        months_since_approval: d.months_since_approval || null,
-        institutional_pct: Number(d.institutional_pct) || 0,
-        news_items: d.news_items || [],
-        has_orphan: d.has_orphan || false,
-        has_breakthrough: d.has_breakthrough || false,
-        pdufa_date: d.date || '',
-        poa: Number(d.poa) || 0,
-        grade: d.grade || 'WATCH',
-        has_pdufa: true,
-        approved_drug: d.approved_drug || '',
-        approval_date: d.approval_date || '',
-        source: 'pdufa',
-      });
-    }
-  });
-
-  // Recently approved companies from universe (loaded into BUYOUT_DATA)
-  if (window.BUYOUT_DATA) {
-    window.BUYOUT_DATA.forEach(function(c) {
-      if (!seen[c.ticker]) {
-        seen[c.ticker] = true;
-        all.push({
-          ticker: c.ticker,
-          company_name: c.company_name || c.ticker,
-          market_cap_tier: c.market_cap_tier || 'SMALL',
-          market_cap: Number(c.estimated_market_cap) || 0,
-          buyout_score: Number(c.buyout_score) || 0,
-          buyout_risk: c.buyout_risk || 'LOW',
-          buyout_flags: c.buyout_flags || [],
-          buyout_acquirers: c.buyout_acquirers || [],
-          buyout_premium: Number(c.buyout_premium) || 0,
-          buyout_areas: c.buyout_areas || [],
-          buyout_timeline: c.buyout_timeline || '',
-          buyout_timeline_months: c.buyout_timeline_months || null,
-          tam_ratio: Number(c.tam_ratio) || 0,
-          partnership_detected: c.has_partnership || false,
-          partner_name: c.partner_name || '',
-          acquirer_urgency_top: c.acquirer_urgency_top || '',
-          revenue_m: Number(c.revenue_m) || 0,
-          months_since_approval: c.months_since_approval || null,
-          institutional_pct: Number(c.institutional_pct) || 0,
-          news_items: c.news_items || [],
-          pdufa_date: '',
-          poa: 0,
-          grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
-          has_pdufa: false,
-          approved_drug: c.approved_drug || '',
-          approval_date: c.last_approval_date || '',
-          source: 'approved',
-        });
-      } else {
-        var existing = all.find(function(a) { return a.ticker === c.ticker; });
-        if (existing) {
-          if (c.approved_drug) existing.approved_drug = c.approved_drug;
-          if (c.last_approval_date) existing.approval_date = c.last_approval_date;
-          if (!existing.tam_ratio && c.tam_ratio) existing.tam_ratio = Number(c.tam_ratio);
-          if (!existing.market_cap && c.estimated_market_cap) existing.market_cap = Number(c.estimated_market_cap);
-          if (c.buyout_score > existing.buyout_score) { existing.buyout_score = c.buyout_score; existing.buyout_risk = c.buyout_risk; }
-          if (c.buyout_timeline) existing.buyout_timeline = c.buyout_timeline;
-          if (c.acquirer_urgency_top) existing.acquirer_urgency_top = c.acquirer_urgency_top;
-          if (c.has_partnership) { existing.partnership_detected = true; existing.partner_name = c.partner_name || ''; }
-          if (c.revenue_m) existing.revenue_m = Number(c.revenue_m);
-          if (c.months_since_approval) existing.months_since_approval = c.months_since_approval;
-          if (c.news_items && c.news_items.length) existing.news_items = c.news_items;
-          if (c.buyout_flags && c.buyout_flags.length) existing.buyout_flags = c.buyout_flags;
-        }
-      }
-    });
-  }
-
-  // Filter
-  var filtered = all.filter(function(d) {
-    if (search && !d.ticker.includes(search) && !(d.company_name || '').toUpperCase().includes(search)) return false;
-    if (riskFilter === 'HIGH' && d.buyout_risk !== 'HIGH') return false;
-    if (riskFilter === 'MODERATE' && d.buyout_risk !== 'HIGH' && d.buyout_risk !== 'MODERATE') return false;
-    if (catFilter === 'approved' && !d.approved_drug) return false;
-    if (catFilter === 'pdufa' && !d.has_pdufa) return false;
-    if (catFilter === 'both' && !d.approved_drug && !d.has_pdufa) return false;
-    return d.buyout_score > 0;
-  });
-
-  // Sort by buyout score descending
-  filtered.sort(function(a, b) { return (b.buyout_score || 0) - (a.buyout_score || 0); });
-
-  var display = filtered.slice(0, 50);
-
-  if (display.length === 0) {
-    document.getElementById('buyout-grid').innerHTML = '<div style="padding:2rem;text-align:center;font-family:var(--mono);font-size:0.75rem;color:var(--muted);grid-column:1/-1;">No companies match filters.</div>';
-    document.getElementById('buyout-count').textContent = '';
-    return;
-  }
-
-  document.getElementById('buyout-grid').innerHTML = display.map(function(d) {
-    var days = d.pdufa_date ? Math.round((new Date(d.pdufa_date) - new Date()) / 86400000) : null;
-    var daysLabel = days !== null && days >= 0 ? days + 'd' : '';
-    var scoreColor = d.buyout_score >= 70 ? 'green' : d.buyout_score >= 50 ? 'cyan' : d.buyout_score >= 30 ? 'amber' : 'white';
-    var riskColor = d.buyout_risk === 'HIGH' ? 'grade-elite' : d.buyout_risk === 'ELEVATED' ? 'grade-strong' : d.buyout_risk === 'MODERATE' ? 'grade-watch' : 'grade-weak';
-    var borderColor = d.buyout_score >= 70 ? 'var(--accent2)' : d.buyout_score >= 50 ? 'var(--accent)' : d.buyout_score >= 30 ? 'var(--amber)' : 'var(--border)';
-
-    // Market cap display
-    var mcap = '';
-    if (d.market_cap >= 1e9) mcap = '$' + (d.market_cap / 1e9).toFixed(1) + 'B';
-    else if (d.market_cap >= 1e6) mcap = '$' + (d.market_cap / 1e6).toFixed(0) + 'M';
-
-    // Implied takeout at 60% premium
-    var takeout = d.market_cap >= 1e8 ? '$' + (d.market_cap * 1.6 / 1e9).toFixed(1) + 'B' : '';
-
-    // Buyer + timeline
-    var buyer = d.acquirer_urgency_top || '';
-    var timeline = d.buyout_timeline || '';
-    var partner = d.partnership_detected && d.partner_name ? d.partner_name : '';
-
-    // Revenue
-    var rev = d.revenue_m || d.revenue_M || 0;
-
-    // Approval age
-    var approvalAge = '';
-    if (d.months_since_approval && d.months_since_approval <= 12) approvalAge = '🆕 ' + d.months_since_approval + 'mo since approval';
-    else if (d.months_since_approval && d.months_since_approval <= 24) approvalAge = '✅ ' + d.months_since_approval + 'mo since approval';
-    else if (d.months_since_approval && d.months_since_approval > 24) approvalAge = '📊 ' + d.months_since_approval + 'mo on market';
-
-    // News
-    var news = d.news_items || [];
-    var latestNews = news.length > 0 ? news[0] : null;
-
-    // Buyout flags (max 4)
-    var flags = (d.buyout_flags || []).slice(0, 4);
-
-    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;border-left:3px solid ' + borderColor + ';">' +
-
-      // Header: ticker + risk badge
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">' +
-        '<div>' +
-          '<div class="card-ticker">' + d.ticker + (daysLabel ? ' <span class="card-days">' + daysLabel + '</span>' : '') + '</div>' +
-          '<div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;">' + (d.company_name || '') + '</div>' +
-        '</div>' +
-        '<span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span>' +
-      '</div>' +
-
-      // Score row: Buyout | Acquirer | TAM/Cap
-      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;">' +
-        '<div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Buyer</div><div class="score-box-val white" style="font-size:0.62rem;">' + (buyer || '—') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ' + ((d.tam_ratio||0) >= 5 ? 'green' : (d.tam_ratio||0) >= 1 ? 'cyan' : 'white') + '">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div>' +
-      '</div>' +
-
-      // Cap + Revenue + Timeline row
-      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">' +
-        '<div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + (mcap || '—') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Revenue</div><div class="score-box-val ' + (rev >= 100 ? 'green' : rev >= 20 ? 'cyan' : 'white') + '" style="font-size:0.7rem;">' + (rev > 0 ? '$' + Math.round(rev) + 'M' : '—') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Takeout</div><div class="score-box-val cyan" style="font-size:0.7rem;">' + (takeout || '—') + '</div></div>' +
-      '</div>' +
-
-      // Acquirer thesis box (the key insight)
-      (function() {
-        if (d.buyout_score < 30) return '';
-        var lines = [];
-        if (timeline) lines.push(timeline);
-        if (partner) lines.push('🤝 <strong>Existing partner: ' + partner + '</strong> — acquirer already knows the asset, data, and market');
-        else if (buyer && buyer !== '—' && buyer !== 'None' && buyer !== 'Uncertain') lines.push('🎯 <strong>Most likely acquirer: ' + buyer + '</strong>');
-
-        // Why would they buy?
-        if (d.buyout_score >= 70 && partner) lines.push('💡 Partnership → acquisition is the path of least resistance. No due diligence needed.');
-        else if (d.buyout_score >= 70 && rev >= 100) lines.push('💡 $' + Math.round(rev) + 'M revenue proves commercial viability — acquirer buys a revenue stream, not a bet.');
-        else if (d.buyout_score >= 70) lines.push('💡 De-risked asset in a therapeutic area with active Big Pharma demand.');
-        else if (d.buyout_score >= 55 && rev >= 50) lines.push('💡 Commercial traction reduces acquirer risk. Revenue covers integration cost.');
-        else if (d.buyout_score >= 55) lines.push('💡 Approved asset in acquirer-demand area. Cap size makes deal digestible.');
-        else if (d.buyout_score >= 40) lines.push('💡 Watchlist — asset quality present but deal catalysts not yet strong enough.');
-
-        if (!lines.length) return '';
-        var borderCol = d.buyout_score >= 70 ? 'var(--accent2)' : d.buyout_score >= 55 ? 'var(--accent)' : 'var(--amber)';
-        return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid ' + borderCol + ';line-height:1.8;color:var(--text);">' + lines.join('<br>') + '</div>';
-      })() +
-
-      // Approval status
-      (d.approved_drug ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent2);margin-top:0.4rem;">✅ ' + d.approved_drug + (approvalAge ? ' · ' + approvalAge : '') + '</div>' : '') +
-      (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent);margin-top:0.3rem;">PoA: ' + d.poa.toFixed(0) + '% · ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
-
-      // Enrichment tags
-      (function() {
-        var tags = [];
-        if (d.institutional_pct >= 60) tags.push('🏛️ Inst. ' + Math.round(d.institutional_pct) + '%');
-        if (d.has_orphan) tags.push('🏥 Orphan');
-        if (d.has_breakthrough) tags.push('⚡ Breakthrough');
-        if (!tags.length) return '';
-        return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-top:0.3rem;display:flex;gap:0.5rem;flex-wrap:wrap;">' +
-          tags.map(function(t) { return '<span style="background:rgba(0,212,255,0.05);padding:0.1rem 0.35rem;border:1px solid rgba(0,212,255,0.1);">' + t + '</span>'; }).join('') +
-        '</div>';
-      })() +
-
-      // Buyout flags
-      (flags.length > 0 ? '<div style="margin-top:0.4rem;display:flex;flex-direction:column;gap:0.15rem;">' +
-        flags.map(function(f) {
-          var color = (typeof f === 'string' && (f.includes('🎯') || f.includes('▲') || f.includes('✅'))) ? 'var(--accent2)' : 'var(--amber)';
-          return '<div style="font-family:var(--mono);font-size:0.55rem;color:' + color + ';line-height:1.4;">' + f + '</div>';
-        }).join('') +
-      '</div>' : '') +
-
-      // Latest news
-      (latestNews ? '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' +
-        (latestNews.type === 'M&A' ? 'var(--accent2)' : latestNews.type === 'CATALYST' ? 'var(--accent)' : latestNews.type === 'RISK' ? 'var(--amber)' : 'var(--muted)') +
-        ';color:var(--text);line-height:1.4;">' + (latestNews.signal || '📰') + ' ' + (latestNews.headline || '').slice(0, 85) + (latestNews.headline && latestNews.headline.length > 85 ? '…' : '') +
-        '<span style="color:var(--muted);margin-left:0.4rem;">' + (latestNews.date || '') + '</span></div>' : '') +
-
-      '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
-    '</div>';
-  }).join('');
-
-  document.getElementById('buyout-count').textContent = display.length + ' of ' + filtered.length + ' companies shown';
-}
-
 function switchTab(btn, id) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -981,29 +603,10 @@ function switchTab(btn, id) {
           shelf_active: e.shelf_active || false,
           atm_active: e.atm_active || false,
           buyout_score: Number(e.buyout_score) || 0,
-          buyout_risk: e.buyout_risk || 'LOW',
+          buyout_risk: e.buyout_risk || 'UNLIKELY',
           buyout_flags: e.buyout_flags || [],
-          buyout_acquirers: e.buyout_acquirers || [],
-          buyout_premium: Number(e.buyout_premium) || 0,
-          buyout_areas: e.buyout_areas || [],
-          buyout_components: e.buyout_components || {},
           tam_ratio: Number(e.tam_ratio) || 0,
           tam_label: e.tam_label || '',
-          // v3.1 enrichment
-          news_items: e.news_items || [],
-          has_partnership: e.has_partnership || false,
-          partner_name: e.partner_name || '',
-          acquirer_urgency_top: e.acquirer_urgency_top || '',
-          months_since_approval: e.months_since_approval || null,
-          revenue_M: Number(e.revenue_m || e.revenue_M) || 0,
-          institutional_pct: Number(e.institutional_pct) || 0,
-          has_approved_drug: e.has_approved_drug || false,
-          buyout_timeline: e.buyout_timeline || '',
-          buyout_timeline_months: e.buyout_timeline_months || null,
-          estimated_market_cap: Number(e.estimated_market_cap) || 0,
-          cmc_risk: e.cmc_risk || 'UNKNOWN',
-          cmc_flags: e.cmc_flags || [],
-          buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
@@ -1013,37 +616,23 @@ function switchTab(btn, id) {
   }
 
   renderScanner();
+})();
 
-  // Load recently approved companies for buyout scanner
-  try {
-    var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct')
-      .eq('is_acquired', false)
-      .gt('buyout_score', 0)
-      .order('buyout_score', { ascending: false });
-
-    if (approvedCompanies && approvedCompanies.length > 0) {
-      // Compute TAM/Cap ratios from live data
-      approvedCompanies.forEach(function(c) {
-        var tam = Number(c.drug_tam_billions) || 0;
-        var mcap = Number(c.estimated_market_cap) || 0;
-        if (tam > 0 && mcap > 0) {
-          c.tam_ratio = Math.round((tam * 1e9 / mcap) * 10) / 10;
-        } else {
-          c.tam_ratio = 0;
-        }
-      });
-      window.BUYOUT_DATA = approvedCompanies;
-      console.log('[SC] Loaded ' + approvedCompanies.length + ' recently approved companies for buyout scanner');
-    } else {
-      window.BUYOUT_DATA = [];
-    }
-  } catch (err) {
-    console.warn('[SC] Failed to load approved companies:', err);
-    window.BUYOUT_DATA = [];
+// Live event countdown
+(function() {
+  const target = new Date('2026-04-13T00:00:00-04:00');
+  function tick() {
+    const diff = target - new Date();
+    const el = document.getElementById('dash-countdown');
+    if (!el) return;
+    if (diff <= 0) { el.textContent = 'TODAY'; return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    el.textContent = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
   }
-
-  renderBuyoutGrid();
+  tick();
+  setInterval(tick, 30000);
 })();
 </script>
 </body>

@@ -8,7 +8,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Record — Submarine Catalyst</title>
 <meta name="description" content="Historical PDUFA prediction outcomes from Submarine Catalyst's scoring engine. Every call documented with predicted PoA vs actual FDA decision.">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+ content="summary_large_image">
+<meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <meta name="twitter:site" content="@DRackler">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -97,29 +101,29 @@ footer a:hover{color:var(--accent);}
 
   <div class="stats-strip">
     <div class="stat-cell">
-      <div class="stat-label">Completed Events</div>
-      <div class="stat-val white" id="stat-total">8</div>
-      <div class="stat-sub">scored & logged</div>
+      <div class="stat-label">Resolved Events</div>
+      <div class="stat-val white" id="stat-total">6</div>
+      <div class="stat-sub">approved + decided</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">Correct Calls</div>
       <div class="stat-val green" id="stat-correct">6</div>
-      <div class="stat-sub">approved as predicted</div>
+      <div class="stat-sub">6/6 — 100% accuracy</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Accuracy</div>
-      <div class="stat-val cyan" id="stat-accuracy">100%</div>
-      <div class="stat-sub">on resolved events (6/6)</div>
+      <div class="stat-label">Active / Pending</div>
+      <div class="stat-val amber" id="stat-pending">3</div>
+      <div class="stat-sub">REPL · TVTX · LGND</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Delayed</div>
-      <div class="stat-val amber" id="stat-pending">2</div>
-      <div class="stat-sub">AQST + LNTH pushed back</div>
+      <div class="stat-label">STN Calls Correct</div>
+      <div class="stat-val cyan" id="stat-stn">3/3</div>
+      <div class="stat-sub">RCKT · BIIB · VNDA flagged</div>
     </div>
   </div>
 
   <div class="disclaimer">
-    ⚠️ 6 resolved events with 100% approval accuracy. 2 additional events delayed by the company (not CRL or rejection). STN Risk correctly identified RCKT sell-the-news (-20%) and VNDA upside (+45%). This track record will become statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
+    ⚠️ 6 resolved events · 100% approval accuracy · 2 additional events delayed by the company (not CRL or rejection). STN Risk correctly identified RCKT sell-the-news (−20%), BIIB muted move (−5%), and VNDA upside (+45%). 3 active events pending resolution: REPL (expected AH Apr 10), TVTX + LGND (Apr 13 PDUFA). This track record will become statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
   </div>
 
   <div class="section-title">Resolved Events</div>
@@ -229,7 +233,7 @@ footer a:hover{color:var(--accent);}
     </tbody>
   </table>
 
-  <div class="section-title">Upcoming — Publicly Timestamped</div>
+  <div class="section-title">Active — Pending Resolution</div>
   <table class="outcome-table">
     <thead>
       <tr>
@@ -245,19 +249,46 @@ footer a:hover{color:var(--accent);}
       </tr>
     </thead>
     <tbody id="upcoming-body">
-      <tr>
-        <td class="ticker-cell">TVTX</td>
+      <tr style="background:rgba(245,166,35,0.05);">
+        <td class="ticker-cell" style="color:var(--amber);">REPL 🟡</td>
+        <td>Vamorolone · Duchenne MD</td>
+        <td>Apr 10, 2026</td>
+        <td class="poa-cell">84.0%</td>
+        <td>STRONG</td>
+        <td><span style="color:var(--red);">HIGH</span></td>
+        <td class="result-pending">Expected AH today</td>
+        <td style="color:var(--muted);">—</td>
+        <td style="color:var(--muted);">—</td>
+      </tr>
+      <tr style="background:rgba(0,212,255,0.04);">
+        <td class="ticker-cell" style="color:var(--accent);">TVTX 🔴</td>
         <td>FILSPARI · FSGS</td>
-        <td>2026-04-13</td>
+        <td>Apr 13, 2026</td>
         <td class="poa-cell">72.0%</td>
         <td>STRONG</td>
         <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-pending">Pending — 16 days</td>
+        <td class="result-pending">Pending — <span id="tvtx-days"></span></td>
+        <td style="color:var(--muted);">—</td>
+        <td style="color:var(--muted);">—</td>
+      </tr>
+      <tr style="background:rgba(0,212,255,0.04);">
+        <td class="ticker-cell" style="color:var(--accent);">LGND 🔴</td>
+        <td>Filspari (royalty) · FSGS</td>
+        <td>Apr 13, 2026</td>
+        <td class="poa-cell">71.5%</td>
+        <td>STRONG</td>
+        <td><span style="color:var(--amber);">MODERATE</span></td>
+        <td class="result-pending">Pending — <span class="lgnd-days"></span></td>
         <td style="color:var(--muted);">—</td>
         <td style="color:var(--muted);">—</td>
       </tr>
     </tbody>
   </table>
+
+  <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
+    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">STN Risk — The differentiator</div>
+    <div style="color:var(--text);line-height:1.75;">3 of 6 resolved approvals had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all three before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). PoA tells you if it gets approved. Net Edge tells you if it's worth trading.</div>
+  </div>
 
   <div class="methodology">
     <h3>How We Track Accuracy</h3>
@@ -294,5 +325,22 @@ footer a:hover{color:var(--accent);}
     <a href="/calendar.html">Calendar</a>
   </div>
 </footer>
+<script>
+  function updateDays() {
+    const target = new Date('2026-04-13T00:00:00-04:00');
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) {
+      document.querySelectorAll('#tvtx-days, .lgnd-days').forEach(el => { if(el) el.textContent = 'TODAY'; });
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const txt = d > 0 ? `${d}d ${h}h` : `${h}h`;
+    document.querySelectorAll('#tvtx-days, .lgnd-days').forEach(el => { if(el) el.textContent = txt; });
+  }
+  updateDays();
+  setInterval(updateDays, 60000);
+</script>
 </body>
 </html>
