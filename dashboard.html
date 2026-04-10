@@ -290,6 +290,7 @@
           <option value="date_desc">Sort: Furthest First</option>
           <option value="poa">Sort: PoA ↓</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
+          <option value="trade">Sort: Best Trade Now ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
         </select>
         <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -423,6 +424,55 @@ function gradeBadge(g) {
 }
 
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
+// ── Trade Signal Score — "Is this a good trade TODAY or THIS WEEK?" ──────────
+// Combines Chart Setup, Days to PDUFA, Net Edge, STN Risk, Dilution
+// Displayed as a badge on each card and used for "Best Trade Now" sort
+function tradeScore(d) {
+  var days = d.date ? Math.round((new Date(d.date) - new Date()) / 86400000) : 999;
+  var net = d.net_edge_score || d.score || 0;
+  var stn = (d.sell_news_risk || '').toUpperCase();
+  var dil = (d.dilution_risk || '').toUpperCase();
+  var score = 0;
+
+  // Net Edge base
+  score += Math.min(net, 100) * 0.4;
+
+  // PDUFA timing sweet spot (1-14 days = best window)
+  if      (days >= 1  && days <= 7)  score += 30;
+  else if (days >= 8  && days <= 14) score += 22;
+  else if (days >= 15 && days <= 30) score += 10;
+  else if (days > 30)                score -= 5;
+  else if (days < 0)                 score = 0; // past
+
+  // STN risk penalty
+  if      (stn === 'HIGH')     score -= 20;
+  else if (stn === 'ELEVATED') score -= 8;
+  else if (stn === 'LOW' || stn === 'VERY LOW') score += 10;
+
+  // Dilution penalty
+  if (dil === 'HIGH' || dil === 'EXTREME') score -= 15;
+  else if (dil === 'MINIMAL') score += 5;
+
+  return Math.max(0, Math.round(score));
+}
+
+function tradeSignalLabel(d) {
+  var days = d.date ? Math.round((new Date(d.date) - new Date()) / 86400000) : 999;
+  var net  = d.net_edge_score || d.score || 0;
+  var stn  = (d.sell_news_risk || '').toUpperCase();
+  var dil  = (d.dilution_risk  || '').toUpperCase();
+  var ts   = tradeScore(d);
+
+  if (days < 0)    return null;
+  if (dil === 'HIGH' || dil === 'EXTREME') return { text: '⚠️ DILUTION RISK', color: 'var(--red)', bg: 'rgba(255,68,68,0.08)' };
+  if (stn === 'HIGH' && days <= 7)         return { text: '🚨 STN HIGH — CAUTION', color: 'var(--red)', bg: 'rgba(255,68,68,0.08)' };
+  if (ts >= 65 && days <= 7)               return { text: '🔥 TRADE THIS WEEK', color: 'var(--accent2)', bg: 'rgba(0,255,157,0.08)' };
+  if (ts >= 55 && days <= 14)              return { text: '📡 WATCH CLOSELY', color: 'var(--accent)', bg: 'rgba(0,212,255,0.08)' };
+  if (ts >= 45 && days <= 30)              return { text: '⏳ BUILDING WINDOW', color: 'var(--amber)', bg: 'rgba(245,166,35,0.08)' };
+  if (days > 30)                           return { text: '📅 MONITOR — ' + days + 'd out', color: 'var(--muted)', bg: 'transparent' };
+  return null;
+}
+
 function renderScanner() {
   if (SCANNER_DATA.length === 0) {
     document.getElementById('scanner-grid').innerHTML = `
@@ -457,6 +507,7 @@ function renderScanner() {
       case 'date_desc': return daysUntil(b.date) - daysUntil(a.date);
       case 'poa':       return (b.poa || 0) - (a.poa || 0);
       case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
+      case 'trade':     return tradeScore(b) - tradeScore(a);
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
       default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
     }
@@ -479,6 +530,11 @@ function renderScanner() {
           </div>
           ${gradeBadge(d.grade)}
         </div>
+        ${(() => {
+          var sig = tradeSignalLabel(d);
+          if (!sig) return '';
+          return '<div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.08em;padding:0.2rem 0.5rem;background:' + sig.bg + ';color:' + sig.color + ';border:1px solid ' + sig.color + ';display:inline-block;margin-bottom:0.5rem;">' + sig.text + '</div>';
+        })()}
         <div class="card-drug">${d.drug}</div>
         <div class="card-indication">${d.indication}</div>
         <div class="card-scores">
@@ -781,7 +837,7 @@ function renderBuyoutGrid() {
     // Buyout flags (max 4)
     var flags = (d.buyout_flags || []).slice(0, 4);
 
-    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;border-left:3px solid ' + borderColor + ';">' +
+    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;border-left:3px solid ' + borderColor + ';" data-ticker="' + d.ticker + '" data-days="' + (days !== null ? days : 90) + '">' +
 
       // Header: ticker + risk badge
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">' +
@@ -804,6 +860,12 @@ function renderBuyoutGrid() {
         '<div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + (mcap || '—') + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Revenue</div><div class="score-box-val ' + (rev >= 100 ? 'green' : rev >= 20 ? 'cyan' : 'white') + '" style="font-size:0.7rem;">' + (rev > 0 ? '$' + Math.round(rev) + 'M' : '—') + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Takeout</div><div class="score-box-val cyan" style="font-size:0.7rem;">' + (takeout || '—') + '</div></div>' +
+      '</div>' +
+
+      // Chart Setup + 30d Trend row
+      '<div class="card-scores" style="grid-template-columns:1fr 1fr;margin-top:-1px;">' +
+        '<div class="score-box" style="border-right:1px solid var(--border);"><div class="score-box-label">Chart Setup</div><div class="score-box-val white" id="ta-setup-' + d.ticker + '" style="font-size:0.72rem;">—</div></div>' +
+        '<div class="score-box"><div class="score-box-label">30d Trend</div><div class="score-box-val white" id="ta-trend-' + d.ticker + '">—</div></div>' +
       '</div>' +
 
       // Acquirer thesis box (the key insight)
@@ -1133,16 +1195,22 @@ function switchTab(btn, id) {
         const { label, cls } = taLabel(result.score);
         const trendStr = result.trend > 0 ? `+${result.trend}%` : `${result.trend}%`;
         const trendCls = result.trend > 30 ? 'red' : result.trend > 0 ? 'green' : 'red';
+        // Update cells by label (PDUFA cards)
         el.querySelectorAll('.score-box-label').forEach(cell => {
           if (cell.textContent === 'Chart Setup') {
             const v = cell.nextElementSibling;
-            if (v) { v.textContent = label; v.className = `score-box-val ${cls}`; v.style.fontSize = '0.72rem'; }
+            if (v && v.textContent === '—') { v.textContent = label; v.className = `score-box-val ${cls}`; v.style.fontSize = '0.72rem'; }
           }
           if (cell.textContent === '30d Trend') {
             const v = cell.nextElementSibling;
-            if (v) { v.textContent = trendStr; v.className = `score-box-val ${trendCls}`; }
+            if (v && v.textContent === '—') { v.textContent = trendStr; v.className = `score-box-val ${trendCls}`; }
           }
         });
+        // Also update ID-based cells (buyout cards)
+        const setupEl = document.getElementById(`ta-setup-${ticker}`);
+        const trendEl = document.getElementById(`ta-trend-${ticker}`);
+        if (setupEl && setupEl.textContent === '—') { setupEl.textContent = label; setupEl.className = `score-box-val ${cls}`; setupEl.style.fontSize = '0.72rem'; }
+        if (trendEl && trendEl.textContent === '—') { trendEl.textContent = trendStr; trendEl.className = `score-box-val ${trendCls}`; }
       }));
       if (i + 4 < items.length) await new Promise(r => setTimeout(r, 400));
     }
@@ -1151,6 +1219,13 @@ function switchTab(btn, id) {
   enrichCards();
 
   const origRender = window.renderScanner;
+  const origBuyoutRender = window.renderBuyoutGrid;
+  if (typeof origBuyoutRender === 'function') {
+    window.renderBuyoutGrid = function(...args) {
+      origBuyoutRender.apply(this, args);
+      enrichCards();
+    };
+  }
   if (typeof origRender === 'function') {
     window.renderScanner = function(...args) {
       origRender.apply(this, args);

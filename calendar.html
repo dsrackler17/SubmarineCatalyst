@@ -310,7 +310,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Setup</th>';
+    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Setup</th><th>Chart</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -352,6 +352,8 @@ function renderTable() {
     var capLabel = {'LARGE':'LRG','MID':'MID','SMALL':'SM'}[e.market_cap_tier] || '—';
 
     html += '<tr onclick="window.location.href=\'' + link + '\'">';
+    var rowId = 'cal-row-' + e.ticker.replace(/[^A-Z0-9]/g,'');
+    html += '<tr id="' + rowId + '" data-ticker="' + e.ticker + '" data-days="' + (days !== null ? days : 90) + '">';
     html += '<td class="ticker-cell">' + e.ticker + (days !== null && days >= 0 ? daysPill(days) : '') + '</td>';
     html += '<td style="font-family:var(--sans);font-size:0.72rem;color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + compName + '</td>';
     html += '<td>' + eventBadge(e.type) + '</td>';
@@ -660,6 +662,91 @@ function updateCounts() {
   if (!isPaid) {
     // Show gate after slight delay
     // Don't block — let them see dates, just lock scores
+  }
+})();
+</script>
+
+<script>
+// ── Live TA Enrichment for Calendar ────────────────────────────────────────
+(function() {
+  var FKEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+  var BASE = 'https://finnhub.io/api/v1';
+
+  function label(score) {
+    if (score >= 70) return { text: 'READY',    color: 'var(--accent2)' };
+    if (score >= 60) return { text: 'COILING',  color: 'var(--accent)'  };
+    if (score >= 50) return { text: 'BUILDING', color: 'var(--amber)'   };
+    if (score >= 30) return { text: 'EXTENDED', color: 'var(--red)'     };
+    return              { text: 'WEAK',     color: 'var(--red)'     };
+  }
+
+  async function fetchScore(ticker, daysOut) {
+    try {
+      var qr = await fetch(BASE + '/stock/metric?symbol=' + ticker + '&metric=all&token=' + FKEY);
+      if (!qr.ok) return null;
+      var m = await qr.json();
+      var ret4w  = m.metric && m.metric['4WeekPriceReturnDaily']  || null;
+      var ret13w = m.metric && m.metric['13WeekPriceReturnDaily'] || 0;
+      var trend  = ret4w !== null ? ret4w : (ret13w / 3);
+      var high52 = m.metric && m.metric['52WeekHigh'] || 0;
+      var low52  = m.metric && m.metric['52WeekLow']  || 0;
+      var qr2 = await fetch(BASE + '/quote?symbol=' + ticker + '&token=' + FKEY);
+      var price = 0;
+      if (qr2.ok) { var q = await qr2.json(); price = q.c || 0; }
+      var pos52 = (high52 > low52 && price > 0) ? Math.round(((price - low52) / (high52 - low52)) * 100) : 50;
+      var score = 50;
+      if      (pos52 >= 85) score -= 18;
+      else if (pos52 >= 70) score -= 8;
+      else if (pos52 >= 35) score += 12;
+      else if (pos52 >= 15) score += 6;
+      else                  score -= 10;
+      if      (trend > 50)  score -= 22;
+      else if (trend > 30)  score -= 14;
+      else if (trend > 15)  score -= 4;
+      else if (trend >= 0)  score += 14;
+      else if (trend > -15) score -= 6;
+      else                  score -= 18;
+      if (daysOut <= 3)        score -= 6;
+      else if (daysOut <= 14)  score += 8;
+      else if (daysOut <= 30)  score += 4;
+      else if (daysOut > 60)   score -= 4;
+      return { score: Math.max(0, Math.min(100, Math.round(score))), trend: Math.round(trend * 10) / 10 };
+    } catch(e) { return null; }
+  }
+
+  async function enrichCalendar() {
+    await new Promise(function(r) { setTimeout(r, 600); });
+    var cells = document.querySelectorAll('[id^="ta-cal-"]');
+    if (!cells.length) return;
+    var items = Array.from(cells).map(function(c) {
+      return { el: c, ticker: c.dataset.ticker, daysOut: parseInt(c.closest('tr') ? (c.closest('tr').dataset.days || 90) : 90) };
+    });
+    for (var i = 0; i < items.length; i += 4) {
+      var batch = items.slice(i, i + 4);
+      await Promise.all(batch.map(async function(item) {
+        var r = await fetchScore(item.ticker, item.daysOut);
+        if (!r) return;
+        var l = label(r.score);
+        item.el.textContent = l.text;
+        item.el.style.color = l.color;
+        item.el.style.fontWeight = '700';
+      }));
+      if (i + 4 < items.length) await new Promise(function(r) { setTimeout(r, 400); });
+    }
+  }
+
+  // Run after table renders and re-run on tab switches
+  document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(enrichCalendar, 1200);
+  });
+
+  // Hook into renderTable
+  var origRender = window.renderTable;
+  if (typeof origRender === 'function') {
+    window.renderTable = function() {
+      origRender.apply(this, arguments);
+      enrichCalendar();
+    };
   }
 })();
 </script>
