@@ -470,7 +470,8 @@ function renderScanner() {
     return `
       <div class="scanner-card ${gradeClass(d.grade)}" style="animation-delay:${i*0.05}s"
            onclick="window.location.href='/catalyst-detail.html?ticker=${d.ticker}'"
-           title="View ${d.ticker} deep dive →">
+           title="View ${d.ticker} deep dive →"
+           data-ticker="${d.ticker}" data-days="${days}">
         <div class="card-top">
           <div>
             <div class="card-ticker">${d.ticker} ${daysPill(days)}</div>
@@ -1064,6 +1065,98 @@ function switchTab(btn, id) {
   }
 
   renderBuyoutGrid();
+})();
+
+// ── Live TA Enrichment — fetches Chart Setup + 30d Trend from Finnhub ─────
+(function() {
+  const FKEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+  const BASE  = 'https://finnhub.io/api/v1';
+
+  function taLabel(score) {
+    if (score >= 70) return { label: 'READY',    cls: 'green' };
+    if (score >= 60) return { label: 'COILING',  cls: 'cyan'  };
+    if (score >= 50) return { label: 'BUILDING', cls: 'amber' };
+    if (score >= 30) return { label: 'EXTENDED', cls: 'red'   };
+    return              { label: 'WEAK',     cls: 'red'   };
+  }
+
+  async function fetchAndScore(ticker, daysOut) {
+    try {
+      const [qr, mr] = await Promise.all([
+        fetch(`${BASE}/quote?symbol=${ticker}&token=${FKEY}`),
+        fetch(`${BASE}/stock/metric?symbol=${ticker}&metric=all&token=${FKEY}`),
+      ]);
+      if (!qr.ok || !mr.ok) return null;
+      const [q, m] = await Promise.all([qr.json(), mr.json()]);
+      const price  = q.c  || 0;
+      const high52 = m.metric?.['52WeekHigh'] || 0;
+      const low52  = m.metric?.['52WeekLow']  || 0;
+      const ret4w  = m.metric?.['4WeekPriceReturnDaily']  || null;
+      const ret13w = m.metric?.['13WeekPriceReturnDaily'] || 0;
+      const trend  = ret4w !== null ? ret4w : (ret13w / 3);
+      let pos52 = 50, score = 50;
+      if (high52 > low52 && price > 0) {
+        pos52 = Math.round(((price - low52) / (high52 - low52)) * 100);
+      }
+      if      (pos52 >= 85) score -= 18;
+      else if (pos52 >= 70) score -= 8;
+      else if (pos52 >= 35) score += 12;
+      else if (pos52 >= 15) score += 6;
+      else                  score -= 10;
+      if      (trend > 50)  score -= 22;
+      else if (trend > 30)  score -= 14;
+      else if (trend > 15)  score -= 4;
+      else if (trend >= 0)  score += 14;
+      else if (trend > -15) score -= 6;
+      else                  score -= 18;
+      if      (daysOut <= 3)  score -= 6;
+      else if (daysOut <= 14) score += 8;
+      else if (daysOut <= 30) score += 4;
+      else if (daysOut > 60)  score -= 4;
+      score = Math.max(0, Math.min(100, Math.round(score)));
+      return { score, trend: Math.round(trend * 10) / 10 };
+    } catch { return null; }
+  }
+
+  async function enrichCards() {
+    await new Promise(r => setTimeout(r, 900));
+    const cards = document.querySelectorAll('.scanner-card[data-ticker]');
+    if (!cards.length) return;
+    const items = [...cards].map(c => ({
+      el: c, ticker: c.dataset.ticker, daysOut: parseInt(c.dataset.days || '90'),
+    }));
+    for (let i = 0; i < items.length; i += 4) {
+      const batch = items.slice(i, i + 4);
+      await Promise.all(batch.map(async ({ el, ticker, daysOut }) => {
+        const result = await fetchAndScore(ticker, daysOut);
+        if (!result) return;
+        const { label, cls } = taLabel(result.score);
+        const trendStr = result.trend > 0 ? `+${result.trend}%` : `${result.trend}%`;
+        const trendCls = result.trend > 30 ? 'red' : result.trend > 0 ? 'green' : 'red';
+        el.querySelectorAll('.score-box-label').forEach(cell => {
+          if (cell.textContent === 'Chart Setup') {
+            const v = cell.nextElementSibling;
+            if (v) { v.textContent = label; v.className = `score-box-val ${cls}`; v.style.fontSize = '0.72rem'; }
+          }
+          if (cell.textContent === '30d Trend') {
+            const v = cell.nextElementSibling;
+            if (v) { v.textContent = trendStr; v.className = `score-box-val ${trendCls}`; }
+          }
+        });
+      }));
+      if (i + 4 < items.length) await new Promise(r => setTimeout(r, 400));
+    }
+  }
+
+  enrichCards();
+
+  const origRender = window.renderScanner;
+  if (typeof origRender === 'function') {
+    window.renderScanner = function(...args) {
+      origRender.apply(this, args);
+      enrichCards();
+    };
+  }
 })();
 </script>
 </body>
