@@ -332,80 +332,98 @@ footer a:hover { color: var(--accent); }
       <p style="font-family:var(--sans);font-size:0.82rem;color:var(--text);line-height:1.7;">Lowest PoA in the active scanner. Surrogate endpoint positive but hard endpoint negative. Major amendment caused 3-month extension. Scanner flags this as the riskiest PDUFA in the current universe. <strong>Subscribers had this signal days ago.</strong></p>
     </div>
 
-    <table style="width:100%;max-width:800px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
+    <table style="width:100%;max-width:900px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
       <thead>
         <tr>
-          <th style="background:var(--panel);padding:0.75rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">TICKER</th>
-          <th style="background:var(--panel);padding:0.75rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">DATE</th>
-          <th style="background:var(--panel);padding:0.75rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">CALL</th>
-          <th style="background:var(--panel);padding:0.75rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">STN</th>
-          <th style="background:var(--panel);padding:0.75rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">RESULT</th>
-          <th style="background:var(--panel);padding:0.75rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">RETURN</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">TICKER</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">DATE</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">SCANNER CALL</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">STN RISK</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">OUTCOME</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">MY TRADE</th>
+          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.55rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">P&L</th>
         </tr>
       </thead>
       <tbody>
-        <tr>
-          <td style="background:rgba(0,255,157,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">REPL ⬇️</td>
-          <td style="background:rgba(0,255,157,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--text);border:1px solid var(--border);">Apr 10</td>
-          <td style="background:rgba(0,255,157,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">✅ APPROVE</td>
-          <td style="background:rgba(0,255,157,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
-          <td style="background:rgba(0,255,157,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">SHORT ✅</td>
-          <td style="background:rgba(0,255,157,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.82rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+29.7%</td>
+        <tr style="background:rgba(0,255,157,0.06);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">REPL</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Apr 10 '26</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (84%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → -30%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">SHORT $7.88→$5.54</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.78rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+29.7%</td>
         </tr>
-        <tr>
-          <td style="background:rgba(0,212,255,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">TVTX 🔴</td>
-          <td style="background:rgba(0,212,255,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--text);border:1px solid var(--border);">Apr 13</td>
-          <td style="background:rgba(0,212,255,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--amber);border:1px solid var(--border);">⚠️ WATCH</td>
-          <td style="background:rgba(0,212,255,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
-          <td style="background:rgba(0,212,255,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent);border:1px solid var(--border);">ACTIVE</td>
-          <td style="background:rgba(0,212,255,0.06);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent);border:1px solid var(--border);">—</td>
+        <tr style="background:rgba(0,212,255,0.06);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">TVTX 🔴</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Apr 13 '26</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">WATCH (65.7%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">PENDING</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">SHORT (active)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">—</td>
         </tr>
-        <tr>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--text);border:1px solid var(--border);">Jun '25</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">✅ APPROVE</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--amber);border:1px solid var(--border);">🟡 MOD</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">LONG ✅</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.82rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+45%</td>
+        <tr style="background:var(--surface);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Jun '25</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (78%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">🟡 MOD</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → +45%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">LONG pre-PDUFA</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.78rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+45%</td>
         </tr>
-        <tr>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">RCKT</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--text);border:1px solid var(--border);">Mar '26</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">✅ APPROVE</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--red);border:1px solid var(--border);">STN ✅</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.82rem;color:var(--red);font-weight:700;border:1px solid var(--border);">-20%</td>
+        <tr style="background:var(--deep);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">RCKT</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Mar '26</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (85%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">🔴 HIGH</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">✅ Approved → -20%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">LONG — held for PRV</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--amber);font-weight:700;border:1px solid var(--border);">Holding</td>
         </tr>
-        <tr>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">DNLI</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--text);border:1px solid var(--border);">Nov '25</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">✅ APPROVE</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">🟢 LOW</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">LONG ✅</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.82rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+8%</td>
+        <tr style="background:var(--surface);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">DNLI</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Nov '25</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (82%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">🟢 LOW</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → +8%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">LONG pre-PDUFA</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.78rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+8%</td>
         </tr>
-        <tr>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">FBIO</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--text);border:1px solid var(--border);">Jul '25</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">✅ APPROVE</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--amber);border:1px solid var(--border);">⚠️ ELEV</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--muted);border:1px solid var(--border);">FLAT</td>
-          <td style="background:var(--deep);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--muted);font-weight:700;border:1px solid var(--border);">+3%</td>
+        <tr style="background:var(--deep);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">FBIO</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Jul '25</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (55%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">⚠️ ELEV</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">✅ Approved → +3%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">LONG — small size</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--muted);font-weight:700;border:1px solid var(--border);">+3%</td>
         </tr>
-        <tr>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">BIIB</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--text);border:1px solid var(--border);">Apr '26</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--accent2);border:1px solid var(--border);">✅ APPROVE</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--amber);border:1px solid var(--border);">🟡 MOD</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.68rem;color:var(--amber);border:1px solid var(--border);">LONG</td>
-          <td style="background:var(--surface);padding:0.6rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--amber);font-weight:700;border:1px solid var(--border);">-5%</td>
+        <tr style="background:var(--surface);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">BIIB</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Apr '26</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (90%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">🟡 MOD</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">✅ Approved → -5%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">LONG — took the L</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--red);font-weight:700;border:1px solid var(--border);">-5%</td>
+        </tr>
+        <tr style="background:var(--deep);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.7rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA 2</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--text);border:1px solid var(--border);">Sep '25</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (80%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">⚠️ ELEV</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved → +28%</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">Tracked — not traded</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">—</td>
         </tr>
       </tbody>
     </table>
 
-    <div style="max-width:800px;margin:1.5rem auto 0;text-align:left;">
-      <p style="font-family:var(--mono);font-size:0.72rem;color:var(--white);line-height:1.8;margin-bottom:0.75rem;"><strong>8/8 approval classifications correct.</strong> But that's not the point. 3 of 8 approved drugs dropped after approval. The scanner identified all 3 in advance with HIGH/ELEVATED STN Risk flags.</p>
-      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">RCKT: Scanner said APPROVE + HIGH STN → stock dropped 20%. REPL: Scanner said APPROVE + HIGH STN → I shorted for +29.7%. BIIB: I longed but scanner's MODERATE STN flag warned of limited upside — stock dropped 5%. The approval call is free. Knowing <em>what to do after approval</em> is what the subscription pays for.</p>
+    <div style="max-width:900px;margin:1.5rem auto 0;text-align:left;">
+      <p style="font-family:var(--mono);font-size:0.72rem;color:var(--white);line-height:1.8;margin-bottom:0.75rem;"><strong>8/8 approval classifications correct.</strong> But that's table stakes. The scanner's value is the risk layers — separating which approvals run and which ones sell off. 3 of 8 approved drugs dropped post-approval. The STN Risk flag identified all 3 before the event.</p>
+      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">RCKT: Scanner said APPROVE + HIGH STN → approved, stock dropped 20%. I held for the PRV catalyst. REPL: Scanner said APPROVE + HIGH STN → I shorted at $7.88, covered at $5.54 for +29.7%. BIIB: I longed into approval — scanner's MODERATE STN flag warned of limited upside, stock dropped 5%. Same scanner. Different strategies. The data supports both.</p>
+      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative classifications, not trade recommendations. All trades shown are my own and documented for model validation purposes. Past classification accuracy does not guarantee future results.</p>
     </div>
 
     <div style="margin-top:2rem;">
