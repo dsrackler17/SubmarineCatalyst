@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTYLL5DC4Y"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JTYLL5DC4Y');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FDA Drug Approval Rates by Indication — Biotech Investor Data — Submarine Catalyst</title>
+<meta name="description" content="FDA approval rates by disease indication from Phase 3 to approval. Oncology 85.5%, rare disease 82%, neurology 49%. Source data: Hay et al. 2014, Wong et al. 2019. Used to score every PDUFA event on Submarine Catalyst.">
+<meta property="og:title" content="FDA Drug Approval Rates by Indication — Submarine Catalyst">
+<meta property="og:description" content="Approval rates by indication from Phase 3 through FDA approval. The exact data powering the Submarine Catalyst PoA model.">
+<meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://submarinecatalyst.com/fda-approval-rates-by-indication.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
+<meta name="twitter:site" content="@DRackler">
+<link rel="canonical" href="https://submarinecatalyst.com/fda-approval-rates-by-indication.html">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;cursor:pointer;text-decoration:none;transition:background 0.2s,color 0.2s;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+main{flex:1;max-width:840px;width:100%;margin:0 auto;padding:3rem 2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:600px;line-height:1.7;}
+h2{font-family:var(--mono);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin:2.5rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+h3{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.08em;color:var(--white);margin:1.5rem 0 0.75rem;}
+p{color:var(--text);font-weight:300;line-height:1.85;margin-bottom:1rem;font-size:0.95rem;}
+strong{color:var(--white);font-weight:500;}
+.data-table{width:100%;border-collapse:collapse;margin:1.5rem 0;font-family:var(--mono);font-size:0.75rem;}
+.data-table th{background:var(--panel);color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;padding:0.6rem 0.75rem;border:1px solid var(--border);text-align:left;white-space:nowrap;}
+.data-table td{padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--text);vertical-align:top;}
+.data-table tr:nth-child(even){background:var(--surface);}
+.rate-bar-wrap{display:flex;align-items:center;gap:0.5rem;}
+.rate-bar{height:8px;border-radius:2px;min-width:4px;}
+.rate-high{background:var(--accent2);}
+.rate-mid{background:var(--amber);}
+.rate-low{background:var(--red);}
+.rate-val-high{color:var(--accent2);font-weight:700;}
+.rate-val-mid{color:var(--amber);font-weight:700;}
+.rate-val-low{color:var(--red);font-weight:700;}
+.callout{background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+.callout::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.callout-blue::before{background:var(--accent);}
+.callout-amber::before{background:var(--amber);}
+.callout-title{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem;}
+.callout-blue .callout-title{color:var(--accent);}
+.callout-amber .callout-title{color:var(--amber);}
+.source-note{font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.5rem;letter-spacing:0.05em;}
+.disclaimer{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin:2rem 0;}
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}main{padding:2rem 1.25rem;}.data-table{font-size:0.68rem;display:block;overflow-x:auto;}}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "FDA Drug Approval Rates by Indication",
+  "description": "Phase 3 to FDA approval rates by therapeutic area, sourced from Hay et al. 2014 and Wong et al. 2019. Used to score biotech PDUFA events.",
+  "author": { "@type": "Organization", "name": "Submarine Catalyst" },
+  "publisher": { "@type": "Organization", "name": "Submarine Catalyst", "url": "https://submarinecatalyst.com" }
+}
+</script>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo"><span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
+    <li><a href="/how-institutions-trade.html">Methodology</a></li>
+    <li><a href="/beginners-guide.html">Glossary</a></li>
+    <li><a href="/#pricing">Pricing</a></li>
+  </ul>
+  <a href="/signup.html" class="nav-cta">Get Access</a>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Education — PoA Model</div>
+  <h1 class="page-title">FDA Drug Approval Rates by Indication</h1>
+  <p class="page-sub">The actual probability data behind the Submarine Catalyst PoA model — Phase 3 to approval rates by therapeutic area, sourced from peer-reviewed literature and updated with real outcomes.</p>
+
+  <div class="disclaimer">⚠️ These rates are historical averages across large datasets. Individual drug approval probability depends on many additional factors — trial design, patient population, endpoint type, review pathway, and CMC factors among others. Not investment advice.</div>
+
+  <h2>Why These Numbers Matter</h2>
+  <p>When a biotech stock trades before a PDUFA date, the stock price already reflects the market's estimate of approval probability. If the market is pricing in 90% odds and the actual historical rate for that indication is 49%, someone is wrong — and that mispricing is where the edge comes from.</p>
+  <p>The Submarine Catalyst probability of approval (PoA) model starts with these indication-specific base rates, then applies seven additional signal layers: review pathway, AdCom vote, CMC risk, resubmission history, special designations, clinical trial status, and insider activity. The base rate is the foundation everything else is built on.</p>
+
+  <h2>Source Data</h2>
+  <p>The base rates below are sourced from two primary studies and updated with Submarine Catalyst's own outcome tracking:</p>
+  <p><strong>Hay et al. 2014</strong> — "Clinical development success rates for investigational drugs." Nature Biotechnology. Analyzed 835 companies and 4,451 drugs across FDA phases from 2003–2011. The most cited source for Phase 3 to approval rates by indication.</p>
+  <p><strong>Wong et al. 2019</strong> — "Estimation of clinical trial success rates and related parameters." Biostatistics. Updated the Hay analysis with a larger dataset (2000–2015), introducing important corrections for indication-level variance.</p>
+  <p>Both studies measure the rate at which drugs that enter Phase 3 ultimately reach FDA approval. This is the closest proxy for "what is the probability this drug gets approved at the PDUFA date" given that most PDUFA events involve drugs that have completed Phase 3 trials.</p>
+
+  <h2>FDA Approval Rates by Therapeutic Area (Phase 3 → Approval)</h2>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Indication / Area</th>
+        <th>Approval Rate</th>
+        <th>Rate</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Hematology / Blood</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:87px"></div><span class="rate-val-high">87%</span></div></td>
+        <td>High</td>
+        <td>Strong endpoint clarity; unmet need historically high</td>
+      </tr>
+      <tr>
+        <td>Oncology / Cancer</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:85px"></div><span class="rate-val-high">85.5%</span></div></td>
+        <td>High</td>
+        <td>Accelerated approval pathways available; surrogate endpoints accepted</td>
+      </tr>
+      <tr>
+        <td>Rare / Orphan Disease (general)</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:82px"></div><span class="rate-val-high">82%</span></div></td>
+        <td>High</td>
+        <td>High unmet need; smaller trial sizes accepted; PRV incentive</td>
+      </tr>
+      <tr>
+        <td>Gene Therapy</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:78px"></div><span class="rate-val-high">78%</span></div></td>
+        <td>High</td>
+        <td>Clinical rates high but CMC risk is elevated; manufacturing complexity</td>
+      </tr>
+      <tr>
+        <td>Metabolic / Endocrine</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:72px"></div><span class="rate-val-high">72%</span></div></td>
+        <td>High</td>
+        <td>Diabetes, obesity, thyroid — well-defined endpoints</td>
+      </tr>
+      <tr>
+        <td>Gastroenterology</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:72px"></div><span class="rate-val-high">72%</span></div></td>
+        <td>High</td>
+        <td>IBD, gastroparesis — strong need; endpoints evolving</td>
+      </tr>
+      <tr>
+        <td>Infectious Disease</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:80px"></div><span class="rate-val-high">80%</span></div></td>
+        <td>High</td>
+        <td>HIV, hepatitis, antibiotics — clear endpoints; FDA prioritizes</td>
+      </tr>
+      <tr>
+        <td>Respiratory</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:75px"></div><span class="rate-val-high">75%</span></div></td>
+        <td>High</td>
+        <td>COPD, asthma — large datasets; pulmonary endpoints well-defined</td>
+      </tr>
+      <tr>
+        <td>Dermatology</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:78px"></div><span class="rate-val-high">78%</span></div></td>
+        <td>High</td>
+        <td>Psoriasis, atopic dermatitis — objective scoring systems</td>
+      </tr>
+      <tr>
+        <td>Ophthalmology</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:74px"></div><span class="rate-val-high">74%</span></div></td>
+        <td>High</td>
+        <td>Retinal disease, macular degeneration — measurable BCVA endpoints</td>
+      </tr>
+      <tr>
+        <td>Immunology / Autoimmune</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-high" style="width:76px"></div><span class="rate-val-high">76%</span></div></td>
+        <td>High</td>
+        <td>RA, lupus, Crohn's — endpoints established by precedent</td>
+      </tr>
+      <tr>
+        <td>Cardiovascular</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-mid" style="width:60px"></div><span class="rate-val-mid">60%</span></div></td>
+        <td>Mid</td>
+        <td>Large CV outcome trials required; high bar for mortality benefit</td>
+      </tr>
+      <tr>
+        <td>Musculoskeletal</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-mid" style="width:65px"></div><span class="rate-val-mid">65%</span></div></td>
+        <td>Mid</td>
+        <td>Osteoporosis, arthritis — functional endpoints sometimes contested</td>
+      </tr>
+      <tr>
+        <td>Neuromuscular (DMD, ALS, SMA)</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-mid" style="width:56px"></div><span class="rate-val-mid">56%</span></div></td>
+        <td>Mid</td>
+        <td>Complex endpoints; CMC risk elevated for biologics; FDA has high bar</td>
+      </tr>
+      <tr>
+        <td>Psychiatry / Mental Health</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-mid" style="width:51px"></div><span class="rate-val-mid">51%</span></div></td>
+        <td>Mid</td>
+        <td>Schizophrenia, depression — subjective endpoints; placebo effect high</td>
+      </tr>
+      <tr>
+        <td>Neurology / CNS (general)</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-low" style="width:49px"></div><span class="rate-val-low">49%</span></div></td>
+        <td>Low</td>
+        <td>Alzheimer's, Parkinson's, epilepsy — hardest endpoints in medicine</td>
+      </tr>
+      <tr>
+        <td>Pain</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-low" style="width:52px"></div><span class="rate-val-low">52%</span></div></td>
+        <td>Low</td>
+        <td>Opioid epidemic policy scrutiny; abuse potential concerns; subjective endpoints</td>
+      </tr>
+      <tr>
+        <td>Duchenne MD (DMD) specifically</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-low" style="width:53px"></div><span class="rate-val-low">53%</span></div></td>
+        <td>Low</td>
+        <td>Multiple prior CRLs in space; biomarker endpoints contested; CMC complexity</td>
+      </tr>
+      <tr>
+        <td>ALS specifically</td>
+        <td><div class="rate-bar-wrap"><div class="rate-bar rate-low" style="width:42px"></div><span class="rate-val-low">42%</span></div></td>
+        <td>Low</td>
+        <td>Fastest-progressing terminal disease; functional endpoints difficult to demonstrate</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="source-note">Sources: Hay et al. 2014 (Nature Biotechnology), Wong et al. 2019 (Biostatistics), FDA PDUFA VII performance reports, Submarine Catalyst outcome tracking. DMD/ALS rates reflect updated analysis post-REPL (Apr 2026).</p>
+
+  <h2>How Review Pathway Modifies the Base Rate</h2>
+  <p>The indication base rate is only half the input. The FDA review pathway the drug received also significantly affects approval probability. The base rates above assume standard review. These pathway multipliers are blended 50/50 with the indication rate in Submarine Catalyst's PoA model:</p>
+
+  <table class="data-table" style="max-width:520px;">
+    <thead>
+      <tr><th>Review Pathway</th><th>Base Probability</th><th>Why</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Breakthrough Therapy</td><td class="rate-val-high">90%</td><td>Highest FDA confidence, intensive guidance</td></tr>
+      <tr><td>Priority Review (NME)</td><td class="rate-val-high">81%</td><td>FDA priority; usually significant unmet need</td></tr>
+      <tr><td>sNDA / Supplement</td><td class="rate-val-high">80%</td><td>Drug already approved; incremental label change</td></tr>
+      <tr><td>Standard Review</td><td class="rate-val-mid">75%</td><td>No special status; standard 10-month review</td></tr>
+      <tr><td>Accelerated Approval</td><td class="rate-val-mid">72%</td><td>Surrogate endpoint; confirmatory trial pending</td></tr>
+      <tr><td>Post-CRL Resubmission</td><td class="rate-val-mid">65%</td><td>Varies by CRL type; see CRL page for breakdown</td></tr>
+    </tbody>
+  </table>
+
+  <h2>The REPL Case Study — When the Base Rate Warning Was Ignored</h2>
+  <div class="callout callout-amber">
+    <div class="callout-title">How the model missed REPL (Apr 10, 2026)</div>
+    <p>Vamorolone for Duchenne Muscular Dystrophy was assigned the "Unknown" base rate (75%) because the indication classifier didn't recognize DMD as a distinct category. It should have been 53% (DMD-specific rate). Combined with orphan/rare/pediatric positive modifiers, the model output was 84% PoA.</p>
+    <p style="margin-bottom:0;">The fix: Submarine Catalyst's scoring model now has an explicit DMD base rate (53%), a neuromuscular disease category (56%), and a CMC risk penalty layer that discounts PoA when manufacturing signals are present in EDGAR filings. These updates were deployed after the REPL CRL on April 10, 2026.</p>
+  </div>
+
+  <h2>What This Means for Evaluating Biotech Stocks</h2>
+  <p>When a biotech trades at a stock price that implies 85% approval odds but the drug is in CNS (historically 49%) with no special designations, that's a setup where the market is significantly overpricing the approval probability. The trade isn't just about whether the drug gets approved — it's about whether the market has priced approval correctly.</p>
+  <p>Conversely, a drug in oncology with breakthrough designation and a depressed stock price (post-CRL resubmission, for example) might be priced as if FDA approval is 50/50 when the historical rate for that setup is closer to 85%. That's where the real edge is.</p>
+  <p>The Submarine Catalyst scanner runs these calculations automatically for every active PDUFA event — blending indication rate, pathway rate, AdCom vote, CMC signals, and six other layers into a single PoA score. The data on this page is the foundation.</p>
+
+  <div style="text-align:center;margin:3rem 0;">
+    <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">See how these rates are applied: <a href="/how-institutions-trade.html" style="color:var(--accent);">How Institutions Trade PDUFA Events →</a></p>
+    <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">CRL rates by type: <a href="/fda-complete-response-letter.html" style="color:var(--accent);">Complete Response Letter Guide →</a></p>
+    <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:1.5rem;">Full track record with actual outcomes: <a href="/track-record.html" style="color:var(--accent);">Track Record →</a></p>
+    <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Access the Scanner — $29.99/month</a>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">PDUFA scanner · PoA scores · STN Risk · Dilution Radar · 870+ companies</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+    <a href="/fda-complete-response-letter.html">CRL Guide</a>
+    <a href="/fda-approval-rates-by-indication.html">Approval Rates</a>
+    <a href="/how-institutions-trade.html">Methodology</a>
+    <a href="/behavior-patterns.html">Patterns</a>
+    <a href="/beginners-guide.html">Glossary</a>
+    <a href="/track-record.html">Track Record</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+</footer>
+</body>
+</html>

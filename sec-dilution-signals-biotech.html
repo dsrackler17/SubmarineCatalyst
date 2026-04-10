@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTYLL5DC4Y"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLocation.push(arguments);}gtag('js',new Date());gtag('config','G-JTYLL5DC4Y');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biotech Dilution Signals: How to Read 424B5, S-3, and ATM Filings — Submarine Catalyst</title>
+<meta name="description" content="How to detect biotech dilution before it happens. A guide to 424B5 prospectus supplements, S-3 shelf registrations, ATM offerings, and convertible notes — the SEC filings that destroy post-approval gains.">
+<meta property="og:title" content="Biotech Dilution Signals: 424B5, S-3, and ATM Explained — Submarine Catalyst">
+<meta property="og:description" content="The SEC filings that destroy post-approval gains. How to find them on EDGAR before the PDUFA date.">
+<meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://submarinecatalyst.com/sec-dilution-signals-biotech.html">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
+<meta name="twitter:site" content="@DRackler">
+<link rel="canonical" href="https://submarinecatalyst.com/sec-dilution-signals-biotech.html">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.25rem 3rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.85);backdrop-filter:blur(12px);}
+.nav-logo{display:flex;align-items:center;gap:0.75rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.85rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-links{display:flex;align-items:center;gap:2rem;list-style:none;}
+.nav-links a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-links a:hover{color:var(--accent);}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;cursor:pointer;text-decoration:none;transition:background 0.2s,color 0.2s;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+main{flex:1;max-width:800px;width:100%;margin:0 auto;padding:3rem 2rem;}
+.page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
+.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:600px;line-height:1.7;}
+h2{font-family:var(--mono);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin:2.5rem 0 1rem;padding-bottom:0.5rem;border-bottom:1px solid var(--border);}
+h3{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.08em;color:var(--white);margin:1.5rem 0 0.75rem;}
+p{color:var(--text);font-weight:300;line-height:1.85;margin-bottom:1rem;font-size:0.95rem;}
+strong{color:var(--white);font-weight:500;}
+code{color:var(--accent);font-family:var(--mono);font-size:0.85rem;}
+.callout{background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin:1.5rem 0;position:relative;overflow:hidden;}
+.callout::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.callout-red::before{background:var(--red);}
+.callout-amber::before{background:var(--amber);}
+.callout-blue::before{background:var(--accent);}
+.callout-green::before{background:var(--accent2);}
+.callout-title{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem;}
+.callout-red .callout-title{color:var(--red);}
+.callout-amber .callout-title{color:var(--amber);}
+.callout-blue .callout-title{color:var(--accent);}
+.callout-green .callout-title{color:var(--accent2);}
+.example-box{background:var(--deep);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin:1.5rem 0;font-family:var(--mono);font-size:0.78rem;line-height:1.8;color:var(--text);}
+.example-label{color:var(--accent);font-size:0.65rem;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:0.5rem;}
+.filing-tag{display:inline-block;font-family:var(--mono);font-size:0.68rem;letter-spacing:0.1em;padding:0.2rem 0.6rem;border:1px solid;margin-right:0.5rem;}
+.tag-red{color:var(--red);border-color:rgba(255,68,68,0.4);background:rgba(255,68,68,0.06);}
+.tag-amber{color:var(--amber);border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.06);}
+.checklist{list-style:none;margin:1rem 0;display:flex;flex-direction:column;gap:0.5rem;}
+.checklist li{display:flex;align-items:flex-start;gap:0.75rem;font-size:0.9rem;color:var(--text);font-weight:300;line-height:1.6;}
+.checklist li::before{content:'→';font-family:var(--mono);font-size:0.7rem;color:var(--accent);flex-shrink:0;margin-top:0.2rem;}
+.disclaimer{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin:2rem 0;}
+footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}main{padding:2rem 1.25rem;}}
+</style>
+<script type="application/ld+json">
+{
+  "@context":"https://schema.org","@type":"FAQPage",
+  "mainEntity":[
+    {"@type":"Question","name":"What is a 424B5 filing in biotech?","acceptedAnswer":{"@type":"Answer","text":"A 424B5 is a prospectus supplement filed with the SEC when a company is actively selling securities under an existing shelf registration. In biotech, a 424B5 filed near a PDUFA date means the company plans to raise capital — often selling shares into the approval spike. This is one of the clearest pre-PDUFA dilution signals."}},
+    {"@type":"Question","name":"What is an ATM offering in biotech?","acceptedAnswer":{"@type":"Answer","text":"An ATM (at-the-market) offering allows a biotech company to sell shares gradually into the open market at current prices without announcing a formal secondary offering. It creates a continuous slow dilution that's harder to detect than a single large offering. ATM programs are disclosed in 8-K and prospectus filings."}},
+    {"@type":"Question","name":"What is an S-3 shelf registration?","acceptedAnswer":{"@type":"Answer","text":"An S-3 shelf registration is SEC authorization for a company to issue securities at any future time without additional SEC approval. Companies use shelf registrations as a standing authorization to raise capital when needed. An active S-3 going into a PDUFA date means the company can sell shares immediately on approval — a major dilution risk signal."}},
+    {"@type":"Question","name":"How do I find dilution filings for a biotech stock?","acceptedAnswer":{"@type":"Answer","text":"Go to SEC EDGAR (sec.gov/cgi-bin/browse-edgar), enter the company's ticker, and filter for filing types: 424B5 (immediate share sale), S-3 (shelf registration), S-1 (large offering), 8-K (material events including ATM establishment). Look for any of these in the 90 days before the PDUFA date. Submarine Catalyst's Dilution Radar checks EDGAR automatically every 6 hours for all active PDUFA tickers."}}
+  ]
+}
+</script>
+</head>
+<body>
+<nav>
+  <a href="/" class="nav-logo"><span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span></a>
+  <ul class="nav-links">
+    <li><a href="/calendar.html">Calendar</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
+    <li><a href="/how-institutions-trade.html">Methodology</a></li>
+    <li><a href="/beginners-guide.html">Glossary</a></li>
+    <li><a href="/#pricing">Pricing</a></li>
+  </ul>
+  <a href="/signup.html" class="nav-cta">Get Access</a>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Education — Dilution Radar</div>
+  <h1 class="page-title">Biotech Dilution Signals: How to Read 424B5, S-3, and ATM Filings</h1>
+  <p class="page-sub">The SEC filings that destroy post-approval gains before you buy. How to find them on EDGAR, what each one means, and why the Dilution Radar scans for them every 6 hours.</p>
+
+  <div class="disclaimer">⚠️ Educational content. Not investment advice. All trading decisions and risk management are solely your responsibility.</div>
+
+  <h2>The Problem Nobody Talks About</h2>
+  <p>Here's a scenario that happens constantly in biotech: A small-cap company gets FDA approval after years of development. The stock spikes 30% in after-hours trading. Retail investors pile in at the open. Three weeks later, the company announces a $100 million share offering. The stock drops 25%. The retail buyers are trapped.</p>
+  <p>This isn't bad luck. It's a predictable pattern that starts with SEC filings that were publicly available months before the PDUFA date. The institutions knew. The dilution signals were in the EDGAR database for anyone who knew how to look.</p>
+  <p>This page explains exactly what to look for, where to find it, and how the Submarine Catalyst Dilution Radar catches it automatically.</p>
+
+  <h2>The Four Key Dilution Filings</h2>
+
+  <h3><span class="filing-tag tag-red">424B5</span> Prospectus Supplement — The Loaded Gun</h3>
+  <p>A 424B5 means a company is actively in the process of selling securities. It's a supplement to an existing shelf registration (S-3) that contains the specific terms of a current offering — how many shares, the price range, the underwriters, and the use of proceeds. When you see a 424B5 filed in the weeks before a PDUFA date, the company is loading the gun to sell shares into the approval event.</p>
+  <div class="callout callout-red">
+    <div class="callout-title">🚨 424B5 — Immediate dilution signal</div>
+    <p style="margin-bottom:0;">Danger level: EXTREME. A 424B5 filed within 90 days of a PDUFA date is one of the clearest sell indicators in biotech. The company plans to sell shares at or immediately after approval. Institutional investors who know this is coming will sell into any spike. Retail investors who don't notice the 424B5 are providing the exit liquidity.</p>
+  </div>
+
+  <h3><span class="filing-tag tag-red">S-3</span> Shelf Registration — The Standing Authorization</h3>
+  <p>An S-3 shelf registration is an SEC registration statement that authorizes a company to issue securities at any time in the future without additional SEC approval. It's like a pre-loaded ATM card the company can swipe whenever they need cash. Unlike a 424B5, an active S-3 doesn't mean the company is selling shares right now — but it means they can, immediately, with no further notice required beyond a 424B5 supplement.</p>
+  <div class="callout callout-amber">
+    <div class="callout-title">⚠️ S-3 — Potential dilution signal</div>
+    <p style="margin-bottom:0;">Danger level: HIGH if filed recently, MODERATE if filed &gt;12 months ago. An S-3 going into a PDUFA date means the company has pre-positioned to raise capital on approval. Most small-cap biotechs have an S-3 on file — it's standard practice. What matters is whether the S-3 was recently refreshed (within 6 months) and whether the registered amount is large relative to the float.</p>
+  </div>
+
+  <h3><span class="filing-tag tag-amber">ATM</span> At-the-Market Offering — The Slow Drip</h3>
+  <p>An ATM (at-the-market) facility allows a company to sell shares gradually into the open market at current prices, through a registered sales agent (usually an investment bank), without announcing a formal secondary offering. The sales happen continuously, quietly, in small tranches that don't trigger a single news event. You can't see the ATM selling in real time — you see the results in the quarterly share count and the slowly diluting stock price.</p>
+  <div class="callout callout-amber">
+    <div class="callout-title">⚠️ ATM — Chronic dilution signal</div>
+    <p style="margin-bottom:0;">Danger level: HIGH for companies actively using it. An ATM program is established via an 8-K filing that names the sales agent and the maximum offering amount. To check if a company has an active ATM, search EDGAR for recent 8-K filings and look for "equity distribution agreement" or "sales agent agreement" language. If an ATM is active going into a PDUFA date, shares will likely be sold into any post-approval price strength.</p>
+  </div>
+
+  <h3><span class="filing-tag tag-amber">Convertible Notes</span> — The Delayed Bomb</h3>
+  <p>Convertible notes are debt that converts into shares at a predetermined price. They show up in 8-K filings when issued and in the company's balance sheet in 10-K and 10-Q filings. The dilution doesn't happen immediately — it happens when the conversion price is reached. A biotech with $50M in convertible notes that convert at $8/share will see a flood of new shares hit the market if the stock spikes past $8 on approval.</p>
+  <div class="callout callout-amber">
+    <div class="callout-title">⚠️ Convertible notes — Delayed dilution signal</div>
+    <p style="margin-bottom:0;">Danger level: MODERATE to HIGH depending on conversion price vs. current price. Check the 10-K's "Long-term debt" section and the notes to the financial statements. Look for the conversion price. If it's within 20-30% of the current stock price, a post-approval spike could trigger mass conversion — adding significant new share supply.</p>
+  </div>
+
+  <h2>How to Check EDGAR Yourself</h2>
+  <p>You don't need to pay for a data service to check for these filings. SEC EDGAR is free and fully public.</p>
+  <ul class="checklist">
+    <li>Go to <strong>sec.gov/cgi-bin/browse-edgar</strong></li>
+    <li>Enter the company's ticker symbol, select "Find Company Filings"</li>
+    <li>Filter by filing type: type "424B5" and search — any result in the last 90 days is a red flag</li>
+    <li>Then search for "S-3" to see if an active shelf registration exists</li>
+    <li>Search for "8-K" and scan for "equity distribution agreement" or "sales agent" in recent filings</li>
+    <li>Check the most recent 10-Q for the "debt" or "convertible" entries in the financial statements</li>
+  </ul>
+  <p>This process takes about 15 minutes per ticker. For active PDUFA tickers, Submarine Catalyst's Dilution Radar runs this check automatically every 6 hours and flags any new filings in the scanner card.</p>
+
+  <div class="example-box">
+    <div class="example-label">Real Example — RCKT (Rocket Pharmaceuticals · Mar 28, 2026)</div>
+    Drug: KRESLADI · Gene therapy for LAD-I (ultra-rare, ~30 patients/year)<br>
+    PDUFA: March 28, 2026 · Scanner STN Risk: <strong style="color:var(--red)">HIGH</strong><br><br>
+    Dilution signals detected by EDGAR scanner:<br>
+    — 424B5 prospectus supplement filed for debt securities<br>
+    — Active S-3 shelf registration<br>
+    — Pre-commercial gene therapy with no sales force<br><br>
+    Outcome: ✅ Approved → <strong style="color:var(--red)">−20% post-approval</strong><br><br>
+    Analysis: The dilution flags were present before the decision. The market priced in both the approval and the coming capital raise, selling into the approval spike. This case directly led to the Dilution Radar feature in Submarine Catalyst.
+  </div>
+
+  <h2>Dilution Risk vs. STN Risk — What's the Difference?</h2>
+  <p><strong>Sell-The-News (STN) Risk</strong> is about whether the stock drops on approval because approval was already expected. It's driven by how much the market has priced in the outcome before the decision.</p>
+  <p><strong>Dilution Risk</strong> is about whether the company will issue new shares after approval to fund commercialization. It's driven by SEC filings, cash runway, and capital needs.</p>
+  <p>Both can cause post-approval stock declines, but they're measured by different signals. A drug can have LOW STN Risk (genuine surprise on approval, stock should move up) but HIGH Dilution Risk (company immediately raises capital into the spike, killing the move). The scanner scores both independently.</p>
+
+  <h2>When Dilution Is Acceptable</h2>
+  <p>Not all dilution is equal. A company that raises $200M after approval to fund commercialization of a first-in-class drug in a $5B market is doing something rational — it's investing capital into a real business. The stock may dip on the offering but can still create long-term value.</p>
+  <p>The dangerous scenario is a company that raises $50M to fund commercialization of a drug in a $200M market with 5 competing drugs already approved. The dilution is the same but the business case is different. This is why the scanner considers TAM/Cap ratio alongside dilution signals — large TAM absorbs dilution; small TAM amplifies it.</p>
+
+  <div style="text-align:center;margin:3rem 0;">
+    <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">Learn how institutions use these signals: <a href="/how-institutions-trade.html" style="color:var(--accent);">How Institutions Trade PDUFA Events →</a></p>
+    <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">FDA approval probability data: <a href="/fda-approval-rates-by-indication.html" style="color:var(--accent);">FDA Approval Rates by Indication →</a></p>
+    <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:1.5rem;">CRL guide: <a href="/fda-complete-response-letter.html" style="color:var(--accent);">Complete Response Letter (CRL) Explained →</a></p>
+    <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Access the Scanner — $29.99/month</a>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Dilution Radar · EDGAR scanning every 6 hours · 870+ companies tracked</p>
+  </div>
+</main>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div style="display:flex;gap:1.5rem;flex-wrap:wrap;">
+    <a href="/fda-complete-response-letter.html">CRL Guide</a>
+    <a href="/fda-approval-rates-by-indication.html">Approval Rates</a>
+    <a href="/sec-dilution-signals-biotech.html">Dilution Signals</a>
+    <a href="/how-institutions-trade.html">Methodology</a>
+    <a href="/beginners-guide.html">Glossary</a>
+    <a href="/track-record.html">Track Record</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+</footer>
+</body>
+</html>
