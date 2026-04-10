@@ -250,12 +250,6 @@
 
   <div class="dash-main">
 
-    <div id="live-event-banner" style="background:rgba(255,68,68,0.06);border:1px solid rgba(255,68,68,0.25);padding:0.65rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--red);letter-spacing:0.04em;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
-      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;"></span>
-      <span><strong>REPL ❌ CRL</strong> · PoA miss (called 84%) · STN HIGH flagged −19.46% downside correctly &nbsp;|&nbsp; <strong style="color:var(--amber);">⚡ NEXT:</strong> <span style="color:var(--amber);">TVTX + LGND PDUFA Apr 13</span> (<span id="dash-countdown" style="color:var(--accent);">...</span>)</span>
-      <span style="margin-left:auto;opacity:0.6;cursor:pointer;color:var(--muted);" onclick="this.parentElement.style.display='none'">✕</span>
-    </div>
-
     <div class="verifying-banner" id="verifying-banner" style="display:none;">
       <div class="spinner"></div>
       Verifying your subscription — this takes a few seconds after payment...
@@ -516,6 +510,26 @@ function renderScanner() {
           <div class="score-box">
             <div class="score-box-label">TAM/Cap</div>
             <div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
+          </div>
+        </div>
+        <div class="card-scores" style="grid-template-columns:1fr 1fr;margin-top:-1px;">
+          <div class="score-box" style="border-right:1px solid var(--border);">
+            <div class="score-box-label">Chart Setup</div>
+            <div class="score-box-val ${
+              d.ta_setup_label === 'READY'    ? 'green' :
+              d.ta_setup_label === 'COILING'  ? 'cyan'  :
+              d.ta_setup_label === 'BUILDING' ? 'amber' :
+              d.ta_setup_label === 'EXTENDED' ? 'red'   :
+              d.ta_setup_label === 'WEAK'     ? 'red'   : 'white'
+            }" style="font-size:0.72rem;">${d.ta_setup_label || '—'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">30d Trend</div>
+            <div class="score-box-val ${
+              d.ta_trend_30d === null || d.ta_trend_30d === undefined ? 'white' :
+              d.ta_trend_30d > 30 ? 'red' :
+              d.ta_trend_30d > 0  ? 'green' : 'red'
+            }">${d.ta_trend_30d !== null && d.ta_trend_30d !== undefined ? (d.ta_trend_30d > 0 ? '+' : '') + d.ta_trend_30d + '%' : '—'}</div>
           </div>
         </div>
         ${(() => {
@@ -1050,23 +1064,6 @@ function switchTab(btn, id) {
   }
 
   renderBuyoutGrid();
-})();
-
-// Live event countdown
-(function() {
-  const target = new Date('2026-04-13T00:00:00-04:00');
-  function tick() {
-    const diff = target - new Date();
-    const el = document.getElementById('dash-countdown');
-    if (!el) return;
-    if (diff <= 0) { el.textContent = 'TODAY'; return; }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    el.textContent = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
-  }
-  tick();
-  setInterval(tick, 30000);
 })();
 </script>
 </body>
