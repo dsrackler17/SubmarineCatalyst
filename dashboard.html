@@ -991,16 +991,13 @@ function switchTab(btn, id) {
     nextBilling.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
   const portalBtn = document.getElementById('billing-portal-btn');
-  if (SC_CONFIG.stripePortalUrl) {
-    portalBtn.href   = SC_CONFIG.stripePortalUrl;
-    portalBtn.target = '_blank';
-    portalBtn.rel    = 'noopener';
-  } else {
-    portalBtn.addEventListener('click', e => {
-      e.preventDefault();
-      alert('Billing portal not configured yet.\nIn Stripe Dashboard → Settings → Billing → Customer portal → Activate\nThen set stripePortalUrl in js/config.js.');
-    });
-  }
+  // Use configured portal URL or fall back to Stripe billing page
+  const portalUrl = (window.SC_CONFIG && SC_CONFIG.stripePortalUrl)
+    ? SC_CONFIG.stripePortalUrl
+    : 'https://billing.stripe.com/p/login/eVa14j9V0dZSgIE144';
+  portalBtn.href   = portalUrl;
+  portalBtn.target = '_blank';
+  portalBtn.rel    = 'noopener';
 
   if (fromStripe && isPaid && !sessionStorage.getItem('dismissed_welcome')) {
     document.getElementById('welcome-banner').style.display = 'block';
@@ -1014,7 +1011,8 @@ function switchTab(btn, id) {
       '  <div style="font-family:var(--serif);font-size:1.5rem;color:var(--white);margin-bottom:0.75rem;">Subscription Required</div>',
       '  <p style="font-family:var(--sans);font-size:0.9rem;color:var(--muted);max-width:400px;margin:0 auto 1.5rem;line-height:1.7;">Access the full scanner with 60+ scored PDUFA events, AI research tool, and deep dive analysis.</p>',
       '  <a href="javascript:void(0)" onclick="scCheckout(\'' + user.id + '\',\'' + user.email + '\')" style="display:inline-block;font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.75rem 2rem;text-decoration:none;font-weight:700;cursor:pointer;">Subscribe — $29.99/month</a>',
-      '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime</p>',
+      '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime · First 50 lock in $29.99 forever</p>',
+      '  <p style="font-family:var(--mono);font-size:0.65rem;color:var(--amber);margin-top:0.75rem;line-height:1.7;max-width:420px;text-align:center;">&#9888;&#65039; Already subscribed and seeing this? Wait 60 seconds and refresh. If still locked after 5 minutes, email dsrackler@gmail.com and we will activate your account within 1 hour.</p>',
       '</div>',
     ].join('\n');
     document.getElementById('stat-elite').textContent = '—';
