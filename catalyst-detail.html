@@ -592,158 +592,80 @@ function populatePage(d, isPaid) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// LIVE CHART — Fetches real-time data from Finnhub on every page load
-// No waiting for batch jobs. Fresh data every time.
+// LIVE CHART — Fetches real-time quote from Finnhub on every page load
+// Uses /quote endpoint (free tier). No candle data needed.
 // ═══════════════════════════════════════════════════════════════
 async function fetchLiveChart(d) {
   var FINNHUB_KEY = 'd7dcla9r01qggoenrpog';
   var ticker = d.ticker;
 
   try {
-    // Fetch quote + 90-day candles in parallel
-    var [quoteRes, candleRes] = await Promise.all([
-      fetch('https://finnhub.io/api/v1/quote?symbol=' + ticker + '&token=' + FINNHUB_KEY),
-      fetch('https://finnhub.io/api/v1/stock/candle?symbol=' + ticker + '&resolution=D&from=' + (Math.floor(Date.now()/1000) - 90*86400) + '&to=' + Math.floor(Date.now()/1000) + '&token=' + FINNHUB_KEY)
-    ]);
-
+    var quoteRes = await fetch('https://finnhub.io/api/v1/quote?symbol=' + ticker + '&token=' + FINNHUB_KEY);
     var quote = quoteRes.ok ? await quoteRes.json() : null;
-    var candles = candleRes.ok ? await candleRes.json() : null;
 
-    if (!quote || !candles || candles.s !== 'ok' || !candles.c || candles.c.length < 5) {
-      console.warn('[SC] Finnhub data unavailable for ' + ticker);
+    if (!quote || !quote.c || quote.c === 0) {
+      console.warn('[SC] Finnhub quote unavailable for ' + ticker);
       return;
     }
 
-    var closes = candles.c;
-    var volumes = candles.v || [];
-    var timestamps = candles.t || [];
-    var len = closes.length;
-    var currentPrice = quote.c || closes[len - 1];
-    var prevClose = quote.pc || closes[len - 2] || currentPrice;
-
-    // ── 30-day metrics ──
-    var idx30 = Math.max(0, len - 22);
-    var price30d = closes[idx30];
-    var change30d = ((currentPrice - price30d) / price30d * 100);
-    var change1d = ((currentPrice - prevClose) / prevClose * 100);
-
-    // ── 52-week range ──
-    var high52 = Math.max.apply(null, closes);
-    var low52 = Math.min.apply(null, closes);
-    var rangePos = high52 !== low52 ? (currentPrice - low52) / (high52 - low52) : 0.5;
-
-    // ── Volume analysis ──
-    var avgVol10 = volumes.length >= 10 ? volumes.slice(-10).reduce(function(a,b){return a+b;},0) / 10 : 0;
-    var avgVol3 = volumes.length >= 3 ? volumes.slice(-3).reduce(function(a,b){return a+b;},0) / 3 : 0;
-    var volRatio = avgVol10 > 0 ? avgVol3 / avgVol10 : 1;
-
-    // ── Consolidation detection ──
-    var recent10 = closes.slice(-10);
-    var r10High = Math.max.apply(null, recent10);
-    var r10Low = Math.min.apply(null, recent10);
-    var r10Range = ((r10High - r10Low) / r10Low * 100);
-    var consolidation = r10Range < 8;
-
-    // ── Chart Setup Score ──
-    var chartScore = 0;
-    var chartFlags = [];
-
-    // 52w range position (25 pts)
-    if (rangePos >= 0.3 && rangePos <= 0.6) { chartScore += 25; chartFlags.push('✅ Mid-range (' + (rangePos*100).toFixed(0) + '%) — room to run'); }
-    else if (rangePos < 0.3) { chartScore += 18; chartFlags.push('📉 Low in range (' + (rangePos*100).toFixed(0) + '%) — depressed, squeeze potential'); }
-    else if (rangePos > 0.8) { chartScore += 5; chartFlags.push('⚠️ Near highs (' + (rangePos*100).toFixed(0) + '%) — extended'); }
-    else { chartScore += 12; }
-
-    // 30-day trend (25 pts)
-    var trend = 'FLAT';
-    if (change30d > 15) { trend = 'SURGING'; chartScore += 8; chartFlags.push('🚨 SURGING +' + change30d.toFixed(1) + '% — possibly overextended'); }
-    else if (change30d > 5) { trend = 'RISING'; chartScore += 20; chartFlags.push('📈 RISING +' + change30d.toFixed(1) + '% — momentum building'); }
-    else if (change30d < -15) { trend = 'CRASHING'; chartScore += 10; chartFlags.push('🚨 CRASHING ' + change30d.toFixed(1) + '% — severe weakness'); }
-    else if (change30d < -5) { trend = 'FALLING'; chartScore += 15; chartFlags.push('📉 FALLING ' + change30d.toFixed(1) + '% — weak but could be shakeout'); }
-    else { chartScore += 25; if (consolidation) { chartFlags.push('📐 FLAT/COILING — energy stored'); } }
-
-    // Consolidation (15 pts)
-    if (consolidation) { chartScore += 15; chartFlags.push('📐 Tight consolidation: ' + r10Range.toFixed(1) + '% range over 10 days'); }
-
-    // PDUFA proximity (20 pts)
-    var days = daysUntil(d.date);
-    if (days >= 3 && days <= 21) { chartScore += 20; chartFlags.push('⏰ PDUFA in ' + days + 'd — timing optimal'); }
-    else if (days >= 1 && days <= 2) { chartScore += 15; chartFlags.push('⚡ PDUFA imminent — ' + days + 'd'); }
-    else if (days > 21 && days <= 45) { chartScore += 10; }
-    else { chartScore += 5; }
-
-    // Not overextended (15 pts)
-    if (rangePos < 0.8 && trend !== 'SURGING') { chartScore += 15; }
-
-    chartScore = Math.min(100, chartScore);
-
-    // Classification
-    var setup = 'WEAK';
-    if (chartScore >= 75 && consolidation) setup = 'COILING';
-    else if (chartScore >= 75) setup = 'READY';
-    else if (chartScore >= 55) setup = 'BUILDING';
-    else if (chartScore >= 35 && trend === 'SURGING') setup = 'EXTENDED';
-    else if (chartScore >= 35) setup = 'BUILDING';
-
-    var setupColors = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'};
+    var currentPrice = quote.c;
+    var prevClose = quote.pc || currentPrice;
+    var change1d = quote.dp || 0;
+    var dayHigh = quote.h || currentPrice;
+    var dayLow = quote.l || currentPrice;
+    var dayOpen = quote.o || currentPrice;
+    var col = change1d >= 0 ? 'var(--accent2)' : 'var(--red)';
+    var arrow = change1d >= 0 ? '▲' : '▼';
 
     // ── Update chart stat cell ──
     var chartEl = document.getElementById('stat-chart');
     if (chartEl) {
-      chartEl.textContent = setup + ' (' + chartScore + ')';
-      chartEl.style.color = setupColors[setup] || 'var(--muted)';
+      chartEl.textContent = 'LIVE';
+      chartEl.style.color = 'var(--accent)';
     }
 
-    // ── Build sparkline ──
+    // ── Build live price panel ──
     var sparkContainer = document.getElementById('sparkline-container');
     if (!sparkContainer) return;
 
-    var last30 = closes.slice(-30);
-    var last30t = timestamps.slice(-30);
-    var minP = Math.min.apply(null, last30);
-    var maxP = Math.max.apply(null, last30);
-    var rng = maxP - minP || 1;
-    var sw = 800, sh = 70;
-    var pts = last30.map(function(p, i) {
-      return (i / (last30.length - 1) * sw).toFixed(1) + ',' + (sh - 6 - ((p - minP) / rng) * (sh - 12)).toFixed(1);
-    }).join(' ');
-    var lineCol = change30d >= 0 ? 'var(--accent2)' : 'var(--red)';
-    var volTrend = volRatio > 2 ? 'SURGING' : volRatio > 1.3 ? 'ELEVATED' : volRatio < 0.6 ? 'DECLINING' : 'NORMAL';
+    var days = daysUntil(d.date);
+    var dayRange = dayHigh - dayLow;
+    var priceInRange = dayRange > 0 ? ((currentPrice - dayLow) / dayRange * 100).toFixed(0) : 50;
 
     sparkContainer.style.display = 'block';
     sparkContainer.innerHTML = DOMPurify.sanitize(
-      // Header row
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap;gap:0.5rem;">' +
-        '<span style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">LIVE CHART · 30-Day Price Action</span>' +
-        '<div style="display:flex;gap:1.25rem;align-items:center;">' +
-          '<span style="font-family:var(--mono);font-size:0.8rem;font-weight:700;color:var(--white);">$' + currentPrice.toFixed(2) + '</span>' +
-          '<span style="font-family:var(--mono);font-size:0.68rem;color:' + (change1d >= 0 ? 'var(--accent2)' : 'var(--red)') + ';">' + (change1d >= 0 ? '▲' : '▼') + ' ' + Math.abs(change1d).toFixed(2) + '%</span>' +
-          '<span style="font-family:var(--mono);font-size:0.62rem;color:' + lineCol + ';">30D: ' + (change30d >= 0 ? '+' : '') + change30d.toFixed(1) + '%</span>' +
-          '<span style="font-family:var(--mono);font-size:0.62rem;color:' + (setupColors[setup] || 'var(--muted)') + ';">' + setup + '</span>' +
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem;">' +
+        '<span style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">LIVE QUOTE · ' + ticker + '</span>' +
+        '<span style="font-family:var(--mono);font-size:0.48rem;color:var(--accent);padding:0.15rem 0.4rem;border:1px solid var(--accent);border-radius:2px;">LIVE</span>' +
+      '</div>' +
+      // Price + change
+      '<div style="display:flex;align-items:baseline;gap:1.25rem;margin-bottom:0.75rem;">' +
+        '<span style="font-family:var(--mono);font-size:1.4rem;font-weight:700;color:var(--white);">$' + currentPrice.toFixed(2) + '</span>' +
+        '<span style="font-family:var(--mono);font-size:0.9rem;color:' + col + ';">' + arrow + ' ' + Math.abs(change1d).toFixed(2) + '%</span>' +
+        '<span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);">(' + (change1d >= 0 ? '+' : '') + '$' + (quote.d || 0).toFixed(2) + ')</span>' +
+      '</div>' +
+      // Day range bar
+      '<div style="margin-bottom:0.75rem;">' +
+        '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-bottom:0.25rem;">' +
+          '<span>Day Low: $' + dayLow.toFixed(2) + '</span>' +
+          '<span>Day High: $' + dayHigh.toFixed(2) + '</span>' +
+        '</div>' +
+        '<div style="width:100%;height:6px;background:rgba(0,212,255,0.1);border-radius:3px;position:relative;">' +
+          '<div style="width:' + priceInRange + '%;height:100%;background:' + col + ';border-radius:3px;"></div>' +
+          '<div style="position:absolute;top:-3px;left:' + priceInRange + '%;width:3px;height:12px;background:var(--white);border-radius:2px;transform:translateX(-50%);"></div>' +
         '</div>' +
       '</div>' +
-      // SVG chart
-      '<svg viewBox="0 0 ' + sw + ' ' + sh + '" style="width:100%;height:60px;" preserveAspectRatio="none">' +
-        '<polyline points="' + pts + '" fill="none" stroke="' + lineCol + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' +
-        '<circle cx="' + (sw).toFixed(1) + '" cy="' + (sh - 6 - ((currentPrice - minP) / rng) * (sh - 12)).toFixed(1) + '" r="4" fill="' + lineCol + '"/>' +
-      '</svg>' +
-      // Footer stats
-      '<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:0.5rem;margin-top:0.5rem;font-family:var(--mono);font-size:0.55rem;">' +
-        '<div><span style="color:var(--muted);">Range</span><br><span style="color:var(--text);">$' + minP.toFixed(2) + ' – $' + maxP.toFixed(2) + '</span></div>' +
-        '<div><span style="color:var(--muted);">52w Position</span><br><span style="color:var(--text);">' + (rangePos * 100).toFixed(0) + '%</span></div>' +
-        '<div><span style="color:var(--muted);">Volume</span><br><span style="color:' + (volRatio > 1.5 ? 'var(--amber)' : 'var(--text)') + ';">' + volRatio.toFixed(1) + 'x avg · ' + volTrend + '</span></div>' +
-        '<div><span style="color:var(--muted);">Consolidation</span><br><span style="color:' + (consolidation ? 'var(--accent2)' : 'var(--text)') + ';">' + (consolidation ? '✅ YES (' + r10Range.toFixed(1) + '%)' : 'No (' + r10Range.toFixed(1) + '%)') + '</span></div>' +
-        '<div><span style="color:var(--muted);">Chart Score</span><br><span style="color:' + (setupColors[setup] || 'var(--text)') + ';">' + chartScore + '/100</span></div>' +
-        '<div><span style="color:var(--muted);">Trend</span><br><span style="color:var(--text);">' + trend + '</span></div>' +
-      '</div>' +
-      // Chart flags
-      (chartFlags.length > 0 ? '<div style="margin-top:0.75rem;padding-top:0.5rem;border-top:1px solid var(--border);">' +
-        chartFlags.map(function(f) { return '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--text);padding:0.15rem 0;">' + f + '</div>'; }).join('') +
-      '</div>' : '')
+      // Stats grid
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0.5rem;font-family:var(--mono);font-size:0.55rem;">' +
+        '<div><span style="color:var(--muted);">Open</span><br><span style="color:var(--text);">$' + dayOpen.toFixed(2) + '</span></div>' +
+        '<div><span style="color:var(--muted);">Prev Close</span><br><span style="color:var(--text);">$' + prevClose.toFixed(2) + '</span></div>' +
+        '<div><span style="color:var(--muted);">Day Range</span><br><span style="color:var(--text);">$' + dayRange.toFixed(2) + '</span></div>' +
+        '<div><span style="color:var(--muted);">PDUFA</span><br><span style="color:' + (days <= 7 ? 'var(--amber)' : 'var(--text)') + ';">' + (days >= 0 ? days + 'd' : 'PAST') + '</span></div>' +
+      '</div>'
     );
 
   } catch (err) {
-    console.warn('[SC] Live chart fetch failed:', err);
+    console.warn('[SC] Live quote fetch failed:', err);
   }
 }
 
