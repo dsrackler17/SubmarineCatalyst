@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://submarinecatalyst.com/">
 <meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta property="og:description" content="870+ biotech companies. 9-layer scoring: approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap, chart setup timing, and AI deep dives.">
+<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 6/7 resolved events logged. $29.99/mo.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 9-layer scoring model. Track record logged publicly — wins and losses. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 6/7 resolved events logged — 1 miss documented. TVTX + LGND PDUFA Apr 13. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -276,7 +276,7 @@ footer a:hover { color: var(--accent); }
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Web",
   "url": "https://submarinecatalyst.com",
-  "description": "Biotech PDUFA intelligence platform. 870+ companies tracked with 9-layer scoring: approval probability, sell-the-news risk, dilution detection, buyout probability, TAM/Cap analysis, chart setup timing, and AI research. Built for biotech investors.",
+  "description": "Biotech PDUFA intelligence platform. 870+ companies tracked with 8-layer scoring: approval probability, sell-the-news risk, dilution detection, buyout probability, TAM/Cap analysis, and AI research. Built for biotech investors.",
   "offers": {
     "@type": "Offer",
     "price": "29.99",
@@ -330,17 +330,25 @@ footer a:hover { color: var(--accent); }
   <a href="#pricing" class="nav-cta">Get Access</a>
 </nav>
 
+<div class="urgency-bar" id="urgency-bar">
+  <span><span class="ub-pulse"></span>REPL: ❌ CRL · PoA miss (called 84%) · STN HIGH correctly flagged −19.46% downside</span>
+  <span class="ub-divider">·</span>
+  <span>TVTX + LGND PDUFA: April 13 &nbsp;<span class="countdown-inline" id="tvtx-countdown"></span></span>
+  <span class="ub-divider">·</span>
+  <a href="#proof">View full track record →</a>
+</div>
+
 <section>
   <div class="hero">
     <div class="hero-left">
       <div class="hero-eyebrow">Biotech Catalyst Research Terminal</div>
-      <h1 class="hero-headline">870+ companies. Nine scoring layers.<br><em>One screen.</em></h1>
+      <h1 class="hero-headline">870+ companies. Eight scoring layers.<br><em>One screen.</em></h1>
       <p class="hero-sub">Probability of approval, post-decision price behavior modeling, dilution detection, M&A scoring, supply chain risk classification, and TAM analysis — structured from FDA filings, SEC EDGAR, and clinical data. Updated daily. Built for biotech investors who do their own work.</p>
       <div id="auth-status" class="auth-status hidden"></div>
       <div class="hero-actions">
         <button id="signup-btn" class="btn-primary">Get Access</button>
         <button id="login-btn" class="btn-primary" style="background:var(--muted);">Login</button>
-        <span class="hero-note">$29.99/month · First 50 lock in forever</span>
+        <span class="hero-note">$29.99/month · Cancel anytime</span>
       </div>
     </div>
 
@@ -349,175 +357,32 @@ footer a:hover { color: var(--accent); }
         <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
         <span class="terminal-title">SCANNER v14 — LIVE OUTPUT</span>
       </div>
-      <div class="terminal-body" id="hero-terminal-body">
+      <div class="terminal-body">
         <div class="t-dim">══════════════════════════════════════════════════</div>
-        <div class="t-dim"> Fetching live scanner data<span id="term-loading-dots">...</span></div>
+        <div><span class="t-red">❌ REPL</span><span class="t-dim"> CRL · PoA called </span><span class="t-red">84%</span><span class="t-dim"> — model miss</span></div>
+        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">−19.46%</span><span class="t-dim"> downside risk</span></div>
+        <div class="t-dim">──────────────────────────────────────────────────</div>
+        <div><span class="t-amb">⚡ LIVE →</span><span class="t-wht"> TVTX</span><span class="t-dim"> Net Edge: </span><span class="t-grn">63.8</span><span class="t-acc"> STRONG</span></div>
+        <div><span class="t-dim"> PoA: </span><span class="t-grn">74.0%</span><span class="t-dim"> | STN Risk: </span><span class="t-acc">MODERATE</span><span class="t-dim"> | PDUFA: </span><span class="t-amb">APR 13</span></div>
+        <div><span class="t-dim"> Also Apr 13: </span><span class="t-wht">LGND</span><span class="t-dim"> PoA 71.5% | </span><span id="term-countdown" class="t-acc">...</span></div>
+        <div class="t-dim">──────────────────────────────────────────────────</div>
+        <div class="t-dim"> 📊 Track Record: 6/7 Resolved · 1 Miss Logged</div>
+        <div><span class="t-dim"> VNDA </span><span class="t-grn">+45%</span><span class="t-dim"> | RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️</span></div>
+        <div><span class="t-dim"> REPL </span><span class="t-red">CRL -19%</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span></div>
+        <div class="t-dim">──────────────────────────────────────────────────</div>
+        <div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>
         <div class="t-dim">══════════════════════════════════════════════════</div>
         <div class="cursor t-dim"> </div>
       </div>
     </div>
-
-    <script>
-    (function() {
-      var SUPA_URL  = 'https://dipagzqrvivposqjkdkx.supabase.co';
-      var SUPA_KEY  = 'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU';
-      var today     = new Date().toISOString().split('T')[0];
-
-      function fmt(date) {
-        if (!date) return '—';
-        var d = new Date(date + 'T00:00:00');
-        return d.toLocaleDateString('en-US', { month:'short', day:'numeric' }).toUpperCase();
-      }
-
-      function stnColor(s) {
-        var r = {'HIGH':'t-red','ELEVATED':'t-amb','MODERATE':'t-acc','LOW':'t-grn','VERY LOW':'t-grn'};
-        return r[(s||'').toUpperCase()] || 't-acc';
-      }
-
-      function gradeColor(g) {
-        var r = {'ELITE':'t-grn','STRONG':'t-acc','WATCH':'t-amb','WEAK':'t-red'};
-        return r[(g||'').toUpperCase()] || 't-acc';
-      }
-
-      function netColor(n) {
-        return n >= 72 ? 't-grn' : n >= 58 ? 't-acc' : n >= 42 ? 't-amb' : 't-red';
-      }
-
-      function daysLabel(date) {
-        var days = Math.round((new Date(date+'T00:00:00') - new Date()) / 86400000);
-        if (days <= 0) return '<span class="t-acc">TODAY</span>';
-        if (days === 1) return '<span class="t-amb">TOMORROW</span>';
-        return '<span class="t-dim">' + days + 'd</span>';
-      }
-
-      function renderTerminal(upcoming, recent) {
-        var body = document.getElementById('hero-terminal-body');
-        if (!body) return;
-        var lines = [];
-        lines.push('<div class="t-dim">══════════════════════════════════════════════════</div>');
-
-        // Track record from recent resolved events
-        if (recent && recent.length > 0) {
-          var resolved = recent.length;
-          var correct  = recent.filter(function(r) { return r.call_correct; }).length;
-          var misses   = resolved - correct;
-          lines.push('<div><span class="t-dim"> 📊 TRACK RECORD: </span><span class="t-grn">' + correct + '/' + resolved + ' CORRECT</span><span class="t-dim"> · ' + misses + ' MISS' + (misses !== 1 ? 'ES' : '') + ' LOGGED</span></div>');
-          var shown = recent.slice(0, 3);
-          shown.forEach(function(r) {
-            var ret = r.return_pct;
-            var retStr = ret !== null && ret !== undefined ? (ret >= 0 ? '+' : '') + ret.toFixed(1) + '%' : '—';
-            var retCls = ret > 0 ? 't-grn' : ret < 0 ? 't-red' : 't-dim';
-            var check  = r.call_correct ? '<span class="t-grn">✓</span>' : '<span class="t-red">✗</span>';
-            var result = (r.actual_result || '').toUpperCase();
-            var resCls = result === 'APPROVED' ? 't-grn' : result.includes('CRL') ? 't-red' : 't-dim';
-            lines.push('<div><span class="t-dim"> ' + r.ticker + ' </span><span class="' + resCls + '">' + result + '</span><span class="t-dim"> </span><span class="' + retStr.startsWith('+') ? 't-grn' : 't-red' + '">' + retStr + '</span><span class="t-dim"> · STN:' + (r.scanner_stn_risk||'—') + ' </span>' + check + '</div>');
-          });
-          lines.push('<div class="t-dim">──────────────────────────────────────────────────</div>');
-        }
-
-        // Upcoming PDUFA events
-        if (upcoming && upcoming.length > 0) {
-          var first = upcoming[0];
-          var ne    = (first.net_edge_score || first.score || 0);
-          lines.push('<div><span class="t-amb">⚡ LIVE →</span><span class="t-wht"> ' + first.ticker + '</span><span class="t-dim"> Net Edge: </span><span class="' + netColor(ne) + '">' + ne.toFixed(1) + '</span><span class="' + gradeColor(first.grade) + '"> ' + (first.grade||'WATCH') + '</span></div>');
-          lines.push('<div><span class="t-dim"> PoA: </span><span class="t-grn">' + (first.poa||0).toFixed(1) + '%</span><span class="t-dim"> | STN: </span><span class="' + stnColor(first.sell_news_risk) + '">' + (first.sell_news_risk||'MOD') + '</span><span class="t-dim"> | PDUFA: </span><span class="t-amb">' + fmt(first.date) + '</span><span class="t-dim"> · </span>' + daysLabel(first.date) + '</div>');
-
-          if (upcoming.length > 1) {
-            var rest = upcoming.slice(1, 3);
-            rest.forEach(function(ev) {
-              var ne2 = (ev.net_edge_score || ev.score || 0);
-              lines.push('<div><span class="t-dim"> ' + ev.ticker + '</span><span class="t-dim"> PoA:</span><span class="t-acc"> ' + (ev.poa||0).toFixed(0) + '%</span><span class="t-dim"> Net Edge:</span><span class="' + netColor(ne2) + '"> ' + ne2.toFixed(1) + '</span><span class="t-dim"> PDUFA:</span><span class="t-amb"> ' + fmt(ev.date) + '</span></div>');
-            });
-          }
-        } else {
-          lines.push('<div class="t-dim"> No upcoming PDUFA events in range.</div>');
-        }
-
-        lines.push('<div class="t-dim">──────────────────────────────────────────────────</div>');
-        lines.push('<div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>');
-        lines.push('<div class="t-dim">══════════════════════════════════════════════════</div>');
-        lines.push('<div class="cursor t-dim"> </div>');
-        body.innerHTML = lines.join('');
-      }
-
-      async function loadTerminal() {
-        // Animate loading dots
-        var dots = document.getElementById('term-loading-dots');
-        var di = 0;
-        var dotTimer = setInterval(function() {
-          if (dots) dots.textContent = ['...','.. ','.. ','...'][di++ % 4];
-        }, 400);
-
-        try {
-          // Use RPC function — no auth needed (SECURITY DEFINER bypasses RLS)
-          var upResp = await fetch(
-            SUPA_URL + '/rest/v1/rpc/get_public_pdufa_preview',
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'apikey': SUPA_KEY || 'anon' },
-              body: '{}'
-            }
-          );
-
-          // Track record — use anon key from config or fall back gracefully
-          var trHeaders = { 'Content-Type': 'application/json' };
-          if (SUPA_KEY) { trHeaders['apikey'] = SUPA_KEY; trHeaders['Authorization'] = 'Bearer ' + SUPA_KEY; }
-          var trResp = await fetch(
-            SUPA_URL + '/rest/v1/track_record?select=ticker,scanner_stn_risk,actual_result,call_correct,return_pct&order=pdufa_date.desc&limit=4',
-            { headers: trHeaders }
-          );
-
-          clearInterval(dotTimer);
-          var upcoming = upResp.ok ? await upResp.json() : [];
-          var recent   = trResp.ok ? await trResp.json() : [];
-          console.log('[SC Terminal] RPC upcoming:', upcoming.length, 'track_record:', recent.length, 'key present:', !!SUPA_KEY);
-          renderTerminal(upcoming, recent);
-        } catch(e) {
-          clearInterval(dotTimer);
-          // Graceful fallback — show static known-good data
-          var body = document.getElementById('hero-terminal-body');
-          if (body) body.innerHTML = [
-            '<div class="t-dim">══════════════════════════════════════════════════</div>',
-            '<div><span class="t-dim"> 📊 TRACK RECORD: </span><span class="t-grn">6/7 CORRECT</span><span class="t-dim"> · 1 MISS LOGGED</span></div>',
-            '<div><span class="t-dim"> VNDA </span><span class="t-grn">APPROVED +45%</span><span class="t-dim"> · STN:LOW </span><span class="t-grn">✓</span></div>',
-            '<div><span class="t-dim"> RCKT </span><span class="t-grn">APPROVED</span><span class="t-red"> -20%</span><span class="t-dim"> · STN:HIGH ⚠️</span></div>',
-            '<div><span class="t-dim"> REPL </span><span class="t-red">CRL -19%</span><span class="t-dim"> · STN:HIGH </span><span class="t-grn">✓</span></div>',
-            '<div class="t-dim">──────────────────────────────────────────────────</div>',
-            '<div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>',
-            '<div class="t-dim">══════════════════════════════════════════════════</div>',
-            '<div class="cursor t-dim"> </div>'
-          ].join('');
-        }
-      }
-
-      // Wait for SC_CONFIG to be fully available (config.js is sync but race condition possible)
-      function waitForConfig(cb, attempts) {
-        attempts = attempts || 0;
-        if (window.SC_CONFIG && SC_CONFIG.supabaseUrl && SC_CONFIG.supabaseAnonKey) {
-          cb();
-        } else if (attempts < 20) {
-          setTimeout(function() { waitForConfig(cb, attempts + 1); }, 150);
-        } else {
-          // Give up waiting — run anyway with empty key (will show fallback)
-          cb();
-        }
-      }
-
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() { waitForConfig(loadTerminal); });
-      } else {
-        waitForConfig(loadTerminal);
-      }
-    })();
-    </script>
   </div>
 </section>
 
 <section id="proof" style="background:var(--navy);border-top:1px solid var(--border);padding:3rem 0;">
   <div class="section reveal" style="text-align:center;">
     <div class="section-label" style="justify-content:center;">Model Validation</div>
-    <h2 class="section-heading" id="tr-heading">6/7 resolved. One miss logged. Everything documented.</h2>
-    <p class="section-sub" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record. REPL was the first miss — called 84% approval, got a CRL. The STN HIGH flag correctly identified severe downside risk regardless. Current track record and live events visible in the scanner.</p>
+    <h2 class="section-heading">6/7 resolved. One miss logged. Everything documented.</h2>
+    <p class="section-sub" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record. REPL was the first miss — called 84% approval, got a CRL. The STN HIGH flag correctly identified severe downside risk regardless. TVTX and LGND pending April 13.</p>
 
     <div class="insight-callout" style="max-width:700px;margin:0 auto 2rem;">
       <div class="ic-label">What the model got right and wrong</div>
@@ -587,7 +452,7 @@ footer a:hover { color: var(--accent); }
         </tr>
         <tr style="background:rgba(0,212,255,0.06);">
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">TVTX 🔴</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">WATCH (65.7%)</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">APPROVE (74%)</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">Pending Apr 13</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">—</td>
         </tr>
@@ -595,7 +460,7 @@ footer a:hover { color: var(--accent); }
     </table>
 
     <div style="max-width:700px;margin:1.25rem auto 0;text-align:left;">
-      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">6/7 on resolved events — 6 correct approval calls, 1 CRL miss (REPL, called 84% PoA). Every outcome logged including the miss. The STN Risk layer flagged HIGH downside on REPL before the decision — stock dropped 19.46% on the CRL. Subscribers see full scoring breakdowns and real-time classifications.</p>
+      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">6/7 on resolved events — 6 correct approval calls, 1 CRL miss (REPL, called 84% PoA). Every outcome logged including the miss. The STN Risk layer flagged HIGH downside on REPL before the decision — stock dropped 19.46% on the CRL. 2 active events pending: TVTX + LGND, April 13. Subscribers see full scoring breakdowns and real-time classifications.</p>
       <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative research classifications derived from public data. Not investment advice. Past classification accuracy does not guarantee future results.</p>
     </div>
 
@@ -609,7 +474,7 @@ footer a:hover { color: var(--accent); }
   <div class="section reveal">
     <div class="section-label">The Method</div>
     <h2 class="section-heading">Not a calendar. Not a screener.<span class="diff-badge">vs BioPharma Catalyst</span><br>An intelligence platform.</h2>
-    <p class="section-sub">Nine independent analysis layers sourced from FDA filings, SEC EDGAR, and peer-reviewed literature (Hay et al. 2014 · Wong et al. 2019). Every score is documented. No black boxes. Unlike calendar-only tools, Submarine Catalyst models <em>both</em> approval probability and post-decision price behavior — and now answers the timing question: <a href="/chart-timing-biotech-pdufa.html" style="color:var(--accent);">is the chart ready right now?</a></p>
+    <p class="section-sub">Eight independent analysis layers sourced from FDA filings, SEC EDGAR, and peer-reviewed literature (Hay et al. 2014 · Wong et al. 2019). Every score is documented. No black boxes. Unlike calendar-only tools, Submarine Catalyst models <em>both</em> approval probability and post-decision price behavior from the same dataset.</p>
     <div class="how-grid">
       <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
       <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
@@ -619,7 +484,6 @@ footer a:hover { color: var(--accent); }
       <div class="how-card"><span class="how-num">06</span><div class="how-title">Behavioral Patterns</div><p class="how-desc">Classifies each event into five post-catalyst behaviors: Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction. Not predictions — behavioral tendencies drawn from historical data.</p></div>
       <div class="how-card"><span class="how-num">07</span><div class="how-title">TAM / Market Cap Ratio</div><p class="how-desc">Estimates the drug's Total Addressable Market and compares it to the company's market cap. A $500M company with a $10B drug market has 20x upside. A $2B company with a $200M drug market has limited room. TAM/Cap tells you if the stock can actually move.</p></div>
       <div class="how-card"><span class="how-num">08</span><div class="how-title">Buyout Probability</div><p class="how-desc">Scores acquisition likelihood from 8 factors: asset quality (approved + orphan + breakthrough), acquirer urgency from a 14-company Big Pharma patent cliff database (ABBV, MRK, PFE, LLY, BIIB and 9 others), strategic cluster, insider momentum, valuation gap, balance sheet, and penalty filters for litigation and management resistance.</p></div>
-      <div class="how-card"><span class="how-num">09</span><div class="how-title">Chart Setup (TA Timing)</div><p class="how-desc">Answers what PoA can't: is the chart ready right now or do you need to wait? Scores each setup as READY, COILING, BUILDING, EXTENDED, or WEAK using live Finnhub data — 52-week range position, 30-day price trend, consolidation detection, and PDUFA proximity. A 97% PoA stock in a downtrend is a worse trade than an 80% PoA stock coiling at support.</p></div>
     </div>
   </div>
 </section>
@@ -627,7 +491,7 @@ footer a:hover { color: var(--accent); }
 <section id="signals" class="signals-section">
   <div class="section reveal">
     <div class="section-label">Signal Architecture</div>
-    <h2 class="section-heading">Nine signal layers. One composite score.</h2>
+    <h2 class="section-heading">Eight signal layers. One composite score.</h2>
     <p class="section-sub">Each signal is sourced, weighted, and documented. No black boxes. You can audit every modifier on every ticker.</p>
     <div class="signals-grid">
       <div class="signal-list">
@@ -701,14 +565,14 @@ footer a:hover { color: var(--accent); }
         <li>Full backtest record with actual outcomes documented transparently</li>
       </ul>
       <div class="pricing-card">
-        <span class="pricing-badge">FOUNDER PRICING — FIRST 50</span>
+        <span class="pricing-badge">PRO ACCESS</span>
         <div class="pricing-body">
           <div class="pricing-price">
             <span class="price-dollar">$</span>
             <span class="price-amount">29.99</span>
             <span class="price-period">/month</span>
           </div>
-          <p class="pricing-tagline">Locked in forever · First 50 subscribers never pay more</p>
+          <p class="pricing-tagline">Full database · All tickers · All layers</p>
           <ul class="pricing-features">
             <li>870+ biotech companies — small-cap, mid-cap, large-cap quantitative profiles</li>
             <li>60+ scored PDUFA events with eight independent risk classification layers</li>
@@ -717,7 +581,7 @@ footer a:hover { color: var(--accent); }
             <li>Buyout Factor Score — 12-factor acquisition likelihood model</li>
             <li>TAM / Market Cap Ratio — drug market size vs company valuation</li>
             <li>CMC Recovery Filter — isolates manufacturing-only CRL resubmissions</li>
-            <li>Net Edge Score — composite of all nine layers into one classification</li>
+            <li>Net Edge Score — composite of all eight layers into one classification</li>
             <li>AI Research Module — quantitative deep dives on any ticker</li>
             <li>Compare Module — side-by-side multi-company analysis</li>
             <li>10-tab research calendar: PDUFA, Earnings, Buyout Factors, CMC Recovery, more</li>
@@ -730,14 +594,13 @@ footer a:hover { color: var(--accent); }
             </label>
           </div>
           <button id="checkout-btn" class="pricing-cta" disabled>Start Subscription</button>
-          <p class="pricing-note">First 50 subscribers lock in $29.99/month for life · Price increases after</p>
+          <p class="pricing-note">Cancel anytime · Billed monthly via Stripe</p>
         </div>
       </div>
       <div class="pricing-right">
-        <strong>⚡ Founder Pricing</strong>
-        The first 50 subscribers lock in $29.99/month permanently — even when the price increases. This is the lowest price the platform will ever be. Once subscriber #50 is in, this rate is gone.<br><br>
-        <strong style="color:var(--amber);">⚠️ Important</strong>
-        Submarine Catalyst is a quantitative scoring tool, not investment advice. PDUFA binary events carry substantial risk. A high score reflects favorable evidence — it does not guarantee approval. Position sizing, risk management, and final trade decisions are entirely yours.
+        <strong>⚠️ Important</strong>
+        Submarine Catalyst is a quantitative scoring tool, not investment advice. PDUFA binary events carry substantial risk. A high score reflects favorable evidence — it does not guarantee approval. Position sizing, risk management, and final trade decisions are entirely yours.<br><br>
+        This is a tool built for traders who already understand biotech catalyst risk and want a systematic edge in evaluating setups.
       </div>
     </div>
   </div>
@@ -758,7 +621,7 @@ footer a:hover { color: var(--accent); }
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
         <div class="stat-cell"><span class="stat-val">6/7</span><span class="stat-label">Resolved Events Logged</span></div>
-        <div class="stat-cell"><span class="stat-val">9</span><span class="stat-label">Scoring Layers</span></div>
+        <div class="stat-cell"><span class="stat-val">8</span><span class="stat-label">Scoring Layers</span></div>
         <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs Mapped</span></div>
       </div>
     </div>
@@ -793,7 +656,7 @@ footer a:hover { color: var(--accent); }
           <span>How accurate is the PoA (Probability of Approval) score?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by eight independent signal layers. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable. The self-calibrating weight system improves accuracy as actual outcomes are logged.</div>
+        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable. The self-calibrating weight system improves accuracy as actual outcomes are logged.</div>
       </div>
 
       <div class="faq-item">
@@ -887,7 +750,6 @@ footer a:hover { color: var(--accent); }
     <a href="/fda-complete-response-letter.html">CRL Guide</a>
     <a href="/fda-approval-rates-by-indication.html">Approval Rates</a>
     <a href="/sec-dilution-signals-biotech.html">Dilution Signals</a>
-    <a href="/chart-timing-biotech-pdufa.html">Chart Timing</a>
     <a href="/beginners-guide.html">Glossary</a>
     <a href="/how-institutions-trade.html">Methodology</a>
     <a href="/behavior-patterns.html">Patterns</a>

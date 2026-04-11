@@ -220,7 +220,7 @@ async function sendMessage() {
   const input = document.getElementById('chat-input');
   const btn = document.getElementById('chat-send');
   const text = input.value.trim();
-  if (!text || !sessionToken) return;
+  if (!text) return;
 
   input.value = '';
   btn.disabled = true;
@@ -236,10 +236,9 @@ async function sendMessage() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + sessionToken,
       },
       body: JSON.stringify({
-        messages: messageHistory.slice(-10), // Last 10 messages for context
+        messages: messageHistory.slice(-10),
       }),
     });
 

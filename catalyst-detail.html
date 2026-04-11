@@ -412,7 +412,7 @@ function gradeBadgeHTML(grade) {
 }
 
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
-function populatePage(d, isPaid, accessToken) {
+function populatePage(d, isPaid) {
   document.title = d.ticker + ' — Catalyst Deep Dive — Submarine Catalyst';
   document.getElementById('drug-ticker').textContent    = d.ticker;
   document.getElementById('drug-name').textContent      = d.drug || '';
@@ -545,16 +545,11 @@ function populatePage(d, isPaid, accessToken) {
     '<div class="timeline-item"><div class="timeline-dot amber"></div><div class="timeline-content"><div class="timeline-date">' + d.date + '</div><div class="timeline-event">FDA PDUFA Action Date</div><div class="timeline-note">' + (d.type || 'PDUFA') + ' decision expected — ' + (d.drug || d.ticker) + '</div></div></div>';
 
   // Now generate AI summary
-  generateAISummary(d, accessToken);
+  generateAISummary(d);
 }
 
-async function generateAISummary(d, accessToken) {
+async function generateAISummary(d) {
   try {
-    if (!accessToken) {
-      console.warn('[SC] No access token for AI summary');
-      return;
-    }
-
     var EDGE_URL = SC_CONFIG.supabaseUrl + '/functions/v1/ai-research';
     var stnRisk = d.sell_news_risk || 'MODERATE';
     var prompt;
@@ -619,7 +614,6 @@ async function generateAISummary(d, accessToken) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + accessToken,
       },
       body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
     });
@@ -852,7 +846,7 @@ async function generateAISummary(d, accessToken) {
     };
   }
 
-  populatePage(eventData, isPaid, session?.access_token || '');
+  populatePage(eventData, isPaid);
 })();
 </script>
 </body>

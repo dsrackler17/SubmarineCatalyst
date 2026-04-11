@@ -7,11 +7,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Scanner — Submarine Catalyst</title>
-<meta name="description" content="Submarine Catalyst PDUFA Scanner. Deep-dive analysis on biotech binary events with 7-layer approval probability and convexity scoring.">
+<meta name="description" content="Submarine Catalyst PDUFA Scanner. Deep-dive analysis on biotech binary events with 9-layer scoring — live from the database.">
 <meta name="twitter:site" content="@DRackler">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script src="/js/config.js"></script>
 <style>
 :root {
@@ -57,6 +58,7 @@ main{max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 5rem;}
 .page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
 .page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;line-height:1.15;}
 .page-sub{font-size:0.92rem;color:var(--muted);font-weight:300;line-height:1.7;max-width:560px;}
+.live-badge{display:inline-block;font-family:var(--mono);font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;background:rgba(0,255,157,0.12);color:var(--accent2);border:1px solid rgba(0,255,157,0.3);padding:0.15rem 0.5rem;margin-left:0.75rem;vertical-align:middle;}
 
 .search-section{background:var(--surface);border:1px solid var(--border);padding:1.75rem 2rem;margin-bottom:2rem;position:relative;overflow:hidden;}
 .search-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
@@ -100,14 +102,15 @@ main{max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 5rem;}
 .countdown-label{font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
 .countdown-date{font-size:0.68rem;color:var(--text);margin-top:0.15rem;}
 
-.score-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
-.score-cell{background:var(--surface);padding:1rem 1.5rem;}
-.score-label{font-family:var(--mono);font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.35rem;}
-.score-val{font-family:var(--mono);font-size:1.3rem;font-weight:700;}
+.score-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
+.score-cell{background:var(--surface);padding:1rem 1.25rem;}
+.score-label{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.35rem;}
+.score-val{font-family:var(--mono);font-size:1.15rem;font-weight:700;}
 .score-val.green{color:var(--accent2);}
 .score-val.cyan{color:var(--accent);}
 .score-val.white{color:var(--white);}
 .score-val.amber{color:var(--amber);}
+.score-val.red{color:var(--red);}
 
 .flags-section{padding:1.25rem 2rem;border-bottom:1px solid var(--border);}
 .flags-title{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;}
@@ -123,9 +126,12 @@ main{max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 5rem;}
 .bar-fill{height:100%;background:var(--accent);animation:barGrow 1.1s cubic-bezier(0.16,1,0.3,1) both;}
 .bar-fill.green{background:var(--accent2);}
 .bar-fill.amber{background:var(--amber);}
+.bar-fill.red{background:var(--red);}
 @keyframes barGrow{from{width:0 !important;}}
 .bar-val{font-family:var(--mono);font-size:0.67rem;color:var(--accent);text-align:right;}
 .bar-val.green{color:var(--accent2);}
+.bar-val.amber{color:var(--amber);}
+.bar-val.red{color:var(--red);}
 .bar-divider{border:none;border-top:1px solid var(--border);margin:0.75rem 0;}
 .bar-total{display:flex;justify-content:space-between;align-items:center;}
 .bar-total-label{font-family:var(--mono);font-size:0.62rem;color:var(--muted);}
@@ -134,6 +140,10 @@ main{max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 5rem;}
 .summary-section{padding:1.5rem 2rem;border-top:1px solid var(--border);}
 .summary-label{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;}
 .summary-text{font-size:0.9rem;color:var(--text);font-weight:300;line-height:1.8;}
+
+.detail-link{display:block;padding:1.25rem 2rem;border-top:1px solid var(--border);background:var(--deep);text-align:center;}
+.detail-link a{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);text-decoration:none;font-weight:700;}
+.detail-link a:hover{text-decoration:underline;}
 
 .sources-section{padding:1.25rem 2rem;border-top:1px solid var(--border);background:var(--deep);}
 .sources-title{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;}
@@ -166,7 +176,7 @@ footer a:hover{color:var(--accent);}
 .footer-links{display:flex;gap:1.5rem;}
 .hidden{display:none!important;}
 
-@media(max-width:768px){nav{padding:1rem 1.5rem;}main{padding:1.5rem 1.5rem 4rem;}.card-header{padding:1.25rem 1.25rem 1rem;}.card-ticker{font-size:2rem;}.breakdown-grid{grid-template-columns:1fr;}.score-strip{grid-template-columns:1fr 1fr;}.bar-row{grid-template-columns:8rem 1fr 3rem;}}
+@media(max-width:768px){nav{padding:1rem 1.5rem;}.nav-right{gap:0.75rem;}main{padding:1.5rem 1.5rem 4rem;}.card-header{padding:1.25rem 1.25rem 1rem;}.card-ticker{font-size:2rem;}.breakdown-grid{grid-template-columns:1fr;}.score-strip{grid-template-columns:repeat(3,1fr);}.bar-row{grid-template-columns:8rem 1fr 3rem;}}
 </style>
 </head>
 <body>
@@ -202,37 +212,29 @@ footer a:hover{color:var(--accent);}
 <main>
 
   <div class="page-header">
-    <div class="page-eyebrow">Live Scanner</div>
+    <div class="page-eyebrow">Live Scanner <span class="live-badge">LIVE FROM DATABASE</span></div>
     <h1 class="page-title">PDUFA Setup Lookup</h1>
-    <p class="page-sub">Enter any ticker in the calendar to pull the full scanner output — PoA breakdown, convexity score, risk flags, and sources.</p>
+    <p class="page-sub">Enter any ticker to pull the full scanner output — PoA, STN Risk, Dilution Risk, Net Edge Score, and risk flags. All data pulled live from the scoring engine.</p>
   </div>
 
   <div class="gate-overlay hidden" id="gate">
     <div class="gate-eyebrow">Pro Feature</div>
     <h2 class="gate-title">Scanner requires active subscription.</h2>
-    <p class="gate-body">Full scanner output is available to active Pro subscribers. Subscribe to unlock PoA scores, convexity breakdowns, and risk flags on every PDUFA setup.</p>
-    <a href="/signup.html" class="gate-cta">Subscribe — $49.99/month</a>
+    <p class="gate-body">Full scanner output is available to active Pro subscribers. Subscribe to unlock PoA scores, risk breakdowns, and flags on every PDUFA setup.</p>
+    <a href="/signup.html" class="gate-cta">Subscribe — $29.99/month</a>
   </div>
 
   <div id="scanner-body" class="hidden">
-    <div class="disclaimer">⚠️ Scanner output is quantitative signal only. Not investment advice. All trading decisions are solely yours. Binary events carry substantial risk of loss.</div>
+    <div class="disclaimer">⚠️ Scanner output is a quantitative research classification derived from public data. Not investment advice. All trading decisions are solely yours. Binary events carry substantial risk of loss.</div>
 
     <div class="search-section">
       <label class="search-label">Enter ticker symbol</label>
       <div class="search-row">
-        <input class="search-input" type="text" id="ticker-input" placeholder="e.g. RCKT" maxlength="6" autocomplete="off" autocapitalize="characters" />
+        <input class="search-input" type="text" id="ticker-input" placeholder="e.g. TVTX" maxlength="6" autocomplete="off" autocapitalize="characters" />
         <button class="btn-search" id="search-btn" onclick="runSearch()">Run Scanner</button>
       </div>
-      <div class="quick-tickers">
-        <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;align-self:center;">Quick:</span>
-        <button class="quick-chip" onclick="quickSearch('RCKT')">RCKT</button>
-        <button class="quick-chip" onclick="quickSearch('LNTH')">LNTH</button>
-        <button class="quick-chip" onclick="quickSearch('TVTX')">TVTX</button>
-        <button class="quick-chip" onclick="quickSearch('IMVT')">IMVT</button>
-        <button class="quick-chip" onclick="quickSearch('KYMR')">KYMR</button>
-        <button class="quick-chip" onclick="quickSearch('FOLD')">FOLD</button>
-        <button class="quick-chip" onclick="quickSearch('ACAD')">ACAD</button>
-        <button class="quick-chip" onclick="quickSearch('ARDX')">ARDX</button>
+      <div class="quick-tickers" id="quick-tickers">
+        <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;align-self:center;">Upcoming:</span>
       </div>
     </div>
 
@@ -241,7 +243,7 @@ footer a:hover{color:var(--accent);}
 
     <div class="spinner-wrap" id="spinner">
       <div class="spinner"></div>
-      <p class="spinner-text">Running scanner...</p>
+      <p class="spinner-text">Fetching live scanner data...</p>
     </div>
 
     <div id="result-area"></div>
@@ -260,194 +262,291 @@ footer a:hover{color:var(--accent);}
 </footer>
 
 <script>
-
-
-const SCANNER_DB = {
-  RCKT: {
-    ticker:"RCKT", drug:"Kresladi (lentiviral gene therapy)",
-    company:"Rocket Pharmaceuticals", indication:"Leukocyte Adhesion Deficiency-I (LAD-I)",
-    type:"BLA", date:"2026-03-28", grade:"ELITE", poa:91.0, convexity:78.4, score:84.2,
-    shortPct:14.3, marketCapM:512, priceVs52wHigh:0.63,
-    flags:["✅ AdCom: Unanimous 10-0 — historically ~99% approval post-unanimous AdCom","🚨 Prior CRL — CMC/manufacturing only. Efficacy was never challenged.","✅ Rare/Orphan designation — 86.2% indication base rate","✅ Breakthrough Therapy Designation","✅ PRV (Rare Pediatric Disease) eligible — PRV auction ~$100–110M post-approval","⚠️ ATM equity facility overhang — watch for dilution post-approval","✅ Resubmission with full CMC package — FDA communication positive"],
-    summary:"Kresladi is a lentiviral gene therapy targeting LAD-I, a rare and often fatal pediatric immune deficiency. The BLA resubmission directly addresses the prior CRL's CMC manufacturing concerns — the underlying clinical efficacy was never disputed. The 10-0 unanimous AdCom vote is the single most powerful approval predictor in the model; historically over 97% of unanimous positive AdCom votes result in approval. The rare/orphan indication base rate (86.2%) and breakthrough designation both apply independently favorable multipliers. The primary residual risk is manufacturing quality confirmation, not clinical outcomes. PRV eligibility adds meaningful post-approval value optionality ($100M+ in a PRV auction) not reflected in most analyst price targets.",
-    poaBreakdown:[{label:"Indication base (Rare/Orphan)",pct:86,color:"green",val:"86%"},{label:"Review pathway (Resubmission)",pct:65,color:"default",val:"65%"},{label:"AdCom modifier (10-0)",pct:99,color:"green",val:"×1.25"},{label:"Prior CRL modifier (CMC)",pct:58,color:"amber",val:"×0.58"},{label:"Breakthrough designation",pct:90,color:"green",val:"+4%"},{label:"SEC / 8-K signals",pct:72,color:"default",val:"+3%"},{label:"CT.gov Phase 3 status",pct:100,color:"green",val:"Completed ✅"}],
-    poaTotal:"91.0%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:18,max:25},{label:"Price vs 52w high (−37%)",pts:16,max:20},{label:"Short squeeze (14.3%)",pts:15,max:20},{label:"Expected move via HV",pts:11,max:15},{label:"Liquidity score",pts:8,max:10},{label:"Market cap tier (small)",pts:9,max:10}],
-    sources:[{name:"FDA Advisory Committee Briefing Docs",url:"https://www.fda.gov/advisory-committees"},{name:"SEC EDGAR — RCKT 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=RCKT&type=8-K"},{name:"ClinicalTrials.gov — NCT03812263",url:"https://clinicaltrials.gov/study/NCT03812263"},{name:"Hay et al. 2014 — Clinical Development Success Rates",url:"https://pubmed.ncbi.nlm.nih.gov/24406927/"}]
-  },
-  LNTH: {
-    ticker:"LNTH", drug:"Flurpiridaz F 18", company:"Lantheus Holdings", indication:"Myocardial Perfusion PET Imaging",
-    type:"NDA", date:"2026-03-29", grade:"STRONG", poa:78.5, convexity:54.2, score:67.4, shortPct:8.1, marketCapM:3800, priceVs52wHigh:0.78,
-    flags:["✅ Priority review designation","✅ Two successful pivotal trials (ADVANCE MPI 1 & 2)","✅ Existing approved drug — Lantheus has FDA manufacturing credibility","⚠️ Competitive market: Tc-99m SPECT remains dominant in community settings","⚠️ Reimbursement pathway is the real commercial question post-approval","✅ No prior CRL history on this compound"],
-    summary:"Flurpiridaz F 18 is a next-generation PET myocardial perfusion imaging agent offering superior diagnostic accuracy versus conventional Tc-99m SPECT tracers. Priority review status reflects the unmet need for improved MPI diagnostics. The two pivotal ADVANCE MPI trials demonstrated robust efficacy with clean safety profiles. Lantheus's existing FDA manufacturing relationship and commercial infrastructure (Pylarify) significantly reduce regulatory and commercial execution risk.",
-    poaBreakdown:[{label:"Indication base (Cardiovascular)",pct:61,color:"default",val:"61%"},{label:"Review pathway (Priority NME)",pct:81,color:"green",val:"81%"},{label:"No AdCom convened",pct:50,color:"default",val:"N/A"},{label:"No prior CRL",pct:100,color:"green",val:"No penalty"},{label:"Breakthrough / Fast Track",pct:70,color:"default",val:"+2%"},{label:"CT.gov Phase 3 status",pct:100,color:"green",val:"Completed ✅"}],
-    poaTotal:"78.5%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:18,max:25},{label:"Price vs 52w high (−22%)",pts:12,max:20},{label:"Short squeeze (8.1%)",pts:8,max:20},{label:"Expected move via HV",pts:8,max:15},{label:"Liquidity score",pts:5,max:10},{label:"Market cap tier (large)",pts:3,max:10}],
-    sources:[{name:"ADVANCE MPI 1 Trial — ClinicalTrials.gov",url:"https://clinicaltrials.gov/study/NCT02975609"},{name:"ADVANCE MPI 2 Trial — ClinicalTrials.gov",url:"https://clinicaltrials.gov/study/NCT04439123"},{name:"SEC EDGAR — LNTH 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=LNTH&type=8-K"}]
-  },
-  TVTX: {
-    ticker:"TVTX", drug:"FILSPARI (sparsentan)", company:"Travere Therapeutics", indication:"Focal Segmental Glomerulosclerosis (FSGS)",
-    type:"sNDA", date:"2026-04-13", grade:"STRONG", poa:74.2, convexity:46.8, score:61.8, shortPct:18.6, marketCapM:890, priceVs52wHigh:0.54,
-    flags:["✅ Accelerated approval pathway — surrogate endpoint (proteinuria)","✅ Existing approved drug: FILSPARI already approved for IgAN","⚠️ Confirmatory trial (DUPLEX) ongoing — post-market conversion risk","⚠️ FSGS is a more heterogeneous disease than IgAN — endpoint controversy possible","✅ High unmet need — no FDA-approved therapies specifically for FSGS","⚠️ Short interest elevated at 18.6% — squeeze potential but also indicates skepticism"],
-    summary:"FILSPARI (sparsentan) is seeking label expansion from its approved IgAN indication to FSGS under the accelerated approval pathway. The existing approval and manufacturing history significantly de-risk the regulatory process. The core uncertainty is whether FDA will accept the surrogate endpoint data for FSGS or require the full DUPLEX confirmatory trial readout before granting approval.",
-    poaBreakdown:[{label:"Indication base (Renal)",pct:60,color:"default",val:"60%"},{label:"Review pathway (Accel. Approval)",pct:72,color:"default",val:"72%"},{label:"No AdCom convened",pct:50,color:"default",val:"N/A"},{label:"Existing approval modifier",pct:100,color:"green",val:"+8%"},{label:"Surrogate endpoint risk",pct:40,color:"amber",val:"−8%"},{label:"CT.gov Phase 3 (DUPLEX)",pct:70,color:"amber",val:"Active/ongoing"}],
-    poaTotal:"74.2%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:14,max:25},{label:"Price vs 52w high (−46%)",pts:16,max:20},{label:"Short squeeze (18.6%)",pts:12,max:20},{label:"Expected move via HV",pts:6,max:15},{label:"Liquidity score",pts:5,max:10},{label:"Market cap tier (small-mid)",pts:7,max:10}],
-    sources:[{name:"DUPLEX Trial — ClinicalTrials.gov",url:"https://clinicaltrials.gov/study/NCT03493685"},{name:"SEC EDGAR — TVTX 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=TVTX&type=8-K"}]
-  },
-  IMVT: {
-    ticker:"IMVT", drug:"Batoclimab", company:"Immunovant", indication:"Thyroid Eye Disease (TED)",
-    type:"BLA", date:"2026-04-22", grade:"STRONG", poa:72.1, convexity:45.2, score:59.3, shortPct:9.4, marketCapM:2100, priceVs52wHigh:0.71,
-    flags:["✅ Breakthrough Therapy Designation","✅ Strong Phase 3 HILO trial data","⚠️ Competing with FDA-approved tepezza (teprotumumab) in established market","✅ Once-monthly subcutaneous dosing advantage vs tepezza IV infusion","⚠️ Larger market cap reduces convexity ceiling"],
-    summary:"Batoclimab is a subcutaneous anti-FcRn antibody targeting TED. Breakthrough designation and strong HILO Phase 3 results support a high approval probability. The primary commercial differentiation is convenient SQ dosing versus tepezza's IV infusion regimen.",
-    poaBreakdown:[{label:"Indication base (Ophthalmology)",pct:64,color:"default",val:"64%"},{label:"Review pathway (Breakthrough)",pct:90,color:"green",val:"90%"},{label:"No AdCom convened",pct:50,color:"default",val:"N/A"},{label:"No prior CRL",pct:100,color:"green",val:"No penalty"},{label:"CT.gov Phase 3 status",pct:100,color:"green",val:"Completed ✅"}],
-    poaTotal:"72.1%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:10,max:25},{label:"Price vs 52w high (−29%)",pts:12,max:20},{label:"Short squeeze (9.4%)",pts:9,max:20},{label:"Expected move via HV",pts:7,max:15},{label:"Liquidity score",pts:4,max:10},{label:"Market cap tier (mid)",pts:3,max:10}],
-    sources:[{name:"HILO Trial — ClinicalTrials.gov",url:"https://clinicaltrials.gov/study/NCT04522739"},{name:"SEC EDGAR — IMVT 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=IMVT&type=8-K"}]
-  },
-  ACAD: {
-    ticker:"ACAD", drug:"Nuplazid (pimavanserin)", company:"Acadia Pharmaceuticals", indication:"Dementia-Related Psychosis (DRP)",
-    type:"sNDA", date:"2026-04-30", grade:"WATCH", poa:58.4, convexity:33.2, score:44.7, shortPct:12.8, marketCapM:1850, priceVs52wHigh:0.67,
-    flags:["🚨 Prior CRL — clinical deficiencies. Efficacy disputed by FDA.","⚠️ AdCom 9-3 in favor — close vote limits upside modifier","✅ Existing approved drug (Parkinson's psychosis indication)","🚨 HARMONY trial endpoint controversy — FDA disagreed with outcome measures","⚠️ High clinical risk relative to other setups in scanner"],
-    summary:"This is a higher-risk setup than the scanner median. The prior CRL flagged clinical deficiencies in the HARMONY trial, meaning FDA challenged the evidence of efficacy — not just manufacturing. A 9-3 AdCom is positive but well short of unanimous, and FDA has previously overridden narrow AdCom votes.",
-    poaBreakdown:[{label:"Indication base (CNS/Psychiatry)",pct:49,color:"amber",val:"49%"},{label:"Review pathway (sNDA)",pct:65,color:"default",val:"65%"},{label:"AdCom modifier (9-3)",pct:75,color:"amber",val:"Narrow positive"},{label:"Prior CRL modifier (clinical)",pct:40,color:"amber",val:"×0.40 — HIGH RISK"},{label:"Existing approval modifier",pct:60,color:"default",val:"+4%"}],
-    poaTotal:"58.4%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:8,max:25},{label:"Price vs 52w high (−33%)",pts:11,max:20},{label:"Short squeeze (12.8%)",pts:7,max:20},{label:"Expected move via HV",pts:4,max:15},{label:"Liquidity score",pts:2,max:10},{label:"Market cap tier (mid)",pts:1,max:10}],
-    sources:[{name:"HARMONY Trial — ClinicalTrials.gov",url:"https://clinicaltrials.gov/study/NCT03325556"},{name:"SEC EDGAR — ACAD 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=ACAD&type=8-K"}]
-  },
-  KYMR: {
-    ticker:"KYMR", drug:"KYM-001", company:"Kymera Therapeutics", indication:"Cutaneous T-Cell Lymphoma (CTCL)",
-    type:"BLA", date:"2026-06-30", grade:"ELITE", poa:88.1, convexity:58.4, score:77.6, shortPct:6.8, marketCapM:920, priceVs52wHigh:0.82,
-    flags:["✅ Breakthrough Therapy Designation","✅ Rare/Orphan designation — 86.2% indication base rate","✅ AdCom 12-1 in favor — near-unanimous","✅ No approved therapies with this mechanism in CTCL","✅ Unmet need — limited effective options for advanced CTCL"],
-    summary:"KYM-001 carries the strongest signal profile in the scanner outside of RCKT. Breakthrough designation, rare/orphan classification, and a 12-1 AdCom vote align three independent positive multipliers simultaneously.",
-    poaBreakdown:[{label:"Indication base (Rare/Orphan Onc.)",pct:86,color:"green",val:"86.2%"},{label:"Review pathway (Breakthrough)",pct:90,color:"green",val:"90%"},{label:"AdCom modifier (12-1)",pct:95,color:"green",val:"Near-unanimous"},{label:"No prior CRL",pct:100,color:"green",val:"No penalty"},{label:"CT.gov Phase 3 status",pct:100,color:"green",val:"Completed ✅"}],
-    poaTotal:"88.1%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:1,max:25},{label:"Price vs 52w high (−18%)",pts:9,max:20},{label:"Short squeeze (6.8%)",pts:7,max:20},{label:"Expected move via HV",pts:14,max:15},{label:"Liquidity score",pts:10,max:10},{label:"Market cap tier (small-mid)",pts:9,max:10}],
-    sources:[{name:"ClinicalTrials.gov — KYMR Phase 3",url:"https://clinicaltrials.gov"},{name:"SEC EDGAR — KYMR 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=KYMR&type=8-K"}]
-  },
-  FOLD: {
-    ticker:"FOLD", drug:"Pegtibatinase", company:"Aeglea BioTherapeutics / Immedica", indication:"Classical Homocystinuria",
-    type:"BLA", date:"2026-07-22", grade:"ELITE", poa:85.4, convexity:62.3, score:79.1, shortPct:9.1, marketCapM:680, priceVs52wHigh:0.69,
-    flags:["✅ Rare/Orphan designation — 86.2% indication base rate","✅ Breakthrough Therapy Designation","✅ No FDA-approved treatments for classical homocystinuria","✅ Strong Phase 3 data — large effect size on homocysteine reduction","✅ High unmet need — severe metabolic disease, pediatric onset"],
-    summary:"Pegtibatinase is among the cleanest ELITE setups in the scanner. Classical homocystinuria has no approved therapies, giving this drug an uncontested unmet need argument. Rare/orphan designation, breakthrough therapy, and strong Phase 3 data combine for one of the highest PoA scores in the model.",
-    poaBreakdown:[{label:"Indication base (Rare/Orphan)",pct:86,color:"green",val:"86.2%"},{label:"Review pathway (Breakthrough)",pct:90,color:"green",val:"90%"},{label:"No AdCom held (unmet need)",pct:50,color:"default",val:"N/A"},{label:"No prior CRL",pct:100,color:"green",val:"No penalty"},{label:"No approved therapies modifier",pct:90,color:"green",val:"+6%"},{label:"CT.gov Phase 3 status",pct:100,color:"green",val:"Completed ✅"}],
-    poaTotal:"85.4%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:0,max:25},{label:"Price vs 52w high (−31%)",pts:13,max:20},{label:"Short squeeze (9.1%)",pts:9,max:20},{label:"Expected move via HV",pts:13,max:15},{label:"Liquidity score",pts:10,max:10},{label:"Market cap tier (small)",pts:10,max:10}],
-    sources:[{name:"ENGAGE Trial — ClinicalTrials.gov",url:"https://clinicaltrials.gov"},{name:"SEC EDGAR — FOLD 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=FOLD&type=8-K"}]
-  },
-  ARDX: {
-    ticker:"ARDX", drug:"Tenapanor", company:"Ardelyx", indication:"Hyperphosphatemia in CKD",
-    type:"sNDA", date:"2026-07-08", grade:"WATCH", poa:53.2, convexity:27.4, score:38.9, shortPct:20.1, marketCapM:520, priceVs52wHigh:0.38,
-    flags:["🚨 Prior CRL — clinical endpoint deficiencies","🚨 FDA and ARDX disagreed on clinical meaningfulness of phosphorus reduction endpoint","⚠️ High short interest (20.1%) reflects substantial market skepticism","⚠️ Multiple prior FDA back-and-forths on this application","✅ Existing approved drug in related indication (IBS-C)"],
-    summary:"This is the highest-risk setup in the current scanner output. The prior CRL challenged clinical endpoint meaningfulness — not manufacturing — and FDA and Ardelyx have had extensive disagreement on what constitutes a clinically meaningful reduction in serum phosphorus.",
-    poaBreakdown:[{label:"Indication base (Renal/CKD)",pct:60,color:"default",val:"60%"},{label:"Review pathway (Resubmission)",pct:65,color:"default",val:"65%"},{label:"No AdCom convened",pct:50,color:"default",val:"N/A"},{label:"Prior CRL modifier (clinical)",pct:40,color:"amber",val:"×0.40 — HIGH RISK"},{label:"Endpoint controversy discount",pct:30,color:"amber",val:"−15%"}],
-    poaTotal:"53.2%",
-    convexBreakdown:[{label:"Proximity to PDUFA",pts:0,max:25},{label:"Price vs 52w high (−62%)",pts:18,max:20},{label:"Short squeeze (20.1%)",pts:8,max:20},{label:"Expected move via HV",pts:3,max:15},{label:"Liquidity score",pts:5,max:10},{label:"Market cap tier (small)",pts:7,max:10}],
-    sources:[{name:"ClinicalTrials.gov — Tenapanor CKD",url:"https://clinicaltrials.gov"},{name:"SEC EDGAR — ARDX 8-K Filings",url:"https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=ARDX&type=8-K"}]
-  },
-};
+var sessionToken = null;
 
 function daysUntil(dateStr) {
-  const today = new Date(); today.setHours(0,0,0,0);
+  if (!dateStr || dateStr === '—') return -999;
+  var today = new Date(); today.setHours(0,0,0,0);
   return Math.round((new Date(dateStr) - today) / 86400000);
 }
+
 function gradeClass(g) { return {ELITE:'elite',STRONG:'strong',WATCH:'watch',WEAK:'weak'}[g]||'weak'; }
+
 function gradeBadgeHTML(g) {
-  const m = {ELITE:['grade-elite','🚀 ELITE'],STRONG:['grade-strong','⚡ STRONG'],WATCH:['grade-watch','🟡 WATCH'],WEAK:['grade-weak','⚪ WEAK']};
-  const [cls,label] = m[g]||['grade-weak',g];
-  return `<span class="grade-badge ${cls}">${label}</span>`;
+  var m = {ELITE:['grade-elite','🚀 ELITE'],STRONG:['grade-strong','⚡ STRONG'],WATCH:['grade-watch','🟡 WATCH'],WEAK:['grade-weak','⚪ WEAK']};
+  var pair = m[g] || ['grade-weak', g || 'WATCH'];
+  return '<span class="grade-badge ' + pair[0] + '">' + pair[1] + '</span>';
 }
+
+function riskColor(risk) {
+  return {HIGH:'red',EXTREME:'red',ELEVATED:'amber',MODERATE:'amber',LOW:'green','VERY LOW':'green',MINIMAL:'green',UNLIKELY:'green',UNKNOWN:''}[risk] || '';
+}
+
 function showMsg(type, text) {
   document.getElementById('msg-error').classList.remove('visible');
   document.getElementById('msg-info').classList.remove('visible');
-  if (text) { const el = document.getElementById(type==='error'?'msg-error':'msg-info'); el.textContent=text; el.classList.add('visible'); }
+  if (text) {
+    var el = document.getElementById(type === 'error' ? 'msg-error' : 'msg-info');
+    el.textContent = text;
+    el.classList.add('visible');
+  }
 }
 
 function renderResult(d) {
-  const days = daysUntil(d.date);
-  const gc   = gradeClass(d.grade);
-  document.getElementById('result-area').innerHTML = `
-    <div class="result-card ${gc}">
-      <div class="card-header">
-        <div class="card-ticker-block">
-          <div class="card-ticker">${d.ticker}</div>
-          <div class="card-drug">${d.drug}</div>
-          <div class="card-indication">${d.company} · ${d.type} · ${d.indication}</div>
-        </div>
-        <div class="card-grade-block">
-          ${gradeBadgeHTML(d.grade)}
-          <div class="pdufa-countdown">
-            <div class="countdown-days">${days >= 0 ? days : 'Resolved'}</div>
-            <div class="countdown-label">days to PDUFA</div>
-            <div class="countdown-date">${d.date}</div>
-          </div>
-        </div>
-      </div>
-      <div class="score-strip">
-        <div class="score-cell"><div class="score-label">PoA Score</div><div class="score-val green">${d.poa.toFixed(1)}%</div></div>
-        <div class="score-cell"><div class="score-label">Convexity</div><div class="score-val cyan">${d.convexity.toFixed(1)}</div></div>
-        <div class="score-cell"><div class="score-label">Final Score</div><div class="score-val white">${d.score.toFixed(1)}</div></div>
-        <div class="score-cell"><div class="score-label">Short Interest</div><div class="score-val amber">${d.shortPct}%</div></div>
-      </div>
-      <div class="flags-section">
-        <div class="flags-title">Risk Flags &amp; Signal Tags</div>
-        ${d.flags.map(f=>`<div class="flag-row">${f}</div>`).join('')}
-      </div>
-      <div class="breakdown-grid">
-        <div class="breakdown-section">
-          <div class="breakdown-title">Approval Probability Breakdown</div>
-          ${d.poaBreakdown.map(b=>`<div class="bar-row"><span class="bar-label">${b.label}</span><div class="bar-track"><div class="bar-fill ${b.color==='green'?'green':b.color==='amber'?'amber':''}" style="width:${b.pct}%"></div></div><span class="bar-val ${b.color==='green'?'green':''}">${b.val}</span></div>`).join('')}
-          <hr class="bar-divider">
-          <div class="bar-total"><span class="bar-total-label">FINAL PoA SCORE</span><span class="bar-total-val">${d.poaTotal}</span></div>
-        </div>
-        <div class="breakdown-section">
-          <div class="breakdown-title">Convexity Score Breakdown</div>
-          ${d.convexBreakdown.map(b=>`<div class="bar-row"><span class="bar-label">${b.label}</span><div class="bar-track"><div class="bar-fill" style="width:${Math.round(b.pts/b.max*100)}%"></div></div><span class="bar-val">${b.pts}/${b.max}</span></div>`).join('')}
-          <hr class="bar-divider">
-          <div class="bar-total"><span class="bar-total-label">CONVEXITY TOTAL</span><span class="bar-total-val">${d.convexity.toFixed(1)}</span></div>
-        </div>
-      </div>
-      <div class="summary-section"><div class="summary-label">Scanner Analysis</div><p class="summary-text">${d.summary}</p></div>
-      <div class="sources-section">
-        <div class="sources-title">Primary Sources</div>
-        ${d.sources.map(s=>`<div class="source-item"><div class="source-name">${s.name}</div><a href="${s.url}" target="_blank" rel="noopener" class="source-link">${s.url}</a></div>`).join('')}
-      </div>
-    </div>`;
+  var days = daysUntil(d.date);
+  var gc = gradeClass(d.grade);
+  var poa = Number(d.poa) || 0;
+  var netEdge = Number(d.net_edge_score) || Number(d.score) || 0;
+  var stnRisk = d.sell_news_risk || 'MODERATE';
+  var dilRisk = d.dilution_risk || 'UNKNOWN';
+  var dilScore = Number(d.dilution_score) || 0;
+  var moveScore = Number(d.move_score) || 0;
+  var buyoutScore = Number(d.buyout_score) || 0;
+  var buyoutRisk = d.buyout_risk || 'UNLIKELY';
+  var tamRatio = Number(d.tam_ratio) || 0;
+  var runway = d.runway_months ? Math.round(d.runway_months) : null;
+  var insider = d.insider_signal || 'NEUTRAL';
+  var flags = d.flags || [];
+  var dilFlags = d.dilution_flags || [];
+  var moveFlags = d.move_flags || [];
+  var notes = d.notes || '';
+
+  // ── Score strip ──
+  var scoreStripHTML =
+    '<div class="score-cell"><div class="score-label">PoA</div><div class="score-val ' + (poa >= 75 ? 'green' : poa >= 55 ? 'cyan' : 'amber') + '">' + poa.toFixed(1) + '%</div></div>' +
+    '<div class="score-cell"><div class="score-label">STN Risk</div><div class="score-val ' + riskColor(stnRisk) + '">' + stnRisk + '</div></div>' +
+    '<div class="score-cell"><div class="score-label">Dilution</div><div class="score-val ' + riskColor(dilRisk) + '">' + dilRisk + '</div></div>' +
+    '<div class="score-cell"><div class="score-label">Buyout</div><div class="score-val ' + (buyoutScore >= 60 ? 'green' : buyoutScore >= 30 ? 'cyan' : '') + '">' + buyoutScore + '/100</div></div>' +
+    '<div class="score-cell"><div class="score-label">TAM/Cap</div><div class="score-val ' + (tamRatio >= 5 ? 'green' : tamRatio >= 1 ? 'cyan' : 'amber') + '">' + (tamRatio ? tamRatio.toFixed(1) + 'x' : '—') + '</div></div>' +
+    '<div class="score-cell"><div class="score-label">Net Edge</div><div class="score-val white">' + netEdge.toFixed(1) + '</div></div>';
+
+  // ── Flags ──
+  var allFlags = flags.concat(dilFlags.map(function(f) { return '💰 ' + f; }));
+  var flagsHTML = allFlags.length > 0
+    ? allFlags.map(function(f) { return '<div class="flag-row">' + DOMPurify.sanitize(f) + '</div>'; }).join('')
+    : '<div class="flag-row" style="color:var(--muted)">No specific risk flags detected</div>';
+
+  // ── PoA Breakdown (derived from available data) ──
+  var indication = d.indication || 'Unknown';
+  var type = d.type || 'PDUFA';
+  var indicationRates = {
+    'Oncology':85,'Rare':86,'Orphan':86,'Hematology':80,'Cardiovascular':61,
+    'Infectious':75,'Dermatology':72,'Ophthalmology':64,'Endocrine':68,
+    'Renal':60,'CNS':49,'Psychiatry':49,'Respiratory':62,'GI':65,
+    'Immunology':70,'Musculoskeletal':65,'Metabolic':72
+  };
+  var indicationBase = 65;
+  for (var key in indicationRates) {
+    if (indication.toLowerCase().indexOf(key.toLowerCase()) !== -1) {
+      indicationBase = indicationRates[key]; break;
+    }
+  }
+  var pathwayRates = {
+    'BLA':75,'NDA':72,'sNDA':65,'ANDA':88,'Breakthrough':90,
+    'Priority':81,'Accelerated':72,'Resubmission':65
+  };
+  var pathwayRate = pathwayRates[type] || 70;
+
+  var poaBars = [
+    {label: 'Indication (' + indication.substring(0,25) + ')', pct: indicationBase, color: indicationBase >= 75 ? 'green' : '', val: indicationBase + '%'},
+    {label: 'Review pathway (' + type + ')', pct: pathwayRate, color: pathwayRate >= 80 ? 'green' : '', val: pathwayRate + '%'},
+  ];
+
+  // Add modifiers detected from flags
+  var hasSurrogateRisk = flags.some(function(f) { return f.toLowerCase().indexOf('surrogate') !== -1; }) ||
+                         notes.toLowerCase().indexOf('surrogate') !== -1;
+  var hasExistingApproval = flags.some(function(f) { return f.toLowerCase().indexOf('existing approved') !== -1; });
+  var hasPriorCRL = flags.some(function(f) { return f.toLowerCase().indexOf('prior crl') !== -1; });
+  var hasBreakthrough = flags.some(function(f) { return f.toLowerCase().indexOf('breakthrough') !== -1; });
+  var hasOrphan = flags.some(function(f) { return f.toLowerCase().indexOf('orphan') !== -1; });
+
+  if (hasOrphan) poaBars.push({label: 'Orphan designation', pct: 86, color: 'green', val: '+4%'});
+  if (hasBreakthrough) poaBars.push({label: 'Breakthrough therapy', pct: 90, color: 'green', val: '+4%'});
+  if (hasExistingApproval) poaBars.push({label: 'Existing approval modifier', pct: 80, color: 'green', val: '+8%'});
+  if (hasPriorCRL) poaBars.push({label: 'Prior CRL penalty', pct: 40, color: 'amber', val: '−15%'});
+  if (hasSurrogateRisk) poaBars.push({label: '⚠️ Surrogate endpoint risk', pct: 40, color: 'amber', val: '−8%'});
+
+  poaBars.push({label: 'Final PoA composite', pct: poa, color: poa >= 75 ? 'green' : poa >= 55 ? '' : 'amber', val: poa.toFixed(1) + '%'});
+
+  var poaHTML = poaBars.map(function(b) {
+    return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:' + b.pct + '%"></div></div><span class="bar-val ' + b.color + '">' + b.val + '</span></div>';
+  }).join('');
+
+  // ── Risk Profile breakdown ──
+  var riskBars = [
+    {label: 'STN Risk (Move Score)', pct: moveScore, color: moveScore >= 60 ? 'red' : moveScore >= 35 ? 'amber' : 'green', val: moveScore + '/100'},
+    {label: 'Dilution Score', pct: dilScore, color: dilScore >= 60 ? 'red' : dilScore >= 30 ? 'amber' : 'green', val: dilScore + '/100'},
+    {label: 'Cash Runway', pct: runway ? Math.min(100, runway * 2.5) : 50, color: runway && runway < 12 ? 'red' : runway && runway < 24 ? 'amber' : 'green', val: runway ? runway + ' mo' : 'Unknown'},
+    {label: 'Insider Signal', pct: insider === 'BULLISH' ? 80 : insider === 'BEARISH' ? 20 : 50, color: insider === 'BULLISH' ? 'green' : insider === 'BEARISH' ? 'red' : '', val: insider},
+    {label: 'Shelf Registration', pct: d.shelf_active ? 75 : 10, color: d.shelf_active ? 'amber' : 'green', val: d.shelf_active ? '⚠️ ACTIVE' : '✅ None'},
+    {label: 'ATM Facility', pct: d.atm_active ? 85 : 10, color: d.atm_active ? 'red' : 'green', val: d.atm_active ? '🚨 ACTIVE' : '✅ None'},
+  ];
+
+  var riskHTML = riskBars.map(function(b) {
+    return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:' + b.pct + '%"></div></div><span class="bar-val ' + b.color + '">' + b.val + '</span></div>';
+  }).join('');
+
+  // ── Notes / Summary ──
+  var summaryHTML = '';
+  if (notes) {
+    summaryHTML = '<div class="summary-section"><div class="summary-label">Scanner Notes</div><p class="summary-text">' + DOMPurify.sanitize(notes) + '</p></div>';
+  }
+
+  // ── Sources ──
+  var sources = [
+    {name: 'SEC EDGAR — ' + d.ticker + ' Filings', url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + d.ticker + '&type=8-K'},
+    {name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/search?term=' + encodeURIComponent(d.drug || d.ticker)},
+    {name: 'FDA Advisory Committees', url: 'https://www.fda.gov/advisory-committees'},
+  ];
+  var sourcesHTML = sources.map(function(s) {
+    return '<div class="source-item"><div class="source-name">' + s.name + '</div><a href="' + s.url + '" target="_blank" rel="noopener" class="source-link">' + s.url.substring(0, 70) + '...</a></div>';
+  }).join('');
+
+  // ── Render card ──
+  document.getElementById('result-area').innerHTML =
+    '<div class="result-card ' + gc + '">' +
+      '<div class="card-header">' +
+        '<div class="card-ticker-block">' +
+          '<div class="card-ticker">' + d.ticker + '</div>' +
+          '<div class="card-drug">' + (d.drug || '') + '</div>' +
+          '<div class="card-indication">' + (d.company_name || d.ticker) + ' · ' + type + ' · ' + indication + '</div>' +
+        '</div>' +
+        '<div class="card-grade-block">' +
+          gradeBadgeHTML(d.grade) +
+          '<div class="pdufa-countdown">' +
+            '<div class="countdown-days">' + (days >= 0 ? days : 'Resolved') + '</div>' +
+            '<div class="countdown-label">days to PDUFA</div>' +
+            '<div class="countdown-date">' + d.date + '</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="score-strip">' + scoreStripHTML + '</div>' +
+      '<div class="flags-section">' +
+        '<div class="flags-title">Risk Flags &amp; Signal Tags</div>' +
+        flagsHTML +
+      '</div>' +
+      '<div class="breakdown-grid">' +
+        '<div class="breakdown-section">' +
+          '<div class="breakdown-title">Approval Probability Breakdown</div>' +
+          poaHTML +
+          '<hr class="bar-divider">' +
+          '<div class="bar-total"><span class="bar-total-label">FINAL PoA SCORE</span><span class="bar-total-val">' + poa.toFixed(1) + '%</span></div>' +
+        '</div>' +
+        '<div class="breakdown-section">' +
+          '<div class="breakdown-title">Risk Profile</div>' +
+          riskHTML +
+          '<hr class="bar-divider">' +
+          '<div class="bar-total"><span class="bar-total-label">NET EDGE SCORE</span><span class="bar-total-val">' + netEdge.toFixed(1) + '</span></div>' +
+        '</div>' +
+      '</div>' +
+      summaryHTML +
+      '<div class="detail-link"><a href="/catalyst-detail.html?ticker=' + d.ticker + '">View Full Deep Dive with AI Analysis →</a></div>' +
+      '<div class="sources-section">' +
+        '<div class="sources-title">Primary Sources</div>' +
+        sourcesHTML +
+      '</div>' +
+    '</div>';
 }
 
-function quickSearch(ticker) { document.getElementById('ticker-input').value = ticker; runSearch(); }
+function quickSearch(ticker) {
+  document.getElementById('ticker-input').value = ticker;
+  runSearch();
+}
 
-function runSearch() {
-  const raw    = document.getElementById('ticker-input').value.trim().toUpperCase();
-  const area   = document.getElementById('result-area');
-  const spinner= document.getElementById('spinner');
-  showMsg('','');
+async function runSearch() {
+  var raw = document.getElementById('ticker-input').value.trim().toUpperCase();
+  var area = document.getElementById('result-area');
+  var spinner = document.getElementById('spinner');
+  showMsg('', '');
   area.innerHTML = '';
-  if (!raw) { showMsg('error','Enter a ticker symbol to search.'); return; }
-  if (!/^[A-Z]{1,6}$/.test(raw)) { showMsg('error',`"${raw}" doesn't look like a valid ticker.`); return; }
+
+  if (!raw) { showMsg('error', 'Enter a ticker symbol to search.'); return; }
+  if (!/^[A-Z]{1,6}$/.test(raw)) { showMsg('error', '"' + raw + '" doesn\'t look like a valid ticker.'); return; }
+
   spinner.classList.add('visible');
-  setTimeout(() => {
+
+  try {
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?ticker=' + raw, {
+      headers: {
+        'Authorization': 'Bearer ' + sessionToken,
+        'Content-Type': 'application/json',
+      },
+    });
+
     spinner.classList.remove('visible');
-    const data = SCANNER_DB[raw];
-    if (!data) {
-      area.innerHTML = `<div class="not-found"><strong>${raw} not found in scanner database.</strong>This ticker may not have an upcoming PDUFA date in the current calendar, or scanner output hasn't been generated for it yet. Check the <a href="/calendar.html" style="color:var(--accent);text-decoration:none;">full calendar →</a></div>`;
-    } else { renderResult(data); }
-  }, 600);
+
+    if (!res.ok) {
+      showMsg('error', 'Failed to fetch data for ' + raw + '. Status: ' + res.status);
+      return;
+    }
+
+    var result = await res.json();
+    if (result.event) {
+      renderResult(result.event);
+    } else {
+      area.innerHTML = '<div class="not-found"><strong>' + raw + ' not found in scanner database.</strong>This ticker may not have an upcoming PDUFA date in the current calendar, or scanner output hasn\'t been generated for it yet. Check the <a href="/calendar.html" style="color:var(--accent);text-decoration:none;">full calendar →</a></div>';
+    }
+  } catch (err) {
+    spinner.classList.remove('visible');
+    showMsg('error', 'Error fetching data: ' + err.message);
+  }
 }
 
-document.getElementById('ticker-input').addEventListener('keydown', e => { if (e.key==='Enter') runSearch(); });
+document.getElementById('ticker-input').addEventListener('keydown', function(e) { if (e.key === 'Enter') runSearch(); });
 
-(async () => {
-  const session = await scRequireAuth();
+// ── Init: Auth + load upcoming quick chips ──
+(async function() {
+  var session = await scRequireAuth();
   if (!session) return;
+
+  sessionToken = session.access_token;
   document.getElementById('nav-user').textContent = session.user.email;
-  document.getElementById('signout-btn').addEventListener('click', async e => {
+
+  document.getElementById('signout-btn').addEventListener('click', async function(e) {
     e.preventDefault();
     await scSignOut();
   });
-  const profile = await scGetProfile(session.user.id);
-  if (profile?.is_paid) { document.getElementById('scanner-body').classList.remove('hidden'); }
-  else { document.getElementById('gate').classList.remove('hidden'); }
+
+  var profile = await scGetProfile(session.user.id);
+  if (profile && profile.is_paid) {
+    document.getElementById('scanner-body').classList.remove('hidden');
+
+    // Load upcoming PDUFA tickers as quick chips
+    try {
+      var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+        headers: { 'Authorization': 'Bearer ' + sessionToken, 'Content-Type': 'application/json' },
+      });
+      var result = await res.json();
+      if (result.events && result.events.length > 0) {
+        // Sort by date, take first 12
+        var upcoming = result.events
+          .filter(function(e) { return e.date && e.date !== '—'; })
+          .sort(function(a, b) { return new Date(a.date) - new Date(b.date); })
+          .slice(0, 12);
+
+        var chipContainer = document.getElementById('quick-tickers');
+        upcoming.forEach(function(e) {
+          var btn = document.createElement('button');
+          btn.className = 'quick-chip';
+          btn.textContent = e.ticker;
+          btn.onclick = function() { quickSearch(e.ticker); };
+          chipContainer.appendChild(btn);
+        });
+      }
+    } catch (err) {
+      console.warn('Failed to load quick chips:', err);
+    }
+
+    // Check URL for ticker param
+    var params = new URLSearchParams(window.location.search);
+    var urlTicker = (params.get('ticker') || '').toUpperCase();
+    if (urlTicker) {
+      document.getElementById('ticker-input').value = urlTicker;
+      runSearch();
+    }
+  } else {
+    document.getElementById('gate').classList.remove('hidden');
+  }
 })();
 </script>
 </body>

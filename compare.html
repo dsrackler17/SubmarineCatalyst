@@ -279,7 +279,7 @@ async function generateAIComparison(events) {
 
     var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/ai-research', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
     });
 
