@@ -1409,38 +1409,46 @@ function switchTab(btn, id) {
   }
 
   async function enrichCards() {
-    await new Promise(r => setTimeout(r, 900));
+    await new Promise(r => setTimeout(r, 1000));
     const cards = document.querySelectorAll('.scanner-card[data-ticker]');
     if (!cards.length) return;
-    const items = [...cards].map(c => ({
-      el: c, ticker: c.dataset.ticker, daysOut: parseInt(c.dataset.days || '90'),
-    }));
-    for (let i = 0; i < items.length; i += 4) {
-      const batch = items.slice(i, i + 4);
-      await Promise.all(batch.map(async ({ el, ticker, daysOut }) => {
-        const result = await fetchAndScore(ticker, daysOut);
-        if (!result) return;
-        const { label, cls } = taLabel(result.score);
-        const trendStr = result.trend > 0 ? `+${result.trend}%` : `${result.trend}%`;
-        const trendCls = result.trend > 30 ? 'red' : result.trend > 0 ? 'green' : 'red';
-        // Update cells by label (PDUFA cards)
-        el.querySelectorAll('.score-box-label').forEach(cell => {
-          if (cell.textContent === 'Chart Setup') {
-            const v = cell.nextElementSibling;
-            if (v && v.textContent === '—') { v.textContent = label; v.className = `score-box-val ${cls}`; v.style.fontSize = '0.72rem'; }
-          }
-          if (cell.textContent === '30d Trend') {
-            const v = cell.nextElementSibling;
-            if (v && v.textContent === '—') { v.textContent = trendStr; v.className = `score-box-val ${trendCls}`; }
-          }
-        });
-        // Also update ID-based cells (buyout cards)
-        const setupEl = document.getElementById(`ta-setup-${ticker}`);
-        const trendEl = document.getElementById(`ta-trend-${ticker}`);
-        if (setupEl && setupEl.textContent === '—') { setupEl.textContent = label; setupEl.className = `score-box-val ${cls}`; setupEl.style.fontSize = '0.72rem'; }
-        if (trendEl && trendEl.textContent === '—') { trendEl.textContent = trendStr; trendEl.className = `score-box-val ${trendCls}`; }
-      }));
-      if (i + 4 < items.length) await new Promise(r => setTimeout(r, 1200)); // 4 calls/1.2s = ~200/min safe
+
+    // ONLY enrich tickers within 45 days — avoids blasting 56 Finnhub calls
+    // Tickers > 45 days out don't need live TA right now
+    const items = [...cards]
+      .map(c => ({ el: c, ticker: c.dataset.ticker, daysOut: parseInt(c.dataset.days || '999') }))
+      .filter(item => item.daysOut <= 45 || getCached(item.ticker)) // include cached regardless of days
+      .slice(0, 20); // hard cap 20 tickers per load
+
+    if (!items.length) return;
+    console.log('[SC TA] Enriching', items.length, 'tickers (≤45d or cached)');
+
+    // ONE ticker at a time with 1s gap = max 60/min, stays under free tier limit
+    for (const { el, ticker, daysOut } of items) {
+      const result = await fetchAndScore(ticker, daysOut);
+      if (!result) continue;
+      const { label, cls } = taLabel(result.score);
+      const trendStr = result.trend > 0 ? `+${result.trend}%` : `${result.trend}%`;
+      const trendCls = result.trend > 30 ? 'red' : result.trend > 0 ? 'green' : 'red';
+
+      el.querySelectorAll('.score-box-label').forEach(cell => {
+        if (cell.textContent === 'Chart Setup') {
+          const v = cell.nextElementSibling;
+          if (v && v.textContent === '—') { v.textContent = label; v.className = `score-box-val ${cls}`; v.style.fontSize = '0.72rem'; }
+        }
+        if (cell.textContent === '30d Trend') {
+          const v = cell.nextElementSibling;
+          if (v && v.textContent === '—') { v.textContent = trendStr; v.className = `score-box-val ${trendCls}`; }
+        }
+      });
+
+      const setupEl = document.getElementById(`ta-setup-${ticker}`);
+      const trendEl = document.getElementById(`ta-trend-${ticker}`);
+      if (setupEl && setupEl.textContent === '—') { setupEl.textContent = label; setupEl.className = `score-box-val ${cls}`; setupEl.style.fontSize = '0.72rem'; }
+      if (trendEl && trendEl.textContent === '—') { trendEl.textContent = trendStr; trendEl.className = `score-box-val ${trendCls}`; }
+
+      // 1 second gap between calls — stays comfortably under 60/min
+      await new Promise(r => setTimeout(r, 1050));
     }
   }
 
