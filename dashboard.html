@@ -1291,9 +1291,36 @@ function switchTab(btn, id) {
 })();
 
 // ── Live TA Enrichment — fetches Chart Setup + 30d Trend from Finnhub ─────
+// Uses localStorage cache (4-hour TTL) to avoid 429 rate limits on 56 tickers
 (function() {
-  const FKEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
-  const BASE  = 'https://finnhub.io/api/v1';
+  const FKEY      = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+  const BASE      = 'https://finnhub.io/api/v1';
+  const CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours in ms
+  const CACHE_KEY = 'sc_ta_cache';
+
+  function readCache() {
+    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch { return {}; }
+  }
+  function writeCache(cache) {
+    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {}
+  }
+  function getCached(ticker) {
+    const cache = readCache();
+    const entry = cache[ticker];
+    if (entry && (Date.now() - entry.ts) < CACHE_TTL) return entry.data;
+    return null;
+  }
+  function setCache(ticker, data) {
+    const cache = readCache();
+    cache[ticker] = { ts: Date.now(), data };
+    // Keep cache lean — max 100 tickers
+    const keys = Object.keys(cache);
+    if (keys.length > 100) {
+      const oldest = keys.sort((a,b) => cache[a].ts - cache[b].ts)[0];
+      delete cache[oldest];
+    }
+    writeCache(cache);
+  }
 
   function taLabel(score) {
     if (score >= 70) return { label: 'READY',    cls: 'green' };
@@ -1304,6 +1331,10 @@ function switchTab(btn, id) {
   }
 
   async function fetchAndScore(ticker, daysOut) {
+    // Check cache first — avoids 429 on 56-ticker page load
+    const cached = getCached(ticker);
+    if (cached) return cached;
+
     try {
       // Only use free Finnhub endpoints (quote + metric)
       // /stock/candle requires paid tier → removed
@@ -1364,9 +1395,15 @@ function switchTab(btn, id) {
       else if (Math.abs(change1d) < 1.5 && daysOut <= 30) score += 5;
 
       score = Math.max(0, Math.min(100, Math.round(score)));
-      return { score, trend: Math.round(trend * 10) / 10 };
+      const result = { score, trend: Math.round(trend * 10) / 10 };
+      setCache(ticker, result); // cache for 4 hours
+      return result;
     } catch(e) {
-      console.warn('[SC TA]', ticker, e.message);
+      if (e.message && e.message.includes('429')) {
+        console.warn('[SC TA] Rate limited on', ticker, '— will retry next page load');
+      } else {
+        console.warn('[SC TA]', ticker, e.message);
+      }
       return null;
     }
   }
@@ -1403,7 +1440,7 @@ function switchTab(btn, id) {
         if (setupEl && setupEl.textContent === '—') { setupEl.textContent = label; setupEl.className = `score-box-val ${cls}`; setupEl.style.fontSize = '0.72rem'; }
         if (trendEl && trendEl.textContent === '—') { trendEl.textContent = trendStr; trendEl.className = `score-box-val ${trendCls}`; }
       }));
-      if (i + 4 < items.length) await new Promise(r => setTimeout(r, 400));
+      if (i + 4 < items.length) await new Promise(r => setTimeout(r, 1200)); // 4 calls/1.2s = ~200/min safe
     }
   }
 

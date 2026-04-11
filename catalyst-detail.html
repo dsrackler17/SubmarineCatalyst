@@ -903,8 +903,13 @@ async function generateAISummary(d) {
 <script>
 // ── Live TA Enrichment for Catalyst Detail Page ────────────────────────────
 (function() {
-  var FKEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
-  var BASE  = 'https://finnhub.io/api/v1';
+  var FKEY      = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+  var BASE      = 'https://finnhub.io/api/v1';
+  var CACHE_TTL = 4 * 60 * 60 * 1000;
+  var CACHE_KEY = 'sc_ta_cache';
+  function readCache() { try { return JSON.parse(localStorage.getItem(CACHE_KEY)||'{}'); } catch { return {}; } }
+  function getCached(t) { var e=readCache()[t]; return (e&&Date.now()-e.ts<CACHE_TTL)?e.data:null; }
+  function setCache(t,d) { var c=readCache(); c[t]={ts:Date.now(),data:d}; try{localStorage.setItem(CACHE_KEY,JSON.stringify(c));}catch{} }
 
   function taLabel(score) {
     if (score >= 70) return { label: 'READY',    color: 'var(--accent2)' };
@@ -946,6 +951,24 @@ async function generateAISummary(d) {
     var params = new URLSearchParams(window.location.search);
     var ticker = params.get('ticker');
     if (!ticker) return;
+
+    // Check cache first
+    var cached = getCached(ticker);
+    if (cached) {
+      var ta = taLabel(cached.score);
+      window._taSetupLabel = ta.label;
+      window._taTrend30d   = cached.trend;
+      var setupEl = document.getElementById('stat-chart-setup');
+      var trendEl = document.getElementById('stat-trend-30d');
+      if (setupEl) { setupEl.textContent = ta.label; setupEl.style.color = ta.color; setupEl.style.fontWeight = '700'; }
+      if (trendEl) {
+        var ts = cached.trend > 0 ? '+'+cached.trend+'%' : cached.trend+'%';
+        trendEl.textContent = ts;
+        trendEl.style.color = cached.trend > 0 ? 'var(--accent2)' : 'var(--red)';
+        trendEl.style.fontWeight = '700';
+      }
+      return; // skip Finnhub call
+    }
 
     try {
       var [qr, mr] = await Promise.all([
@@ -1009,6 +1032,9 @@ async function generateAISummary(d) {
       score = Math.max(0, Math.min(100, Math.round(score)));
       var trendRounded = Math.round(trend * 10) / 10;
       var ta = taLabel(score);
+
+      // Cache result
+      setCache(ticker, { score: score, trend: trendRounded });
 
       // Store globally for metrics table
       window._taSetupLabel = ta.label;
