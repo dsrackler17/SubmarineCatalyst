@@ -325,6 +325,13 @@ function renderResult(d) {
   var poaConfidence = d.poa_confidence || 'MODERATE';
   var poaBucket = d.poa_bucket || (poa >= 80 ? '80%+' : poa >= 70 ? '70-80%' : poa >= 55 ? '55-70%' : poa >= 40 ? '40-55%' : '<40%');
   var lastMileRisk = d.last_mile_risk || 'UNKNOWN';
+  var chartSetup = d.chart_setup || 'UNKNOWN';
+  var chartSetupScore = Number(d.chart_setup_score) || 0;
+  var priceTrend30d = d.price_trend_30d || 'FLAT';
+  var priceChange30d = d.price_change_30d != null ? Number(d.price_change_30d) : null;
+  var rangePosition = d.range_position != null ? Number(d.range_position) : null;
+  var priceHistory = d.price_history_30d || [];
+  var chartSetupColor = {READY:'green',COILING:'green',BUILDING:'cyan',EXTENDED:'amber',WEAK:'red',UNKNOWN:''}[chartSetup] || '';
 
   // Show PoA as range, not false precision
   var poaDisplay = Math.round(poaLow) + '-' + Math.round(poaHigh) + '%';
@@ -332,12 +339,12 @@ function renderResult(d) {
 
   var scoreStripHTML =
     '<div class="score-cell"><div class="score-label">PoA Range</div><div class="score-val ' + (poa >= 75 ? 'green' : poa >= 55 ? 'cyan' : 'amber') + '">' + poaDisplay + '</div><div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">Conf: ' + poaConfidence + '</div></div>' +
+    '<div class="score-cell"><div class="score-label">Chart Setup</div><div class="score-val ' + chartSetupColor + '">' + chartSetup + '</div><div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">' + (priceChange30d != null ? (priceChange30d > 0 ? '+' : '') + priceChange30d.toFixed(1) + '% 30d' : '') + '</div></div>' +
     '<div class="score-cell"><div class="score-label">STN Risk</div><div class="score-val ' + riskColor(stnRisk) + '">' + stnRisk + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Dilution</div><div class="score-val ' + riskColor(dilRisk) + '">' + dilRisk + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Shakeout</div><div class="score-val ' + riskColor(shakeoutRisk) + '">' + (shakeoutRisk !== 'UNKNOWN' ? shakeoutRisk : '—') + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Accumulation</div><div class="score-val ' + (accumSignal === 'STRONG_BUY' || accumSignal === 'ACCUMULATING' ? 'green' : accumSignal === 'DISTRIBUTING' ? 'red' : '') + '">' + (accumSignal !== 'NEUTRAL' ? accumSignal.replace('_',' ') : '—') + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Catalyst Chain</div><div class="score-val ' + (catalystDensity >= 50 ? 'green' : catalystDensity >= 25 ? 'cyan' : '') + '">' + (catalystDensity > 0 ? catalystDensity + '/100' : '—') + '</div></div>' +
-    '<div class="score-cell"><div class="score-label">Last Mile Risk</div><div class="score-val ' + riskColor(lastMileRisk) + '">' + lastMileRisk + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Net Edge</div><div class="score-val white">' + netEdge.toFixed(1) + '</div></div>';
 
   // ── Flags ──
@@ -403,6 +410,8 @@ function renderResult(d) {
     {label: 'Shelf Registration', pct: d.shelf_active ? 75 : 10, color: d.shelf_active ? 'amber' : 'green', val: d.shelf_active ? '⚠️ ACTIVE' : '✅ None'},
     {label: 'ATM Facility', pct: d.atm_active ? 85 : 10, color: d.atm_active ? 'red' : 'green', val: d.atm_active ? '🚨 ACTIVE' : '✅ None'},
     {label: 'Last Mile (CMC/Label)', pct: lastMileRisk === 'HIGH' ? 85 : lastMileRisk === 'ELEVATED' ? 65 : lastMileRisk === 'MODERATE' ? 40 : 15, color: riskColor(lastMileRisk), val: lastMileRisk},
+    {label: 'Chart Setup', pct: chartSetupScore, color: chartSetupScore >= 65 ? 'green' : chartSetupScore >= 40 ? '' : 'amber', val: chartSetup + ' (' + chartSetupScore + ')'},
+    {label: '52w Range Position', pct: rangePosition != null ? rangePosition * 100 : 50, color: rangePosition != null && rangePosition < 0.3 ? 'amber' : rangePosition != null && rangePosition > 0.8 ? 'red' : 'green', val: rangePosition != null ? (rangePosition * 100).toFixed(0) + '%' : '—'},
   ];
 
   // Add live price data if available
@@ -452,6 +461,40 @@ function renderResult(d) {
         '</div>' +
       '</div>' +
       '<div class="score-strip">' + scoreStripHTML + '</div>' +
+      // 30-day price chart sparkline
+      (priceHistory.length >= 5 ? (function() {
+        var prices = priceHistory.map(function(p) { return p.close; });
+        var minP = Math.min.apply(null, prices);
+        var maxP = Math.max.apply(null, prices);
+        var range = maxP - minP || 1;
+        var w = 800, h = 80, pad = 4;
+        var stepX = (w - pad * 2) / (prices.length - 1);
+        var points = prices.map(function(p, i) {
+          return (pad + i * stepX).toFixed(1) + ',' + (h - pad - ((p - minP) / range) * (h - pad * 2)).toFixed(1);
+        }).join(' ');
+        var lastPrice = prices[prices.length - 1];
+        var firstPrice = prices[0];
+        var change = ((lastPrice - firstPrice) / firstPrice * 100);
+        var lineColor = change >= 0 ? 'var(--accent2)' : 'var(--red)';
+        return '<div style="padding:1rem 2rem;border-bottom:1px solid var(--border);background:var(--surface);">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5rem;">' +
+            '<span style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);">30-Day Price Action</span>' +
+            '<span style="font-family:var(--mono);font-size:0.68rem;color:' + lineColor + ';">' +
+              '$' + lastPrice.toFixed(2) + ' · ' + (change >= 0 ? '+' : '') + change.toFixed(1) + '% · ' + priceTrend30d +
+              (chartSetup !== 'UNKNOWN' ? ' · <span style="color:' + (chartSetupColor === 'green' ? 'var(--accent2)' : chartSetupColor === 'amber' ? 'var(--amber)' : chartSetupColor === 'red' ? 'var(--red)' : 'var(--accent)') + ';">' + chartSetup + '</span>' : '') +
+            '</span>' +
+          '</div>' +
+          '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:60px;" preserveAspectRatio="none">' +
+            '<polyline points="' + points + '" fill="none" stroke="' + lineColor + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+            '<circle cx="' + (pad + (prices.length - 1) * stepX).toFixed(1) + '" cy="' + (h - pad - ((lastPrice - minP) / range) * (h - pad * 2)).toFixed(1) + '" r="3" fill="' + lineColor + '"/>' +
+          '</svg>' +
+          '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-top:0.25rem;">' +
+            '<span>' + (priceHistory[0].date || '') + '</span>' +
+            '<span>Range: $' + minP.toFixed(2) + ' – $' + maxP.toFixed(2) + (rangePosition != null ? ' · Position: ' + (rangePosition * 100).toFixed(0) + '%' : '') + '</span>' +
+            '<span>' + (priceHistory[priceHistory.length - 1].date || '') + '</span>' +
+          '</div>' +
+        '</div>';
+      })() : '') +
       '<div class="flags-section">' +
         '<div class="flags-title">Risk Flags &amp; Signal Tags</div>' +
         flagsHTML +
