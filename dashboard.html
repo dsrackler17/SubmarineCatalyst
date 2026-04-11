@@ -1085,9 +1085,8 @@ function switchTab(btn, id) {
   (async function() {
     var POLY_KEY = 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI';
     var nearest = SCANNER_DATA
-      .filter(function(d) { return d.date && d.date !== '—' && daysUntil(d.date) >= 0; })
-      .sort(function(a,b) { return daysUntil(a.date) - daysUntil(b.date); })
-      .slice(0, 15);
+      .filter(function(d) { return d.ticker; })
+      .filter(function(d, i, arr) { return arr.findIndex(function(x) { return x.ticker === d.ticker; }) === i; }); // dedupe, fetch ALL
 
     var fromDate = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
     var toDate = new Date().toISOString().split('T')[0];

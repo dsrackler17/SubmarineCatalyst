@@ -675,9 +675,8 @@ function updateCounts() {
     (async function() {
       var POLY_KEY = 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI';
       var nearest = ALL_EVENTS
-        .filter(function(e) { return e._source === 'pdufa' && e.date && e.date !== '—' && daysUntil(e.date) >= 0; })
-        .sort(function(a,b) { return daysUntil(a.date) - daysUntil(b.date); })
-        .slice(0, 20);
+        .filter(function(e) { return e.ticker; })
+        .filter(function(e, i, arr) { return arr.findIndex(function(x) { return x.ticker === e.ticker; }) === i; }); // dedupe tickers, fetch ALL
 
       var fromDate = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
       var toDate = new Date().toISOString().split('T')[0];
