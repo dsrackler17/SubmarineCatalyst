@@ -249,8 +249,12 @@ footer a:hover { color:var(--accent); }
 
   <div class="stat-strip">
     <div class="stat-cell">
-      <div class="stat-label">PoA Score</div>
+      <div class="stat-label">PoA Range</div>
       <div class="stat-val" id="stat-poa">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Chart Setup</div>
+      <div class="stat-val" id="stat-chart">—</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">STN Risk</div>
@@ -269,6 +273,8 @@ footer a:hover { color:var(--accent); }
       <div class="stat-val amber" id="stat-type">—</div>
     </div>
   </div>
+
+  <div id="sparkline-container" style="display:none;background:var(--surface);border:1px solid var(--border);border-top:none;padding:1rem 2rem;"></div>
 
   <div class="disclaimer-box">
     ⚠️ This page contains quantitative scanner output only. It is not investment advice. All trading decisions are solely yours. Trading biotech binary events involves substantial risk of loss.
@@ -428,6 +434,46 @@ function populatePage(d, isPaid) {
   var poaHigh = d.poa_range_high != null ? Math.round(Number(d.poa_range_high)) : Math.min(97, Math.round(d.poa) + 8);
   var poaConf = d.poa_confidence || 'MODERATE';
   document.getElementById('stat-poa').textContent       = poaLow + '-' + poaHigh + '%';
+
+  // Chart Setup
+  var chartSetup = d.chart_setup || 'UNKNOWN';
+  var chartEl = document.getElementById('stat-chart');
+  chartEl.textContent = chartSetup;
+  var chartColors = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'};
+  chartEl.style.color = chartColors[chartSetup] || 'var(--muted)';
+
+  // Sparkline
+  var priceHist = d.price_history_30d || [];
+  if (priceHist.length >= 5) {
+    var sparkContainer = document.getElementById('sparkline-container');
+    var prices = priceHist.map(function(p) { return typeof p === 'object' ? p.close : p; });
+    var minP = Math.min.apply(null, prices);
+    var maxP = Math.max.apply(null, prices);
+    var rng = maxP - minP || 1;
+    var w = 800, h = 60;
+    var pts = prices.map(function(p, i) {
+      return (i / (prices.length - 1) * w).toFixed(1) + ',' + (h - 4 - ((p - minP) / rng) * (h - 8)).toFixed(1);
+    }).join(' ');
+    var lastP = prices[prices.length - 1];
+    var firstP = prices[0];
+    var chg = ((lastP - firstP) / firstP * 100);
+    var lineCol = chg >= 0 ? 'var(--accent2)' : 'var(--red)';
+    sparkContainer.style.display = 'block';
+    sparkContainer.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">' +
+        '<span style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">30-Day Price Action</span>' +
+        '<span style="font-family:var(--mono);font-size:0.68rem;color:' + lineCol + ';">$' + lastP.toFixed(2) + ' · ' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '% · ' + (d.price_trend_30d || 'FLAT') + '</span>' +
+      '</div>' +
+      '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:50px;" preserveAspectRatio="none">' +
+        '<polyline points="' + pts + '" fill="none" stroke="' + lineCol + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+        '<circle cx="' + (w).toFixed(1) + '" cy="' + (h - 4 - ((lastP - minP) / rng) * (h - 8)).toFixed(1) + '" r="3" fill="' + lineCol + '"/>' +
+      '</svg>' +
+      '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-top:0.2rem;">' +
+        '<span>$' + minP.toFixed(2) + '</span>' +
+        '<span>Range: ' + (d.range_position != null ? (d.range_position * 100).toFixed(0) + '% of 52w' : '') + '</span>' +
+        '<span>$' + maxP.toFixed(2) + '</span>' +
+      '</div>';
+  }
   var stnRisk = d.sell_news_risk || 'MODERATE';
   var stnEl = document.getElementById('stat-stn');
   stnEl.textContent = stnRisk;
@@ -735,6 +781,13 @@ async function generateAISummary(d) {
         poa_range_low: e.poa_range_low != null ? Number(e.poa_range_low) : null,
         poa_range_high: e.poa_range_high != null ? Number(e.poa_range_high) : null,
         poa_confidence: e.poa_confidence || 'MODERATE',
+        chart_setup: e.chart_setup || 'UNKNOWN',
+        chart_setup_score: Number(e.chart_setup_score) || 0,
+        price_trend_30d: e.price_trend_30d || 'FLAT',
+        price_change_30d: e.price_change_30d != null ? Number(e.price_change_30d) : null,
+        current_price: e.current_price != null ? Number(e.current_price) : null,
+        range_position: e.range_position != null ? Number(e.range_position) : null,
+        price_history_30d: e.price_history_30d || [],
         score: Number(e.score) || 0,
         flags: e.flags || [],
         notes: e.notes || '',

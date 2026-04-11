@@ -310,7 +310,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Setup</th>';
+    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Chart</th><th>30D</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -390,19 +390,29 @@ function renderTable() {
       var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[gradeVal] || 'var(--amber)';
       html += '<td class="score-cell" style="color:' + gColor + '">' + gradeVal + '</td>';
 
-      // Signal column — behavioral pattern based on risk data
-      var signal = '';
-      if (e._source === 'pdufa' || e._source === 'catalyst') {
-        if (e.sell_news_risk === 'HIGH') signal = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 STN HIGH</span>';
-        else if (e.sell_news_risk === 'LOW' || e.sell_news_risk === 'VERY LOW') signal = '<span class="pattern-pill" style="background:rgba(0,255,157,0.1);color:var(--accent2);">📡 STN LOW</span>';
-        else if (e.sell_news_risk === 'ELEVATED') signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.1);color:var(--amber);">〰️ ELEVATED</span>';
-        else if (e.sell_news_risk !== '—') signal = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 MODERATE</span>';
-      } else if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') {
-        signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.12);color:var(--amber);">🏷️ BUYOUT</span>';
-      } else if (e._source === 'earnings') {
-        signal = '<span class="pattern-pill" style="background:rgba(90,122,153,0.1);color:var(--muted);">📊 ER</span>';
+      // Chart Setup column
+      var chartLabel = e.chart_setup || '—';
+      var chartColor = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'}[chartLabel] || 'var(--muted)';
+      html += '<td class="score-cell" style="color:' + chartColor + ';font-size:0.62rem;">' + chartLabel + '</td>';
+
+      // 30D price change column with mini sparkline
+      var p30d = e.price_change_30d != null ? Number(e.price_change_30d) : null;
+      var priceHist = e.price_history_30d || [];
+      var sparkHtml = '';
+      if (priceHist.length >= 5) {
+        var prices = priceHist.map(function(p) { return typeof p === 'object' ? p.close : p; });
+        var mn = Math.min.apply(null, prices);
+        var mx = Math.max.apply(null, prices);
+        var rng = mx - mn || 1;
+        var pts = prices.map(function(p, i) {
+          return (i / (prices.length - 1) * 60).toFixed(1) + ',' + (18 - ((p - mn) / rng) * 16).toFixed(1);
+        }).join(' ');
+        var sCol = p30d >= 0 ? 'var(--accent2)' : 'var(--red)';
+        sparkHtml = '<svg viewBox="0 0 60 20" style="width:48px;height:16px;vertical-align:middle;margin-right:4px;"><polyline points="' + pts + '" fill="none" stroke="' + sCol + '" stroke-width="1.5" stroke-linejoin="round"/></svg>';
       }
-      html += '<td>' + (signal || '—') + '</td>';
+      var p30dColor = p30d != null ? (p30d >= 5 ? 'var(--accent2)' : p30d >= 0 ? 'var(--accent)' : p30d > -5 ? 'var(--amber)' : 'var(--red)') : 'var(--muted)';
+      var p30dText = p30d != null ? (p30d >= 0 ? '+' : '') + p30d.toFixed(1) + '%' : '—';
+      html += '<td class="score-cell" style="font-size:0.62rem;white-space:nowrap;">' + sparkHtml + '<span style="color:' + p30dColor + ';">' + p30dText + '</span></td>';
     }
 
     html += '<td style="text-align:center;"><a href="' + link + '" style="color:var(--accent);font-family:var(--mono);font-size:0.58rem;text-decoration:none;letter-spacing:0.04em;" onclick="event.stopPropagation();">ANALYZE →</a></td>';
@@ -490,7 +500,7 @@ function updateCounts() {
   if (ALL_EVENTS.length === 0) {
     // Load PDUFA events
     var { data: pdufaEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, poa_range_low, poa_range_high, poa_confidence, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type')
+      .select('ticker, drug, indication, type, date, grade, poa, poa_range_low, poa_range_high, poa_confidence, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, chart_setup, price_trend_30d, price_change_30d, price_history_30d, current_price')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 

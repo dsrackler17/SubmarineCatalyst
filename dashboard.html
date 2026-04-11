@@ -504,7 +504,11 @@ function renderScanner() {
             <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
           </div>
         </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">
+        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
+          <div class="score-box">
+            <div class="score-box-label">Chart</div>
+            <div class="score-box-val ${d.chart_setup === 'READY' || d.chart_setup === 'COILING' ? 'green' : d.chart_setup === 'BUILDING' ? 'cyan' : d.chart_setup === 'EXTENDED' ? 'amber' : d.chart_setup === 'WEAK' ? 'red' : 'white'}">${d.chart_setup || '—'}</div>
+          </div>
           <div class="score-box">
             <div class="score-box-label">Buyout</div>
             <div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div>
@@ -648,6 +652,8 @@ function renderBuyoutGrid() {
         poa_range_low: d.poa_range_low != null ? Number(d.poa_range_low) : null,
         poa_range_high: d.poa_range_high != null ? Number(d.poa_range_high) : null,
         poa_confidence: d.poa_confidence || 'MODERATE',
+        chart_setup: d.chart_setup || 'UNKNOWN',
+        price_change_30d: d.price_change_30d != null ? Number(d.price_change_30d) : null,
         grade: d.grade || 'WATCH',
         has_pdufa: true,
         approved_drug: d.approved_drug || '',
