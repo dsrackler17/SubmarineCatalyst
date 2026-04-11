@@ -320,15 +320,24 @@ function renderResult(d) {
   var priceChange5d = d.price_change_5d != null ? Number(d.price_change_5d) : null;
   var volumeRatio = d.volume_ratio_10d != null ? Number(d.volume_ratio_10d) : null;
   var catalystChain = d.catalyst_chain || [];
+  var poaLow = d.poa_range_low != null ? Number(d.poa_range_low) : Math.max(15, poa - 10);
+  var poaHigh = d.poa_range_high != null ? Number(d.poa_range_high) : Math.min(97, poa + 8);
+  var poaConfidence = d.poa_confidence || 'MODERATE';
+  var poaBucket = d.poa_bucket || (poa >= 80 ? '80%+' : poa >= 70 ? '70-80%' : poa >= 55 ? '55-70%' : poa >= 40 ? '40-55%' : '<40%');
+  var lastMileRisk = d.last_mile_risk || 'UNKNOWN';
+
+  // Show PoA as range, not false precision
+  var poaDisplay = Math.round(poaLow) + '-' + Math.round(poaHigh) + '%';
+  var confColor = poaConfidence === 'HIGH' ? 'green' : poaConfidence === 'LOW' ? 'amber' : 'cyan';
 
   var scoreStripHTML =
-    '<div class="score-cell"><div class="score-label">PoA</div><div class="score-val ' + (poa >= 75 ? 'green' : poa >= 55 ? 'cyan' : 'amber') + '">' + poa.toFixed(1) + '%</div></div>' +
+    '<div class="score-cell"><div class="score-label">PoA Range</div><div class="score-val ' + (poa >= 75 ? 'green' : poa >= 55 ? 'cyan' : 'amber') + '">' + poaDisplay + '</div><div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">Conf: ' + poaConfidence + '</div></div>' +
     '<div class="score-cell"><div class="score-label">STN Risk</div><div class="score-val ' + riskColor(stnRisk) + '">' + stnRisk + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Dilution</div><div class="score-val ' + riskColor(dilRisk) + '">' + dilRisk + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Shakeout</div><div class="score-val ' + riskColor(shakeoutRisk) + '">' + (shakeoutRisk !== 'UNKNOWN' ? shakeoutRisk : '—') + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Accumulation</div><div class="score-val ' + (accumSignal === 'STRONG_BUY' || accumSignal === 'ACCUMULATING' ? 'green' : accumSignal === 'DISTRIBUTING' ? 'red' : '') + '">' + (accumSignal !== 'NEUTRAL' ? accumSignal.replace('_',' ') : '—') + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Catalyst Chain</div><div class="score-val ' + (catalystDensity >= 50 ? 'green' : catalystDensity >= 25 ? 'cyan' : '') + '">' + (catalystDensity > 0 ? catalystDensity + '/100' : '—') + '</div></div>' +
-    '<div class="score-cell"><div class="score-label">Buyout</div><div class="score-val ' + (buyoutScore >= 60 ? 'green' : buyoutScore >= 30 ? 'cyan' : '') + '">' + buyoutScore + '/100</div></div>' +
+    '<div class="score-cell"><div class="score-label">Last Mile Risk</div><div class="score-val ' + riskColor(lastMileRisk) + '">' + lastMileRisk + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Net Edge</div><div class="score-val white">' + netEdge.toFixed(1) + '</div></div>';
 
   // ── Flags ──
@@ -393,6 +402,7 @@ function renderResult(d) {
     {label: 'Insider Signal', pct: insider === 'BULLISH' ? 80 : insider === 'BEARISH' ? 20 : 50, color: insider === 'BULLISH' ? 'green' : insider === 'BEARISH' ? 'red' : '', val: insider},
     {label: 'Shelf Registration', pct: d.shelf_active ? 75 : 10, color: d.shelf_active ? 'amber' : 'green', val: d.shelf_active ? '⚠️ ACTIVE' : '✅ None'},
     {label: 'ATM Facility', pct: d.atm_active ? 85 : 10, color: d.atm_active ? 'red' : 'green', val: d.atm_active ? '🚨 ACTIVE' : '✅ None'},
+    {label: 'Last Mile (CMC/Label)', pct: lastMileRisk === 'HIGH' ? 85 : lastMileRisk === 'ELEVATED' ? 65 : lastMileRisk === 'MODERATE' ? 40 : 15, color: riskColor(lastMileRisk), val: lastMileRisk},
   ];
 
   // Add live price data if available
@@ -451,7 +461,7 @@ function renderResult(d) {
           '<div class="breakdown-title">Approval Probability Breakdown</div>' +
           poaHTML +
           '<hr class="bar-divider">' +
-          '<div class="bar-total"><span class="bar-total-label">FINAL PoA SCORE</span><span class="bar-total-val">' + poa.toFixed(1) + '%</span></div>' +
+          '<div class="bar-total"><span class="bar-total-label">PoA RANGE (' + poaConfidence + ' CONF)</span><span class="bar-total-val">' + poaDisplay + '</span></div>' +
         '</div>' +
         '<div class="breakdown-section">' +
           '<div class="breakdown-title">Risk Profile</div>' +
