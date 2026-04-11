@@ -178,21 +178,65 @@ function computePoA(indication, notes, drug) {
   return Math.round(poa * 1000) / 10; // e.g. 82.5
 }
 
+// ── Drug name → indication lookup ───────────────────────────────────────
+// For drugs where the notes don't contain clinical text, look up by drug name
+var DRUG_OVERRIDES = {
+  // Kidney / Nephrology
+  'filspari': 'Rare', 'sparsentan': 'Rare', 'igan': 'Rare', 'fsgs': 'Rare',
+  'iptacopan': 'Rare', 'fabhalta': 'Rare',
+  // Neuromuscular
+  'vamorolone': 'DMD', 'casimersen': 'DMD', 'golodirsen': 'DMD', 'viltolarsen': 'DMD',
+  'eteplirsen': 'DMD', 'delandistrogene': 'DMD',
+  // Oncology
+  'pembrolizumab': 'Oncology', 'keytruda': 'Oncology', 'nivolumab': 'Oncology',
+  'opdivo': 'Oncology', 'atezolizumab': 'Oncology', 'durvalumab': 'Oncology',
+  'gedatolisib': 'Oncology', 'adagrasib': 'Oncology', 'sotorasib': 'Oncology',
+  'cabozantinib': 'Oncology', 'cobimetinib': 'Oncology',
+  // Rare / hematology
+  'anito-cel': 'Hematology', 'anitocabtagene': 'Hematology',
+  'olezarsen': 'Metabolic', 'abelacimab': 'Hematology',
+  // Immunology
+  'efgartigimod': 'Immunology', 'rozanolixizumab': 'Immunology',
+  'imvotex': 'Immunology', 'batoclimab': 'Immunology',
+  // Neurology
+  'prasinezumab': 'Neurology', 'lecanemab': 'Neurology', 'donanemab': 'Neurology',
+};
+
+function drugLookup(drug) {
+  var d = (drug || '').toLowerCase();
+  for (var key in DRUG_OVERRIDES) {
+    if (d.includes(key)) return DRUG_OVERRIDES[key];
+  }
+  return null;
+}
+
 // ── Patch a single event object ───────────────────────────────────────────
 function patchEvent(d) {
   if (!d) return d;
 
   var rawInd = d.indication || '';
-  var classified = classifyIndication(rawInd);
 
-  // Only patch if the stored indication is wrong (free text or "Infectious" default)
-  var isWrong = !INDICATION_RATES[rawInd]; // stored value isn't a valid key
+  // Build full text for classification
+  var fullText = [d.drug || '', d.indication || '', d.notes || '', d.company_name || ''].join(' ');
+
+  // Try drug name lookup first (most reliable)
+  var fromDrug = drugLookup(d.drug || d.approved_drug || '');
+
+  // Classify from full text
+  var fromText = classifyIndication(fullText);
+
+  // Determine if current stored value is wrong
+  var isValidKey = !!INDICATION_RATES[rawInd];
   var isInfectiousDefault = rawInd === 'Infectious' && !isGenuinelyInfectious(d);
+  var isGenericUnknown = rawInd === 'Unknown' || rawInd === 'Infectious';
 
-  if (isWrong || isInfectiousDefault) {
-    d.indication = classified;
-    // Recompute PoA with corrected indication
-    var correctedPoA = computePoA(classified, (d.notes || '') + ' ' + (d.drug || ''), d.drug);
+  var shouldPatch = !isValidKey || isInfectiousDefault;
+
+  if (shouldPatch) {
+    // Pick best classification: drug lookup > text classification
+    var best = fromDrug || (fromText !== 'Unknown' ? fromText : null) || 'Unknown';
+    d.indication = best;
+    var correctedPoA = computePoA(best, fullText, d.drug);
     d.poa = correctedPoA;
     d._indicationCorrected = true;
   }
@@ -202,9 +246,9 @@ function patchEvent(d) {
 
 function isGenuinelyInfectious(d) {
   var text = ((d.drug||'') + ' ' + (d.indication||'') + ' ' + (d.notes||'')).toLowerCase();
-  return text.includes('hiv') || text.includes('hepatitis') || text.includes('antibiot') ||
+  return text.includes(' hiv') || text.includes('hepatitis') || text.includes('antibiot') ||
          text.includes('antiviral') || text.includes('infection') || text.includes('bacterial') ||
-         text.includes('fungal') || text.includes('rsv') || text.includes('influenza') ||
+         text.includes('fungal') || text.includes(' rsv') || text.includes('influenza') ||
          text.includes('covid') || text.includes('tuberculosis');
 }
 
