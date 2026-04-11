@@ -102,7 +102,7 @@ main{max-width:1100px;margin:0 auto;padding:2.5rem 2.5rem 5rem;}
 .countdown-label{font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;}
 .countdown-date{font-size:0.68rem;color:var(--text);margin-top:0.15rem;}
 
-.score-strip{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
+.score-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border-top:1px solid var(--border);}
 .score-cell{background:var(--surface);padding:1rem 1.25rem;}
 .score-label{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.35rem;}
 .score-val{font-family:var(--mono);font-size:1.15rem;font-weight:700;}
@@ -311,13 +311,24 @@ function renderResult(d) {
   var moveFlags = d.move_flags || [];
   var notes = d.notes || '';
 
-  // ── Score strip ──
+  // ── Score strip — 8 cells ──
+  var shakeoutScore = Number(d.shakeout_score) || 0;
+  var shakeoutRisk = d.shakeout_risk || 'UNKNOWN';
+  var accumScore = Number(d.accumulation_score) || 0;
+  var accumSignal = d.accumulation_signal || 'NEUTRAL';
+  var catalystDensity = Number(d.catalyst_density_score) || 0;
+  var priceChange5d = d.price_change_5d != null ? Number(d.price_change_5d) : null;
+  var volumeRatio = d.volume_ratio_10d != null ? Number(d.volume_ratio_10d) : null;
+  var catalystChain = d.catalyst_chain || [];
+
   var scoreStripHTML =
     '<div class="score-cell"><div class="score-label">PoA</div><div class="score-val ' + (poa >= 75 ? 'green' : poa >= 55 ? 'cyan' : 'amber') + '">' + poa.toFixed(1) + '%</div></div>' +
     '<div class="score-cell"><div class="score-label">STN Risk</div><div class="score-val ' + riskColor(stnRisk) + '">' + stnRisk + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Dilution</div><div class="score-val ' + riskColor(dilRisk) + '">' + dilRisk + '</div></div>' +
+    '<div class="score-cell"><div class="score-label">Shakeout</div><div class="score-val ' + riskColor(shakeoutRisk) + '">' + (shakeoutRisk !== 'UNKNOWN' ? shakeoutRisk : '—') + '</div></div>' +
+    '<div class="score-cell"><div class="score-label">Accumulation</div><div class="score-val ' + (accumSignal === 'STRONG_BUY' || accumSignal === 'ACCUMULATING' ? 'green' : accumSignal === 'DISTRIBUTING' ? 'red' : '') + '">' + (accumSignal !== 'NEUTRAL' ? accumSignal.replace('_',' ') : '—') + '</div></div>' +
+    '<div class="score-cell"><div class="score-label">Catalyst Chain</div><div class="score-val ' + (catalystDensity >= 50 ? 'green' : catalystDensity >= 25 ? 'cyan' : '') + '">' + (catalystDensity > 0 ? catalystDensity + '/100' : '—') + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Buyout</div><div class="score-val ' + (buyoutScore >= 60 ? 'green' : buyoutScore >= 30 ? 'cyan' : '') + '">' + buyoutScore + '/100</div></div>' +
-    '<div class="score-cell"><div class="score-label">TAM/Cap</div><div class="score-val ' + (tamRatio >= 5 ? 'green' : tamRatio >= 1 ? 'cyan' : 'amber') + '">' + (tamRatio ? tamRatio.toFixed(1) + 'x' : '—') + '</div></div>' +
     '<div class="score-cell"><div class="score-label">Net Edge</div><div class="score-val white">' + netEdge.toFixed(1) + '</div></div>';
 
   // ── Flags ──
@@ -376,11 +387,21 @@ function renderResult(d) {
   var riskBars = [
     {label: 'STN Risk (Move Score)', pct: moveScore, color: moveScore >= 60 ? 'red' : moveScore >= 35 ? 'amber' : 'green', val: moveScore + '/100'},
     {label: 'Dilution Score', pct: dilScore, color: dilScore >= 60 ? 'red' : dilScore >= 30 ? 'amber' : 'green', val: dilScore + '/100'},
+    {label: 'Shakeout Score', pct: shakeoutScore, color: shakeoutScore >= 50 ? 'red' : shakeoutScore >= 25 ? 'amber' : 'green', val: shakeoutScore + '/100'},
+    {label: 'Accumulation', pct: accumScore, color: accumScore >= 40 ? 'green' : '', val: accumScore + '/100'},
     {label: 'Cash Runway', pct: runway ? Math.min(100, runway * 2.5) : 50, color: runway && runway < 12 ? 'red' : runway && runway < 24 ? 'amber' : 'green', val: runway ? runway + ' mo' : 'Unknown'},
     {label: 'Insider Signal', pct: insider === 'BULLISH' ? 80 : insider === 'BEARISH' ? 20 : 50, color: insider === 'BULLISH' ? 'green' : insider === 'BEARISH' ? 'red' : '', val: insider},
     {label: 'Shelf Registration', pct: d.shelf_active ? 75 : 10, color: d.shelf_active ? 'amber' : 'green', val: d.shelf_active ? '⚠️ ACTIVE' : '✅ None'},
     {label: 'ATM Facility', pct: d.atm_active ? 85 : 10, color: d.atm_active ? 'red' : 'green', val: d.atm_active ? '🚨 ACTIVE' : '✅ None'},
   ];
+
+  // Add live price data if available
+  if (priceChange5d != null) {
+    riskBars.push({label: '5-Day Price Change', pct: Math.abs(priceChange5d), color: priceChange5d < -5 ? 'red' : priceChange5d < 0 ? 'amber' : 'green', val: (priceChange5d > 0 ? '+' : '') + priceChange5d.toFixed(1) + '%'});
+  }
+  if (volumeRatio != null) {
+    riskBars.push({label: 'Volume vs 10d Avg', pct: Math.min(100, volumeRatio * 33), color: volumeRatio > 2 ? 'amber' : '', val: volumeRatio.toFixed(1) + 'x'});
+  }
 
   var riskHTML = riskBars.map(function(b) {
     return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:' + b.pct + '%"></div></div><span class="bar-val ' + b.color + '">' + b.val + '</span></div>';
@@ -440,6 +461,12 @@ function renderResult(d) {
         '</div>' +
       '</div>' +
       summaryHTML +
+      // Catalyst chain section
+      (catalystChain.length > 0 ?
+        '<div class="flags-section" style="border-top:1px solid var(--border);border-bottom:none;">' +
+          '<div class="flags-title">Post-Approval Catalyst Chain · <span style="color:var(--accent2);">' + catalystDensity + '/100</span></div>' +
+          catalystChain.map(function(c) { return '<div class="flag-row">' + DOMPurify.sanitize(c) + '</div>'; }).join('') +
+        '</div>' : '') +
       '<div class="detail-link"><a href="/catalyst-detail.html?ticker=' + d.ticker + '">View Full Deep Dive with AI Analysis →</a></div>' +
       '<div class="sources-section">' +
         '<div class="sources-title">Primary Sources</div>' +
