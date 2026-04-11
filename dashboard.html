@@ -523,6 +523,25 @@ function renderScanner() {
           </div>
         </div>
         ${(() => {
+          // Mini 30D sparkline from DB data
+          var ph = d.price_history_30d || [];
+          if (ph.length >= 5) {
+            var prices = ph.map(function(p) { return typeof p === 'object' ? p.close : p; });
+            var mn = Math.min.apply(null, prices);
+            var mx = Math.max.apply(null, prices);
+            var rn = mx - mn || 1;
+            var chg = ((prices[prices.length-1] - prices[0]) / prices[0] * 100);
+            var col = chg >= 0 ? 'var(--accent2)' : 'var(--red)';
+            var pts = prices.map(function(p, j) { return (j/(prices.length-1)*200).toFixed(1)+','+(28-((p-mn)/rn)*24).toFixed(1); }).join(' ');
+            return '<div style="padding:0.4rem 0.6rem;border:1px solid var(--border);border-top:none;display:flex;align-items:center;gap:0.75rem;background:var(--deep);" id="spark-' + d.ticker + '">' +
+              '<svg viewBox="0 0 200 30" style="width:120px;height:24px;flex-shrink:0;" preserveAspectRatio="none"><polyline points="' + pts + '" fill="none" stroke="' + col + '" stroke-width="1.5" stroke-linejoin="round"/></svg>' +
+              '<span style="font-family:var(--mono);font-size:0.58rem;color:' + col + ';">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</span>' +
+              '<span style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">$' + prices[prices.length-1].toFixed(2) + '</span>' +
+            '</div>';
+          }
+          return '<div style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-top:none;background:var(--deep);font-family:var(--mono);font-size:0.55rem;color:var(--muted);" id="spark-' + d.ticker + '">📊 Chart data pending</div>';
+        })()}
+        ${(() => {
           // Buyout timeline + acquirer context
           if (!d.buyout_score || d.buyout_score < 35) return '';
           var tl = d.buyout_timeline || '';
@@ -654,6 +673,8 @@ function renderBuyoutGrid() {
         poa_confidence: d.poa_confidence || 'MODERATE',
         chart_setup: d.chart_setup || 'UNKNOWN',
         price_change_30d: d.price_change_30d != null ? Number(d.price_change_30d) : null,
+        price_history_30d: d.price_history_30d || [],
+        current_price: d.current_price != null ? Number(d.current_price) : null,
         grade: d.grade || 'WATCH',
         has_pdufa: true,
         approved_drug: d.approved_drug || '',
@@ -1059,6 +1080,74 @@ function switchTab(btn, id) {
   }
 
   renderBuyoutGrid();
+
+  // ── LIVE CHART DATA — fetch Finnhub for nearest 15 PDUFA tickers ──
+  (async function() {
+    var FINNHUB_KEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+    var nearest = SCANNER_DATA
+      .filter(function(d) { return d.date && d.date !== '—' && daysUntil(d.date) >= 0; })
+      .sort(function(a,b) { return daysUntil(a.date) - daysUntil(b.date); })
+      .slice(0, 15);
+
+    for (var k = 0; k < nearest.length; k++) {
+      var t = nearest[k];
+      try {
+        var cRes = await fetch('https://finnhub.io/api/v1/stock/candle?symbol=' + t.ticker + '&resolution=D&from=' + (Math.floor(Date.now()/1000) - 30*86400) + '&to=' + Math.floor(Date.now()/1000) + '&token=' + FINNHUB_KEY);
+        if (!cRes.ok) continue;
+        var cData = await cRes.json();
+        if (!cData || cData.s !== 'ok' || !cData.c || cData.c.length < 3) continue;
+
+        var prices = cData.c;
+        var mn = Math.min.apply(null, prices);
+        var mx = Math.max.apply(null, prices);
+        var rn = mx - mn || 1;
+        var chg = ((prices[prices.length-1] - prices[0]) / prices[0] * 100);
+        var col = chg >= 0 ? 'var(--accent2)' : 'var(--red)';
+        var pts = prices.map(function(p, j) { return (j/(prices.length-1)*200).toFixed(1)+','+(28-((p-mn)/rn)*24).toFixed(1); }).join(' ');
+
+        // Update sparkline on card
+        var sparkEl = document.getElementById('spark-' + t.ticker);
+        if (sparkEl) {
+          sparkEl.innerHTML =
+            '<svg viewBox="0 0 200 30" style="width:120px;height:24px;flex-shrink:0;" preserveAspectRatio="none"><polyline points="' + pts + '" fill="none" stroke="' + col + '" stroke-width="1.5" stroke-linejoin="round"/></svg>' +
+            '<span style="font-family:var(--mono);font-size:0.58rem;color:' + col + ';">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '% 30D</span>' +
+            '<span style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">$' + prices[prices.length-1].toFixed(2) + '</span>' +
+            '<span style="font-family:var(--mono);font-size:0.48rem;color:var(--accent);margin-left:auto;">LIVE</span>';
+        }
+
+        // Update chart score box if still showing "—"
+        // (compute chart setup client-side)
+        var recent10 = prices.slice(-10);
+        var r10Range = ((Math.max.apply(null,recent10) - Math.min.apply(null,recent10)) / Math.min.apply(null,recent10) * 100);
+        var consolidation = r10Range < 8;
+        var setup = 'BUILDING';
+        if (consolidation && chg > -5) setup = 'COILING';
+        else if (chg > 15) setup = 'EXTENDED';
+        else if (chg > 5) setup = 'READY';
+        else if (chg < -15) setup = 'WEAK';
+        else if (chg < -5) setup = 'BUILDING';
+
+        // Find the card's chart score box and update it
+        var cards = document.querySelectorAll('.scanner-card');
+        cards.forEach(function(card) {
+          if (card.querySelector('.card-ticker') && card.querySelector('.card-ticker').textContent.includes(t.ticker)) {
+            var chartBoxes = card.querySelectorAll('.score-box-val');
+            chartBoxes.forEach(function(box) {
+              if (box.previousElementSibling && box.previousElementSibling.textContent === 'Chart' && box.textContent === '—') {
+                box.textContent = setup;
+                var colors = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'};
+                box.style.color = colors[setup] || 'var(--muted)';
+              }
+            });
+          }
+        });
+
+        // Rate limit: 100ms between calls
+        await new Promise(function(r) { setTimeout(r, 120); });
+      } catch (e) { console.warn('Live chart ' + t.ticker + ':', e); }
+    }
+    console.log('[SC] Live chart data loaded for ' + nearest.length + ' tickers');
+  })();
 })();
 
 // Live event countdown
