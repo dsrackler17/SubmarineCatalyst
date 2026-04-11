@@ -1083,7 +1083,7 @@ function switchTab(btn, id) {
 
   // ── LIVE CHART DATA — fetch Finnhub for nearest 15 PDUFA tickers ──
   (async function() {
-    var FINNHUB_KEY = 'd7dcla9r01qggoenrpogd7dcla9r01qggoenrpp0';
+    var FINNHUB_KEY = 'd7dcla9r01qggoenrpog';
     var nearest = SCANNER_DATA
       .filter(function(d) { return d.date && d.date !== '—' && daysUntil(d.date) >= 0; })
       .sort(function(a,b) { return daysUntil(a.date) - daysUntil(b.date); })
