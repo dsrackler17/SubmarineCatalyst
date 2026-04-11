@@ -230,15 +230,29 @@ function patchEvent(d) {
   var isInfectiousDefault = rawInd === 'Infectious' && !isGenuinelyInfectious(d);
   var isGenericUnknown = rawInd === 'Unknown' || rawInd === 'Infectious';
 
-  var shouldPatch = !isValidKey || isInfectiousDefault;
+  // ALWAYS reclassify — database may have stale score-events v1 values
+  // Drug lookup is most reliable, then text search, then keep existing
+  var best = fromDrug
+    || (fromText !== 'Unknown' && fromText !== 'Infectious' ? fromText : null)
+    || (isValidKey && rawInd !== 'Infectious' ? rawInd : null)
+    || 'Unknown';
 
-  if (shouldPatch) {
-    // Pick best classification: drug lookup > text classification
-    var best = fromDrug || (fromText !== 'Unknown' ? fromText : null) || 'Unknown';
+  if (best !== rawInd || !isValidKey || isInfectiousDefault) {
     d.indication = best;
-    var correctedPoA = computePoA(best, fullText, d.drug);
-    d.poa = correctedPoA;
     d._indicationCorrected = true;
+  }
+
+  // Recompute PoA if:
+  // 1. Indication was corrected
+  // 2. OR stored PoA is 77.5 or 78.0 (score-events v1 defaults — means it hit Unknown/Infectious)
+  var likelyDefault = Math.abs(d.poa - 77.5) < 0.1 || Math.abs(d.poa - 78.0) < 0.1 || Math.abs(d.poa - 75.0) < 0.1;
+
+  if (d._indicationCorrected || likelyDefault) {
+    var correctedPoA = computePoA(d.indication, fullText, d.drug);
+    // Only update if we have a meaningful correction
+    if (Math.abs(correctedPoA - (d.poa || 0)) > 1.5) {
+      d.poa = correctedPoA;
+    }
   }
 
   return d;
