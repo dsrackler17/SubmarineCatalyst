@@ -1305,19 +1305,28 @@ function switchTab(btn, id) {
 
   async function fetchAndScore(ticker, daysOut) {
     try {
+      // Only use free Finnhub endpoints (quote + metric)
+      // /stock/candle requires paid tier → removed
       const [qr, mr] = await Promise.all([
         fetch(`${BASE}/quote?symbol=${ticker}&token=${FKEY}`),
         fetch(`${BASE}/stock/metric?symbol=${ticker}&metric=all&token=${FKEY}`),
       ]);
       if (!qr.ok || !mr.ok) return null;
       const [q, m] = await Promise.all([qr.json(), mr.json()]);
-      const price  = q.c  || 0;
-      const high52 = m.metric?.['52WeekHigh'] || 0;
-      const low52  = m.metric?.['52WeekLow']  || 0;
-      const ret4w  = m.metric?.['4WeekPriceReturnDaily']  || null;
-      const ret13w = m.metric?.['13WeekPriceReturnDaily'] || 0;
-      const trend  = ret4w !== null ? ret4w : (ret13w / 3);
-      let pos52 = 50, score = 50;
+      const price   = q.c  || 0;
+      const change1d = q.dp || 0; // daily % change
+      const high52  = m.metric?.['52WeekHigh'] || 0;
+      const low52   = m.metric?.['52WeekLow']  || 0;
+      const ret4w   = m.metric?.['4WeekPriceReturnDaily']  || null;
+      const ret13w  = m.metric?.['13WeekPriceReturnDaily'] || 0;
+      const ret26w  = m.metric?.['26WeekPriceReturnDaily'] || 0;
+      const beta    = m.metric?.['beta'] || 1;
+      const trend   = ret4w !== null ? ret4w : (ret13w / 3);
+
+      let score = 50;
+
+      // 1. 52-week range position (where in the range is the stock)
+      let pos52 = 50;
       if (high52 > low52 && price > 0) {
         pos52 = Math.round(((price - low52) / (high52 - low52)) * 100);
       }
@@ -1326,19 +1335,40 @@ function switchTab(btn, id) {
       else if (pos52 >= 35) score += 12;
       else if (pos52 >= 15) score += 6;
       else                  score -= 10;
+
+      // 2. 30-day trend
       if      (trend > 50)  score -= 22;
       else if (trend > 30)  score -= 14;
       else if (trend > 15)  score -= 4;
       else if (trend >= 0)  score += 14;
       else if (trend > -15) score -= 6;
       else                  score -= 18;
+
+      // 3. Momentum consistency (4w vs 13w trend comparison)
+      // If 4w trend is gentler than 13w, stock is coiling/consolidating
+      const trend13w = ret13w / 3;
+      if (ret4w !== null && Math.abs(ret4w) < Math.abs(trend13w) * 0.5) {
+        score += 10; // compressing = COILING signal
+      } else if (ret4w !== null && Math.abs(ret4w) > Math.abs(trend13w) * 2) {
+        score -= 6; // accelerating = extended or volatile
+      }
+
+      // 4. PDUFA proximity
       if      (daysOut <= 3)  score -= 6;
       else if (daysOut <= 14) score += 8;
       else if (daysOut <= 30) score += 4;
       else if (daysOut > 60)  score -= 4;
+
+      // 5. Daily volatility signal (large single-day moves = not consolidating)
+      if (Math.abs(change1d) > 8) score -= 8;
+      else if (Math.abs(change1d) < 1.5 && daysOut <= 30) score += 5;
+
       score = Math.max(0, Math.min(100, Math.round(score)));
       return { score, trend: Math.round(trend * 10) / 10 };
-    } catch { return null; }
+    } catch(e) {
+      console.warn('[SC TA]', ticker, e.message);
+      return null;
+    }
   }
 
   async function enrichCards() {

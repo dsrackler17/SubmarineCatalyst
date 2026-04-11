@@ -684,17 +684,21 @@ function updateCounts() {
 
   async function fetchScore(ticker, daysOut) {
     try {
-      var qr = await fetch(BASE + '/stock/metric?symbol=' + ticker + '&metric=all&token=' + FKEY);
-      if (!qr.ok) return null;
-      var m = await qr.json();
+      // Parallel fetch quote + metrics (both free tier)
+      var [mr, qr2] = await Promise.all([
+        fetch(BASE + '/stock/metric?symbol=' + ticker + '&metric=all&token=' + FKEY),
+        fetch(BASE + '/quote?symbol=' + ticker + '&token=' + FKEY)
+      ]);
+      if (!mr.ok) return null;
+      var m = await mr.json();
+      var q = qr2.ok ? await qr2.json() : {};
       var ret4w  = m.metric && m.metric['4WeekPriceReturnDaily']  || null;
       var ret13w = m.metric && m.metric['13WeekPriceReturnDaily'] || 0;
       var trend  = ret4w !== null ? ret4w : (ret13w / 3);
       var high52 = m.metric && m.metric['52WeekHigh'] || 0;
       var low52  = m.metric && m.metric['52WeekLow']  || 0;
-      var qr2 = await fetch(BASE + '/quote?symbol=' + ticker + '&token=' + FKEY);
-      var price = 0;
-      if (qr2.ok) { var q = await qr2.json(); price = q.c || 0; }
+      var price  = q.c || 0;
+      var change1d = q.dp || 0;
       var pos52 = (high52 > low52 && price > 0) ? Math.round(((price - low52) / (high52 - low52)) * 100) : 50;
       var score = 50;
       if      (pos52 >= 85) score -= 18;
@@ -708,6 +712,12 @@ function updateCounts() {
       else if (trend >= 0)  score += 14;
       else if (trend > -15) score -= 6;
       else                  score -= 18;
+      // Momentum consistency (coiling signal - no candle needed)
+      var trend13w = ret13w / 3;
+      if (ret4w !== null && Math.abs(ret4w) < Math.abs(trend13w) * 0.5) score += 10;
+      // Daily volatility
+      if (Math.abs(change1d) > 8) score -= 8;
+      else if (Math.abs(change1d) < 1.5 && daysOut <= 30) score += 4;
       if (daysOut <= 3)        score -= 6;
       else if (daysOut <= 14)  score += 8;
       else if (daysOut <= 30)  score += 4;
