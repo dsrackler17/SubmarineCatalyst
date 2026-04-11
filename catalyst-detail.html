@@ -274,7 +274,7 @@ footer a:hover { color:var(--accent); }
     </div>
   </div>
 
-  <div id="sparkline-container" style="display:none;background:var(--surface);border:1px solid var(--border);border-top:none;padding:1rem 2rem;"></div>
+  <div id="sparkline-container" style="display:none;background:var(--surface);border:1px solid var(--border);padding:1rem 2rem;margin-bottom:1rem;"></div>
 
   <div class="disclaimer-box">
     ⚠️ This page contains quantitative scanner output only. It is not investment advice. All trading decisions are solely yours. Trading biotech binary events involves substantial risk of loss.
@@ -291,7 +291,7 @@ footer a:hover { color:var(--accent); }
         <div class="lock-overlay hidden" id="lock-summary">
           <div class="lock-icon-lg">🔒</div>
           <div class="lock-msg">Subscribe to read the full scanner analysis</div>
-          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+          <a href="/signup.html" class="lock-cta">Unlock — $29.99/mo</a>
         </div>
       </div>
 
@@ -301,7 +301,7 @@ footer a:hover { color:var(--accent); }
         <div class="lock-overlay hidden" id="lock-poa">
           <div class="lock-icon-lg">🔒</div>
           <div class="lock-msg">PoA breakdown visible to subscribers</div>
-          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+          <a href="/signup.html" class="lock-cta">Unlock — $29.99/mo</a>
         </div>
       </div>
 
@@ -311,7 +311,7 @@ footer a:hover { color:var(--accent); }
         <div class="lock-overlay hidden" id="lock-convex">
           <div class="lock-icon-lg">🔒</div>
           <div class="lock-msg">Convexity breakdown visible to subscribers</div>
-          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+          <a href="/signup.html" class="lock-cta">Unlock — $29.99/mo</a>
         </div>
       </div>
 
@@ -323,7 +323,7 @@ footer a:hover { color:var(--accent); }
         <div class="lock-overlay hidden" id="lock-timeline">
           <div class="lock-icon-lg">🔒</div>
           <div class="lock-msg">Catalyst timeline visible to subscribers</div>
-          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+          <a href="/signup.html" class="lock-cta">Unlock — $29.99/mo</a>
         </div>
       </div>
 
@@ -335,7 +335,7 @@ footer a:hover { color:var(--accent); }
         <div class="lock-overlay hidden" id="lock-stn">
           <div class="lock-icon-lg">🔒</div>
           <div class="lock-msg">STN risk assessment visible to subscribers</div>
-          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+          <a href="/signup.html" class="lock-cta">Unlock — $29.99/mo</a>
         </div>
       </div>
 
@@ -347,7 +347,7 @@ footer a:hover { color:var(--accent); }
         <div class="lock-overlay hidden" id="lock-targets">
           <div class="lock-icon-lg">🔒</div>
           <div class="lock-msg">Price targets visible to subscribers</div>
-          <a href="/signup.html" class="lock-cta">Unlock — $49.99/mo</a>
+          <a href="/signup.html" class="lock-cta">Unlock — $29.99/mo</a>
         </div>
       </div>
 
@@ -434,15 +434,16 @@ function populatePage(d, isPaid) {
   var poaHigh = d.poa_range_high != null ? Math.round(Number(d.poa_range_high)) : Math.min(97, Math.round(d.poa) + 8);
   var poaConf = d.poa_confidence || 'MODERATE';
   document.getElementById('stat-poa').textContent       = poaLow + '-' + poaHigh + '%';
-
   // Chart Setup
   var chartSetup = d.chart_setup || 'UNKNOWN';
   var chartEl = document.getElementById('stat-chart');
-  chartEl.textContent = chartSetup;
-  var chartColors = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'};
-  chartEl.style.color = chartColors[chartSetup] || 'var(--muted)';
+  if (chartEl) {
+    chartEl.textContent = chartSetup;
+    var chartColors = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'};
+    chartEl.style.color = chartColors[chartSetup] || 'var(--muted)';
+  }
 
-  // Sparkline
+  // 30-day Sparkline
   var priceHist = d.price_history_30d || [];
   if (priceHist.length >= 5) {
     var sparkContainer = document.getElementById('sparkline-container');
@@ -450,9 +451,9 @@ function populatePage(d, isPaid) {
     var minP = Math.min.apply(null, prices);
     var maxP = Math.max.apply(null, prices);
     var rng = maxP - minP || 1;
-    var w = 800, h = 60;
-    var pts = prices.map(function(p, i) {
-      return (i / (prices.length - 1) * w).toFixed(1) + ',' + (h - 4 - ((p - minP) / rng) * (h - 8)).toFixed(1);
+    var sw = 800, sh = 60;
+    var spts = prices.map(function(p, i) {
+      return (i / (prices.length - 1) * sw).toFixed(1) + ',' + (sh - 4 - ((p - minP) / rng) * (sh - 8)).toFixed(1);
     }).join(' ');
     var lastP = prices[prices.length - 1];
     var firstP = prices[0];
@@ -460,20 +461,11 @@ function populatePage(d, isPaid) {
     var lineCol = chg >= 0 ? 'var(--accent2)' : 'var(--red)';
     sparkContainer.style.display = 'block';
     sparkContainer.innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">' +
-        '<span style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">30-Day Price Action</span>' +
-        '<span style="font-family:var(--mono);font-size:0.68rem;color:' + lineCol + ';">$' + lastP.toFixed(2) + ' · ' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '% · ' + (d.price_trend_30d || 'FLAT') + '</span>' +
-      '</div>' +
-      '<svg viewBox="0 0 ' + w + ' ' + h + '" style="width:100%;height:50px;" preserveAspectRatio="none">' +
-        '<polyline points="' + pts + '" fill="none" stroke="' + lineCol + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
-        '<circle cx="' + (w).toFixed(1) + '" cy="' + (h - 4 - ((lastP - minP) / rng) * (h - 8)).toFixed(1) + '" r="3" fill="' + lineCol + '"/>' +
-      '</svg>' +
-      '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-top:0.2rem;">' +
-        '<span>$' + minP.toFixed(2) + '</span>' +
-        '<span>Range: ' + (d.range_position != null ? (d.range_position * 100).toFixed(0) + '% of 52w' : '') + '</span>' +
-        '<span>$' + maxP.toFixed(2) + '</span>' +
-      '</div>';
+      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;"><span style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);">30-Day Price Action</span><span style="font-family:var(--mono);font-size:0.68rem;color:' + lineCol + ';">$' + lastP.toFixed(2) + ' · ' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '% · ' + (d.price_trend_30d || 'FLAT') + '</span></div>' +
+      '<svg viewBox="0 0 ' + sw + ' ' + sh + '" style="width:100%;height:50px;" preserveAspectRatio="none"><polyline points="' + spts + '" fill="none" stroke="' + lineCol + '" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>' +
+      '<div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-top:0.2rem;"><span>$' + minP.toFixed(2) + '</span><span>' + (d.range_position != null ? (d.range_position * 100).toFixed(0) + '% of 52w range' : '') + '</span><span>$' + maxP.toFixed(2) + '</span></div>';
   }
+
   var stnRisk = d.sell_news_risk || 'MODERATE';
   var stnEl = document.getElementById('stat-stn');
   stnEl.textContent = stnRisk;
@@ -600,10 +592,11 @@ function populatePage(d, isPaid) {
 
 async function generateAISummary(d) {
   try {
-    var session = await scGetSession();
-    if (!session) return;
-
     var EDGE_URL = SC_CONFIG.supabaseUrl + '/functions/v1/ai-research';
+    // Compute PoA range for AI prompt
+    var poaLow = d.poa_range_low != null ? Math.round(Number(d.poa_range_low)) : Math.max(15, Math.round(d.poa) - 10);
+    var poaHigh = d.poa_range_high != null ? Math.round(Number(d.poa_range_high)) : Math.min(97, Math.round(d.poa) + 8);
+    var poaConf = d.poa_confidence || 'MODERATE';
     var stnRisk = d.sell_news_risk || 'MODERATE';
     var prompt;
 
@@ -667,7 +660,6 @@ async function generateAISummary(d) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + session.access_token,
       },
       body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
     });
@@ -782,7 +774,6 @@ async function generateAISummary(d) {
         poa_range_high: e.poa_range_high != null ? Number(e.poa_range_high) : null,
         poa_confidence: e.poa_confidence || 'MODERATE',
         chart_setup: e.chart_setup || 'UNKNOWN',
-        chart_setup_score: Number(e.chart_setup_score) || 0,
         price_trend_30d: e.price_trend_30d || 'FLAT',
         price_change_30d: e.price_change_30d != null ? Number(e.price_change_30d) : null,
         current_price: e.current_price != null ? Number(e.current_price) : null,
