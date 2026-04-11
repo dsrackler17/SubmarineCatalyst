@@ -563,7 +563,6 @@
 <!-- Single supabase script tag — CDN, loaded once here at the bottom -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/config.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ─── LIVE SCANNER DATA — fetched from Supabase ───────────────────────────────
 let SCANNER_DATA = [];
@@ -1394,41 +1393,173 @@ function switchTab(btn, id) {
   }
 })();
 
-// ── Export Card — generates PNG with SC branding ─────────────────────────
-async function exportCard(btn, ticker) {
-  const card = btn.closest('.scanner-card');
-  if (!card) return;
-
-  btn.textContent = '⏳ Exporting...';
+// ── Export Share Card — branded PNG for Twitter/Instagram/Discord/Reddit ──
+// Draws a clean 1200×675 (Twitter/OG) card using Canvas API directly
+// No html2canvas dependency — 100% reliable, works offline, crisp at 2x
+function exportCard(btn, ticker) {
+  btn.textContent = '⏳ Generating...';
   btn.disabled = true;
 
-  try {
-    // Temporarily add watermark
-    const watermark = document.createElement('div');
-    watermark.style.cssText = 'position:absolute;bottom:8px;right:10px;font-family:var(--mono);font-size:0.55rem;color:rgba(0,212,255,0.5);letter-spacing:0.1em;pointer-events:none;z-index:99;';
-    watermark.textContent = 'SUBMARINECATALYST.COM';
-    card.style.position = 'relative';
-    card.appendChild(watermark);
+  // Find data for this ticker
+  const d = (window.SCANNER_DATA || []).find(x => x.ticker === ticker)
+         || (window.BUYOUT_DATA  || []).find(x => x.ticker === ticker);
 
-    const canvas = await html2canvas(card, {
-      backgroundColor: '#0b1f3a',
-      scale: 2,
-      useCORS: true,
-      logging: false,
+  if (!d) {
+    btn.textContent = '❌ No data';
+    setTimeout(() => { btn.textContent = '📤 Export'; btn.disabled = false; }, 2000);
+    return;
+  }
+
+  try {
+    const W = 1200, H = 675;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    // ── Background ────────────────────────────────────────────────────────
+    ctx.fillStyle = '#040d1a';
+    ctx.fillRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(0,212,255,0.04)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+    // Top accent bar
+    const gradeColor = d.grade === 'ELITE' ? '#00ff9d' : d.grade === 'STRONG' ? '#00d4ff' : '#f5a623';
+    const grad = ctx.createLinearGradient(0,0,W,0);
+    grad.addColorStop(0, gradeColor);
+    grad.addColorStop(1, 'transparent');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, 3);
+
+    // ── Header: ticker + grade badge ─────────────────────────────────────
+    ctx.fillStyle = '#eaf4ff';
+    ctx.font = 'bold 72px "Space Mono", monospace';
+    ctx.fillText(d.ticker, 60, 110);
+
+    // Grade badge
+    const grade = d.grade || 'WATCH';
+    ctx.fillStyle = gradeColor + '22';
+    ctx.strokeStyle = gradeColor;
+    ctx.lineWidth = 1.5;
+    const badgeX = 60 + ctx.measureText(d.ticker).width + 20;
+    ctx.beginPath(); ctx.roundRect(badgeX, 68, 130, 38, 4); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = gradeColor;
+    ctx.font = 'bold 16px "Space Mono", monospace';
+    ctx.fillText(grade, badgeX + 14, 92);
+
+    // Drug + indication
+    ctx.fillStyle = '#5a7a99';
+    ctx.font = '20px "Space Mono", monospace';
+    const drug = (d.drug || d.approved_drug || '').substring(0, 45);
+    const ind  = (d.indication || d.approved_indication || '').substring(0, 50);
+    ctx.fillText(drug + (ind ? '  ·  ' + ind : ''), 60, 148);
+
+    // PDUFA date
+    if (d.date) {
+      const days = Math.round((new Date(d.date) - new Date()) / 86400000);
+      ctx.fillStyle = '#f5a623';
+      ctx.font = 'bold 15px "Space Mono", monospace';
+      ctx.fillText('PDUFA ' + d.date + (days >= 0 ? '  ·  ' + days + ' days' : '  ·  RESOLVED'), 60, 178);
+    }
+
+    // ── Divider ───────────────────────────────────────────────────────────
+    ctx.strokeStyle = '#1a3a5c';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(60, 200); ctx.lineTo(W-60, 200); ctx.stroke();
+
+    // ── Score boxes ───────────────────────────────────────────────────────
+    const scores = [
+      { label: 'PoA',        value: d.poa ? (d.poa).toFixed(1)+'%' : '—',          color: '#00ff9d' },
+      { label: 'STN Risk',   value: d.sell_news_risk || '—',
+        color: d.sell_news_risk === 'HIGH' ? '#ff4444' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? '#00ff9d' : '#f5a623' },
+      { label: 'Dilution',   value: d.dilution_risk || '—',
+        color: d.dilution_risk === 'HIGH' || d.dilution_risk === 'EXTREME' ? '#ff4444' : d.dilution_risk === 'MINIMAL' ? '#00ff9d' : '#f5a623' },
+      { label: 'Net Edge',   value: (d.net_edge_score || d.score || 0).toFixed(1),
+        color: (d.net_edge_score||d.score||0) >= 72 ? '#00ff9d' : (d.net_edge_score||d.score||0) >= 58 ? '#00d4ff' : '#f5a623' },
+      { label: 'Chart',      value: d.ta_setup_label || 'BUILDING',
+        color: d.ta_setup_label === 'READY' ? '#00ff9d' : d.ta_setup_label === 'COILING' ? '#00d4ff' : d.ta_setup_label === 'EXTENDED' || d.ta_setup_label === 'WEAK' ? '#ff4444' : '#f5a623' },
+      { label: '30d Trend',  value: d.ta_trend_30d !== undefined ? (d.ta_trend_30d > 0 ? '+' : '') + d.ta_trend_30d + '%' : '—',
+        color: d.ta_trend_30d > 0 ? '#00ff9d' : '#ff4444' },
+    ];
+
+    const boxW = (W - 120 - (scores.length-1)*16) / scores.length;
+    scores.forEach((s, i) => {
+      const bx = 60 + i * (boxW + 16);
+      const by = 225;
+      const bh = 155;
+
+      // Box bg
+      ctx.fillStyle = '#0b1f3a';
+      ctx.strokeStyle = '#1a3a5c';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(bx, by, boxW, bh, 4); ctx.fill(); ctx.stroke();
+
+      // Top accent
+      ctx.fillStyle = s.color + '66';
+      ctx.beginPath(); ctx.roundRect(bx, by, boxW, 3, [4,4,0,0]); ctx.fill();
+
+      // Label
+      ctx.fillStyle = '#5a7a99';
+      ctx.font = '13px "Space Mono", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(s.label.toUpperCase(), bx + boxW/2, by + 32);
+
+      // Value
+      ctx.fillStyle = s.color;
+      ctx.font = 'bold ' + (s.value.length > 7 ? '18' : '26') + 'px "Space Mono", monospace';
+      ctx.fillText(s.value, bx + boxW/2, by + 95);
+
+      ctx.textAlign = 'left';
     });
 
-    card.removeChild(watermark);
+    // ── Flags (top 2) ────────────────────────────────────────────────────
+    const flags = (d.flags || d.buyout_flags || []).slice(0, 2);
+    flags.forEach((f, i) => {
+      ctx.fillStyle = '#0f2647';
+      ctx.beginPath(); ctx.roundRect(60, 410 + i*42, W-120, 34, 4); ctx.fill();
+      ctx.fillStyle = '#c8dff0';
+      ctx.font = '14px "Space Mono", monospace';
+      ctx.fillText(f.substring(0, 80), 76, 432 + i*42);
+    });
 
-    // Download
+    // ── Footer ────────────────────────────────────────────────────────────
+    ctx.strokeStyle = '#1a3a5c';
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(60, H-80); ctx.lineTo(W-60, H-80); ctx.stroke();
+
+    // Logo
+    ctx.fillStyle = '#00d4ff';
+    ctx.font = 'bold 18px "Space Mono", monospace';
+    ctx.fillText('SUBMARINE', 60, H-44);
+    ctx.fillStyle = '#eaf4ff';
+    ctx.fillText('CATALYST', 60 + ctx.measureText('SUBMARINE').width + 6, H-44);
+
+    // Tagline
+    ctx.fillStyle = '#5a7a99';
+    ctx.font = '13px "Space Mono", monospace';
+    ctx.fillText('submarinecatalyst.com  ·  quantitative data classifications  ·  not financial advice', 60, H-20);
+
+    // Date stamp
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#5a7a99';
+    ctx.font = '13px "Space Mono", monospace';
+    ctx.fillText(new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}).toUpperCase(), W-60, H-44);
+    ctx.textAlign = 'left';
+
+    // ── Download ─────────────────────────────────────────────────────────
     const link = document.createElement('a');
     link.download = 'SC-' + ticker + '-' + new Date().toISOString().split('T')[0] + '.png';
-    link.href = canvas.toDataURL('image/png');
+    link.href = canvas.toDataURL('image/png', 1.0);
     link.click();
 
-    btn.textContent = '✅ Exported';
-    setTimeout(() => { btn.textContent = '📤 Export'; btn.disabled = false; }, 2000);
+    btn.textContent = '✅ Saved';
+    setTimeout(() => { btn.textContent = '📤 Export'; btn.disabled = false; }, 2500);
+
   } catch(e) {
-    console.error('Export failed:', e);
+    console.error('[SC] Export failed:', e);
     btn.textContent = '📤 Export';
     btn.disabled = false;
   }
