@@ -227,6 +227,9 @@
       <button class="sidebar-item" onclick="switchTab(this,'buyout')">
         <span class="sidebar-icon">🏷️</span> Buyout Scanner
       </button>
+      <button class="sidebar-item" onclick="switchTab(this,'track-record')">
+        <span class="sidebar-icon">📊</span> Track Record
+      </button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
@@ -345,6 +348,162 @@
       </p>
     </div>
 
+    <div class="tab-panel" id="tab-track-record">
+      <div class="section-header">
+        <h2 class="section-title">Track Record</h2>
+        <span class="section-meta">Every call logged before resolution. Wins and losses.</span>
+      </div>
+
+      <!-- Stats bar -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;">
+        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
+          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">RESOLVED</div>
+          <div style="font-family:var(--serif);font-size:2rem;color:var(--accent);">8</div>
+        </div>
+        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
+          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">CORRECT</div>
+          <div style="font-family:var(--serif);font-size:2rem;color:var(--accent2);">6</div>
+        </div>
+        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
+          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">MISSES</div>
+          <div style="font-family:var(--serif);font-size:2rem;color:var(--red);">1</div>
+        </div>
+        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
+          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">STN ACCURACY</div>
+          <div style="font-family:var(--serif);font-size:2rem;color:var(--accent);">7/8</div>
+        </div>
+      </div>
+
+      <!-- Resolved events table -->
+      <div style="border:1px solid var(--border);overflow-x:auto;margin-bottom:2rem;">
+        <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:0.72rem;">
+          <thead>
+            <tr style="background:var(--panel);">
+              <th style="padding:0.6rem 0.75rem;text-align:left;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">TICKER</th>
+              <th style="padding:0.6rem 0.75rem;text-align:left;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">DRUG / EVENT</th>
+              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">SCANNER CALL</th>
+              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">PoA</th>
+              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">STN</th>
+              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">RESULT</th>
+              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">MOVE</th>
+              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">CALL ✓</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background:rgba(255,68,68,0.04);">
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">REPL <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.1em;">MISS</span></td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Vamorolone · DMD</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">84%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">HIGH</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">❌ CRL</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">−19.46%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;"><span style="color:var(--red);">✗ PoA</span> <span style="color:var(--accent2);">✓ STN</span></td>
+            </tr>
+            <tr>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">VNDA</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Tradipitant · Gastroparesis</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">78%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">LOW</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">+45%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
+            </tr>
+            <tr style="background:var(--surface);">
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">RCKT</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Kresladi · LAD-I Gene Therapy</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">85%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">HIGH</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">−20%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓ <span style="font-size:0.6rem;color:var(--muted);">STN called drop</span></td>
+            </tr>
+            <tr>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">DNLI</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Prasinezumab · Parkinson's</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">82%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">LOW</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">+8%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
+            </tr>
+            <tr style="background:var(--surface);">
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">BIIB</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Nusinersen HD · SMA</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">90%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">−5%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
+            </tr>
+            <tr>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">FBIO</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Ojjaara · Myelofibrosis</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">55%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">ELEVATED</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">+3%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
+            </tr>
+            <tr style="background:var(--surface);">
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">VNDA 2</td>
+              <td style="padding:0.55rem 0.75rm;border:1px solid var(--border);color:var(--muted);">Tradipitant · 2nd Indication</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">80%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">+28%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
+            </tr>
+            <!-- PENDING -->
+            <tr style="background:rgba(0,212,255,0.04);">
+              <td colspan="8" style="padding:0.4rem 0.75rem;font-size:0.6rem;color:var(--accent);letter-spacing:0.15em;border:1px solid var(--border);">▼ PENDING RESOLUTION — APRIL 13</td>
+            </tr>
+            <tr style="background:rgba(0,212,255,0.02);">
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--accent);font-weight:700;">TVTX 🔴</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Filspari · FSGS sNDA</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">77.5%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">Pending Apr 13</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
+            </tr>
+            <tr style="background:rgba(0,212,255,0.02);">
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--accent);font-weight:700;">LGND 🔴</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Filspari royalty · FSGS</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">81%</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">Pending Apr 13</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
+              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Model accuracy callout -->
+      <div style="background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;">
+        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent2);"></div>
+        <div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;color:var(--accent2);margin-bottom:0.75rem;">STN RISK LAYER — KEY INSIGHT</div>
+        <p style="font-family:var(--sans);font-size:0.88rem;color:var(--text);font-weight:300;line-height:1.8;">
+          6/7 approval calls correct. But 3 of those 6 correct approvals lost money post-decision — RCKT (−20%), BIIB (−5%), FBIO (+3%). 
+          The STN Risk layer correctly identified elevated downside on all three before the decision. 
+          The REPL CRL miss (called 84% PoA) triggered a model update: CMC risk penalties, improved indication classification, and capped modifier stacking are now live in v2.
+        </p>
+      </div>
+
+      <div style="text-align:center;">
+        <a href="/track-record.html" style="font-family:var(--mono);font-size:0.72rem;color:var(--accent);letter-spacing:0.1em;text-decoration:none;">View full track record page →</a>
+      </div>
+    </div>
+
     <div class="tab-panel" id="tab-account">
       <div class="section-header">
         <h2 class="section-title">Account &amp; Billing</h2>
@@ -376,8 +535,9 @@
               <div class="account-field-label">Next Billing Date</div>
               <div class="account-field-val" id="acct-next">—</div>
             </div>
-            <div class="account-field" style="margin-top:1.5rem">
+            <div class="account-field" style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
               <a href="#" class="btn-portal" id="billing-portal-btn">Manage Billing →</a>
+              <a href="mailto:dsrackler@gmail.com?subject=Submarine%20Catalyst%20Feedback&body=Ticker%20I%20want%20added%3A%0A%0AFeature%20I%20need%3A%0A%0AAnything%20broken%3A%0A%0A" class="btn-portal" style="color:var(--accent2);border-color:var(--accent2);">Send Feedback →</a>
             </div>
           </div>
         </div>
@@ -403,6 +563,7 @@
 <!-- Single supabase script tag — CDN, loaded once here at the bottom -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/config.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
 // ─── LIVE SCANNER DATA — fetched from Supabase ───────────────────────────────
 let SCANNER_DATA = [];
@@ -662,6 +823,7 @@ function renderScanner() {
         })()}
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">
           View deep dive →
+          <button onclick="exportCard(this, '${d.ticker}')" style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);background:none;border:1px solid var(--border);padding:0.2rem 0.5rem;cursor:pointer;letter-spacing:0.06em;margin-left:0.5rem;" onmouseover="this.style.color='var(--accent2)';this.style.borderColor='var(--accent2)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">📤 Export</button>
         </div>
       </div>`;
   }).join('');
@@ -927,7 +1089,7 @@ function renderBuyoutGrid() {
 }
 
 function switchTab(btn, id) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -1231,6 +1393,46 @@ function switchTab(btn, id) {
     };
   }
 })();
+
+// ── Export Card — generates PNG with SC branding ─────────────────────────
+async function exportCard(btn, ticker) {
+  const card = btn.closest('.scanner-card');
+  if (!card) return;
+
+  btn.textContent = '⏳ Exporting...';
+  btn.disabled = true;
+
+  try {
+    // Temporarily add watermark
+    const watermark = document.createElement('div');
+    watermark.style.cssText = 'position:absolute;bottom:8px;right:10px;font-family:var(--mono);font-size:0.55rem;color:rgba(0,212,255,0.5);letter-spacing:0.1em;pointer-events:none;z-index:99;';
+    watermark.textContent = 'SUBMARINECATALYST.COM';
+    card.style.position = 'relative';
+    card.appendChild(watermark);
+
+    const canvas = await html2canvas(card, {
+      backgroundColor: '#0b1f3a',
+      scale: 2,
+      useCORS: true,
+      logging: false,
+    });
+
+    card.removeChild(watermark);
+
+    // Download
+    const link = document.createElement('a');
+    link.download = 'SC-' + ticker + '-' + new Date().toISOString().split('T')[0] + '.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    btn.textContent = '✅ Exported';
+    setTimeout(() => { btn.textContent = '📤 Export'; btn.disabled = false; }, 2000);
+  } catch(e) {
+    console.error('Export failed:', e);
+    btn.textContent = '📤 Export';
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
