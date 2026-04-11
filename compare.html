@@ -213,7 +213,7 @@ function runComparison() {
         case 'Days Out': val = days >= 0 ? days + 'd' : 'Resolved'; cls = days <= 14 ? 'red' : days <= 30 ? 'amber' : ''; break;
         case 'Application Type': val = e.type || 'PDUFA'; break;
         case 'Grade': val = e.grade; cls = e.grade === 'ELITE' ? 'cyan' : e.grade === 'STRONG' ? 'green' : e.grade === 'WATCH' ? 'amber' : 'red'; break;
-        case 'PoA Score': val = barHTML(e.poa, 100, e.poa >= 75 ? 'green' : e.poa >= 60 ? 'cyan' : 'amber', (e.poa || 0).toFixed(1) + '%'); break;
+        case 'PoA Score': var poaR = (e.poa_range_low && e.poa_range_high) ? Math.round(e.poa_range_low) + '-' + Math.round(e.poa_range_high) + '%' : (e.poa || 0).toFixed(0) + '%'; val = barHTML(e.poa, 100, e.poa >= 75 ? 'green' : e.poa >= 60 ? 'cyan' : 'amber', poaR); break;
         case 'STN Risk': val = e.sell_news_risk || 'MOD'; cls = riskColor(e.sell_news_risk); break;
         case 'Dilution Risk': val = e.dilution_risk || '—'; cls = riskColor(e.dilution_risk); break;
         case 'Net Edge Score': val = barHTML(e.net_edge_score || e.score, 100, (e.net_edge_score || e.score) >= 72 ? 'green' : (e.net_edge_score || e.score) >= 58 ? 'cyan' : 'amber', (e.net_edge_score || e.score || 0).toFixed(1)); break;
@@ -271,7 +271,7 @@ async function generateAIComparison(events) {
     if (!session) return;
 
     var tickerSummaries = events.map(function(e) {
-      return e.ticker + ': ' + (e.drug || 'unknown') + ' | ' + (e.indication || 'unknown') + ' | PDUFA ' + e.date + ' | PoA ' + (e.poa || 0).toFixed(1) + '% | STN ' + (e.sell_news_risk || 'MOD') + ' | Dilution ' + (e.dilution_risk || 'UNKNOWN') + ' | Net Edge ' + (e.net_edge_score || e.score || 0).toFixed(1) + ' | Grade ' + (e.grade || 'WATCH') + ' | Shelf: ' + (e.shelf_active ? 'YES' : 'No') + ' | ATM: ' + (e.atm_active ? 'YES' : 'No');
+      return e.ticker + ': ' + (e.drug || 'unknown') + ' | ' + (e.indication || 'unknown') + ' | PDUFA ' + e.date + ' | PoA ' + (e.poa_range_low && e.poa_range_high ? Math.round(e.poa_range_low) + '-' + Math.round(e.poa_range_high) + '%' : (e.poa || 0).toFixed(0) + '%') + ' (conf: ' + (e.poa_confidence || 'MOD') + ') | STN ' + (e.sell_news_risk || 'MOD') + ' | Dilution ' + (e.dilution_risk || 'UNKNOWN') + ' | Net Edge ' + (e.net_edge_score || e.score || 0).toFixed(1) + ' | Grade ' + (e.grade || 'WATCH') + ' | Shelf: ' + (e.shelf_active ? 'YES' : 'No') + ' | ATM: ' + (e.atm_active ? 'YES' : 'No');
     }).join('\n');
 
     var prompt = 'Compare these PDUFA setups side by side. For each, assess which is the better trade and why:\n\n' + tickerSummaries + '\n\n' +
@@ -279,7 +279,7 @@ async function generateAIComparison(events) {
 
     var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/ai-research', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + session.access_token },
       body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
     });
 

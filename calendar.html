@@ -13,8 +13,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
 <script src="/js/config.js"></script>
-<script src="/js/sc-data-fix.js"></script>
-
 <style>
 :root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -312,7 +310,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Setup</th><th>Chart</th>';
+    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Setup</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -354,8 +352,6 @@ function renderTable() {
     var capLabel = {'LARGE':'LRG','MID':'MID','SMALL':'SM'}[e.market_cap_tier] || '—';
 
     html += '<tr onclick="window.location.href=\'' + link + '\'">';
-    var rowId = 'cal-row-' + e.ticker.replace(/[^A-Z0-9]/g,'');
-    html += '<tr id="' + rowId + '" data-ticker="' + e.ticker + '" data-days="' + (days !== null ? days : 90) + '">';
     html += '<td class="ticker-cell">' + e.ticker + (days !== null && days >= 0 ? daysPill(days) : '') + '</td>';
     html += '<td style="font-family:var(--sans);font-size:0.72rem;color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + compName + '</td>';
     html += '<td>' + eventBadge(e.type) + '</td>';
@@ -373,8 +369,11 @@ function renderTable() {
       if (e._source === 'pdufa' || e._source === 'catalyst') {
         // PDUFA/catalyst — show PoA + STN
         var poaVal = Number(e.poa) || 0;
+        var poaLow = e.poa_range_low != null ? Math.round(Number(e.poa_range_low)) : (poaVal > 0 ? Math.max(15, poaVal - 10) : 0);
+        var poaHigh = e.poa_range_high != null ? Math.round(Number(e.poa_range_high)) : (poaVal > 0 ? Math.min(97, poaVal + 8) : 0);
         var poaColor = poaVal >= 75 ? 'var(--accent2)' : poaVal >= 60 ? 'var(--accent)' : poaVal > 0 ? 'var(--amber)' : 'var(--muted)';
-        html += '<td class="score-cell" style="color:' + poaColor + '">' + (poaVal > 0 ? poaVal.toFixed(0) + '%' : '—') + '</td>';
+        var poaText = poaVal > 0 ? poaLow + '-' + poaHigh + '%' : '—';
+        html += '<td class="score-cell" style="color:' + poaColor + '">' + poaText + '</td>';
         var stnVal = e.sell_news_risk || '—';
         html += '<td class="score-cell" style="color:' + riskColor(stnVal) + ';font-size:0.62rem;">' + stnVal + '</td>';
       } else {
@@ -491,7 +490,7 @@ function updateCounts() {
   if (ALL_EVENTS.length === 0) {
     // Load PDUFA events
     var { data: pdufaEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type')
+      .select('ticker, drug, indication, type, date, grade, poa, poa_range_low, poa_range_high, poa_confidence, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 
@@ -664,101 +663,6 @@ function updateCounts() {
   if (!isPaid) {
     // Show gate after slight delay
     // Don't block — let them see dates, just lock scores
-  }
-})();
-</script>
-
-<script>
-// ── Live TA Enrichment for Calendar ────────────────────────────────────────
-(function() {
-  var FKEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
-  var BASE = 'https://finnhub.io/api/v1';
-
-  function label(score) {
-    if (score >= 70) return { text: 'READY',    color: 'var(--accent2)' };
-    if (score >= 60) return { text: 'COILING',  color: 'var(--accent)'  };
-    if (score >= 50) return { text: 'BUILDING', color: 'var(--amber)'   };
-    if (score >= 30) return { text: 'EXTENDED', color: 'var(--red)'     };
-    return              { text: 'WEAK',     color: 'var(--red)'     };
-  }
-
-  async function fetchScore(ticker, daysOut) {
-    try {
-      // Parallel fetch quote + metrics (both free tier)
-      var [mr, qr2] = await Promise.all([
-        fetch(BASE + '/stock/metric?symbol=' + ticker + '&metric=all&token=' + FKEY),
-        fetch(BASE + '/quote?symbol=' + ticker + '&token=' + FKEY)
-      ]);
-      if (!mr.ok) return null;
-      var m = await mr.json();
-      var q = qr2.ok ? await qr2.json() : {};
-      var ret4w  = m.metric && m.metric['4WeekPriceReturnDaily']  || null;
-      var ret13w = m.metric && m.metric['13WeekPriceReturnDaily'] || 0;
-      var trend  = ret4w !== null ? ret4w : (ret13w / 3);
-      var high52 = m.metric && m.metric['52WeekHigh'] || 0;
-      var low52  = m.metric && m.metric['52WeekLow']  || 0;
-      var price  = q.c || 0;
-      var change1d = q.dp || 0;
-      var pos52 = (high52 > low52 && price > 0) ? Math.round(((price - low52) / (high52 - low52)) * 100) : 50;
-      var score = 50;
-      if      (pos52 >= 85) score -= 18;
-      else if (pos52 >= 70) score -= 8;
-      else if (pos52 >= 35) score += 12;
-      else if (pos52 >= 15) score += 6;
-      else                  score -= 10;
-      if      (trend > 50)  score -= 22;
-      else if (trend > 30)  score -= 14;
-      else if (trend > 15)  score -= 4;
-      else if (trend >= 0)  score += 14;
-      else if (trend > -15) score -= 6;
-      else                  score -= 18;
-      // Momentum consistency (coiling signal - no candle needed)
-      var trend13w = ret13w / 3;
-      if (ret4w !== null && Math.abs(ret4w) < Math.abs(trend13w) * 0.5) score += 10;
-      // Daily volatility
-      if (Math.abs(change1d) > 8) score -= 8;
-      else if (Math.abs(change1d) < 1.5 && daysOut <= 30) score += 4;
-      if (daysOut <= 3)        score -= 6;
-      else if (daysOut <= 14)  score += 8;
-      else if (daysOut <= 30)  score += 4;
-      else if (daysOut > 60)   score -= 4;
-      return { score: Math.max(0, Math.min(100, Math.round(score))), trend: Math.round(trend * 10) / 10 };
-    } catch(e) { return null; }
-  }
-
-  async function enrichCalendar() {
-    await new Promise(function(r) { setTimeout(r, 600); });
-    var cells = document.querySelectorAll('[id^="ta-cal-"]');
-    if (!cells.length) return;
-    var items = Array.from(cells).map(function(c) {
-      return { el: c, ticker: c.dataset.ticker, daysOut: parseInt(c.closest('tr') ? (c.closest('tr').dataset.days || 90) : 90) };
-    });
-    for (var i = 0; i < items.length; i += 4) {
-      var batch = items.slice(i, i + 4);
-      await Promise.all(batch.map(async function(item) {
-        var r = await fetchScore(item.ticker, item.daysOut);
-        if (!r) return;
-        var l = label(r.score);
-        item.el.textContent = l.text;
-        item.el.style.color = l.color;
-        item.el.style.fontWeight = '700';
-      }));
-      if (i + 4 < items.length) await new Promise(function(r) { setTimeout(r, 400); });
-    }
-  }
-
-  // Run after table renders and re-run on tab switches
-  document.addEventListener('DOMContentLoaded', function() {
-    setTimeout(enrichCalendar, 1200);
-  });
-
-  // Hook into renderTable
-  var origRender = window.renderTable;
-  if (typeof origRender === 'function') {
-    window.renderTable = function() {
-      origRender.apply(this, arguments);
-      enrichCalendar();
-    };
   }
 })();
 </script>

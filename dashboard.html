@@ -227,9 +227,6 @@
       <button class="sidebar-item" onclick="switchTab(this,'buyout')">
         <span class="sidebar-icon">🏷️</span> Buyout Scanner
       </button>
-      <button class="sidebar-item" onclick="switchTab(this,'track-record')">
-        <span class="sidebar-icon">📊</span> Track Record
-      </button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
@@ -252,6 +249,12 @@
   </aside>
 
   <div class="dash-main">
+
+    <div id="live-event-banner" style="background:rgba(255,68,68,0.06);border:1px solid rgba(255,68,68,0.25);padding:0.65rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--red);letter-spacing:0.04em;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;"></span>
+      <span><strong>REPL ❌ CRL</strong> · PoA miss (called 84%) · STN HIGH flagged −19.46% downside correctly &nbsp;|&nbsp; <strong style="color:var(--amber);">⚡ NEXT:</strong> <span style="color:var(--amber);">TVTX + LGND PDUFA Apr 13</span> (<span id="dash-countdown" style="color:var(--accent);">...</span>)</span>
+      <span style="margin-left:auto;opacity:0.6;cursor:pointer;color:var(--muted);" onclick="this.parentElement.style.display='none'">✕</span>
+    </div>
 
     <div class="verifying-banner" id="verifying-banner" style="display:none;">
       <div class="spinner"></div>
@@ -293,7 +296,6 @@
           <option value="date_desc">Sort: Furthest First</option>
           <option value="poa">Sort: PoA ↓</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
-          <option value="trade">Sort: Best Trade Now ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
         </select>
         <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -348,162 +350,6 @@
       </p>
     </div>
 
-    <div class="tab-panel" id="tab-track-record">
-      <div class="section-header">
-        <h2 class="section-title">Track Record</h2>
-        <span class="section-meta">Every call logged before resolution. Wins and losses.</span>
-      </div>
-
-      <!-- Stats bar -->
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;">
-        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
-          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">RESOLVED</div>
-          <div style="font-family:var(--serif);font-size:2rem;color:var(--accent);">8</div>
-        </div>
-        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
-          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">CORRECT</div>
-          <div style="font-family:var(--serif);font-size:2rem;color:var(--accent2);">6</div>
-        </div>
-        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
-          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">MISSES</div>
-          <div style="font-family:var(--serif);font-size:2rem;color:var(--red);">1</div>
-        </div>
-        <div style="background:var(--surface);padding:1.25rem;text-align:center;">
-          <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;color:var(--muted);margin-bottom:0.4rem;">STN ACCURACY</div>
-          <div style="font-family:var(--serif);font-size:2rem;color:var(--accent);">7/8</div>
-        </div>
-      </div>
-
-      <!-- Resolved events table -->
-      <div style="border:1px solid var(--border);overflow-x:auto;margin-bottom:2rem;">
-        <table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:0.72rem;">
-          <thead>
-            <tr style="background:var(--panel);">
-              <th style="padding:0.6rem 0.75rem;text-align:left;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">TICKER</th>
-              <th style="padding:0.6rem 0.75rem;text-align:left;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">DRUG / EVENT</th>
-              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">SCANNER CALL</th>
-              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">PoA</th>
-              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">STN</th>
-              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">RESULT</th>
-              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">MOVE</th>
-              <th style="padding:0.6rem 0.75rem;text-align:center;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">CALL ✓</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style="background:rgba(255,68,68,0.04);">
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">REPL <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.1em;">MISS</span></td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Vamorolone · DMD</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">84%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">HIGH</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">❌ CRL</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">−19.46%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;"><span style="color:var(--red);">✗ PoA</span> <span style="color:var(--accent2);">✓ STN</span></td>
-            </tr>
-            <tr>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">VNDA</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Tradipitant · Gastroparesis</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">78%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">LOW</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">+45%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
-            </tr>
-            <tr style="background:var(--surface);">
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">RCKT</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Kresladi · LAD-I Gene Therapy</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">85%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">HIGH</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">−20%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓ <span style="font-size:0.6rem;color:var(--muted);">STN called drop</span></td>
-            </tr>
-            <tr>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">DNLI</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Prasinezumab · Parkinson's</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">82%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">LOW</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">+8%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
-            </tr>
-            <tr style="background:var(--surface);">
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">BIIB</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Nusinersen HD · SMA</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">90%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--red);">−5%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
-            </tr>
-            <tr>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">FBIO</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Ojjaara · Myelofibrosis</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">55%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">ELEVATED</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">+3%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
-            </tr>
-            <tr style="background:var(--surface);">
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--white);font-weight:700;">VNDA 2</td>
-              <td style="padding:0.55rem 0.75rm;border:1px solid var(--border);color:var(--muted);">Tradipitant · 2nd Indication</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">80%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✅ APPROVED</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">+28%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">✓</td>
-            </tr>
-            <!-- PENDING -->
-            <tr style="background:rgba(0,212,255,0.04);">
-              <td colspan="8" style="padding:0.4rem 0.75rem;font-size:0.6rem;color:var(--accent);letter-spacing:0.15em;border:1px solid var(--border);">▼ PENDING RESOLUTION — APRIL 13</td>
-            </tr>
-            <tr style="background:rgba(0,212,255,0.02);">
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--accent);font-weight:700;">TVTX 🔴</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Filspari · FSGS sNDA</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">77.5%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">Pending Apr 13</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
-            </tr>
-            <tr style="background:rgba(0,212,255,0.02);">
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--accent);font-weight:700;">LGND 🔴</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);color:var(--muted);">Filspari royalty · FSGS</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">APPROVE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--accent2);">81%</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--amber);">MODERATE</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">Pending Apr 13</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
-              <td style="padding:0.55rem 0.75rem;border:1px solid var(--border);text-align:center;color:var(--muted);">—</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Model accuracy callout -->
-      <div style="background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin-bottom:1.5rem;position:relative;overflow:hidden;">
-        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent2);"></div>
-        <div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;color:var(--accent2);margin-bottom:0.75rem;">STN RISK LAYER — KEY INSIGHT</div>
-        <p style="font-family:var(--sans);font-size:0.88rem;color:var(--text);font-weight:300;line-height:1.8;">
-          6/7 approval calls correct. But 3 of those 6 correct approvals lost money post-decision — RCKT (−20%), BIIB (−5%), FBIO (+3%). 
-          The STN Risk layer correctly identified elevated downside on all three before the decision. 
-          The REPL CRL miss (called 84% PoA) triggered a model update: CMC risk penalties, improved indication classification, and capped modifier stacking are now live in v2.
-        </p>
-      </div>
-
-      <div style="text-align:center;">
-        <a href="/track-record.html" style="font-family:var(--mono);font-size:0.72rem;color:var(--accent);letter-spacing:0.1em;text-decoration:none;">View full track record page →</a>
-      </div>
-    </div>
-
     <div class="tab-panel" id="tab-account">
       <div class="section-header">
         <h2 class="section-title">Account &amp; Billing</h2>
@@ -535,9 +381,8 @@
               <div class="account-field-label">Next Billing Date</div>
               <div class="account-field-val" id="acct-next">—</div>
             </div>
-            <div class="account-field" style="margin-top:1.5rem;display:flex;gap:0.75rem;flex-wrap:wrap;">
+            <div class="account-field" style="margin-top:1.5rem">
               <a href="#" class="btn-portal" id="billing-portal-btn">Manage Billing →</a>
-              <a href="mailto:dsrackler@gmail.com?subject=Submarine%20Catalyst%20Feedback&body=Ticker%20I%20want%20added%3A%0A%0AFeature%20I%20need%3A%0A%0AAnything%20broken%3A%0A%0A" class="btn-portal" style="color:var(--accent2);border-color:var(--accent2);">Send Feedback →</a>
             </div>
           </div>
         </div>
@@ -563,8 +408,6 @@
 <!-- Single supabase script tag — CDN, loaded once here at the bottom -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/config.js"></script>
-<script src="/js/sc-data-fix.js"></script>
-
 <script>
 // ─── LIVE SCANNER DATA — fetched from Supabase ───────────────────────────────
 let SCANNER_DATA = [];
@@ -586,55 +429,6 @@ function gradeBadge(g) {
 }
 
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
-// ── Trade Signal Score — "Is this a good trade TODAY or THIS WEEK?" ──────────
-// Combines Chart Setup, Days to PDUFA, Net Edge, STN Risk, Dilution
-// Displayed as a badge on each card and used for "Best Trade Now" sort
-function tradeScore(d) {
-  var days = d.date ? Math.round((new Date(d.date) - new Date()) / 86400000) : 999;
-  var net = d.net_edge_score || d.score || 0;
-  var stn = (d.sell_news_risk || '').toUpperCase();
-  var dil = (d.dilution_risk || '').toUpperCase();
-  var score = 0;
-
-  // Net Edge base
-  score += Math.min(net, 100) * 0.4;
-
-  // PDUFA timing sweet spot (1-14 days = best window)
-  if      (days >= 1  && days <= 7)  score += 30;
-  else if (days >= 8  && days <= 14) score += 22;
-  else if (days >= 15 && days <= 30) score += 10;
-  else if (days > 30)                score -= 5;
-  else if (days < 0)                 score = 0; // past
-
-  // STN risk penalty
-  if      (stn === 'HIGH')     score -= 20;
-  else if (stn === 'ELEVATED') score -= 8;
-  else if (stn === 'LOW' || stn === 'VERY LOW') score += 10;
-
-  // Dilution penalty
-  if (dil === 'HIGH' || dil === 'EXTREME') score -= 15;
-  else if (dil === 'MINIMAL') score += 5;
-
-  return Math.max(0, Math.round(score));
-}
-
-function tradeSignalLabel(d) {
-  var days = d.date ? Math.round((new Date(d.date) - new Date()) / 86400000) : 999;
-  var net  = d.net_edge_score || d.score || 0;
-  var stn  = (d.sell_news_risk || '').toUpperCase();
-  var dil  = (d.dilution_risk  || '').toUpperCase();
-  var ts   = tradeScore(d);
-
-  if (days < 0)    return null;
-  if (dil === 'HIGH' || dil === 'EXTREME') return { text: '⚠️ DILUTION RISK', color: 'var(--red)', bg: 'rgba(255,68,68,0.08)' };
-  if (stn === 'HIGH' && days <= 7)         return { text: '🚨 STN HIGH — CAUTION', color: 'var(--red)', bg: 'rgba(255,68,68,0.08)' };
-  if (ts >= 65 && days <= 7)               return { text: '🔥 TRADE THIS WEEK', color: 'var(--accent2)', bg: 'rgba(0,255,157,0.08)' };
-  if (ts >= 55 && days <= 14)              return { text: '📡 WATCH CLOSELY', color: 'var(--accent)', bg: 'rgba(0,212,255,0.08)' };
-  if (ts >= 45 && days <= 30)              return { text: '⏳ BUILDING WINDOW', color: 'var(--amber)', bg: 'rgba(245,166,35,0.08)' };
-  if (days > 30)                           return { text: '📅 MONITOR — ' + days + 'd out', color: 'var(--muted)', bg: 'transparent' };
-  return null;
-}
-
 function renderScanner() {
   if (SCANNER_DATA.length === 0) {
     document.getElementById('scanner-grid').innerHTML = `
@@ -669,7 +463,6 @@ function renderScanner() {
       case 'date_desc': return daysUntil(b.date) - daysUntil(a.date);
       case 'poa':       return (b.poa || 0) - (a.poa || 0);
       case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
-      case 'trade':     return tradeScore(b) - tradeScore(a);
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
       default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
     }
@@ -683,8 +476,7 @@ function renderScanner() {
     return `
       <div class="scanner-card ${gradeClass(d.grade)}" style="animation-delay:${i*0.05}s"
            onclick="window.location.href='/catalyst-detail.html?ticker=${d.ticker}'"
-           title="View ${d.ticker} deep dive →"
-           data-ticker="${d.ticker}" data-days="${days}">
+           title="View ${d.ticker} deep dive →">
         <div class="card-top">
           <div>
             <div class="card-ticker">${d.ticker} ${daysPill(days)}</div>
@@ -692,17 +484,12 @@ function renderScanner() {
           </div>
           ${gradeBadge(d.grade)}
         </div>
-        ${(() => {
-          var sig = tradeSignalLabel(d);
-          if (!sig) return '';
-          return '<div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.08em;padding:0.2rem 0.5rem;background:' + sig.bg + ';color:' + sig.color + ';border:1px solid ' + sig.color + ';display:inline-block;margin-bottom:0.5rem;">' + sig.text + '</div>';
-        })()}
         <div class="card-drug">${d.drug}</div>
         <div class="card-indication">${d.indication}</div>
         <div class="card-scores">
           <div class="score-box">
             <div class="score-box-label">PoA</div>
-            <div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div>
+            <div class="score-box-val green">${d.poa_range_low && d.poa_range_high ? Math.round(d.poa_range_low) + '-' + Math.round(d.poa_range_high) + '%' : (d.poa || 0).toFixed(0) + '%'}</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">STN Risk</div>
@@ -729,26 +516,6 @@ function renderScanner() {
           <div class="score-box">
             <div class="score-box-label">TAM/Cap</div>
             <div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
-          </div>
-        </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr;margin-top:-1px;">
-          <div class="score-box" style="border-right:1px solid var(--border);">
-            <div class="score-box-label">Chart Setup</div>
-            <div class="score-box-val ${
-              d.ta_setup_label === 'READY'    ? 'green' :
-              d.ta_setup_label === 'COILING'  ? 'cyan'  :
-              d.ta_setup_label === 'BUILDING' ? 'amber' :
-              d.ta_setup_label === 'EXTENDED' ? 'red'   :
-              d.ta_setup_label === 'WEAK'     ? 'red'   : 'white'
-            }" style="font-size:0.72rem;">${d.ta_setup_label || '—'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">30d Trend</div>
-            <div class="score-box-val ${
-              d.ta_trend_30d === null || d.ta_trend_30d === undefined ? 'white' :
-              d.ta_trend_30d > 30 ? 'red' :
-              d.ta_trend_30d > 0  ? 'green' : 'red'
-            }">${d.ta_trend_30d !== null && d.ta_trend_30d !== undefined ? (d.ta_trend_30d > 0 ? '+' : '') + d.ta_trend_30d + '%' : '—'}</div>
           </div>
         </div>
         ${(() => {
@@ -824,7 +591,6 @@ function renderScanner() {
         })()}
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">
           View deep dive →
-          <button onclick="exportCard(this, '${d.ticker}')" style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);background:none;border:1px solid var(--border);padding:0.2rem 0.5rem;cursor:pointer;letter-spacing:0.06em;margin-left:0.5rem;" onmouseover="this.style.color='var(--accent2)';this.style.borderColor='var(--accent2)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border)'">📤 Export</button>
         </div>
       </div>`;
   }).join('');
@@ -879,6 +645,9 @@ function renderBuyoutGrid() {
         has_breakthrough: d.has_breakthrough || false,
         pdufa_date: d.date || '',
         poa: Number(d.poa) || 0,
+        poa_range_low: d.poa_range_low != null ? Number(d.poa_range_low) : null,
+        poa_range_high: d.poa_range_high != null ? Number(d.poa_range_high) : null,
+        poa_confidence: d.poa_confidence || 'MODERATE',
         grade: d.grade || 'WATCH',
         has_pdufa: true,
         approved_drug: d.approved_drug || '',
@@ -1000,7 +769,7 @@ function renderBuyoutGrid() {
     // Buyout flags (max 4)
     var flags = (d.buyout_flags || []).slice(0, 4);
 
-    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;border-left:3px solid ' + borderColor + ';" data-ticker="' + d.ticker + '" data-days="' + (days !== null ? days : 90) + '">' +
+    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;border-left:3px solid ' + borderColor + ';">' +
 
       // Header: ticker + risk badge
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">' +
@@ -1023,12 +792,6 @@ function renderBuyoutGrid() {
         '<div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + (mcap || '—') + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Revenue</div><div class="score-box-val ' + (rev >= 100 ? 'green' : rev >= 20 ? 'cyan' : 'white') + '" style="font-size:0.7rem;">' + (rev > 0 ? '$' + Math.round(rev) + 'M' : '—') + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Takeout</div><div class="score-box-val cyan" style="font-size:0.7rem;">' + (takeout || '—') + '</div></div>' +
-      '</div>' +
-
-      // Chart Setup + 30d Trend row
-      '<div class="card-scores" style="grid-template-columns:1fr 1fr;margin-top:-1px;">' +
-        '<div class="score-box" style="border-right:1px solid var(--border);"><div class="score-box-label">Chart Setup</div><div class="score-box-val white" id="ta-setup-' + d.ticker + '" style="font-size:0.72rem;">—</div></div>' +
-        '<div class="score-box"><div class="score-box-label">30d Trend</div><div class="score-box-val white" id="ta-trend-' + d.ticker + '">—</div></div>' +
       '</div>' +
 
       // Acquirer thesis box (the key insight)
@@ -1054,7 +817,7 @@ function renderBuyoutGrid() {
 
       // Approval status
       (d.approved_drug ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent2);margin-top:0.4rem;">✅ ' + d.approved_drug + (approvalAge ? ' · ' + approvalAge : '') + '</div>' : '') +
-      (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent);margin-top:0.3rem;">PoA: ' + d.poa.toFixed(0) + '% · ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
+      (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent);margin-top:0.3rem;">PoA: ' + (d.poa_range_low && d.poa_range_high ? Math.round(d.poa_range_low) + '-' + Math.round(d.poa_range_high) + '%' : d.poa.toFixed(0) + '%') + ' · ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
 
       // Enrichment tags
       (function() {
@@ -1090,7 +853,7 @@ function renderBuyoutGrid() {
 }
 
 function switchTab(btn, id) {
-  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -1154,13 +917,16 @@ function switchTab(btn, id) {
     nextBilling.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
 
   const portalBtn = document.getElementById('billing-portal-btn');
-  // Use configured portal URL or fall back to Stripe billing page
-  const portalUrl = (window.SC_CONFIG && SC_CONFIG.stripePortalUrl)
-    ? SC_CONFIG.stripePortalUrl
-    : 'https://billing.stripe.com/p/login/eVa14j9V0dZSgIE144';
-  portalBtn.href   = portalUrl;
-  portalBtn.target = '_blank';
-  portalBtn.rel    = 'noopener';
+  if (SC_CONFIG.stripePortalUrl) {
+    portalBtn.href   = SC_CONFIG.stripePortalUrl;
+    portalBtn.target = '_blank';
+    portalBtn.rel    = 'noopener';
+  } else {
+    portalBtn.addEventListener('click', e => {
+      e.preventDefault();
+      alert('Billing portal not configured yet.\nIn Stripe Dashboard → Settings → Billing → Customer portal → Activate\nThen set stripePortalUrl in js/config.js.');
+    });
+  }
 
   if (fromStripe && isPaid && !sessionStorage.getItem('dismissed_welcome')) {
     document.getElementById('welcome-banner').style.display = 'block';
@@ -1174,8 +940,7 @@ function switchTab(btn, id) {
       '  <div style="font-family:var(--serif);font-size:1.5rem;color:var(--white);margin-bottom:0.75rem;">Subscription Required</div>',
       '  <p style="font-family:var(--sans);font-size:0.9rem;color:var(--muted);max-width:400px;margin:0 auto 1.5rem;line-height:1.7;">Access the full scanner with 60+ scored PDUFA events, AI research tool, and deep dive analysis.</p>',
       '  <a href="javascript:void(0)" onclick="scCheckout(\'' + user.id + '\',\'' + user.email + '\')" style="display:inline-block;font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.75rem 2rem;text-decoration:none;font-weight:700;cursor:pointer;">Subscribe — $29.99/month</a>',
-      '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime · First 50 lock in $29.99 forever</p>',
-      '  <p style="font-family:var(--mono);font-size:0.65rem;color:var(--amber);margin-top:0.75rem;line-height:1.7;max-width:420px;text-align:center;">&#9888;&#65039; Already subscribed and seeing this? Wait 60 seconds and refresh. If still locked after 5 minutes, email dsrackler@gmail.com and we will activate your account within 1 hour.</p>',
+      '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime</p>',
       '</div>',
     ].join('\n');
     document.getElementById('stat-elite').textContent = '—';
@@ -1290,357 +1055,22 @@ function switchTab(btn, id) {
   renderBuyoutGrid();
 })();
 
-// ── Live TA Enrichment — fetches Chart Setup + 30d Trend from Finnhub ─────
-// Uses localStorage cache (4-hour TTL) to avoid 429 rate limits on 56 tickers
+// Live event countdown
 (function() {
-  const FKEY      = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
-  const BASE      = 'https://finnhub.io/api/v1';
-  const CACHE_TTL = 4 * 60 * 60 * 1000; // 4 hours in ms
-  const CACHE_KEY = 'sc_ta_cache';
-
-  function readCache() {
-    try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch { return {}; }
+  const target = new Date('2026-04-13T00:00:00-04:00');
+  function tick() {
+    const diff = target - new Date();
+    const el = document.getElementById('dash-countdown');
+    if (!el) return;
+    if (diff <= 0) { el.textContent = 'TODAY'; return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    el.textContent = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
   }
-  function writeCache(cache) {
-    try { localStorage.setItem(CACHE_KEY, JSON.stringify(cache)); } catch {}
-  }
-  function getCached(ticker) {
-    const cache = readCache();
-    const entry = cache[ticker];
-    if (entry && (Date.now() - entry.ts) < CACHE_TTL) return entry.data;
-    return null;
-  }
-  function setCache(ticker, data) {
-    const cache = readCache();
-    cache[ticker] = { ts: Date.now(), data };
-    // Keep cache lean — max 100 tickers
-    const keys = Object.keys(cache);
-    if (keys.length > 100) {
-      const oldest = keys.sort((a,b) => cache[a].ts - cache[b].ts)[0];
-      delete cache[oldest];
-    }
-    writeCache(cache);
-  }
-
-  function taLabel(score) {
-    if (score >= 70) return { label: 'READY',    cls: 'green' };
-    if (score >= 60) return { label: 'COILING',  cls: 'cyan'  };
-    if (score >= 50) return { label: 'BUILDING', cls: 'amber' };
-    if (score >= 30) return { label: 'EXTENDED', cls: 'red'   };
-    return              { label: 'WEAK',     cls: 'red'   };
-  }
-
-  async function fetchAndScore(ticker, daysOut) {
-    // Check cache first — avoids 429 on 56-ticker page load
-    const cached = getCached(ticker);
-    if (cached) return cached;
-
-    try {
-      // Only use free Finnhub endpoints (quote + metric)
-      // /stock/candle requires paid tier → removed
-      const [qr, mr] = await Promise.all([
-        fetch(`${BASE}/quote?symbol=${ticker}&token=${FKEY}`),
-        fetch(`${BASE}/stock/metric?symbol=${ticker}&metric=all&token=${FKEY}`),
-      ]);
-      if (!qr.ok || !mr.ok) return null;
-      const [q, m] = await Promise.all([qr.json(), mr.json()]);
-      const price   = q.c  || 0;
-      const change1d = q.dp || 0; // daily % change
-      const high52  = m.metric?.['52WeekHigh'] || 0;
-      const low52   = m.metric?.['52WeekLow']  || 0;
-      const ret4w   = m.metric?.['4WeekPriceReturnDaily']  || null;
-      const ret13w  = m.metric?.['13WeekPriceReturnDaily'] || 0;
-      const ret26w  = m.metric?.['26WeekPriceReturnDaily'] || 0;
-      const beta    = m.metric?.['beta'] || 1;
-      const trend   = ret4w !== null ? ret4w : (ret13w / 3);
-
-      let score = 50;
-
-      // 1. 52-week range position (where in the range is the stock)
-      let pos52 = 50;
-      if (high52 > low52 && price > 0) {
-        pos52 = Math.round(((price - low52) / (high52 - low52)) * 100);
-      }
-      if      (pos52 >= 85) score -= 18;
-      else if (pos52 >= 70) score -= 8;
-      else if (pos52 >= 35) score += 12;
-      else if (pos52 >= 15) score += 6;
-      else                  score -= 10;
-
-      // 2. 30-day trend
-      if      (trend > 50)  score -= 22;
-      else if (trend > 30)  score -= 14;
-      else if (trend > 15)  score -= 4;
-      else if (trend >= 0)  score += 14;
-      else if (trend > -15) score -= 6;
-      else                  score -= 18;
-
-      // 3. Momentum consistency (4w vs 13w trend comparison)
-      // If 4w trend is gentler than 13w, stock is coiling/consolidating
-      const trend13w = ret13w / 3;
-      if (ret4w !== null && Math.abs(ret4w) < Math.abs(trend13w) * 0.5) {
-        score += 10; // compressing = COILING signal
-      } else if (ret4w !== null && Math.abs(ret4w) > Math.abs(trend13w) * 2) {
-        score -= 6; // accelerating = extended or volatile
-      }
-
-      // 4. PDUFA proximity
-      if      (daysOut <= 3)  score -= 6;
-      else if (daysOut <= 14) score += 8;
-      else if (daysOut <= 30) score += 4;
-      else if (daysOut > 60)  score -= 4;
-
-      // 5. Daily volatility signal (large single-day moves = not consolidating)
-      if (Math.abs(change1d) > 8) score -= 8;
-      else if (Math.abs(change1d) < 1.5 && daysOut <= 30) score += 5;
-
-      score = Math.max(0, Math.min(100, Math.round(score)));
-      const result = { score, trend: Math.round(trend * 10) / 10 };
-      setCache(ticker, result); // cache for 4 hours
-      return result;
-    } catch(e) {
-      if (e.message && e.message.includes('429')) {
-        console.warn('[SC TA] Rate limited on', ticker, '— will retry next page load');
-      } else {
-        console.warn('[SC TA]', ticker, e.message);
-      }
-      return null;
-    }
-  }
-
-  async function enrichCards() {
-    await new Promise(r => setTimeout(r, 1000));
-    const cards = document.querySelectorAll('.scanner-card[data-ticker]');
-    if (!cards.length) return;
-
-    // ONLY enrich tickers within 45 days — avoids blasting 56 Finnhub calls
-    // Tickers > 45 days out don't need live TA right now
-    const items = [...cards]
-      .map(c => ({ el: c, ticker: c.dataset.ticker, daysOut: parseInt(c.dataset.days || '999') }))
-      .filter(item => item.daysOut <= 45 || getCached(item.ticker)) // include cached regardless of days
-      .slice(0, 20); // hard cap 20 tickers per load
-
-    if (!items.length) return;
-    console.log('[SC TA] Enriching', items.length, 'tickers (≤45d or cached)');
-
-    // ONE ticker at a time with 1s gap = max 60/min, stays under free tier limit
-    for (const { el, ticker, daysOut } of items) {
-      const result = await fetchAndScore(ticker, daysOut);
-      if (!result) continue;
-      const { label, cls } = taLabel(result.score);
-      const trendStr = result.trend > 0 ? `+${result.trend}%` : `${result.trend}%`;
-      const trendCls = result.trend > 30 ? 'red' : result.trend > 0 ? 'green' : 'red';
-
-      el.querySelectorAll('.score-box-label').forEach(cell => {
-        if (cell.textContent === 'Chart Setup') {
-          const v = cell.nextElementSibling;
-          if (v && v.textContent === '—') { v.textContent = label; v.className = `score-box-val ${cls}`; v.style.fontSize = '0.72rem'; }
-        }
-        if (cell.textContent === '30d Trend') {
-          const v = cell.nextElementSibling;
-          if (v && v.textContent === '—') { v.textContent = trendStr; v.className = `score-box-val ${trendCls}`; }
-        }
-      });
-
-      const setupEl = document.getElementById(`ta-setup-${ticker}`);
-      const trendEl = document.getElementById(`ta-trend-${ticker}`);
-      if (setupEl && setupEl.textContent === '—') { setupEl.textContent = label; setupEl.className = `score-box-val ${cls}`; setupEl.style.fontSize = '0.72rem'; }
-      if (trendEl && trendEl.textContent === '—') { trendEl.textContent = trendStr; trendEl.className = `score-box-val ${trendCls}`; }
-
-      // 1 second gap between calls — stays comfortably under 60/min
-      await new Promise(r => setTimeout(r, 1050));
-    }
-  }
-
-  enrichCards();
-
-  const origRender = window.renderScanner;
-  const origBuyoutRender = window.renderBuyoutGrid;
-  if (typeof origBuyoutRender === 'function') {
-    window.renderBuyoutGrid = function(...args) {
-      origBuyoutRender.apply(this, args);
-      enrichCards();
-    };
-  }
-  if (typeof origRender === 'function') {
-    window.renderScanner = function(...args) {
-      origRender.apply(this, args);
-      enrichCards();
-    };
-  }
+  tick();
+  setInterval(tick, 30000);
 })();
-
-// ── Export Share Card — branded PNG for Twitter/Instagram/Discord/Reddit ──
-// Draws a clean 1200×675 (Twitter/OG) card using Canvas API directly
-// No html2canvas dependency — 100% reliable, works offline, crisp at 2x
-function exportCard(btn, ticker) {
-  btn.textContent = '⏳ Generating...';
-  btn.disabled = true;
-
-  // Find data for this ticker
-  const d = (window.SCANNER_DATA || []).find(x => x.ticker === ticker)
-         || (window.BUYOUT_DATA  || []).find(x => x.ticker === ticker);
-
-  if (!d) {
-    btn.textContent = '❌ No data';
-    setTimeout(() => { btn.textContent = '📤 Export'; btn.disabled = false; }, 2000);
-    return;
-  }
-
-  try {
-    const W = 1200, H = 675;
-    const canvas = document.createElement('canvas');
-    canvas.width = W; canvas.height = H;
-    const ctx = canvas.getContext('2d');
-
-    // ── Background ────────────────────────────────────────────────────────
-    ctx.fillStyle = '#040d1a';
-    ctx.fillRect(0, 0, W, H);
-
-    // Grid lines
-    ctx.strokeStyle = 'rgba(0,212,255,0.04)';
-    ctx.lineWidth = 1;
-    for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
-    for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
-
-    // Top accent bar
-    const gradeColor = d.grade === 'ELITE' ? '#00ff9d' : d.grade === 'STRONG' ? '#00d4ff' : '#f5a623';
-    const grad = ctx.createLinearGradient(0,0,W,0);
-    grad.addColorStop(0, gradeColor);
-    grad.addColorStop(1, 'transparent');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, 3);
-
-    // ── Header: ticker + grade badge ─────────────────────────────────────
-    ctx.fillStyle = '#eaf4ff';
-    ctx.font = 'bold 72px "Space Mono", monospace';
-    ctx.fillText(d.ticker, 60, 110);
-
-    // Grade badge
-    const grade = d.grade || 'WATCH';
-    ctx.fillStyle = gradeColor + '22';
-    ctx.strokeStyle = gradeColor;
-    ctx.lineWidth = 1.5;
-    const badgeX = 60 + ctx.measureText(d.ticker).width + 20;
-    ctx.beginPath(); ctx.roundRect(badgeX, 68, 130, 38, 4); ctx.fill(); ctx.stroke();
-    ctx.fillStyle = gradeColor;
-    ctx.font = 'bold 16px "Space Mono", monospace';
-    ctx.fillText(grade, badgeX + 14, 92);
-
-    // Drug + indication
-    ctx.fillStyle = '#5a7a99';
-    ctx.font = '20px "Space Mono", monospace';
-    const drug = (d.drug || d.approved_drug || '').substring(0, 45);
-    const ind  = (d.indication || d.approved_indication || '').substring(0, 50);
-    ctx.fillText(drug + (ind ? '  ·  ' + ind : ''), 60, 148);
-
-    // PDUFA date
-    if (d.date) {
-      const days = Math.round((new Date(d.date) - new Date()) / 86400000);
-      ctx.fillStyle = '#f5a623';
-      ctx.font = 'bold 15px "Space Mono", monospace';
-      ctx.fillText('PDUFA ' + d.date + (days >= 0 ? '  ·  ' + days + ' days' : '  ·  RESOLVED'), 60, 178);
-    }
-
-    // ── Divider ───────────────────────────────────────────────────────────
-    ctx.strokeStyle = '#1a3a5c';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(60, 200); ctx.lineTo(W-60, 200); ctx.stroke();
-
-    // ── Score boxes ───────────────────────────────────────────────────────
-    const scores = [
-      { label: 'PoA',        value: d.poa ? (d.poa).toFixed(1)+'%' : '—',          color: '#00ff9d' },
-      { label: 'STN Risk',   value: d.sell_news_risk || '—',
-        color: d.sell_news_risk === 'HIGH' ? '#ff4444' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? '#00ff9d' : '#f5a623' },
-      { label: 'Dilution',   value: d.dilution_risk || '—',
-        color: d.dilution_risk === 'HIGH' || d.dilution_risk === 'EXTREME' ? '#ff4444' : d.dilution_risk === 'MINIMAL' ? '#00ff9d' : '#f5a623' },
-      { label: 'Net Edge',   value: (d.net_edge_score || d.score || 0).toFixed(1),
-        color: (d.net_edge_score||d.score||0) >= 72 ? '#00ff9d' : (d.net_edge_score||d.score||0) >= 58 ? '#00d4ff' : '#f5a623' },
-      { label: 'Chart',      value: d.ta_setup_label || 'BUILDING',
-        color: d.ta_setup_label === 'READY' ? '#00ff9d' : d.ta_setup_label === 'COILING' ? '#00d4ff' : d.ta_setup_label === 'EXTENDED' || d.ta_setup_label === 'WEAK' ? '#ff4444' : '#f5a623' },
-      { label: '30d Trend',  value: d.ta_trend_30d !== undefined ? (d.ta_trend_30d > 0 ? '+' : '') + d.ta_trend_30d + '%' : '—',
-        color: d.ta_trend_30d > 0 ? '#00ff9d' : '#ff4444' },
-    ];
-
-    const boxW = (W - 120 - (scores.length-1)*16) / scores.length;
-    scores.forEach((s, i) => {
-      const bx = 60 + i * (boxW + 16);
-      const by = 225;
-      const bh = 155;
-
-      // Box bg
-      ctx.fillStyle = '#0b1f3a';
-      ctx.strokeStyle = '#1a3a5c';
-      ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.roundRect(bx, by, boxW, bh, 4); ctx.fill(); ctx.stroke();
-
-      // Top accent
-      ctx.fillStyle = s.color + '66';
-      ctx.beginPath(); ctx.roundRect(bx, by, boxW, 3, [4,4,0,0]); ctx.fill();
-
-      // Label
-      ctx.fillStyle = '#5a7a99';
-      ctx.font = '13px "Space Mono", monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText(s.label.toUpperCase(), bx + boxW/2, by + 32);
-
-      // Value
-      ctx.fillStyle = s.color;
-      ctx.font = 'bold ' + (s.value.length > 7 ? '18' : '26') + 'px "Space Mono", monospace';
-      ctx.fillText(s.value, bx + boxW/2, by + 95);
-
-      ctx.textAlign = 'left';
-    });
-
-    // ── Flags (top 2) ────────────────────────────────────────────────────
-    const flags = (d.flags || d.buyout_flags || []).slice(0, 2);
-    flags.forEach((f, i) => {
-      ctx.fillStyle = '#0f2647';
-      ctx.beginPath(); ctx.roundRect(60, 410 + i*42, W-120, 34, 4); ctx.fill();
-      ctx.fillStyle = '#c8dff0';
-      ctx.font = '14px "Space Mono", monospace';
-      ctx.fillText(f.substring(0, 80), 76, 432 + i*42);
-    });
-
-    // ── Footer ────────────────────────────────────────────────────────────
-    ctx.strokeStyle = '#1a3a5c';
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(60, H-80); ctx.lineTo(W-60, H-80); ctx.stroke();
-
-    // Logo
-    ctx.fillStyle = '#00d4ff';
-    ctx.font = 'bold 18px "Space Mono", monospace';
-    ctx.fillText('SUBMARINE', 60, H-44);
-    ctx.fillStyle = '#eaf4ff';
-    ctx.fillText('CATALYST', 60 + ctx.measureText('SUBMARINE').width + 6, H-44);
-
-    // Tagline
-    ctx.fillStyle = '#5a7a99';
-    ctx.font = '13px "Space Mono", monospace';
-    ctx.fillText('submarinecatalyst.com  ·  quantitative data classifications  ·  not financial advice', 60, H-20);
-
-    // Date stamp
-    ctx.textAlign = 'right';
-    ctx.fillStyle = '#5a7a99';
-    ctx.font = '13px "Space Mono", monospace';
-    ctx.fillText(new Date().toLocaleDateString('en-US', {month:'short',day:'numeric',year:'numeric'}).toUpperCase(), W-60, H-44);
-    ctx.textAlign = 'left';
-
-    // ── Download ─────────────────────────────────────────────────────────
-    const link = document.createElement('a');
-    link.download = 'SC-' + ticker + '-' + new Date().toISOString().split('T')[0] + '.png';
-    link.href = canvas.toDataURL('image/png', 1.0);
-    link.click();
-
-    btn.textContent = '✅ Saved';
-    setTimeout(() => { btn.textContent = '📤 Export'; btn.disabled = false; }, 2500);
-
-  } catch(e) {
-    console.error('[SC] Export failed:', e);
-    btn.textContent = '📤 Export';
-    btn.disabled = false;
-  }
-}
 </script>
 </body>
 </html>

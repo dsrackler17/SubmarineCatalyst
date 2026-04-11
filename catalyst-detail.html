@@ -424,7 +424,10 @@ function populatePage(d, isPaid) {
   document.getElementById('countdown-days').textContent = days >= 0 ? days : 'Resolved';
   document.getElementById('countdown-date').textContent = d.date;
 
-  document.getElementById('stat-poa').textContent       = (d.poa || 0).toFixed(1) + '%';
+  var poaLow = d.poa_range_low != null ? Math.round(Number(d.poa_range_low)) : Math.max(15, Math.round(d.poa) - 10);
+  var poaHigh = d.poa_range_high != null ? Math.round(Number(d.poa_range_high)) : Math.min(97, Math.round(d.poa) + 8);
+  var poaConf = d.poa_confidence || 'MODERATE';
+  document.getElementById('stat-poa').textContent       = poaLow + '-' + poaHigh + '%';
   var stnRisk = d.sell_news_risk || 'MODERATE';
   var stnEl = document.getElementById('stat-stn');
   stnEl.textContent = stnRisk;
@@ -442,7 +445,7 @@ function populatePage(d, isPaid) {
     ['Application',   d.type || 'PDUFA'],
     ['Indication',    d.indication || 'Unknown'],
     ['Grade',         d.grade || 'WATCH'],
-    ['PoA',           (d.poa || 0).toFixed(1) + '%'],
+    ['PoA',           poaLow + '-' + poaHigh + '% (' + poaConf + ')'],
     ['STN Risk',      d.sell_news_risk || 'MODERATE'],
     ['Move Score',    (d.move_score || 0) + '/100'],
     ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
@@ -522,9 +525,10 @@ function populatePage(d, isPaid) {
 
   // PoA breakdown from scored data
   document.getElementById('poa-bars').innerHTML = [
-    {label: 'Indication (' + (d.indication || 'Unknown') + ')', pct: Math.min(100, d.poa * 1.05), color: 'green', val: (d.poa || 0).toFixed(1) + '%'},
+    {label: 'Indication (' + (d.indication || 'Unknown') + ')', pct: Math.min(100, d.poa * 1.05), color: 'green', val: (d.poa || 0).toFixed(0) + '%'},
     {label: 'Review pathway (' + (d.type || 'Standard') + ')', pct: 75, color: 'default', val: d.type || 'Standard'},
-    {label: 'Final PoA composite', pct: d.poa || 50, color: d.poa >= 75 ? 'green' : d.poa >= 55 ? 'default' : 'amber', val: (d.poa || 0).toFixed(1) + '%'},
+    {label: 'PoA range composite', pct: d.poa || 50, color: d.poa >= 75 ? 'green' : d.poa >= 55 ? 'default' : 'amber', val: poaLow + '-' + poaHigh + '%'},
+    {label: 'Confidence', pct: poaConf === 'HIGH' ? 90 : poaConf === 'LOW' ? 30 : 60, color: poaConf === 'HIGH' ? 'green' : poaConf === 'LOW' ? 'amber' : 'default', val: poaConf},
   ].map(function(b) {
     return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:' + b.pct + '%"></div></div><span class="bar-val ' + b.color + '">' + b.val + '</span></div>';
   }).join('');
@@ -550,6 +554,9 @@ function populatePage(d, isPaid) {
 
 async function generateAISummary(d) {
   try {
+    var session = await scGetSession();
+    if (!session) return;
+
     var EDGE_URL = SC_CONFIG.supabaseUrl + '/functions/v1/ai-research';
     var stnRisk = d.sell_news_risk || 'MODERATE';
     var prompt;
@@ -580,7 +587,7 @@ async function generateAISummary(d) {
       prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
       '**EXECUTIVE SUMMARY**\n' +
       'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '.\n' +
-      'Scanner data — PoA: ' + (d.poa || 0).toFixed(1) + '%. STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
+      'Scanner data — PoA: ' + poaLow + '-' + poaHigh + '% (confidence: ' + poaConf + '). STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
       'Runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '. ' +
       'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Net insider buys (90d): ' + (d.insider_net_buys || 0) + '. ' +
       'Shelf active: ' + (d.shelf_active ? 'YES' : 'No') + '. ATM active: ' + (d.atm_active ? 'YES' : 'No') + '. ' +
@@ -614,6 +621,7 @@ async function generateAISummary(d) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + session.access_token,
       },
       body: JSON.stringify({ messages: [{ role: 'user', content: prompt }] }),
     });
@@ -724,6 +732,9 @@ async function generateAISummary(d) {
         date: e.date,
         grade: e.grade || 'WATCH',
         poa: Number(e.poa) || 0,
+        poa_range_low: e.poa_range_low != null ? Number(e.poa_range_low) : null,
+        poa_range_high: e.poa_range_high != null ? Number(e.poa_range_high) : null,
+        poa_confidence: e.poa_confidence || 'MODERATE',
         score: Number(e.score) || 0,
         flags: e.flags || [],
         notes: e.notes || '',
