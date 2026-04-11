@@ -670,6 +670,51 @@ function updateCounts() {
   updateCounts();
   renderTable();
 
+  // ── LIVE CHART DATA for nearest 20 PDUFA tickers ──────────
+  if (isPaid) {
+    (async function() {
+      var FINNHUB_KEY = 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+      var nearest = ALL_EVENTS
+        .filter(function(e) { return e._source === 'pdufa' && e.date && e.date !== '—' && daysUntil(e.date) >= 0; })
+        .sort(function(a,b) { return daysUntil(a.date) - daysUntil(b.date); })
+        .slice(0, 20);
+
+      for (var k = 0; k < nearest.length; k++) {
+        var ev = nearest[k];
+        try {
+          var cRes = await fetch('https://finnhub.io/api/v1/stock/candle?symbol=' + ev.ticker + '&resolution=D&from=' + (Math.floor(Date.now()/1000) - 30*86400) + '&to=' + Math.floor(Date.now()/1000) + '&token=' + FINNHUB_KEY);
+          if (!cRes.ok) continue;
+          var cData = await cRes.json();
+          if (!cData || cData.s !== 'ok' || !cData.c || cData.c.length < 3) continue;
+
+          var prices = cData.c;
+          var chg = ((prices[prices.length-1] - prices[0]) / prices[0] * 100);
+
+          // Compute chart setup
+          var recent10 = prices.slice(-10);
+          var r10Range = ((Math.max.apply(null,recent10) - Math.min.apply(null,recent10)) / Math.min.apply(null,recent10) * 100);
+          var consolidation = r10Range < 8;
+          var setup = 'BUILDING';
+          if (consolidation && chg > -5) setup = 'COILING';
+          else if (chg > 15) setup = 'EXTENDED';
+          else if (chg > 5) setup = 'READY';
+          else if (chg < -15) setup = 'WEAK';
+          else if (chg < -5) setup = 'BUILDING';
+
+          // Store on the event for re-renders
+          ev.chart_setup = setup;
+          ev.price_change_30d = Math.round(chg * 10) / 10;
+          ev.price_history_30d = prices.map(function(p) { return { close: p }; });
+
+          await new Promise(function(r) { setTimeout(r, 120); });
+        } catch (e) { /* skip */ }
+      }
+      // Re-render table with live chart data
+      renderTable();
+      console.log('[SC] Live chart data loaded for ' + nearest.length + ' calendar tickers');
+    })();
+  }
+
   if (!isPaid) {
     // Show gate after slight delay
     // Don't block — let them see dates, just lock scores
