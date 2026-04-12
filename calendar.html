@@ -318,7 +318,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>TAM</th><th>PoA Range</th><th>Risk</th><th>Grade</th><th>Setup</th>';
+    html += '<th>TAM</th><th>PoA Range</th><th>Risk</th><th>Grade</th><th>30D</th><th>Chart</th><th>Setup</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -403,6 +403,16 @@ function renderTable() {
       if (gradeVal === '—') gradeVal = 'WATCH';
       var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[gradeVal] || 'var(--amber)';
       html += '<td class="score-cell" style="color:' + gColor + '">' + gradeVal + '</td>';
+
+      // 30D momentum column
+      var p30 = Number(e.price_change_30d) || 0;
+      var p30Color = p30 > 0 ? 'var(--accent2)' : p30 < 0 ? 'var(--red)' : 'var(--muted)';
+      html += '<td class="score-cell" style="color:' + p30Color + ';font-size:0.62rem;">' + (p30 ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—') + '</td>';
+
+      // Chart pattern column
+      var cp = e.chart_pattern || '—';
+      var cpColor = cp === 'COILING' ? 'var(--accent2)' : cp === 'BUILDING' ? 'var(--accent)' : cp === 'EXTENDED' ? 'var(--amber)' : cp === 'WEAK' ? 'var(--red)' : 'var(--muted)';
+      html += '<td class="score-cell" style="color:' + cpColor + ';font-size:0.62rem;">' + cp + '</td>';
 
       // Signal column — behavioral pattern based on risk data
       var signal = '';
@@ -504,7 +514,7 @@ function updateCounts() {
   if (ALL_EVENTS.length === 0) {
     // Load PDUFA events
     var { data: pdufaEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, poa_low, poa_high, data_confidence, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type')
+      .select('ticker, drug, indication, type, date, grade, poa, poa_low, poa_high, data_confidence, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, price_change_30d, chart_pattern, insider_signal, runway_months, revenue_m, short_interest, buyout_score, buyout_risk, tam_ratio')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 
