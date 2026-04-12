@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-JTYLL5DC4Y"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JTYLL5DC4Y');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Buyout Scanner — Submarine Catalyst</title>
-<meta name="description" content="Biotech acquisition target scanner. Identifies companies with the highest probability of being acquired based on 12 quantitative factors including first-in-class status, orphan designation, PRV eligibility, and partnership history.">
+<meta name="description" content="Biotech acquisition target scanner. 870+ companies scored across 12 factors: patent cliff urgency, partnerships, revenue, TAM/Cap, and M&A activity. Live daily data.">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
@@ -24,55 +23,53 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:1.25re
 .nav-links a:hover,.nav-links a.active{color:var(--accent);}
 .nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.25rem;cursor:pointer;text-decoration:none;transition:background 0.2s,color 0.2s;}
 .nav-cta:hover{background:var(--accent);color:var(--navy);}
-
 main{flex:1;max-width:1200px;width:100%;margin:0 auto;padding:2rem;}
 h1{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
-.subtitle{font-family:var(--sans);font-size:0.95rem;color:var(--muted);margin-bottom:2rem;max-width:700px;line-height:1.7;}
-
-.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;}
-.stat{background:var(--surface);padding:1rem;text-align:center;}
-.stat-val{font-family:var(--mono);font-size:1.4rem;font-weight:700;color:var(--accent);}
-.stat-label{font-family:var(--mono);font-size:0.6rem;color:var(--muted);letter-spacing:0.1em;text-transform:uppercase;margin-top:0.25rem;}
-
-.filters{display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;}
-.filters select,.filters input{font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;outline:none;}
+.subtitle{font-family:var(--sans);font-size:0.92rem;color:var(--muted);margin-bottom:1.5rem;max-width:750px;line-height:1.7;}
+.data-fresh{font-family:var(--mono);font-size:0.6rem;color:var(--muted);letter-spacing:0.06em;margin-bottom:1.5rem;display:flex;gap:1.5rem;flex-wrap:wrap;}
+.data-fresh span{display:flex;align-items:center;gap:0.4rem;}
+.fresh-dot{width:5px;height:5px;border-radius:50%;background:var(--accent2);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.stats-bar{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:1.5rem;}
+.stat{background:var(--surface);padding:0.85rem;text-align:center;}
+.stat-val{font-family:var(--mono);font-size:1.3rem;font-weight:700;color:var(--accent);}
+.stat-label{font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-top:0.2rem;}
+.filters{display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;align-items:center;}
+.filters select,.filters input{font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.8rem;outline:none;}
 .filters select:focus,.filters input:focus{border-color:var(--accent);}
-
-table{width:100%;border-collapse:collapse;border:1px solid var(--border);}
-th{background:var(--panel);padding:0.65rem 0.5rem;text-align:left;font-family:var(--mono);font-size:0.6rem;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);white-space:nowrap;}
-td{padding:0.55rem 0.5rem;font-family:var(--mono);font-size:0.72rem;border:1px solid var(--border);color:var(--text);}
-tr{cursor:pointer;transition:background 0.15s;}
-tr:hover{background:rgba(0,212,255,0.04);}
-tr:nth-child(even){background:var(--deep);}
-tr:nth-child(even):hover{background:rgba(0,212,255,0.06);}
-
-.ticker{font-weight:700;color:var(--white);}
-.score-high{color:var(--accent2);font-weight:700;}
-.score-mod{color:var(--accent);font-weight:700;}
-.score-low{color:var(--amber);}
-.score-none{color:var(--muted);}
-.cap-sm{color:var(--accent2);font-weight:700;font-size:0.62rem;}
-.cap-mid{color:var(--accent);font-weight:700;font-size:0.62rem;}
-.cap-lg{color:var(--amber);font-weight:700;font-size:0.62rem;}
-
-.factors{display:flex;gap:0.35rem;flex-wrap:wrap;}
-.factor{font-size:0.58rem;padding:0.15rem 0.45rem;border-radius:2px;white-space:nowrap;}
-.factor-green{background:rgba(0,255,157,0.08);color:var(--accent2);border:1px solid rgba(0,255,157,0.15);}
-.factor-amber{background:rgba(245,166,35,0.08);color:var(--amber);border:1px solid rgba(245,166,35,0.15);}
-.factor-red{background:rgba(255,68,68,0.08);color:var(--red);border:1px solid rgba(255,68,68,0.15);}
-
+.card-grid{display:flex;flex-direction:column;gap:1px;background:var(--border);border:1px solid var(--border);}
+.bo-card{background:var(--surface);padding:1.1rem 1.4rem;display:grid;grid-template-columns:185px 1fr 260px;gap:1.25rem;align-items:start;cursor:pointer;transition:background 0.15s;}
+.bo-card:hover{background:rgba(0,212,255,0.03);}
+.bo-card:nth-child(even){background:var(--deep);}
+.bo-card:nth-child(even):hover{background:rgba(0,212,255,0.05);}
+.bo-left{display:flex;flex-direction:column;gap:0.2rem;}
+.bo-ticker{font-family:var(--mono);font-size:1.05rem;font-weight:700;color:var(--white);letter-spacing:0.06em;}
+.bo-company{font-family:var(--sans);font-size:0.7rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:175px;}
+.bo-risk{font-family:var(--mono);font-size:0.58rem;letter-spacing:0.1em;font-weight:700;padding:0.12rem 0.45rem;display:inline-block;margin-top:0.25rem;}
+.risk-high{color:var(--accent2);border:1px solid rgba(0,255,157,0.3);background:rgba(0,255,157,0.06);}
+.risk-elev{color:var(--accent);border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.06);}
+.risk-mod{color:var(--amber);border:1px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.06);}
+.risk-low{color:var(--muted);border:1px solid var(--border);}
+.bo-score{font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:0.25rem;}
+.bo-score strong{font-size:0.95rem;}
+.bo-center{display:grid;grid-template-columns:repeat(4,1fr);gap:0.4rem 0.75rem;}
+.bo-m{display:flex;flex-direction:column;}
+.bo-ml{font-family:var(--mono);font-size:0.5rem;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase;}
+.bo-mv{font-family:var(--mono);font-size:0.7rem;color:var(--text);font-weight:700;margin-top:0.05rem;}
+.bo-right{display:flex;flex-direction:column;gap:0.2rem;}
+.bo-flag{font-family:var(--mono);font-size:0.58rem;line-height:1.35;color:var(--text);}
+.bo-news{font-family:var(--mono);font-size:0.52rem;color:var(--muted);margin-top:0.25rem;line-height:1.3;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bo-link{font-family:var(--mono);font-size:0.55rem;color:var(--accent);text-decoration:none;letter-spacing:0.06em;margin-top:0.3rem;}
+.bo-link:hover{text-decoration:underline;}
 .gate{display:none;position:fixed;inset:0;background:rgba(4,13,26,0.92);backdrop-filter:blur(12px);z-index:100;justify-content:center;align-items:center;flex-direction:column;gap:1.5rem;text-align:center;}
-.gate-icon{font-size:3rem;}
-.gate-title{font-family:var(--mono);font-size:1rem;color:var(--white);letter-spacing:0.08em;}
+.gate-icon{font-size:3rem;}.gate-title{font-family:var(--mono);font-size:1rem;color:var(--white);}
 .gate-sub{font-family:var(--sans);font-size:0.85rem;color:var(--muted);max-width:400px;line-height:1.7;}
-
 .empty{text-align:center;padding:3rem;font-family:var(--mono);font-size:0.8rem;color:var(--muted);}
 .row-count{font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:1rem;}
-
 footer{display:flex;align-items:center;justify-content:space-between;padding:1.5rem 3rem;border-top:1px solid var(--border);font-family:var(--mono);font-size:0.62rem;color:var(--muted);}
-footer a{color:var(--muted);text-decoration:none;}
-footer a:hover{color:var(--accent);}
-@media(max-width:768px){nav{padding:1rem;}.nav-links{display:none;}main{padding:1rem;}.stats-bar{grid-template-columns:1fr 1fr;}.filters{flex-direction:column;}table{font-size:0.65rem;}th,td{padding:0.4rem 0.3rem;}}
+footer a{color:var(--muted);text-decoration:none;}footer a:hover{color:var(--accent);}
+@media(max-width:1024px){.bo-card{grid-template-columns:1fr;gap:0.75rem;}.bo-center{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:768px){nav{padding:1rem;}.nav-links{display:none;}main{padding:1rem;}.stats-bar{grid-template-columns:repeat(3,1fr);}.filters{flex-direction:column;}.bo-center{grid-template-columns:1fr 1fr;}}
 </style>
 <script src="/js/config.js"></script>
 <script src="/js/supabase-client.js"></script>
@@ -80,385 +77,131 @@ footer a:hover{color:var(--accent);}
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-logo"><span class="nav-wordmark">SUBMARINE <span>CATALYST</span></span></a>
-  <ul class="nav-links">
-    <li><a href="/calendar.html">Calendar</a></li>
-    <li><a href="/buyout-scanner.html" class="active">Buyout Scanner</a></li>
-    <li><a href="/compare.html">Compare</a></li>
-    <li><a href="/track-record.html">Track Record</a></li>
-    <li><a href="/how-institutions-trade.html">Education</a></li>
-  </ul>
-  <a href="/login.html" class="nav-cta">Login</a>
+<a href="/" class="nav-logo"><span class="nav-wordmark">SUBMARINE <span>CATALYST</span></span></a>
+<ul class="nav-links"><li><a href="/calendar.html">Calendar</a></li><li><a href="/buyout-scanner.html" class="active">Buyout Scanner</a></li><li><a href="/compare.html">Compare</a></li><li><a href="/track-record.html">Track Record</a></li><li><a href="/how-institutions-trade.html">Education</a></li></ul>
+<a href="/login.html" class="nav-cta">Login</a>
 </nav>
-
 <main>
-  <h1>Buyout Scanner</h1>
-  <p class="subtitle">Identifies biotech companies with the highest probability of being acquired. Scored across 12 quantitative factors including patent cliff urgency from 14 Big Pharma acquirers (ABBV, MRK, PFE, LLY, BIIB and 9 others), partnership history, revenue stage, TAM/Cap ratio, and therapeutic area M&A activity. Live data from Finnhub, SEC EDGAR, and ClinicalTrials.gov. Updated daily.</p>
-
-  <div class="stats-bar" id="stats-bar" style="grid-template-columns:repeat(6,1fr);">
-    <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Companies Scanned</div></div>
-    <div class="stat"><div class="stat-val" id="stat-high" style="color:var(--accent2)">—</div><div class="stat-label">High Probability</div></div>
-    <div class="stat"><div class="stat-val" id="stat-mod">—</div><div class="stat-label">Moderate Probability</div></div>
-    <div class="stat"><div class="stat-val" id="stat-approved" style="color:var(--accent2)">—</div><div class="stat-label">Recently Approved</div></div>
-    <div class="stat"><div class="stat-val" id="stat-pdufa" style="color:var(--amber)">—</div><div class="stat-label">With PDUFA Catalyst</div></div>
-    <div class="stat"><div class="stat-val" id="stat-urgency" style="color:var(--red)">—</div><div class="stat-label">Acquirer Urgency Match</div></div>
-  </div>
-
-  <div class="filters">
-    <input type="text" id="search" placeholder="Search ticker or company..." oninput="renderTable()">
-    <select id="filter-risk" onchange="renderTable()">
-      <option value="all">All Buyout Risk</option>
-      <option value="HIGH">HIGH</option>
-      <option value="MODERATE">MODERATE</option>
-      <option value="LOW">LOW</option>
-    </select>
-    <select id="filter-cap" onchange="renderTable()">
-      <option value="all">All Cap</option>
-      <option value="SMALL">Small Cap</option>
-      <option value="MID">Mid Cap</option>
-      <option value="LARGE">Large Cap</option>
-    </select>
-    <select id="filter-catalyst" onchange="renderTable()">
-      <option value="all">All Companies</option>
-      <option value="approved">Recently Approved</option>
-      <option value="pdufa">With Upcoming PDUFA</option>
-      <option value="urgency">Acquirer Urgency Match</option>
-      <option value="partner">Has Partnership</option>
-      <option value="revenue">Revenue-Stage ($1M+)</option>
-    </select>
-    <select id="sort-by" onchange="renderTable()">
-      <option value="buyout">Sort: Buyout Score ↓</option>
-      <option value="tam">Sort: TAM/Cap ↓</option>
-      <option value="revenue">Sort: Revenue ↓</option>
-      <option value="ticker">Sort: Ticker A-Z</option>
-      <option value="cap">Sort: Market Cap ↓</option>
-      <option value="approval">Sort: Most Recent Approval</option>
-    </select>
-  </div>
-
-  <div id="table-container"></div>
-  <div class="row-count" id="row-count"></div>
-
-  <div class="gate" id="gate">
-    <div class="gate-icon">🔒</div>
-    <div class="gate-title">Buyout Scanner is a Pro Feature</div>
-    <div class="gate-sub">The buyout probability model scores 870+ biotech companies across 12 acquisition factors. Subscribe to access the full scanner with detailed factor breakdowns.</div>
-    <a href="/signup.html" class="nav-cta" style="margin-top:1rem;">Get Access — $29.99/month</a>
-  </div>
+<h1>Buyout Scanner</h1>
+<p class="subtitle">Companies with the highest probability of being acquired. Scored across 12 factors: patent cliff urgency from 14 Big Pharma acquirers, partnership history, revenue stage, dilution profile, insider activity, TAM/Cap, and therapeutic area M&A momentum.</p>
+<div class="data-fresh"><span><span class="fresh-dot"></span>Scores: daily 11:08 UTC</span><span>EDGAR: every 6h</span><span>Finnhub: live</span><span>CT.gov: daily</span></div>
+<div class="stats-bar">
+<div class="stat"><div class="stat-val" id="s-total">—</div><div class="stat-label">Scanned</div></div>
+<div class="stat"><div class="stat-val" id="s-high" style="color:var(--accent2)">—</div><div class="stat-label">High Prob</div></div>
+<div class="stat"><div class="stat-val" id="s-mod">—</div><div class="stat-label">Moderate</div></div>
+<div class="stat"><div class="stat-val" id="s-approved" style="color:var(--accent2)">—</div><div class="stat-label">Approved</div></div>
+<div class="stat"><div class="stat-val" id="s-pdufa" style="color:var(--amber)">—</div><div class="stat-label">PDUFA</div></div>
+<div class="stat"><div class="stat-val" id="s-urgency" style="color:var(--red)">—</div><div class="stat-label">Urgency</div></div>
+</div>
+<div class="filters">
+<input type="text" id="search" placeholder="Search ticker..." oninput="render()" style="width:150px;">
+<select id="f-risk" onchange="render()"><option value="all">All Risk</option><option value="HIGH">HIGH</option><option value="ELEVATED">ELEVATED</option><option value="MODERATE">MODERATE</option><option value="LOW">LOW</option></select>
+<select id="f-cap" onchange="render()"><option value="all">All Cap</option><option value="SMALL">Small</option><option value="MID">Mid</option><option value="LARGE">Large</option></select>
+<select id="f-cat" onchange="render()"><option value="all">All</option><option value="approved">Approved Drug</option><option value="pdufa">PDUFA Catalyst</option><option value="urgency">Acquirer Urgency</option><option value="partner">Partnership</option><option value="revenue">Revenue $1M+</option><option value="insider">Insider Buying</option></select>
+<select id="f-sort" onchange="render()"><option value="buyout">Score ↓</option><option value="tam">TAM/Cap ↓</option><option value="revenue">Revenue ↓</option><option value="cap">Cap ↓</option><option value="approval">Recent Approval</option><option value="ticker">Ticker A-Z</option></select>
+</div>
+<div id="cards"></div>
+<div class="row-count" id="rc"></div>
+<div class="gate" id="gate"><div class="gate-icon">🔒</div><div class="gate-title">Buyout Scanner — Pro Feature</div><div class="gate-sub">870+ companies scored across 12 acquisition factors.</div><a href="/signup.html" class="nav-cta" style="margin-top:1rem;">Get Access — $29.99/month</a></div>
 </main>
-
-<footer>
-  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
-  <div>Quantitative research platform. Model outputs are data classifications, not financial advice.</div>
-  <div style="display:flex;gap:1.5rem;">
-    <a href="/privacy.html">Privacy</a>
-    <a href="/terms.html">Terms</a>
-    <a href="/calendar.html">Calendar</a>
-  </div>
-</footer>
-
+<footer><a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a><div>Quantitative research. Not financial advice.</div><div style="display:flex;gap:1.5rem;"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a><a href="/calendar.html">Calendar</a></div></footer>
 <script>
-var ALL_DATA = [];
+var D=[];
+function fmt(v){if(!v||v<=0)return'—';if(v>=1e9)return'$'+(v/1e9).toFixed(1)+'B';if(v>=1e6)return'$'+(v/1e6).toFixed(0)+'M';return'$'+Math.round(v).toLocaleString();}
+function pr(poa,lo,hi,c){if(!poa||poa<=0)return'';if(lo&&hi)return Math.round(lo)+'-'+Math.round(hi)+'%';var h=c==='HIGH'?3:c==='MODERATE'?4:5;return Math.max(10,Math.round(poa-h))+'-'+Math.min(95,Math.round(poa+h))+'%';}
+function render(){
+var q=(document.getElementById('search').value||'').toUpperCase(),rF=document.getElementById('f-risk').value,cF=document.getElementById('f-cap').value,catF=document.getElementById('f-cat').value,sF=document.getElementById('f-sort').value;
+var f=D.filter(function(d){
+if(q&&!d.ticker.includes(q)&&!(d.company_name||'').toUpperCase().includes(q))return false;
+if(rF!=='all'&&d.buyout_risk!==rF)return false;if(cF!=='all'&&d.market_cap_tier!==cF)return false;
+if(catF==='approved'&&!d.approved_drug)return false;if(catF==='pdufa'&&!d.has_pdufa)return false;
+if(catF==='urgency'&&!d.acquirer_urgency_top)return false;if(catF==='partner'&&!d.partner_name)return false;
+if(catF==='revenue'&&!(d.revenue_m>1))return false;if(catF==='insider'&&d.insider_signal!=='BULLISH')return false;
+return true;});
+if(sF==='buyout')f.sort(function(a,b){return(b.buyout_score||0)-(a.buyout_score||0);});
+else if(sF==='tam')f.sort(function(a,b){return(b.tam_ratio||0)-(a.tam_ratio||0);});
+else if(sF==='revenue')f.sort(function(a,b){return(b.revenue_m||0)-(a.revenue_m||0);});
+else if(sF==='cap')f.sort(function(a,b){return(b.market_cap||0)-(a.market_cap||0);});
+else if(sF==='approval')f.sort(function(a,b){return(b.approval_date||'').localeCompare(a.approval_date||'');});
+else if(sF==='ticker')f.sort(function(a,b){return a.ticker.localeCompare(b.ticker);});
+var ds=f.slice(0,100);
+if(!ds.length){document.getElementById('cards').innerHTML='<div class="empty">No matches.</div>';document.getElementById('rc').textContent='';return;}
+var h='<div class="card-grid">';
+ds.forEach(function(d){
+var lk='/catalyst-detail.html?ticker='+d.ticker;
+var rc=d.buyout_risk==='HIGH'?'risk-high':d.buyout_risk==='ELEVATED'?'risk-elev':d.buyout_risk==='MODERATE'?'risk-mod':'risk-low';
+var sc=d.buyout_score>=70?'var(--accent2)':d.buyout_score>=50?'var(--accent)':d.buyout_score>=30?'var(--amber)':'var(--muted)';
+var tc=d.tam_ratio>=10?'var(--accent2)':d.tam_ratio>=3?'var(--accent)':d.tam_ratio>=1?'var(--amber)':d.tam_ratio>0?'var(--red)':'var(--muted)';
+var revc=d.revenue_m>=100?'var(--accent2)':d.revenue_m>=10?'var(--accent)':d.revenue_m>0?'var(--amber)':'var(--muted)';
+var dc={'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)'}[d.dilution_risk]||'var(--muted)';
+var ic=d.insider_signal==='BULLISH'?'var(--accent2)':d.insider_signal==='BEARISH'?'var(--red)':'var(--muted)';
+var rwc=d.runway_months?d.runway_months<=12?'var(--red)':d.runway_months<=24?'var(--amber)':'var(--accent2)':'var(--muted)';
+// PDUFA line
+var pL='';if(d.has_pdufa&&d.pdufa_date&&d.pdufa_date!=='—'){var dd=Math.round((new Date(d.pdufa_date)-new Date())/864e5);if(dd>=0)pL='<div class="bo-flag" style="color:var(--accent)">PoA: '+pr(d.poa,d.poa_low,d.poa_high,d.data_confidence)+' · '+(d.grade||'WATCH')+' · '+d.pdufa_date+'</div>';}
+// Approved
+var aL='';if(d.approved_drug){aL='<div class="bo-flag" style="color:var(--accent2)">✅ '+d.approved_drug.substring(0,25);if(d.months_since_approval)aL+=' · '+d.months_since_approval+'mo';aL+='</div>';}
+// CT.gov
+var cL='';if(d.ct_nct_id)cL='<div class="bo-flag" style="color:var(--muted)">🧪 '+d.ct_nct_id+(d.ct_enrollment?' · '+d.ct_enrollment+' enrolled':'')+(d.ct_sites?' · '+d.ct_sites+' sites':'')+'</div>';
+// Flags
+var fL='';if(d.buyout_flags&&d.buyout_flags.length)fL=d.buyout_flags.slice(0,3).map(function(x){return'<div class="bo-flag">'+x.substring(0,55)+'</div>';}).join('');
+// News
+var nL='';if(d.news_items&&d.news_items.length){var nn=d.news_items[0];var hl=(nn.headline||nn.title||'').substring(0,50);if(hl)nL='<div class="bo-news">📰 '+hl+'</div>';}
 
-function renderTable() {
-  var search = (document.getElementById('search').value || '').toUpperCase();
-  var riskFilter = document.getElementById('filter-risk').value;
-  var capFilter = document.getElementById('filter-cap').value;
-  var catFilter = document.getElementById('filter-catalyst').value;
-  var sortBy = document.getElementById('sort-by').value;
-
-  var filtered = ALL_DATA.filter(function(d) {
-    if (search && !d.ticker.includes(search) && !(d.company_name || '').toUpperCase().includes(search)) return false;
-    if (riskFilter !== 'all' && d.buyout_risk !== riskFilter) return false;
-    if (capFilter !== 'all' && d.market_cap_tier !== capFilter) return false;
-    if (catFilter === 'approved' && !d.approved_drug) return false;
-    if (catFilter === 'pdufa' && !d.has_pdufa) return false;
-    if (catFilter === 'urgency' && !d.acquirer_urgency_top) return false;
-    if (catFilter === 'partner' && !d.partner_name) return false;
-    if (catFilter === 'revenue' && !(d.revenue_m > 1)) return false;
-    return true;
-  });
-
-  // Sort
-  if (sortBy === 'buyout') filtered.sort(function(a,b) { return (b.buyout_score||0) - (a.buyout_score||0); });
-  else if (sortBy === 'tam') filtered.sort(function(a,b) { return (b.tam_ratio||0) - (a.tam_ratio||0); });
-  else if (sortBy === 'revenue') filtered.sort(function(a,b) { return (b.revenue_m||0) - (a.revenue_m||0); });
-  else if (sortBy === 'ticker') filtered.sort(function(a,b) { return a.ticker.localeCompare(b.ticker); });
-  else if (sortBy === 'cap') filtered.sort(function(a,b) { return (b.market_cap||0) - (a.market_cap||0); });
-  else if (sortBy === 'approval') filtered.sort(function(a,b) { return (b.approval_date||'').localeCompare(a.approval_date||''); });
-
-  var display = filtered.slice(0, 150);
-
-  if (display.length === 0) {
-    document.getElementById('table-container').innerHTML = '<div class="empty">No companies match filters.</div>';
-    document.getElementById('row-count').textContent = '';
-    return;
-  }
-
-  var html = '<table><thead><tr>';
-  html += '<th>Ticker</th><th>Company</th><th>Cap</th><th>Score</th><th>Risk</th>';
-  html += '<th>Approved Drug</th><th>Revenue</th><th>TAM/Cap</th>';
-  html += '<th>Acquirer</th><th>Partner</th><th>Catalyst</th><th>Factors</th><th></th>';
-  html += '</tr></thead><tbody>';
-
-  display.forEach(function(d) {
-    var link = '/catalyst-detail.html?ticker=' + d.ticker;
-    var scoreClass = d.buyout_score >= 70 ? 'score-high' : d.buyout_score >= 50 ? 'score-mod' : d.buyout_score >= 30 ? 'score-low' : 'score-none';
-    var riskClass = d.buyout_risk === 'HIGH' ? 'score-high' : d.buyout_risk === 'MODERATE' ? 'score-mod' : 'score-low';
-    var capClass = d.market_cap_tier === 'SMALL' ? 'cap-sm' : d.market_cap_tier === 'MID' ? 'cap-mid' : 'cap-lg';
-    var capLabel = d.market_cap_tier === 'SMALL' ? 'SM' : d.market_cap_tier === 'MID' ? 'MID' : d.market_cap_tier === 'LARGE' ? 'LRG' : '—';
-
-    // Format market cap
-    var mcapDisplay = '—';
-    if (d.market_cap > 0) {
-      if (d.market_cap >= 1e9) mcapDisplay = '$' + (d.market_cap / 1e9).toFixed(1) + 'B';
-      else if (d.market_cap >= 1e6) mcapDisplay = '$' + (d.market_cap / 1e6).toFixed(0) + 'M';
-      else mcapDisplay = '$' + Math.round(d.market_cap).toLocaleString();
-    }
-
-    // Revenue display
-    var revDisplay = '—';
-    if (d.revenue_m > 0) {
-      var revColor = d.revenue_m >= 100 ? 'var(--accent2)' : d.revenue_m >= 10 ? 'var(--accent)' : 'var(--amber)';
-      revDisplay = '<span style="color:' + revColor + '">$' + (d.revenue_m >= 1000 ? (d.revenue_m/1000).toFixed(1) + 'B' : Math.round(d.revenue_m) + 'M') + '</span>';
-    }
-
-    // TAM display
-    var tamDisplay = '—';
-    if (d.tam_ratio > 0) {
-      var tamColor = d.tam_ratio >= 10 ? 'color:var(--accent2)' : d.tam_ratio >= 3 ? 'color:var(--accent)' : d.tam_ratio >= 1 ? 'color:var(--amber)' : 'color:var(--red)';
-      tamDisplay = '<span style="' + tamColor + '">' + d.tam_ratio + 'x</span>';
-    }
-
-    // Acquirer urgency
-    var acquirerDisplay = '—';
-    if (d.acquirer_urgency_top) {
-      acquirerDisplay = '<span style="color:var(--red);font-size:0.6rem;font-weight:700;">' + d.acquirer_urgency_top + '</span>';
-      if (d.buyout_timeline) {
-        acquirerDisplay += '<br><span style="color:var(--muted);font-size:0.52rem;">' + d.buyout_timeline + '</span>';
-      }
-    }
-
-    // Partner
-    var partnerDisplay = '—';
-    if (d.partner_name) {
-      partnerDisplay = '<span style="color:var(--accent);font-size:0.62rem;">' + d.partner_name + '</span>';
-    }
-
-    // PDUFA info
-    var pdufaDisplay = '—';
-    if (d.pdufa_date && d.pdufa_date !== '—') {
-      var days = Math.round((new Date(d.pdufa_date) - new Date()) / 86400000);
-      if (days >= 0) {
-        pdufaDisplay = '<span style="color:var(--accent);font-size:0.6rem;">' + d.pdufa_date + '</span><br><span style="font-size:0.52rem;color:var(--muted);">' + days + 'd</span>';
-      }
-    } else if (d.approved_drug && d.months_since_approval) {
-      pdufaDisplay = '<span style="color:var(--accent2);font-size:0.6rem;">Approved</span><br><span style="font-size:0.52rem;color:var(--muted);">' + d.months_since_approval + 'mo ago</span>';
-    }
-
-    // Factor pills
-    var factors = '';
-    if (d.buyout_flags && d.buyout_flags.length > 0) {
-      factors = d.buyout_flags.slice(0, 3).map(function(f) {
-        var cls = f.includes('🏷️') || f.includes('✅') ? 'factor-green' : f.includes('⚠️') || f.includes('🚨') ? 'factor-red' : 'factor-amber';
-        var clean = f.replace(/^[🏷️✅⚠️🚨📋]\s*/, '').substring(0, 35);
-        return '<span class="factor ' + cls + '">' + clean + '</span>';
-      }).join('');
-    } else {
-      var pills = [];
-      if (d.market_cap_tier === 'SMALL') pills.push('<span class="factor factor-green">Small-cap</span>');
-      if (d.buyout_risk === 'HIGH') pills.push('<span class="factor factor-green">High prob</span>');
-      if (d.partner_name) pills.push('<span class="factor factor-green">Partner</span>');
-      if (d.tam_ratio >= 5) pills.push('<span class="factor factor-green">TAM ' + d.tam_ratio + 'x</span>');
-      factors = pills.join('');
-    }
-
-    html += '<tr onclick="window.location.href=\'' + link + '\'">';
-    html += '<td class="ticker">' + d.ticker + '</td>';
-    html += '<td style="font-family:var(--sans);font-size:0.68rem;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (d.company_name || d.ticker) + '</td>';
-    html += '<td><span class="' + capClass + '">' + capLabel + '</span><br><span style="font-size:0.52rem;color:var(--muted);">' + mcapDisplay + '</span></td>';
-    html += '<td class="' + scoreClass + '">' + (d.buyout_score || 0) + '</td>';
-    html += '<td class="' + riskClass + '" style="font-size:0.62rem;">' + (d.buyout_risk || '—') + '</td>';
-    html += '<td style="font-size:0.62rem;">' + (d.approved_drug ? '<span style="color:var(--accent2);">✅ ' + d.approved_drug.substring(0,20) + '</span>' + (d.approval_date ? '<br><span style="color:var(--muted);font-size:0.52rem;">' + d.approval_date + '</span>' : '') : '<span style="color:var(--muted);">—</span>') + '</td>';
-    html += '<td style="font-size:0.62rem;">' + revDisplay + '</td>';
-    html += '<td style="font-size:0.62rem;">' + tamDisplay + '</td>';
-    html += '<td style="font-size:0.62rem;">' + acquirerDisplay + '</td>';
-    html += '<td style="font-size:0.62rem;">' + partnerDisplay + '</td>';
-    html += '<td style="font-size:0.6rem;">' + pdufaDisplay + '</td>';
-    html += '<td><div class="factors">' + (factors || '<span class="score-none">—</span>') + '</div></td>';
-    html += '<td><a href="' + link + '" style="color:var(--accent);font-size:0.55rem;text-decoration:none;letter-spacing:0.04em;" onclick="event.stopPropagation()">ANALYZE →</a></td>';
-    html += '</tr>';
-  });
-
-  html += '</tbody></table>';
-  document.getElementById('table-container').innerHTML = html;
-  document.getElementById('row-count').textContent = 'Showing ' + display.length + ' of ' + filtered.length + ' companies';
+h+='<div class="bo-card" onclick="window.location.href=\''+lk+'\'">';
+// LEFT
+h+='<div class="bo-left"><div class="bo-ticker">'+d.ticker+'</div><div class="bo-company">'+(d.company_name||d.ticker)+'</div>';
+h+='<span class="bo-risk '+rc+'">'+(d.buyout_risk||'—')+'</span>';
+h+='<div class="bo-score">Buyout <strong style="color:'+sc+'">'+d.buyout_score+'</strong>/100</div>';
+if(d.acquirer_urgency_top)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--red);margin-top:0.15rem">🎯 '+d.acquirer_urgency_top+'</div>';
+if(d.partner_name)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--accent);margin-top:0.1rem">🤝 '+d.partner_name+'</div>';
+h+='</div>';
+// CENTER
+h+='<div class="bo-center">';
+h+='<div class="bo-m"><span class="bo-ml">TAM/Cap</span><span class="bo-mv" style="color:'+tc+'">'+(d.tam_ratio>0?d.tam_ratio+'x':'—')+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">Cap</span><span class="bo-mv">'+fmt(d.market_cap)+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">Revenue</span><span class="bo-mv" style="color:'+revc+'">'+(d.revenue_m>0?'$'+Math.round(d.revenue_m)+'M':'—')+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">Takeout</span><span class="bo-mv">'+(d.market_cap>0?fmt(d.market_cap*1.6):'—')+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">Dilution</span><span class="bo-mv" style="color:'+dc+'">'+(d.dilution_risk||'—')+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">Insider</span><span class="bo-mv" style="color:'+ic+'">'+(d.insider_signal||'—')+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">Runway</span><span class="bo-mv" style="color:'+rwc+'">'+(d.runway_months?Math.round(d.runway_months)+'mo':'—')+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">30D</span><span class="bo-mv" style="color:'+(d.price_change_30d>0?'var(--accent2)':d.price_change_30d<0?'var(--red)':'var(--muted)')+'">'+(d.price_change_30d?(d.price_change_30d>0?'+':'')+d.price_change_30d.toFixed(1)+'%':'—')+'</span></div>';
+if(d.buyout_timeline)h+='<div class="bo-m" style="grid-column:span 2"><span class="bo-ml">Timeline</span><span class="bo-mv" style="font-size:0.6rem;color:var(--amber)">'+d.buyout_timeline+'</span></div>';
+if(d.short_interest>0)h+='<div class="bo-m"><span class="bo-ml">Short %</span><span class="bo-mv" style="color:'+(d.short_interest>15?'var(--red)':d.short_interest>8?'var(--amber)':'var(--muted)')+'">'+d.short_interest.toFixed(1)+'%</span></div>';
+h+='</div>';
+// RIGHT
+h+='<div class="bo-right">'+aL+pL+cL+fL+nL+'<a href="'+lk+'" class="bo-link" onclick="event.stopPropagation()">View deep dive →</a></div>';
+h+='</div>';
+});
+h+='</div>';
+document.getElementById('cards').innerHTML=h;
+document.getElementById('rc').textContent='Showing '+ds.length+' of '+f.length+' companies';
 }
 
-(async function() {
-  var session = await scRequireAuth();
-  if (!session) return;
-
-  var profile = await scGetProfile(session.user.id);
-  if (!profile || !profile.is_paid) {
-    document.getElementById('gate').style.display = 'flex';
-    return;
-  }
-
-  var sb = getSupabase();
-
-  // Load PDUFA events with buyout data
-  try {
-    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
-      headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
-    });
-    var result = await res.json();
-    if (result.events) {
-      result.events.forEach(function(e) {
-        ALL_DATA.push({
-          ticker: e.ticker,
-          company_name: e.company_name || e.drug || e.ticker,
-          market_cap_tier: e.market_cap_tier || 'UNKNOWN',
-          market_cap: Number(e.market_cap) || Number(e.estimated_market_cap) || 0,
-          buyout_score: Number(e.buyout_score) || 0,
-          buyout_risk: e.buyout_risk || 'UNLIKELY',
-          buyout_flags: e.buyout_flags || [],
-          tam_ratio: Number(e.tam_ratio) || 0,
-          tam_label: e.tam_label || '',
-          partnership_detected: e.partnership_detected || e.has_partnership || false,
-          partner_name: e.partner_name || '',
-          acquirer_urgency_top: e.acquirer_urgency_top || '',
-          buyout_timeline: e.buyout_timeline || '',
-          buyout_timeline_months: Number(e.buyout_timeline_months) || 0,
-          revenue_m: Number(e.revenue_m) || 0,
-          months_since_approval: Number(e.months_since_approval) || 0,
-          buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
-          pdufa_date: e.date || '—',
-          poa: Number(e.poa) || 0,
-          grade: e.grade || 'WATCH',
-          has_pdufa: true,
-          approved_drug: '',
-          approval_date: '',
-        });
-      });
-    }
-  } catch (err) { console.warn('Failed to load PDUFA events:', err); }
-
-  // Load recently approved companies (past 1-2 years, not yet acquired)
-  try {
-    var { data: approved } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, drug_tam_billions, estimated_market_cap, revenue_m, acquirer_urgency_top, partner_name, has_partnership, buyout_timeline, buyout_timeline_months, months_since_approval, buyout_probability_pct')
-      .eq('is_acquired', false)
-      .not('last_approval_date', 'is', null)
-      .order('buyout_score', { ascending: false });
-
-    if (approved) {
-      var existingTickers = {};
-      ALL_DATA.forEach(function(d) { existingTickers[d.ticker] = true; });
-
-      approved.forEach(function(c) {
-        var tam = Number(c.drug_tam_billions) || 0;
-        var mcap = Number(c.estimated_market_cap) || 0;
-        var tamRatio = (tam > 0 && mcap > 0) ? Math.round((tam * 1e9 / mcap) * 10) / 10 : 0;
-
-        if (!existingTickers[c.ticker]) {
-          existingTickers[c.ticker] = true;
-          ALL_DATA.push({
-            ticker: c.ticker,
-            company_name: c.company_name || c.ticker,
-            market_cap_tier: c.market_cap_tier || 'SMALL',
-            market_cap: mcap,
-            buyout_score: Number(c.buyout_score) || 45,
-            buyout_risk: c.buyout_risk || 'MODERATE',
-            buyout_flags: c.buyout_flags || [],
-            tam_ratio: tamRatio,
-            tam_label: '',
-            partnership_detected: c.has_partnership || false,
-            partner_name: c.partner_name || '',
-            acquirer_urgency_top: c.acquirer_urgency_top || '',
-            buyout_timeline: c.buyout_timeline || '',
-            buyout_timeline_months: Number(c.buyout_timeline_months) || 0,
-            revenue_m: Number(c.revenue_m) || 0,
-            months_since_approval: Number(c.months_since_approval) || 0,
-            buyout_probability_pct: Number(c.buyout_probability_pct) || 0,
-            pdufa_date: '—',
-            poa: 0,
-            grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
-            has_pdufa: false,
-            approved_drug: c.approved_drug || '',
-            approval_date: c.last_approval_date || '',
-          });
-        } else {
-          var existing = ALL_DATA.find(function(d) { return d.ticker === c.ticker; });
-          if (existing) {
-            if (c.approved_drug) existing.approved_drug = c.approved_drug;
-            if (c.last_approval_date) existing.approval_date = c.last_approval_date;
-            if (!existing.tam_ratio && tamRatio) existing.tam_ratio = tamRatio;
-            if (!existing.market_cap && mcap) existing.market_cap = mcap;
-            if (!existing.revenue_m && c.revenue_m) existing.revenue_m = Number(c.revenue_m) || 0;
-            if (!existing.acquirer_urgency_top && c.acquirer_urgency_top) existing.acquirer_urgency_top = c.acquirer_urgency_top;
-            if (!existing.partner_name && c.partner_name) existing.partner_name = c.partner_name;
-            if (!existing.buyout_timeline && c.buyout_timeline) existing.buyout_timeline = c.buyout_timeline;
-            if (c.months_since_approval) existing.months_since_approval = Number(c.months_since_approval);
-            if (c.buyout_flags && c.buyout_flags.length > 0 && (!existing.buyout_flags || existing.buyout_flags.length === 0)) existing.buyout_flags = c.buyout_flags;
-            if (Number(c.buyout_score) > existing.buyout_score) {
-              existing.buyout_score = Number(c.buyout_score);
-              existing.buyout_risk = c.buyout_risk;
-            }
-          }
-        }
-      });
-    }
-  } catch (err) { console.warn('Failed to load approved companies:', err); }
-
-  // Load remaining universe companies
-  try {
-    var { data: universe } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier')
-      .eq('active', true)
-      .order('ticker', { ascending: true });
-
-    if (universe) {
-      var existingTickers = {};
-      ALL_DATA.forEach(function(d) { existingTickers[d.ticker] = true; });
-
-      universe.forEach(function(c) {
-        if (!existingTickers[c.ticker]) {
-          var bScore = 15;
-          var bRisk = 'UNLIKELY';
-          if (c.market_cap_tier === 'SMALL') { bScore = 45; bRisk = 'MODERATE'; }
-          else if (c.market_cap_tier === 'MID') { bScore = 25; bRisk = 'LOW'; }
-
-          ALL_DATA.push({
-            ticker: c.ticker,
-            company_name: c.company_name || c.ticker,
-            market_cap_tier: c.market_cap_tier || 'UNKNOWN',
-            market_cap: 0,
-            buyout_score: bScore,
-            buyout_risk: bRisk,
-            buyout_flags: [],
-            tam_ratio: 0,
-            tam_label: '',
-            partnership_detected: false,
-            pdufa_date: '—',
-            poa: 0,
-            grade: 'WATCH',
-            has_pdufa: false,
-          });
-        }
-      });
-    }
-  } catch (err) { console.warn('Failed to load universe:', err); }
-
-  // Update stats
-  document.getElementById('stat-total').textContent = ALL_DATA.length;
-  document.getElementById('stat-high').textContent = ALL_DATA.filter(function(d) { return d.buyout_risk === 'HIGH'; }).length;
-  document.getElementById('stat-mod').textContent = ALL_DATA.filter(function(d) { return d.buyout_risk === 'MODERATE'; }).length;
-  document.getElementById('stat-approved').textContent = ALL_DATA.filter(function(d) { return d.approved_drug; }).length;
-  document.getElementById('stat-pdufa').textContent = ALL_DATA.filter(function(d) { return d.has_pdufa; }).length;
-  document.getElementById('stat-urgency').textContent = ALL_DATA.filter(function(d) { return d.acquirer_urgency_top; }).length;
-
-  renderTable();
+(async function(){
+var session=await scRequireAuth();if(!session)return;
+var profile=await scGetProfile(session.user.id);
+if(!profile||!profile.is_paid){document.getElementById('gate').style.display='flex';return;}
+var sb=getSupabase();
+try{
+var res=await fetch(SC_CONFIG.supabaseUrl+'/functions/v1/get-scanner-data?view=scanner',{headers:{'Authorization':'Bearer '+session.access_token,'Content-Type':'application/json'}});
+var r=await res.json();
+if(r.events)r.events.forEach(function(e){D.push({ticker:e.ticker,company_name:e.company_name||e.drug||e.ticker,market_cap_tier:e.market_cap_tier||'UNKNOWN',market_cap:Number(e.market_cap)||Number(e.estimated_market_cap)||0,buyout_score:Number(e.buyout_score)||0,buyout_risk:e.buyout_risk||'UNLIKELY',buyout_flags:e.buyout_flags||[],tam_ratio:Number(e.tam_ratio)||0,partnership_detected:e.partnership_detected||e.has_partnership||false,partner_name:e.partner_name||'',acquirer_urgency_top:e.acquirer_urgency_top||'',buyout_timeline:e.buyout_timeline||'',revenue_m:Number(e.revenue_m)||0,months_since_approval:Number(e.months_since_approval)||0,pdufa_date:e.date||'—',poa:Number(e.poa)||0,grade:e.grade||'WATCH',poa_low:Number(e.poa_low)||0,poa_high:Number(e.poa_high)||0,data_confidence:e.data_confidence||'',dilution_risk:e.dilution_risk||'',insider_signal:e.insider_signal||'',runway_months:Number(e.runway_months)||0,short_interest:Number(e.short_interest)||0,price_change_30d:Number(e.price_change_30d)||0,ct_nct_id:e.ct_nct_id||'',ct_enrollment:Number(e.ct_enrollment)||0,ct_sites:Number(e.ct_sites)||0,news_items:e.news_items||[],has_pdufa:true,approved_drug:'',approval_date:''});});
+}catch(e){console.warn('PDUFA load:',e);}
+try{
+var{data:ap}=await sb.from('biotech_universe').select('ticker,company_name,market_cap_tier,last_approval_date,approved_drug,approved_indication,buyout_score,buyout_risk,buyout_flags,drug_tam_billions,estimated_market_cap,revenue_m,acquirer_urgency_top,partner_name,has_partnership,buyout_timeline,buyout_timeline_months,months_since_approval,buyout_probability_pct,news_items,cmc_risk').eq('is_acquired',false).not('last_approval_date','is',null).order('buyout_score',{ascending:false});
+if(ap){var ex={};D.forEach(function(d){ex[d.ticker]=d;});
+ap.forEach(function(c){var tam=Number(c.drug_tam_billions)||0;var mc=Number(c.estimated_market_cap)||0;var tr=(tam>0&&mc>0)?Math.round((tam*1e9/mc)*10)/10:0;
+if(!ex[c.ticker]){var e={ticker:c.ticker,company_name:c.company_name||c.ticker,market_cap_tier:c.market_cap_tier||'SMALL',market_cap:mc,buyout_score:Number(c.buyout_score)||45,buyout_risk:c.buyout_risk||'MODERATE',buyout_flags:c.buyout_flags||[],tam_ratio:tr,partnership_detected:c.has_partnership||false,partner_name:c.partner_name||'',acquirer_urgency_top:c.acquirer_urgency_top||'',buyout_timeline:c.buyout_timeline||'',revenue_m:Number(c.revenue_m)||0,months_since_approval:Number(c.months_since_approval)||0,pdufa_date:'—',poa:0,grade:c.buyout_score>=70?'STRONG':'WATCH',poa_low:0,poa_high:0,data_confidence:'',dilution_risk:'',insider_signal:'',runway_months:0,short_interest:0,price_change_30d:0,ct_nct_id:'',ct_enrollment:0,ct_sites:0,news_items:c.news_items||[],has_pdufa:false,approved_drug:c.approved_drug||'',approval_date:c.last_approval_date||''};D.push(e);ex[c.ticker]=e;
+}else{var x=ex[c.ticker];if(c.approved_drug)x.approved_drug=c.approved_drug;if(c.last_approval_date)x.approval_date=c.last_approval_date;if(!x.tam_ratio&&tr)x.tam_ratio=tr;if(!x.market_cap&&mc)x.market_cap=mc;if(!x.revenue_m&&c.revenue_m)x.revenue_m=Number(c.revenue_m)||0;if(!x.acquirer_urgency_top&&c.acquirer_urgency_top)x.acquirer_urgency_top=c.acquirer_urgency_top;if(!x.partner_name&&c.partner_name)x.partner_name=c.partner_name;if(!x.buyout_timeline&&c.buyout_timeline)x.buyout_timeline=c.buyout_timeline;if(c.months_since_approval)x.months_since_approval=Number(c.months_since_approval);if(c.buyout_flags&&c.buyout_flags.length&&(!x.buyout_flags||!x.buyout_flags.length))x.buyout_flags=c.buyout_flags;if(c.news_items&&c.news_items.length&&(!x.news_items||!x.news_items.length))x.news_items=c.news_items;if(Number(c.buyout_score)>x.buyout_score){x.buyout_score=Number(c.buyout_score);x.buyout_risk=c.buyout_risk;}}
+});}
+}catch(e){console.warn('Universe load:',e);}
+document.getElementById('s-total').textContent=D.length;
+document.getElementById('s-high').textContent=D.filter(function(d){return d.buyout_risk==='HIGH';}).length;
+document.getElementById('s-mod').textContent=D.filter(function(d){return d.buyout_risk==='MODERATE'||d.buyout_risk==='ELEVATED';}).length;
+document.getElementById('s-approved').textContent=D.filter(function(d){return d.approved_drug;}).length;
+document.getElementById('s-pdufa').textContent=D.filter(function(d){return d.has_pdufa;}).length;
+document.getElementById('s-urgency').textContent=D.filter(function(d){return d.acquirer_urgency_top;}).length;
+render();
 })();
 </script>
 </body>
