@@ -571,7 +571,7 @@ function updateCounts() {
   // ── ALWAYS LOAD: Full biotech universe ─────────────────────────────
   try {
     var { data: universe } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, sic_description, exchange, category')
+      .select('ticker, company_name, market_cap_tier, sic_description, exchange, category, buyout_score, buyout_risk, buyout_flags, tam_ratio, revenue_m, acquirer_urgency_top, partner_name, has_partnership, buyout_timeline, price_change_30d, chart_pattern, dilution_risk, insider_signal, runway_months, short_interest, current_price, approved_drug, last_approval_date, months_since_approval, estimated_market_cap')
       .eq('active', true)
       .order('ticker', { ascending: true });
 
@@ -581,10 +581,20 @@ function updateCounts() {
       universe.forEach(function(c) { uniMap[c.ticker] = c; });
       ALL_EVENTS.forEach(function(e) {
         if (uniMap[e.ticker]) {
-          if (!e.company_name || e.company_name === '') e.company_name = uniMap[e.ticker].company_name;
-          if (!e.market_cap_tier || e.market_cap_tier === 'UNKNOWN') e.market_cap_tier = uniMap[e.ticker].market_cap_tier || 'UNKNOWN';
-          if (!e.sic_description) e.sic_description = uniMap[e.ticker].sic_description || '';
-          if (!e.exchange) e.exchange = uniMap[e.ticker].exchange || '';
+          var u = uniMap[e.ticker];
+          if (!e.company_name || e.company_name === '') e.company_name = u.company_name;
+          if (!e.market_cap_tier || e.market_cap_tier === 'UNKNOWN') e.market_cap_tier = u.market_cap_tier || 'UNKNOWN';
+          if (!e.sic_description) e.sic_description = u.sic_description || '';
+          if (!e.exchange) e.exchange = u.exchange || '';
+          if (!e.price_change_30d && u.price_change_30d) e.price_change_30d = Number(u.price_change_30d);
+          if (!e.chart_pattern && u.chart_pattern) e.chart_pattern = u.chart_pattern;
+          if (!e.dilution_risk && u.dilution_risk) e.dilution_risk = u.dilution_risk;
+          if (!e.insider_signal && u.insider_signal) e.insider_signal = u.insider_signal;
+          if (!e.runway_months && u.runway_months) e.runway_months = Number(u.runway_months);
+          if (!e.revenue_m && u.revenue_m) e.revenue_m = Number(u.revenue_m);
+          if (!e.buyout_score && u.buyout_score) e.buyout_score = Number(u.buyout_score);
+          if (!e.buyout_risk && u.buyout_risk) e.buyout_risk = u.buyout_risk;
+          if (!e.tam_ratio && u.tam_ratio) e.tam_ratio = Number(u.tam_ratio);
         }
       });
 
@@ -603,10 +613,12 @@ function updateCounts() {
       var uniEntries = universe.filter(function(c) {
         return !existing[c.ticker];
       }).map(function(c) {
-        var bRisk = 'UNLIKELY';
-        var bScore = 15;
-        if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
-        else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
+        var bRisk = c.buyout_risk || 'UNLIKELY';
+        var bScore = Number(c.buyout_score) || 15;
+        if (!c.buyout_score) {
+          if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
+          else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
+        }
 
         var capLabel = c.market_cap_tier || 'UNKNOWN';
         var desc = c.sic_description || c.category || '';
@@ -615,17 +627,29 @@ function updateCounts() {
 
         var entry = {
           ticker: c.ticker,
-          drug: desc || c.company_name || '',
+          drug: c.approved_drug || desc || c.company_name || '',
           indication: desc,
           type: 'COMPANY',
           date: '—',
           grade: capGrade,
           poa: 0, score: bScore, flags: [],
           notes: desc,
-          sell_news_risk: '—', dilution_risk: '—',
+          sell_news_risk: '—',
+          dilution_risk: c.dilution_risk || '—',
+          insider_signal: c.insider_signal || '',
+          runway_months: Number(c.runway_months) || 0,
+          price_change_30d: Number(c.price_change_30d) || 0,
+          chart_pattern: c.chart_pattern || '',
+          short_interest: Number(c.short_interest) || 0,
+          revenue_m: Number(c.revenue_m) || 0,
+          tam_ratio: Number(c.tam_ratio) || 0,
           net_edge_score: bScore,
-          atm_active: false, shelf_active: false, partnership_detected: false,
-          buyout_score: bScore, buyout_risk: bRisk, buyout_flags: [],
+          atm_active: false, shelf_active: false,
+          partnership_detected: c.has_partnership || false,
+          partner_name: c.partner_name || '',
+          acquirer_urgency_top: c.acquirer_urgency_top || '',
+          buyout_score: bScore, buyout_risk: bRisk, buyout_flags: c.buyout_flags || [],
+          buyout_timeline: c.buyout_timeline || '',
           company_name: c.company_name || c.ticker,
           market_cap_tier: capLabel,
           sic_description: desc,
