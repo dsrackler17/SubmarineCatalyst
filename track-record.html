@@ -127,7 +127,7 @@ footer a:hover{color:var(--accent);}
 <main>
   <div class="page-eyebrow">Performance Validation</div>
   <h1 class="page-title">Track Record</h1>
-  <p class="page-sub">v5.1 scoring model backtested against 30 PDUFA decisions from 2024–2025, plus 8 live-scored events in 2026. Every prediction documented before the FDA decision date. No cherry-picking. Wins and losses both logged.</p>
+  <p class="page-sub">v5.1 scoring model backtested against 30 PDUFA decisions from 2024–2025, plus 8 live-scored events in 2026. Every prediction documented before the FDA decision date. No cherry-picking. First miss logged: REPL CRL (April 10, 2026).</p>
 
   <div class="stats-strip">
     <div class="stat-cell">
@@ -158,7 +158,7 @@ footer a:hover{color:var(--accent);}
   </div>
 
   <div class="disclaimer">
-    ⚠️ Backtest results are computed by applying the v5.1 scoring model to historical PDUFA events retroactively. The 8 live-scored events (2026) were logged before the FDA decision. Backtest ≠ live performance — the model was calibrated with awareness of these outcomes. Statistical robustness requires 50+ live events. Past classification accuracy does not guarantee future results. This is a quantitative research tool, not investment advice.
+    ⚠️ Backtest results are computed by applying the v5.1 scoring model to historical PDUFA events retroactively. The 8 live-scored events (2026) were logged before the FDA decision — 7 now resolved, 2 pending. First miss: REPL (84% PoA → CRL, halted at $4.76 / −19.46%, AH −63%). STN Risk flagged HIGH on REPL before decision. Statistical robustness requires 50+ live events. Past classification accuracy does not guarantee future results. This is a quantitative research tool, not investment advice.
   </div>
 
   <div class="backtest-banner">
@@ -189,14 +189,26 @@ footer a:hover{color:var(--accent);}
         <tr><td class="ticker-cell">DNLI</td><td>Denali Therapeutics · Neuroscience</td><td>2026-03-25</td><td class="poa-cell">77.5%</td><td>STRONG</td><td><span style="color:var(--accent2);">LOW</span></td><td class="result-approved">✅ APPROVED</td><td class="correct">+8%</td><td class="correct">✓</td></tr>
         <tr><td class="ticker-cell">RCKT</td><td>Kresladi · LAD-I Gene Therapy</td><td>2026-03-28</td><td class="poa-cell">77.5%</td><td>STRONG</td><td><span style="color:var(--red);">HIGH</span></td><td class="result-approved">✅ APPROVED</td><td class="incorrect">-20%</td><td class="correct">✓</td></tr>
         <tr><td class="ticker-cell">BIIB</td><td>Nusinersen (high dose) · SMA</td><td>2026-04-03</td><td class="poa-cell">75.0%</td><td>STRONG</td><td><span style="color:var(--amber);">MODERATE</span></td><td class="result-approved">✅ APPROVED</td><td class="incorrect">-5%</td><td class="correct">✓</td></tr>
+        <tr style="background:rgba(255,68,68,0.05);"><td class="ticker-cell" style="color:var(--red);">REPL</td><td>Vamorolone · Duchenne MD</td><td>2026-04-10</td><td class="poa-cell">84.0%</td><td>STRONG</td><td><span style="color:var(--red);">HIGH</span></td><td class="result-crl">❌ CRL</td><td class="incorrect">−63%</td><td class="incorrect">✗</td></tr>
       </tbody>
     </table>
+
+    <!-- REPL CRL POST-MORTEM -->
+    <div style="background:rgba(255,68,68,0.04);border:1px solid rgba(255,68,68,0.15);border-left:3px solid var(--red);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
+      <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--red);margin-bottom:0.5rem;">First Miss — REPL · April 10, 2026</div>
+      <div style="color:var(--text);line-height:1.75;">
+        <span style="color:var(--white);font-weight:700;">REPL (Vamorolone · Duchenne Muscular Dystrophy)</span> — Scanner scored PoA at <span style="color:var(--accent);">84.0%</span> (STRONG grade). FDA issued a Complete Response Letter citing CMC manufacturing deficiencies. Stock halted at <span style="color:var(--red);font-weight:700;">$4.76 (−19.46%)</span> on the halt, then continued selling after-hours to <span style="color:var(--red);font-weight:700;">−63%</span> total.
+        <br><br>
+        <span style="color:var(--muted);">Why the miss:</span> Vamorolone had strong Phase 3 data (VISION-DMD: 1.8 rise/stair improvement vs placebo, p=0.002), Breakthrough Therapy designation, and Rare/Orphan classification at 86.2% base rate. The CRL cited manufacturing process validation — a CMC-layer risk the v5.1 model didn't weight into PoA. The STN Risk layer <em>did</em> flag HIGH, which would have discouraged a long position regardless of PoA.
+        <br><br>
+        <span style="color:var(--accent);">Model update (v5.2):</span> CMC Risk now incorporated. Monitors FDA Warning Letters, 483 observations, facility inspection history. HIGH CMC risk applies 0.85× PoA discount. REPL had a known CMC flag — the model just wasn't using it.
+      </div>
+    </div>
 
     <div class="section-title">Active — Pending Resolution</div>
     <table class="outcome-table">
       <thead><tr><th>Ticker</th><th>Drug / Indication</th><th>PDUFA</th><th>PoA</th><th>Grade</th><th>STN Risk</th><th>Outcome</th><th>Move</th><th>✓</th></tr></thead>
       <tbody id="upcoming-body">
-        <tr style="background:rgba(245,166,35,0.05);"><td class="ticker-cell" style="color:var(--amber);">REPL 🟡</td><td>Vamorolone · Duchenne MD</td><td>Apr 10, 2026</td><td class="poa-cell">84.0%</td><td>STRONG</td><td><span style="color:var(--red);">HIGH</span></td><td class="result-pending">Expected AH today</td><td style="color:var(--muted);">—</td><td style="color:var(--muted);">—</td></tr>
         <tr style="background:rgba(0,212,255,0.04);"><td class="ticker-cell" style="color:var(--accent);">TVTX 🔴</td><td>FILSPARI · FSGS</td><td>Apr 13, 2026</td><td class="poa-cell">72.0%</td><td>STRONG</td><td><span style="color:var(--amber);">MODERATE</span></td><td class="result-pending">Pending — <span id="tvtx-days"></span></td><td style="color:var(--muted);">—</td><td style="color:var(--muted);">—</td></tr>
         <tr style="background:rgba(0,212,255,0.04);"><td class="ticker-cell" style="color:var(--accent);">LGND 🔴</td><td>Filspari (royalty) · FSGS</td><td>Apr 13, 2026</td><td class="poa-cell">71.5%</td><td>STRONG</td><td><span style="color:var(--amber);">MODERATE</span></td><td class="result-pending">Pending — <span class="lgnd-days"></span></td><td style="color:var(--muted);">—</td><td style="color:var(--muted);">—</td></tr>
       </tbody>
@@ -204,7 +216,7 @@ footer a:hover{color:var(--accent);}
 
     <div class="stn-callout">
       <div class="label">STN Risk — The differentiator</div>
-      <div class="body">3 of 6 resolved approvals had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all three before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). PoA tells you if it gets approved. Net Edge tells you if it's worth trading.</div>
+      <div class="body">4 of 7 resolved events had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all four before the date. <span style="color:var(--accent2);">REPL</span>: HIGH STN → <span style="color:var(--red);">CRL, halted −19.46%, AH −63%</span>. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). The PoA model missed the REPL CRL. But the STN layer flagged HIGH risk on REPL <em>before</em> the decision — anyone following the composite signal (not just PoA) would have avoided the position.</div>
     </div>
   </div>
 
