@@ -206,6 +206,14 @@ var isPaid = false;
 
 function daysUntil(dateStr) { return Math.round((new Date(dateStr) - new Date()) / 86400000); }
 
+// PoA range — max 10-point band, tighter at higher confidence
+function computePoARange(poa, confidence) {
+  var hw = (confidence === 'HIGH') ? 3 : (confidence === 'MODERATE') ? 4 : 5;
+  var low = Math.max(10, Math.round(poa - hw));
+  var high = Math.min(95, Math.round(poa + hw));
+  return low + '-' + high + '%';
+}
+
 function daysPill(days) {
   if (days < 0) return '<span class="days-pill days-hot">RESOLVED</span>';
   if (days <= 7) return '<span class="days-pill days-hot">' + days + 'd</span>';
@@ -310,7 +318,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Chart</th><th>30D</th>';
+    html += '<th>TAM</th><th>PoA Range</th><th>Risk</th><th>Grade</th><th>Setup</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -367,13 +375,19 @@ function renderTable() {
       html += '<td class="score-cell" style="color:' + tamColor + ';font-weight:700;">' + tamDisplay + '</td>';
 
       if (e._source === 'pdufa' || e._source === 'catalyst') {
-        // PDUFA/catalyst — show PoA + STN
+        // PDUFA/catalyst — show PoA range + STN
         var poaVal = Number(e.poa) || 0;
-        var poaLow = e.poa_range_low != null ? Math.round(Number(e.poa_range_low)) : (poaVal > 0 ? Math.max(15, poaVal - 10) : 0);
-        var poaHigh = e.poa_range_high != null ? Math.round(Number(e.poa_range_high)) : (poaVal > 0 ? Math.min(97, poaVal + 8) : 0);
         var poaColor = poaVal >= 75 ? 'var(--accent2)' : poaVal >= 60 ? 'var(--accent)' : poaVal > 0 ? 'var(--amber)' : 'var(--muted)';
-        var poaText = poaVal > 0 ? poaLow + '-' + poaHigh + '%' : '—';
-        html += '<td class="score-cell" style="color:' + poaColor + '">' + poaText + '</td>';
+        // Use DB range if available, otherwise compute client-side
+        var poaDisplay = '—';
+        if (poaVal > 0) {
+          if (e.poa_low && e.poa_high) {
+            poaDisplay = Math.round(e.poa_low) + '-' + Math.round(e.poa_high) + '%';
+          } else {
+            poaDisplay = computePoARange(poaVal, e.data_confidence || 'LOW');
+          }
+        }
+        html += '<td class="score-cell" style="color:' + poaColor + ';font-size:0.65rem;">' + poaDisplay + '</td>';
         var stnVal = e.sell_news_risk || '—';
         html += '<td class="score-cell" style="color:' + riskColor(stnVal) + ';font-size:0.62rem;">' + stnVal + '</td>';
       } else {
@@ -390,29 +404,19 @@ function renderTable() {
       var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[gradeVal] || 'var(--amber)';
       html += '<td class="score-cell" style="color:' + gColor + '">' + gradeVal + '</td>';
 
-      // Chart Setup column
-      var chartLabel = e.chart_setup || '—';
-      var chartColor = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'}[chartLabel] || 'var(--muted)';
-      html += '<td class="score-cell" style="color:' + chartColor + ';font-size:0.62rem;">' + chartLabel + '</td>';
-
-      // 30D price change column with mini sparkline
-      var p30d = e.price_change_30d != null ? Number(e.price_change_30d) : null;
-      var priceHist = e.price_history_30d || [];
-      var sparkHtml = '';
-      if (priceHist.length >= 5) {
-        var prices = priceHist.map(function(p) { return typeof p === 'object' ? p.close : p; });
-        var mn = Math.min.apply(null, prices);
-        var mx = Math.max.apply(null, prices);
-        var rng = mx - mn || 1;
-        var pts = prices.map(function(p, i) {
-          return (i / (prices.length - 1) * 60).toFixed(1) + ',' + (18 - ((p - mn) / rng) * 16).toFixed(1);
-        }).join(' ');
-        var sCol = p30d >= 0 ? 'var(--accent2)' : 'var(--red)';
-        sparkHtml = '<svg viewBox="0 0 60 20" style="width:48px;height:16px;vertical-align:middle;margin-right:4px;"><polyline points="' + pts + '" fill="none" stroke="' + sCol + '" stroke-width="1.5" stroke-linejoin="round"/></svg>';
+      // Signal column — behavioral pattern based on risk data
+      var signal = '';
+      if (e._source === 'pdufa' || e._source === 'catalyst') {
+        if (e.sell_news_risk === 'HIGH') signal = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 STN HIGH</span>';
+        else if (e.sell_news_risk === 'LOW' || e.sell_news_risk === 'VERY LOW') signal = '<span class="pattern-pill" style="background:rgba(0,255,157,0.1);color:var(--accent2);">📡 STN LOW</span>';
+        else if (e.sell_news_risk === 'ELEVATED') signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.1);color:var(--amber);">〰️ ELEVATED</span>';
+        else if (e.sell_news_risk !== '—') signal = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 MODERATE</span>';
+      } else if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') {
+        signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.12);color:var(--amber);">🏷️ BUYOUT</span>';
+      } else if (e._source === 'earnings') {
+        signal = '<span class="pattern-pill" style="background:rgba(90,122,153,0.1);color:var(--muted);">📊 ER</span>';
       }
-      var p30dColor = p30d != null ? (p30d >= 5 ? 'var(--accent2)' : p30d >= 0 ? 'var(--accent)' : p30d > -5 ? 'var(--amber)' : 'var(--red)') : 'var(--muted)';
-      var p30dText = p30d != null ? (p30d >= 0 ? '+' : '') + p30d.toFixed(1) + '%' : '—';
-      html += '<td class="score-cell" style="font-size:0.62rem;white-space:nowrap;">' + sparkHtml + '<span style="color:' + p30dColor + ';">' + p30dText + '</span></td>';
+      html += '<td>' + (signal || '—') + '</td>';
     }
 
     html += '<td style="text-align:center;"><a href="' + link + '" style="color:var(--accent);font-family:var(--mono);font-size:0.58rem;text-decoration:none;letter-spacing:0.04em;" onclick="event.stopPropagation();">ANALYZE →</a></td>';
@@ -500,7 +504,7 @@ function updateCounts() {
   if (ALL_EVENTS.length === 0) {
     // Load PDUFA events
     var { data: pdufaEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, poa_range_low, poa_range_high, poa_confidence, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, chart_setup, price_trend_30d, price_change_30d, price_history_30d, current_price')
+      .select('ticker, drug, indication, type, date, grade, poa, poa_low, poa_high, data_confidence, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 
@@ -669,52 +673,6 @@ function updateCounts() {
 
   updateCounts();
   renderTable();
-
-  // ── LIVE CHART DATA for nearest 20 PDUFA tickers ──────────
-  if (isPaid) {
-    (async function() {
-      var POLY_KEY = 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI';
-      var nearest = ALL_EVENTS
-        .filter(function(e) { return e.ticker; })
-        .filter(function(e, i, arr) { return arr.findIndex(function(x) { return x.ticker === e.ticker; }) === i; }); // dedupe tickers, fetch ALL
-
-      var fromDate = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
-      var toDate = new Date().toISOString().split('T')[0];
-
-      for (var k = 0; k < nearest.length; k++) {
-        var ev = nearest[k];
-        try {
-          var url = 'https://api.polygon.io/v2/aggs/ticker/' + ev.ticker + '/range/1/day/' + fromDate + '/' + toDate + '?adjusted=true&sort=asc&apiKey=' + POLY_KEY;
-          var res = await fetch(url);
-          if (!res.ok) continue;
-          var data = await res.json();
-          if (!data || !data.results || data.resultsCount < 3) continue;
-
-          var prices = data.results.map(function(r) { return r.c; });
-          var chg = ((prices[prices.length-1] - prices[0]) / prices[0] * 100);
-
-          var recent10 = prices.slice(-10);
-          var r10Range = ((Math.max.apply(null,recent10) - Math.min.apply(null,recent10)) / Math.min.apply(null,recent10) * 100);
-          var consolidation = r10Range < 8;
-          var setup = 'BUILDING';
-          if (consolidation && chg > -5) setup = 'COILING';
-          else if (chg > 15) setup = 'EXTENDED';
-          else if (chg > 5) setup = 'READY';
-          else if (chg < -15) setup = 'WEAK';
-          else if (chg < -5) setup = 'BUILDING';
-
-          ev.chart_setup = setup;
-          ev.price_change_30d = Math.round(chg * 10) / 10;
-          ev.price_history_30d = prices.map(function(p) { return { close: p }; });
-          ev.current_price = prices[prices.length - 1];
-
-          await new Promise(function(r) { setTimeout(r, 250); });
-        } catch (e) { /* skip */ }
-      }
-      renderTable();
-      console.log('[SC] Live chart data loaded for ' + nearest.length + ' calendar tickers');
-    })();
-  }
 
   if (!isPaid) {
     // Show gate after slight delay
