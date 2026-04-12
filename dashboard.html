@@ -540,7 +540,7 @@ function renderScanner() {
           </div>
           <div class="score-box">
             <div class="score-box-label">Runway</div>
-            <div class="score-box-val ${d.runway_months && d.runway_months <= 12 ? 'red' : d.runway_months && d.runway_months <= 24 ? 'amber' : d.runway_months && d.runway_months > 24 ? 'green' : 'white'}">${d.runway_months ? Math.round(d.runway_months) + 'mo' : '—'}</div>
+            <div class="score-box-val ${d.revenue_M >= 50 ? 'green' : d.runway_months && d.runway_months <= 12 ? 'red' : d.runway_months && d.runway_months <= 24 ? 'amber' : d.runway_months && d.runway_months > 24 ? 'green' : 'white'}">${d.revenue_M >= 50 ? 'CF+' : d.runway_months && d.runway_months < 999 ? Math.round(d.runway_months) + 'mo' : '—'}</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">Insider</div>
@@ -612,11 +612,14 @@ function renderScanner() {
         })()}
         ${(() => {
           // Dilution Radar: visual warning when cash runway conflicts with PDUFA timing
+          // Only relevant for pre-revenue companies — revenue-stage companies are self-funding
           var rm = d.runway_months ? Math.round(d.runway_months) : null;
+          var rev = d.revenue_M || 0;
           var daysOut = Math.round((new Date(d.date) - new Date()) / 86400000);
-          if (rm !== null && rm < 6 && daysOut > 0) {
+          if (rev >= 50) return ''; // Revenue-stage — runway is irrelevant
+          if (rm !== null && rm < 6 && rm > 0 && daysOut > 0) {
             return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:var(--red);line-height:1.5;">⚠️ DILUTION RADAR: ' + rm + '-month cash runway with PDUFA ' + daysOut + ' days out. Capital raise risk is elevated near approval.</div>';
-          } else if (rm !== null && rm < 12 && daysOut > 60) {
+          } else if (rm !== null && rm < 12 && rm > 0 && daysOut > 60) {
             return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.15);color:var(--amber);line-height:1.5;">📊 RUNWAY NOTE: ' + rm + '-month cash runway. Monitor for SEC filings as PDUFA approaches.</div>';
           }
           return '';
@@ -872,17 +875,19 @@ function renderBuyoutGrid() {
         var dil = d.dilution_risk || '';
         var ins = d.insider_signal || '';
         var rw = d.runway_months ? Math.round(d.runway_months) : 0;
+        var rev = d.revenue_m || d.revenue_M || 0;
         var p30 = d.price_change_30d != null ? Number(d.price_change_30d) : null;
         var si = d.short_interest ? Number(d.short_interest) : 0;
         if (!dil && !ins && !rw && p30 === null) return '';
         var dilColor = dil === 'EXTREME' || dil === 'HIGH' ? 'red' : dil === 'MODERATE' ? 'amber' : dil === 'LOW' || dil === 'MINIMAL' ? 'green' : 'white';
         var insColor = ins === 'BULLISH' ? 'green' : ins === 'BEARISH' ? 'red' : 'white';
-        var rwColor = rw > 0 && rw <= 12 ? 'red' : rw > 12 && rw <= 24 ? 'amber' : rw > 24 ? 'green' : 'white';
+        var rwDisplay = rev >= 50 ? 'CF+' : (rw > 0 && rw < 999 ? rw + 'mo' : '—');
+        var rwColor = rev >= 50 ? 'green' : rw > 0 && rw <= 12 ? 'red' : rw > 12 && rw <= 24 ? 'amber' : rw > 24 ? 'green' : 'white';
         var p30Color = p30 > 0 ? 'green' : p30 < 0 ? 'red' : 'white';
         return '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">' +
           '<div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + dilColor + '">' + (dil || '—') + '</div></div>' +
           '<div class="score-box"><div class="score-box-label">Insider</div><div class="score-box-val ' + insColor + '">' + (ins || '—') + '</div></div>' +
-          '<div class="score-box"><div class="score-box-label">Runway</div><div class="score-box-val ' + rwColor + '">' + (rw > 0 ? rw + 'mo' : '—') + '</div></div>' +
+          '<div class="score-box"><div class="score-box-label">Runway</div><div class="score-box-val ' + rwColor + '">' + rwDisplay + '</div></div>' +
           '<div class="score-box"><div class="score-box-label">30D</div><div class="score-box-val ' + p30Color + '">' + (p30 !== null ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—') + '</div></div>' +
         '</div>';
       })() +

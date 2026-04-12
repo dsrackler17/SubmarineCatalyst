@@ -135,7 +135,7 @@ var tc=d.tam_ratio>=10?'var(--accent2)':d.tam_ratio>=3?'var(--accent)':d.tam_rat
 var revc=d.revenue_m>=100?'var(--accent2)':d.revenue_m>=10?'var(--accent)':d.revenue_m>0?'var(--amber)':'var(--muted)';
 var dc={'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)'}[d.dilution_risk]||'var(--muted)';
 var ic=d.insider_signal==='BULLISH'?'var(--accent2)':d.insider_signal==='BEARISH'?'var(--red)':'var(--muted)';
-var rwc=d.runway_months?d.runway_months<=12?'var(--red)':d.runway_months<=24?'var(--amber)':'var(--accent2)':'var(--muted)';
+var rwc=d.revenue_m>=50?'var(--accent2)':d.runway_months?d.runway_months<=12?'var(--red)':d.runway_months<=24?'var(--amber)':'var(--accent2)':'var(--muted)';
 var pL='';if(d.has_pdufa&&d.pdufa_date&&d.pdufa_date!=='—'){var dd=Math.round((new Date(d.pdufa_date)-new Date())/864e5);if(dd>=0)pL='<div class="bo-flag" style="color:var(--accent)">PoA: '+pr(d.poa,d.poa_low,d.poa_high,d.data_confidence)+' · '+(d.grade||'WATCH')+' · '+d.pdufa_date+'</div>';}
 var aL='';if(d.approved_drug){aL='<div class="bo-flag" style="color:var(--accent2)">&#10003; '+d.approved_drug.substring(0,25);if(d.months_since_approval)aL+=' · '+d.months_since_approval+'mo';aL+='</div>';}
 var cL='';if(d.ct_nct_id)cL='<div class="bo-flag" style="color:var(--muted)">&#129514; '+d.ct_nct_id+(d.ct_enrollment?' · '+d.ct_enrollment+' enrolled':'')+(d.ct_sites?' · '+d.ct_sites+' sites':'')+'</div>';
@@ -155,7 +155,7 @@ h+='<div class="bo-m"><span class="bo-ml">Revenue</span><span class="bo-mv" styl
 h+='<div class="bo-m"><span class="bo-ml">Takeout</span><span class="bo-mv">'+(d.market_cap>0?fmt(d.market_cap*1.6):'—')+'</span></div>';
 h+='<div class="bo-m"><span class="bo-ml">Dilution</span><span class="bo-mv" style="color:'+dc+'">'+(d.dilution_risk||'—')+'</span></div>';
 h+='<div class="bo-m"><span class="bo-ml">Insider</span><span class="bo-mv" style="color:'+ic+'">'+(d.insider_signal||'—')+'</span></div>';
-h+='<div class="bo-m"><span class="bo-ml">Runway</span><span class="bo-mv" style="color:'+rwc+'">'+(d.runway_months?Math.round(d.runway_months)+'mo':'—')+'</span></div>';
+h+='<div class="bo-m"><span class="bo-ml">Runway</span><span class="bo-mv" style="color:'+rwc+'">'+(d.revenue_m>=50?'CF+':d.runway_months&&d.runway_months<999?Math.round(d.runway_months)+'mo':'—')+'</span></div>';
 h+='<div class="bo-m"><span class="bo-ml">30D</span><span class="bo-mv" style="color:'+(d.price_change_30d>0?'var(--accent2)':d.price_change_30d<0?'var(--red)':'var(--muted)')+'">'+(d.price_change_30d?(d.price_change_30d>0?'+':'')+d.price_change_30d.toFixed(1)+'%':'—')+'</span></div>';
 if(d.buyout_timeline)h+='<div class="bo-m" style="grid-column:span 2"><span class="bo-ml">Timeline</span><span class="bo-mv" style="font-size:0.6rem;color:var(--amber)">'+d.buyout_timeline+'</span></div>';
 if(d.short_interest>0)h+='<div class="bo-m"><span class="bo-ml">Short %</span><span class="bo-mv" style="color:'+(d.short_interest>15?'var(--red)':d.short_interest>8?'var(--amber)':'var(--muted)')+'">'+d.short_interest.toFixed(1)+'%</span></div>';
