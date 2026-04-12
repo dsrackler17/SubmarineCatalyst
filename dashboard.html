@@ -489,7 +489,7 @@ function renderScanner() {
         <div class="card-scores">
           <div class="score-box">
             <div class="score-box-label">PoA</div>
-            <div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div>
+            <div class="score-box-val green">${d.poa_range_low && d.poa_range_high ? Math.round(d.poa_range_low) + '-' + Math.round(d.poa_range_high) + '%' : (d.poa || 0).toFixed(0) + '%'}</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">STN Risk</div>
@@ -502,6 +502,24 @@ function renderScanner() {
           <div class="score-box">
             <div class="score-box-label">Net Edge</div>
             <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
+          </div>
+        </div>
+        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
+          <div class="score-box">
+            <div class="score-box-label">30D</div>
+            <div class="score-box-val ${d.price_change_30d > 0 ? 'green' : d.price_change_30d < 0 ? 'red' : 'white'}">${d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : '—'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">Runway</div>
+            <div class="score-box-val ${d.runway_months && d.runway_months <= 12 ? 'red' : d.runway_months && d.runway_months <= 24 ? 'amber' : d.runway_months && d.runway_months > 24 ? 'green' : 'white'}">${d.runway_months ? Math.round(d.runway_months) + 'mo' : '—'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">Insider</div>
+            <div class="score-box-val ${d.insider_signal === 'BULLISH' ? 'green' : d.insider_signal === 'BEARISH' ? 'red' : 'white'}">${d.insider_signal && d.insider_signal !== 'NEUTRAL' ? d.insider_signal : '—'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">Revenue</div>
+            <div class="score-box-val ${d.revenue_M >= 100 ? 'green' : d.revenue_M >= 20 ? 'cyan' : 'white'}">${d.revenue_M > 0 ? '$' + Math.round(d.revenue_M) + 'M' : '—'}</div>
           </div>
         </div>
         <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">
@@ -1046,6 +1064,13 @@ function switchTab(btn, id) {
           cmc_risk: e.cmc_risk || 'UNKNOWN',
           cmc_flags: e.cmc_flags || [],
           buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
+          price_change_30d: Number(e.price_change_30d) || 0,
+          chart_pattern: e.chart_pattern || '',
+          short_interest: Number(e.short_interest) || 0,
+          current_price: Number(e.current_price) || 0,
+          poa_range_low: Number(e.poa_low) || 0,
+          poa_range_high: Number(e.poa_high) || 0,
+          poa_confidence: e.data_confidence || '',
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
