@@ -93,13 +93,15 @@ footer a:hover{color:var(--accent);}
 
 <main>
   <h1>Buyout Scanner</h1>
-  <p class="subtitle">Identifies biotech companies with the highest probability of being acquired. Scored across 12 quantitative factors: first-in-class status, orphan designation, PRV eligibility, partnership history, commercial infrastructure, market cap tier, TAM, and therapeutic area M&A activity. Updated daily.</p>
+  <p class="subtitle">Identifies biotech companies with the highest probability of being acquired. Scored across 12 quantitative factors including patent cliff urgency from 14 Big Pharma acquirers (ABBV, MRK, PFE, LLY, BIIB and 9 others), partnership history, revenue stage, TAM/Cap ratio, and therapeutic area M&A activity. Live data from Finnhub, SEC EDGAR, and ClinicalTrials.gov. Updated daily.</p>
 
-  <div class="stats-bar" id="stats-bar">
+  <div class="stats-bar" id="stats-bar" style="grid-template-columns:repeat(6,1fr);">
     <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Companies Scanned</div></div>
-    <div class="stat"><div class="stat-val" id="stat-high">—</div><div class="stat-label">High Probability</div></div>
+    <div class="stat"><div class="stat-val" id="stat-high" style="color:var(--accent2)">—</div><div class="stat-label">High Probability</div></div>
     <div class="stat"><div class="stat-val" id="stat-mod">—</div><div class="stat-label">Moderate Probability</div></div>
-    <div class="stat"><div class="stat-val" id="stat-pdufa">—</div><div class="stat-label">With PDUFA Catalyst</div></div>
+    <div class="stat"><div class="stat-val" id="stat-approved" style="color:var(--accent2)">—</div><div class="stat-label">Recently Approved</div></div>
+    <div class="stat"><div class="stat-val" id="stat-pdufa" style="color:var(--amber)">—</div><div class="stat-label">With PDUFA Catalyst</div></div>
+    <div class="stat"><div class="stat-val" id="stat-urgency" style="color:var(--red)">—</div><div class="stat-label">Acquirer Urgency Match</div></div>
   </div>
 
   <div class="filters">
@@ -118,15 +120,19 @@ footer a:hover{color:var(--accent);}
     </select>
     <select id="filter-catalyst" onchange="renderTable()">
       <option value="all">All Companies</option>
-      <option value="approved">Recently Approved (not acquired)</option>
+      <option value="approved">Recently Approved</option>
       <option value="pdufa">With Upcoming PDUFA</option>
-      <option value="none">No Catalyst (Pipeline Only)</option>
+      <option value="urgency">Acquirer Urgency Match</option>
+      <option value="partner">Has Partnership</option>
+      <option value="revenue">Revenue-Stage ($1M+)</option>
     </select>
     <select id="sort-by" onchange="renderTable()">
       <option value="buyout">Sort: Buyout Score ↓</option>
       <option value="tam">Sort: TAM/Cap ↓</option>
+      <option value="revenue">Sort: Revenue ↓</option>
       <option value="ticker">Sort: Ticker A-Z</option>
       <option value="cap">Sort: Market Cap ↓</option>
+      <option value="approval">Sort: Most Recent Approval</option>
     </select>
   </div>
 
@@ -167,15 +173,19 @@ function renderTable() {
     if (capFilter !== 'all' && d.market_cap_tier !== capFilter) return false;
     if (catFilter === 'approved' && !d.approved_drug) return false;
     if (catFilter === 'pdufa' && !d.has_pdufa) return false;
-    if (catFilter === 'none' && (d.has_pdufa || d.approved_drug)) return false;
+    if (catFilter === 'urgency' && !d.acquirer_urgency_top) return false;
+    if (catFilter === 'partner' && !d.partner_name) return false;
+    if (catFilter === 'revenue' && !(d.revenue_m > 1)) return false;
     return true;
   });
 
   // Sort
   if (sortBy === 'buyout') filtered.sort(function(a,b) { return (b.buyout_score||0) - (a.buyout_score||0); });
   else if (sortBy === 'tam') filtered.sort(function(a,b) { return (b.tam_ratio||0) - (a.tam_ratio||0); });
+  else if (sortBy === 'revenue') filtered.sort(function(a,b) { return (b.revenue_m||0) - (a.revenue_m||0); });
   else if (sortBy === 'ticker') filtered.sort(function(a,b) { return a.ticker.localeCompare(b.ticker); });
   else if (sortBy === 'cap') filtered.sort(function(a,b) { return (b.market_cap||0) - (a.market_cap||0); });
+  else if (sortBy === 'approval') filtered.sort(function(a,b) { return (b.approval_date||'').localeCompare(a.approval_date||''); });
 
   var display = filtered.slice(0, 150);
 
@@ -186,8 +196,9 @@ function renderTable() {
   }
 
   var html = '<table><thead><tr>';
-  html += '<th>Ticker</th><th>Company</th><th>Cap</th><th>Buyout Score</th><th>Risk</th>';
-  html += '<th>Approved Drug</th><th>TAM/Cap</th><th>Catalyst</th><th>Factors</th><th>Action</th>';
+  html += '<th>Ticker</th><th>Company</th><th>Cap</th><th>Score</th><th>Risk</th>';
+  html += '<th>Approved Drug</th><th>Revenue</th><th>TAM/Cap</th>';
+  html += '<th>Acquirer</th><th>Partner</th><th>Catalyst</th><th>Factors</th><th></th>';
   html += '</tr></thead><tbody>';
 
   display.forEach(function(d) {
@@ -202,6 +213,14 @@ function renderTable() {
     if (d.market_cap > 0) {
       if (d.market_cap >= 1e9) mcapDisplay = '$' + (d.market_cap / 1e9).toFixed(1) + 'B';
       else if (d.market_cap >= 1e6) mcapDisplay = '$' + (d.market_cap / 1e6).toFixed(0) + 'M';
+      else mcapDisplay = '$' + Math.round(d.market_cap).toLocaleString();
+    }
+
+    // Revenue display
+    var revDisplay = '—';
+    if (d.revenue_m > 0) {
+      var revColor = d.revenue_m >= 100 ? 'var(--accent2)' : d.revenue_m >= 10 ? 'var(--accent)' : 'var(--amber)';
+      revDisplay = '<span style="color:' + revColor + '">$' + (d.revenue_m >= 1000 ? (d.revenue_m/1000).toFixed(1) + 'B' : Math.round(d.revenue_m) + 'M') + '</span>';
     }
 
     // TAM display
@@ -211,45 +230,63 @@ function renderTable() {
       tamDisplay = '<span style="' + tamColor + '">' + d.tam_ratio + 'x</span>';
     }
 
+    // Acquirer urgency
+    var acquirerDisplay = '—';
+    if (d.acquirer_urgency_top) {
+      acquirerDisplay = '<span style="color:var(--red);font-size:0.6rem;font-weight:700;">' + d.acquirer_urgency_top + '</span>';
+      if (d.buyout_timeline) {
+        acquirerDisplay += '<br><span style="color:var(--muted);font-size:0.52rem;">' + d.buyout_timeline + '</span>';
+      }
+    }
+
+    // Partner
+    var partnerDisplay = '—';
+    if (d.partner_name) {
+      partnerDisplay = '<span style="color:var(--accent);font-size:0.62rem;">' + d.partner_name + '</span>';
+    }
+
     // PDUFA info
     var pdufaDisplay = '—';
     if (d.pdufa_date && d.pdufa_date !== '—') {
       var days = Math.round((new Date(d.pdufa_date) - new Date()) / 86400000);
       if (days >= 0) {
-        pdufaDisplay = '<span style="color:var(--accent)">' + d.pdufa_date + '</span> <span style="font-size:0.55rem;color:var(--muted);">' + days + 'd</span>';
+        pdufaDisplay = '<span style="color:var(--accent);font-size:0.6rem;">' + d.pdufa_date + '</span><br><span style="font-size:0.52rem;color:var(--muted);">' + days + 'd</span>';
       }
+    } else if (d.approved_drug && d.months_since_approval) {
+      pdufaDisplay = '<span style="color:var(--accent2);font-size:0.6rem;">Approved</span><br><span style="font-size:0.52rem;color:var(--muted);">' + d.months_since_approval + 'mo ago</span>';
     }
 
     // Factor pills
     var factors = '';
     if (d.buyout_flags && d.buyout_flags.length > 0) {
-      factors = d.buyout_flags.slice(0, 4).map(function(f) {
+      factors = d.buyout_flags.slice(0, 3).map(function(f) {
         var cls = f.includes('🏷️') || f.includes('✅') ? 'factor-green' : f.includes('⚠️') || f.includes('🚨') ? 'factor-red' : 'factor-amber';
-        // Clean up the flag text
-        var clean = f.replace(/^[🏷️✅⚠️🚨📋]\s*/, '').substring(0, 40);
+        var clean = f.replace(/^[🏷️✅⚠️🚨📋]\s*/, '').substring(0, 35);
         return '<span class="factor ' + cls + '">' + clean + '</span>';
       }).join('');
     } else {
-      // Generate basic factors from available data
       var pills = [];
       if (d.market_cap_tier === 'SMALL') pills.push('<span class="factor factor-green">Small-cap</span>');
-      if (d.buyout_risk === 'HIGH') pills.push('<span class="factor factor-green">High acquisition probability</span>');
-      if (d.partnership_detected) pills.push('<span class="factor factor-green">Partnership</span>');
+      if (d.buyout_risk === 'HIGH') pills.push('<span class="factor factor-green">High prob</span>');
+      if (d.partner_name) pills.push('<span class="factor factor-green">Partner</span>');
       if (d.tam_ratio >= 5) pills.push('<span class="factor factor-green">TAM ' + d.tam_ratio + 'x</span>');
       factors = pills.join('');
     }
 
     html += '<tr onclick="window.location.href=\'' + link + '\'">';
     html += '<td class="ticker">' + d.ticker + '</td>';
-    html += '<td style="font-family:var(--sans);font-size:0.7rem;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (d.company_name || d.ticker) + '</td>';
-    html += '<td><span class="' + capClass + '">' + capLabel + '</span> <span style="font-size:0.55rem;color:var(--muted);">' + mcapDisplay + '</span></td>';
-    html += '<td class="' + scoreClass + '">' + (d.buyout_score || 0) + '/100</td>';
-    html += '<td class="' + riskClass + '">' + (d.buyout_risk || '—') + '</td>';
-    html += '<td style="font-size:0.65rem;">' + (d.approved_drug ? '<span style="color:var(--accent2);">✅ ' + d.approved_drug + '</span>' + (d.approval_date ? '<br><span style="color:var(--muted);font-size:0.55rem;">' + d.approval_date + '</span>' : '') : '<span style="color:var(--muted);">—</span>') + '</td>';
-    html += '<td>' + tamDisplay + '</td>';
-    html += '<td style="font-size:0.65rem;">' + pdufaDisplay + '</td>';
+    html += '<td style="font-family:var(--sans);font-size:0.68rem;color:var(--muted);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (d.company_name || d.ticker) + '</td>';
+    html += '<td><span class="' + capClass + '">' + capLabel + '</span><br><span style="font-size:0.52rem;color:var(--muted);">' + mcapDisplay + '</span></td>';
+    html += '<td class="' + scoreClass + '">' + (d.buyout_score || 0) + '</td>';
+    html += '<td class="' + riskClass + '" style="font-size:0.62rem;">' + (d.buyout_risk || '—') + '</td>';
+    html += '<td style="font-size:0.62rem;">' + (d.approved_drug ? '<span style="color:var(--accent2);">✅ ' + d.approved_drug.substring(0,20) + '</span>' + (d.approval_date ? '<br><span style="color:var(--muted);font-size:0.52rem;">' + d.approval_date + '</span>' : '') : '<span style="color:var(--muted);">—</span>') + '</td>';
+    html += '<td style="font-size:0.62rem;">' + revDisplay + '</td>';
+    html += '<td style="font-size:0.62rem;">' + tamDisplay + '</td>';
+    html += '<td style="font-size:0.62rem;">' + acquirerDisplay + '</td>';
+    html += '<td style="font-size:0.62rem;">' + partnerDisplay + '</td>';
+    html += '<td style="font-size:0.6rem;">' + pdufaDisplay + '</td>';
     html += '<td><div class="factors">' + (factors || '<span class="score-none">—</span>') + '</div></td>';
-    html += '<td><a href="' + link + '" style="color:var(--accent);font-size:0.58rem;text-decoration:none;letter-spacing:0.04em;" onclick="event.stopPropagation()">ANALYZE →</a></td>';
+    html += '<td><a href="' + link + '" style="color:var(--accent);font-size:0.55rem;text-decoration:none;letter-spacing:0.04em;" onclick="event.stopPropagation()">ANALYZE →</a></td>';
     html += '</tr>';
   });
 
@@ -282,13 +319,20 @@ function renderTable() {
           ticker: e.ticker,
           company_name: e.company_name || e.drug || e.ticker,
           market_cap_tier: e.market_cap_tier || 'UNKNOWN',
-          market_cap: Number(e.market_cap) || 0,
+          market_cap: Number(e.market_cap) || Number(e.estimated_market_cap) || 0,
           buyout_score: Number(e.buyout_score) || 0,
           buyout_risk: e.buyout_risk || 'UNLIKELY',
           buyout_flags: e.buyout_flags || [],
           tam_ratio: Number(e.tam_ratio) || 0,
           tam_label: e.tam_label || '',
-          partnership_detected: e.partnership_detected || false,
+          partnership_detected: e.partnership_detected || e.has_partnership || false,
+          partner_name: e.partner_name || '',
+          acquirer_urgency_top: e.acquirer_urgency_top || '',
+          buyout_timeline: e.buyout_timeline || '',
+          buyout_timeline_months: Number(e.buyout_timeline_months) || 0,
+          revenue_m: Number(e.revenue_m) || 0,
+          months_since_approval: Number(e.months_since_approval) || 0,
+          buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
           pdufa_date: e.date || '—',
           poa: Number(e.poa) || 0,
           grade: e.grade || 'WATCH',
@@ -303,7 +347,7 @@ function renderTable() {
   // Load recently approved companies (past 1-2 years, not yet acquired)
   try {
     var { data: approved } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, drug_tam_billions, estimated_market_cap')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, drug_tam_billions, estimated_market_cap, revenue_m, acquirer_urgency_top, partner_name, has_partnership, buyout_timeline, buyout_timeline_months, months_since_approval, buyout_probability_pct')
       .eq('is_acquired', false)
       .not('last_approval_date', 'is', null)
       .order('buyout_score', { ascending: false });
@@ -326,10 +370,17 @@ function renderTable() {
             market_cap: mcap,
             buyout_score: Number(c.buyout_score) || 45,
             buyout_risk: c.buyout_risk || 'MODERATE',
-            buyout_flags: [],
+            buyout_flags: c.buyout_flags || [],
             tam_ratio: tamRatio,
             tam_label: '',
-            partnership_detected: false,
+            partnership_detected: c.has_partnership || false,
+            partner_name: c.partner_name || '',
+            acquirer_urgency_top: c.acquirer_urgency_top || '',
+            buyout_timeline: c.buyout_timeline || '',
+            buyout_timeline_months: Number(c.buyout_timeline_months) || 0,
+            revenue_m: Number(c.revenue_m) || 0,
+            months_since_approval: Number(c.months_since_approval) || 0,
+            buyout_probability_pct: Number(c.buyout_probability_pct) || 0,
             pdufa_date: '—',
             poa: 0,
             grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
@@ -339,11 +390,17 @@ function renderTable() {
           });
         } else {
           var existing = ALL_DATA.find(function(d) { return d.ticker === c.ticker; });
-          if (existing && c.approved_drug) {
-            existing.approved_drug = c.approved_drug;
-            existing.approval_date = c.last_approval_date || '';
+          if (existing) {
+            if (c.approved_drug) existing.approved_drug = c.approved_drug;
+            if (c.last_approval_date) existing.approval_date = c.last_approval_date;
             if (!existing.tam_ratio && tamRatio) existing.tam_ratio = tamRatio;
             if (!existing.market_cap && mcap) existing.market_cap = mcap;
+            if (!existing.revenue_m && c.revenue_m) existing.revenue_m = Number(c.revenue_m) || 0;
+            if (!existing.acquirer_urgency_top && c.acquirer_urgency_top) existing.acquirer_urgency_top = c.acquirer_urgency_top;
+            if (!existing.partner_name && c.partner_name) existing.partner_name = c.partner_name;
+            if (!existing.buyout_timeline && c.buyout_timeline) existing.buyout_timeline = c.buyout_timeline;
+            if (c.months_since_approval) existing.months_since_approval = Number(c.months_since_approval);
+            if (c.buyout_flags && c.buyout_flags.length > 0 && (!existing.buyout_flags || existing.buyout_flags.length === 0)) existing.buyout_flags = c.buyout_flags;
             if (Number(c.buyout_score) > existing.buyout_score) {
               existing.buyout_score = Number(c.buyout_score);
               existing.buyout_risk = c.buyout_risk;
@@ -397,7 +454,9 @@ function renderTable() {
   document.getElementById('stat-total').textContent = ALL_DATA.length;
   document.getElementById('stat-high').textContent = ALL_DATA.filter(function(d) { return d.buyout_risk === 'HIGH'; }).length;
   document.getElementById('stat-mod').textContent = ALL_DATA.filter(function(d) { return d.buyout_risk === 'MODERATE'; }).length;
+  document.getElementById('stat-approved').textContent = ALL_DATA.filter(function(d) { return d.approved_drug; }).length;
   document.getElementById('stat-pdufa').textContent = ALL_DATA.filter(function(d) { return d.has_pdufa; }).length;
+  document.getElementById('stat-urgency').textContent = ALL_DATA.filter(function(d) { return d.acquirer_urgency_top; }).length;
 
   renderTable();
 })();
