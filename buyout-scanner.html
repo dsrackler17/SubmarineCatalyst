@@ -136,26 +136,18 @@ var revc=d.revenue_m>=100?'var(--accent2)':d.revenue_m>=10?'var(--accent)':d.rev
 var dc={'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)'}[d.dilution_risk]||'var(--muted)';
 var ic=d.insider_signal==='BULLISH'?'var(--accent2)':d.insider_signal==='BEARISH'?'var(--red)':'var(--muted)';
 var rwc=d.runway_months?d.runway_months<=12?'var(--red)':d.runway_months<=24?'var(--amber)':'var(--accent2)':'var(--muted)';
-// PDUFA line
 var pL='';if(d.has_pdufa&&d.pdufa_date&&d.pdufa_date!=='—'){var dd=Math.round((new Date(d.pdufa_date)-new Date())/864e5);if(dd>=0)pL='<div class="bo-flag" style="color:var(--accent)">PoA: '+pr(d.poa,d.poa_low,d.poa_high,d.data_confidence)+' · '+(d.grade||'WATCH')+' · '+d.pdufa_date+'</div>';}
-// Approved
-var aL='';if(d.approved_drug){aL='<div class="bo-flag" style="color:var(--accent2)">✅ '+d.approved_drug.substring(0,25);if(d.months_since_approval)aL+=' · '+d.months_since_approval+'mo';aL+='</div>';}
-// CT.gov
-var cL='';if(d.ct_nct_id)cL='<div class="bo-flag" style="color:var(--muted)">🧪 '+d.ct_nct_id+(d.ct_enrollment?' · '+d.ct_enrollment+' enrolled':'')+(d.ct_sites?' · '+d.ct_sites+' sites':'')+'</div>';
-// Flags
+var aL='';if(d.approved_drug){aL='<div class="bo-flag" style="color:var(--accent2)">&#10003; '+d.approved_drug.substring(0,25);if(d.months_since_approval)aL+=' · '+d.months_since_approval+'mo';aL+='</div>';}
+var cL='';if(d.ct_nct_id)cL='<div class="bo-flag" style="color:var(--muted)">&#129514; '+d.ct_nct_id+(d.ct_enrollment?' · '+d.ct_enrollment+' enrolled':'')+(d.ct_sites?' · '+d.ct_sites+' sites':'')+'</div>';
 var fL='';if(d.buyout_flags&&d.buyout_flags.length)fL=d.buyout_flags.slice(0,3).map(function(x){return'<div class="bo-flag">'+x.substring(0,55)+'</div>';}).join('');
-// News
-var nL='';if(d.news_items&&d.news_items.length){var nn=d.news_items[0];var hl=(nn.headline||nn.title||'').substring(0,50);if(hl)nL='<div class="bo-news">📰 '+hl+'</div>';}
-
+var nL='';if(d.news_items&&d.news_items.length){var nn=d.news_items[0];var hl=(nn.headline||nn.title||'').substring(0,50);if(hl)nL='<div class="bo-news">&#128240; '+hl+'</div>';}
 h+='<div class="bo-card" onclick="window.location.href=\''+lk+'\'">';
-// LEFT
 h+='<div class="bo-left"><div class="bo-ticker">'+d.ticker+'</div><div class="bo-company">'+(d.company_name||d.ticker)+'</div>';
 h+='<span class="bo-risk '+rc+'">'+(d.buyout_risk||'—')+'</span>';
 h+='<div class="bo-score">Buyout <strong style="color:'+sc+'">'+d.buyout_score+'</strong>/100</div>';
-if(d.acquirer_urgency_top)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--red);margin-top:0.15rem">🎯 '+d.acquirer_urgency_top+'</div>';
-if(d.partner_name)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--accent);margin-top:0.1rem">🤝 '+d.partner_name+'</div>';
+if(d.acquirer_urgency_top)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--red);margin-top:0.15rem">&#127919; '+d.acquirer_urgency_top+'</div>';
+if(d.partner_name)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--accent);margin-top:0.1rem">&#129309; '+d.partner_name+'</div>';
 h+='</div>';
-// CENTER
 h+='<div class="bo-center">';
 h+='<div class="bo-m"><span class="bo-ml">TAM/Cap</span><span class="bo-mv" style="color:'+tc+'">'+(d.tam_ratio>0?d.tam_ratio+'x':'—')+'</span></div>';
 h+='<div class="bo-m"><span class="bo-ml">Cap</span><span class="bo-mv">'+fmt(d.market_cap)+'</span></div>';
@@ -168,15 +160,13 @@ h+='<div class="bo-m"><span class="bo-ml">30D</span><span class="bo-mv" style="c
 if(d.buyout_timeline)h+='<div class="bo-m" style="grid-column:span 2"><span class="bo-ml">Timeline</span><span class="bo-mv" style="font-size:0.6rem;color:var(--amber)">'+d.buyout_timeline+'</span></div>';
 if(d.short_interest>0)h+='<div class="bo-m"><span class="bo-ml">Short %</span><span class="bo-mv" style="color:'+(d.short_interest>15?'var(--red)':d.short_interest>8?'var(--amber)':'var(--muted)')+'">'+d.short_interest.toFixed(1)+'%</span></div>';
 h+='</div>';
-// RIGHT
-h+='<div class="bo-right">'+aL+pL+cL+fL+nL+'<a href="'+lk+'" class="bo-link" onclick="event.stopPropagation()">View deep dive →</a></div>';
+h+='<div class="bo-right">'+aL+pL+cL+fL+nL+'<a href="'+lk+'" class="bo-link" onclick="event.stopPropagation()">View deep dive &#8594;</a></div>';
 h+='</div>';
 });
 h+='</div>';
 document.getElementById('cards').innerHTML=h;
 document.getElementById('rc').textContent='Showing '+ds.length+' of '+f.length+' companies';
 }
-
 (async function(){
 var session=await scRequireAuth();if(!session)return;
 var profile=await scGetProfile(session.user.id);
