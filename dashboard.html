@@ -224,7 +224,7 @@
       <button class="sidebar-item active" onclick="switchTab(this,'scanner')">
         <span class="sidebar-icon">📡</span> PDUFA Scanner
       </button>
-      <button class="sidebar-item" onclick="window.location.href='/buyout-scanner.html'">
+      <button class="sidebar-item" onclick="switchTab(this,'buyout')">
         <span class="sidebar-icon">🏷️</span> Buyout Scanner
       </button>
     </div>
@@ -489,7 +489,7 @@ function renderScanner() {
         <div class="card-scores">
           <div class="score-box">
             <div class="score-box-label">PoA</div>
-            <div class="score-box-val green">${d.poa_range_low && d.poa_range_high ? Math.round(d.poa_range_low) + '-' + Math.round(d.poa_range_high) + '%' : (d.poa || 0).toFixed(0) + '%'}</div>
+            <div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">STN Risk</div>
@@ -504,11 +504,7 @@ function renderScanner() {
             <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
           </div>
         </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
-          <div class="score-box">
-            <div class="score-box-label">Chart</div>
-            <div class="score-box-val ${d.chart_setup === 'READY' || d.chart_setup === 'COILING' ? 'green' : d.chart_setup === 'BUILDING' ? 'cyan' : d.chart_setup === 'EXTENDED' ? 'amber' : d.chart_setup === 'WEAK' ? 'red' : 'white'}">${d.chart_setup || '—'}</div>
-          </div>
+        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">
           <div class="score-box">
             <div class="score-box-label">Buyout</div>
             <div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div>
@@ -522,25 +518,6 @@ function renderScanner() {
             <div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
           </div>
         </div>
-        ${(() => {
-          // Mini 30D sparkline from DB data
-          var ph = d.price_history_30d || [];
-          if (ph.length >= 5) {
-            var prices = ph.map(function(p) { return typeof p === 'object' ? p.close : p; });
-            var mn = Math.min.apply(null, prices);
-            var mx = Math.max.apply(null, prices);
-            var rn = mx - mn || 1;
-            var chg = ((prices[prices.length-1] - prices[0]) / prices[0] * 100);
-            var col = chg >= 0 ? 'var(--accent2)' : 'var(--red)';
-            var pts = prices.map(function(p, j) { return (j/(prices.length-1)*200).toFixed(1)+','+(28-((p-mn)/rn)*24).toFixed(1); }).join(' ');
-            return '<div style="padding:0.4rem 0.6rem;border:1px solid var(--border);border-top:none;display:flex;align-items:center;gap:0.75rem;background:var(--deep);" id="spark-' + d.ticker + '">' +
-              '<svg viewBox="0 0 200 30" style="width:120px;height:24px;flex-shrink:0;" preserveAspectRatio="none"><polyline points="' + pts + '" fill="none" stroke="' + col + '" stroke-width="1.5" stroke-linejoin="round"/></svg>' +
-              '<span style="font-family:var(--mono);font-size:0.58rem;color:' + col + ';">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '%</span>' +
-              '<span style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">$' + prices[prices.length-1].toFixed(2) + '</span>' +
-            '</div>';
-          }
-          return '<div style="padding:0.3rem 0.6rem;border:1px solid var(--border);border-top:none;background:var(--deep);font-family:var(--mono);font-size:0.55rem;color:var(--muted);" id="spark-' + d.ticker + '">📊 Chart data pending</div>';
-        })()}
         ${(() => {
           // Buyout timeline + acquirer context
           if (!d.buyout_score || d.buyout_score < 35) return '';
@@ -668,13 +645,6 @@ function renderBuyoutGrid() {
         has_breakthrough: d.has_breakthrough || false,
         pdufa_date: d.date || '',
         poa: Number(d.poa) || 0,
-        poa_range_low: d.poa_range_low != null ? Number(d.poa_range_low) : null,
-        poa_range_high: d.poa_range_high != null ? Number(d.poa_range_high) : null,
-        poa_confidence: d.poa_confidence || 'MODERATE',
-        chart_setup: d.chart_setup || 'UNKNOWN',
-        price_change_30d: d.price_change_30d != null ? Number(d.price_change_30d) : null,
-        price_history_30d: d.price_history_30d || [],
-        current_price: d.current_price != null ? Number(d.current_price) : null,
         grade: d.grade || 'WATCH',
         has_pdufa: true,
         approved_drug: d.approved_drug || '',
@@ -710,6 +680,16 @@ function renderBuyoutGrid() {
           months_since_approval: c.months_since_approval || null,
           institutional_pct: Number(c.institutional_pct) || 0,
           news_items: c.news_items || [],
+          dilution_risk: c.dilution_risk || '',
+          insider_signal: c.insider_signal || '',
+          runway_months: Number(c.runway_months) || 0,
+          price_change_30d: Number(c.price_change_30d) || 0,
+          short_interest: Number(c.short_interest) || 0,
+          chart_pattern: c.chart_pattern || '',
+          current_price: Number(c.current_price) || 0,
+          ct_nct_id: c.ct_nct_id || '',
+          ct_enrollment: Number(c.ct_enrollment) || 0,
+          ct_sites: Number(c.ct_sites) || 0,
           pdufa_date: '',
           poa: 0,
           grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
@@ -733,6 +713,12 @@ function renderBuyoutGrid() {
           if (c.months_since_approval) existing.months_since_approval = c.months_since_approval;
           if (c.news_items && c.news_items.length) existing.news_items = c.news_items;
           if (c.buyout_flags && c.buyout_flags.length) existing.buyout_flags = c.buyout_flags;
+          if (c.dilution_risk && !existing.dilution_risk) existing.dilution_risk = c.dilution_risk;
+          if (c.insider_signal && !existing.insider_signal) existing.insider_signal = c.insider_signal;
+          if (c.runway_months && !existing.runway_months) existing.runway_months = Number(c.runway_months);
+          if (c.price_change_30d && !existing.price_change_30d) existing.price_change_30d = Number(c.price_change_30d);
+          if (c.short_interest && !existing.short_interest) existing.short_interest = Number(c.short_interest);
+          if (c.chart_pattern && !existing.chart_pattern) existing.chart_pattern = c.chart_pattern;
         }
       }
     });
@@ -821,6 +807,26 @@ function renderBuyoutGrid() {
         '<div class="score-box"><div class="score-box-label">Takeout</div><div class="score-box-val cyan" style="font-size:0.7rem;">' + (takeout || '—') + '</div></div>' +
       '</div>' +
 
+      // Live data row: Dilution | Insider | Runway | 30D
+      (function() {
+        var dil = d.dilution_risk || '';
+        var ins = d.insider_signal || '';
+        var rw = d.runway_months ? Math.round(d.runway_months) : 0;
+        var p30 = d.price_change_30d != null ? Number(d.price_change_30d) : null;
+        var si = d.short_interest ? Number(d.short_interest) : 0;
+        if (!dil && !ins && !rw && p30 === null) return '';
+        var dilColor = dil === 'EXTREME' || dil === 'HIGH' ? 'red' : dil === 'MODERATE' ? 'amber' : dil === 'LOW' || dil === 'MINIMAL' ? 'green' : 'white';
+        var insColor = ins === 'BULLISH' ? 'green' : ins === 'BEARISH' ? 'red' : 'white';
+        var rwColor = rw > 0 && rw <= 12 ? 'red' : rw > 12 && rw <= 24 ? 'amber' : rw > 24 ? 'green' : 'white';
+        var p30Color = p30 > 0 ? 'green' : p30 < 0 ? 'red' : 'white';
+        return '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">' +
+          '<div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + dilColor + '">' + (dil || '—') + '</div></div>' +
+          '<div class="score-box"><div class="score-box-label">Insider</div><div class="score-box-val ' + insColor + '">' + (ins || '—') + '</div></div>' +
+          '<div class="score-box"><div class="score-box-label">Runway</div><div class="score-box-val ' + rwColor + '">' + (rw > 0 ? rw + 'mo' : '—') + '</div></div>' +
+          '<div class="score-box"><div class="score-box-label">30D</div><div class="score-box-val ' + p30Color + '">' + (p30 !== null ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—') + '</div></div>' +
+        '</div>';
+      })() +
+
       // Acquirer thesis box (the key insight)
       (function() {
         if (d.buyout_score < 30) return '';
@@ -844,7 +850,7 @@ function renderBuyoutGrid() {
 
       // Approval status
       (d.approved_drug ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent2);margin-top:0.4rem;">✅ ' + d.approved_drug + (approvalAge ? ' · ' + approvalAge : '') + '</div>' : '') +
-      (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent);margin-top:0.3rem;">PoA: ' + (d.poa_range_low && d.poa_range_high ? Math.round(d.poa_range_low) + '-' + Math.round(d.poa_range_high) + '%' : d.poa.toFixed(0) + '%') + ' · ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
+      (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent);margin-top:0.3rem;">PoA: ' + d.poa.toFixed(0) + '% · ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
 
       // Enrichment tags
       (function() {
@@ -1053,10 +1059,11 @@ function switchTab(btn, id) {
   // Load recently approved companies for buyout scanner
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct, dilution_risk, insider_signal, runway_months, price_change_30d, short_interest, chart_pattern, current_price, ct_nct_id, ct_enrollment, ct_sites')
       .eq('is_acquired', false)
       .gt('buyout_score', 0)
-      .order('buyout_score', { ascending: false });
+      .order('buyout_score', { ascending: false })
+      .limit(500);
 
     if (approvedCompanies && approvedCompanies.length > 0) {
       // Compute TAM/Cap ratios from live data
@@ -1080,74 +1087,6 @@ function switchTab(btn, id) {
   }
 
   renderBuyoutGrid();
-
-  // ── LIVE CHART DATA — Polygon.io candles for nearest 15 PDUFA tickers ──
-  (async function() {
-    var POLY_KEY = 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI';
-    var nearest = SCANNER_DATA
-      .filter(function(d) { return d.ticker; })
-      .filter(function(d, i, arr) { return arr.findIndex(function(x) { return x.ticker === d.ticker; }) === i; }); // dedupe, fetch ALL
-
-    var fromDate = new Date(Date.now() - 30*86400000).toISOString().split('T')[0];
-    var toDate = new Date().toISOString().split('T')[0];
-
-    for (var k = 0; k < nearest.length; k++) {
-      var t = nearest[k];
-      try {
-        var url = 'https://api.polygon.io/v2/aggs/ticker/' + t.ticker + '/range/1/day/' + fromDate + '/' + toDate + '?adjusted=true&sort=asc&apiKey=' + POLY_KEY;
-        var res = await fetch(url);
-        if (!res.ok) continue;
-        var data = await res.json();
-        if (!data || data.resultsCount < 3 || !data.results) continue;
-
-        var prices = data.results.map(function(r) { return r.c; });
-        var mn = Math.min.apply(null, prices);
-        var mx = Math.max.apply(null, prices);
-        var rn = mx - mn || 1;
-        var chg = ((prices[prices.length-1] - prices[0]) / prices[0] * 100);
-        var col = chg >= 0 ? 'var(--accent2)' : 'var(--red)';
-        var pts = prices.map(function(p, j) { return (j/(prices.length-1)*200).toFixed(1)+','+(28-((p-mn)/rn)*24).toFixed(1); }).join(' ');
-
-        // Update sparkline on card
-        var sparkEl = document.getElementById('spark-' + t.ticker);
-        if (sparkEl) {
-          sparkEl.innerHTML =
-            '<svg viewBox="0 0 200 30" style="width:120px;height:24px;flex-shrink:0;" preserveAspectRatio="none"><polyline points="' + pts + '" fill="none" stroke="' + col + '" stroke-width="1.5" stroke-linejoin="round"/></svg>' +
-            '<span style="font-family:var(--mono);font-size:0.58rem;color:' + col + ';">' + (chg >= 0 ? '+' : '') + chg.toFixed(1) + '% 30D</span>' +
-            '<span style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">$' + prices[prices.length-1].toFixed(2) + '</span>' +
-            '<span style="font-family:var(--mono);font-size:0.48rem;color:var(--accent);margin-left:auto;">LIVE</span>';
-        }
-
-        // Update chart score box
-        var recent10 = prices.slice(-10);
-        var r10Range = ((Math.max.apply(null,recent10) - Math.min.apply(null,recent10)) / Math.min.apply(null,recent10) * 100);
-        var consolidation = r10Range < 8;
-        var setup = 'BUILDING';
-        if (consolidation && chg > -5) setup = 'COILING';
-        else if (chg > 15) setup = 'EXTENDED';
-        else if (chg > 5) setup = 'READY';
-        else if (chg < -15) setup = 'WEAK';
-        else if (chg < -5) setup = 'BUILDING';
-
-        var cards = document.querySelectorAll('.scanner-card');
-        cards.forEach(function(card) {
-          if (card.querySelector('.card-ticker') && card.querySelector('.card-ticker').textContent.includes(t.ticker)) {
-            var chartBoxes = card.querySelectorAll('.score-box-val');
-            chartBoxes.forEach(function(box) {
-              if (box.previousElementSibling && box.previousElementSibling.textContent === 'Chart' && (box.textContent === '—' || box.textContent === 'UNKNOWN')) {
-                box.textContent = setup;
-                var colors = {READY:'var(--accent2)',COILING:'var(--accent2)',BUILDING:'var(--accent)',EXTENDED:'var(--amber)',WEAK:'var(--red)'};
-                box.style.color = colors[setup] || 'var(--muted)';
-              }
-            });
-          }
-        });
-
-        await new Promise(function(r) { setTimeout(r, 250); });
-      } catch (e) { console.warn('Live chart ' + t.ticker + ':', e); }
-    }
-    console.log('[SC] Live chart data loaded for ' + nearest.length + ' tickers');
-  })();
 })();
 
 // Live event countdown
