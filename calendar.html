@@ -157,6 +157,16 @@ footer a:hover{color:var(--accent);}
   <!-- Filters -->
   <div class="filter-bar">
     <input type="text" class="search-input" id="search-input" placeholder="Search ticker..." oninput="applyFilters()">
+    <span class="filter-label">Sort:</span>
+    <select class="filter-select" id="filter-sort" onchange="applyFilters()">
+      <option value="date">Soonest First</option>
+      <option value="30d_desc">30D % ↓</option>
+      <option value="30d_asc">30D % ↑</option>
+      <option value="poa">PoA ↓</option>
+      <option value="buyout">Buyout Score ↓</option>
+      <option value="tam">TAM/Cap ↓</option>
+      <option value="ticker">Ticker A-Z</option>
+    </select>
     <span class="filter-label">Cap:</span>
     <select class="filter-select" id="filter-cap" onchange="applyFilters()">
       <option value="all">All Cap</option>
@@ -170,6 +180,14 @@ footer a:hover{color:var(--accent);}
       <option value="ELITE">ELITE</option>
       <option value="STRONG">STRONG</option>
       <option value="WATCH">WATCH</option>
+      <option value="WEAK">WEAK</option>
+    </select>
+    <span class="filter-label">Chart:</span>
+    <select class="filter-select" id="filter-chart" onchange="applyFilters()">
+      <option value="all">All Patterns</option>
+      <option value="COILING">COILING</option>
+      <option value="BUILDING">BUILDING</option>
+      <option value="EXTENDED">EXTENDED</option>
       <option value="WEAK">WEAK</option>
     </select>
     <span class="filter-label">Window:</span>
@@ -284,6 +302,9 @@ function matchesFilters(e) {
   var grade = document.getElementById('filter-grade').value;
   if (grade !== 'all' && e.grade !== grade) return false;
 
+  var chartF = document.getElementById('filter-chart').value;
+  if (chartF !== 'all' && (e.chart_pattern || '') !== chartF) return false;
+
   var window_val = document.getElementById('filter-window').value;
   if (window_val !== 'all') {
     if (e.date === '—') return false;
@@ -304,11 +325,21 @@ function renderTable() {
     return;
   }
 
+  var sortBy = document.getElementById('filter-sort').value;
   filtered.sort(function(a, b) {
-    if (a.date === '—' && b.date !== '—') return 1;
-    if (a.date !== '—' && b.date === '—') return -1;
-    if (a.date === '—' && b.date === '—') return a.ticker.localeCompare(b.ticker);
-    return new Date(a.date) - new Date(b.date);
+    switch (sortBy) {
+      case '30d_desc': return (Number(b.price_change_30d) || -999) - (Number(a.price_change_30d) || -999);
+      case '30d_asc': return (Number(a.price_change_30d) || 999) - (Number(b.price_change_30d) || 999);
+      case 'poa': return (Number(b.poa) || 0) - (Number(a.poa) || 0);
+      case 'buyout': return (Number(b.buyout_score) || 0) - (Number(a.buyout_score) || 0);
+      case 'tam': return (Number(b.tam_ratio) || 0) - (Number(a.tam_ratio) || 0);
+      case 'ticker': return a.ticker.localeCompare(b.ticker);
+      default: // date
+        if (a.date === '—' && b.date !== '—') return 1;
+        if (a.date !== '—' && b.date === '—') return -1;
+        if (a.date === '—' && b.date === '—') return a.ticker.localeCompare(b.ticker);
+        return new Date(a.date) - new Date(b.date);
+    }
   });
 
   // Limit display to 200 at a time for performance

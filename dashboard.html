@@ -295,6 +295,8 @@
           <option value="date_asc">Sort: Soonest First</option>
           <option value="date_desc">Sort: Furthest First</option>
           <option value="poa">Sort: PoA ↓</option>
+          <option value="30d_desc">Sort: 30D % ↓</option>
+          <option value="30d_asc">Sort: 30D % ↑</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
         </select>
@@ -303,6 +305,13 @@
           <option value="elite">🚀 ELITE only</option>
           <option value="strong">⚡ STRONG+</option>
           <option value="watch">🟡 WATCH+</option>
+        </select>
+        <select id="scanner-chart" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Charts</option>
+          <option value="COILING">COILING</option>
+          <option value="BUILDING">BUILDING</option>
+          <option value="EXTENDED">EXTENDED</option>
+          <option value="WEAK">WEAK</option>
         </select>
         <select id="scanner-timeframe" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Dates</option>
@@ -324,6 +333,15 @@
       <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&A activity.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="buyout-search" placeholder="Search ticker..." oninput="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;width:200px;">
+        <select id="buyout-sort" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="buyout">Score ↓</option>
+          <option value="30d_desc">30D % ↓</option>
+          <option value="30d_asc">30D % ↑</option>
+          <option value="tam">TAM/Cap ↓</option>
+          <option value="revenue">Revenue ↓</option>
+          <option value="cap">Cap ↓</option>
+          <option value="ticker">Ticker A-Z</option>
+        </select>
         <select id="buyout-filter" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Risk Levels</option>
           <option value="HIGH">HIGH Only</option>
@@ -334,6 +352,13 @@
           <option value="approved">Recently Approved (no acquirer yet)</option>
           <option value="pdufa">With Upcoming PDUFA</option>
           <option value="both">Approved + PDUFA</option>
+        </select>
+        <select id="buyout-chart" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Charts</option>
+          <option value="COILING">COILING</option>
+          <option value="BUILDING">BUILDING</option>
+          <option value="EXTENDED">EXTENDED</option>
+          <option value="WEAK">WEAK</option>
         </select>
       </div>
       <div class="scanner-grid" id="buyout-grid"></div>
@@ -440,6 +465,7 @@ function renderScanner() {
 
   const sortBy = (document.getElementById('scanner-sort')?.value) || 'score';
   const gradeFilter = (document.getElementById('scanner-grade')?.value) || 'all';
+  const chartFilter = (document.getElementById('scanner-chart')?.value) || 'all';
   const timeframe = parseInt((document.getElementById('scanner-timeframe')?.value) || '0');
   const search = ((document.getElementById('scanner-search')?.value) || '').toUpperCase();
 
@@ -449,6 +475,7 @@ function renderScanner() {
     if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
     if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
     if (gradeFilter === 'watch' && d.grade === 'WEAK') return false;
+    if (chartFilter !== 'all' && (d.chart_pattern || '') !== chartFilter) return false;
     if (timeframe > 0) {
       const days = daysUntil(d.date);
       if (days < 0 || days > timeframe) return false;
@@ -462,6 +489,8 @@ function renderScanner() {
       case 'date_asc':  return daysUntil(a.date) - daysUntil(b.date);
       case 'date_desc': return daysUntil(b.date) - daysUntil(a.date);
       case 'poa':       return (b.poa || 0) - (a.poa || 0);
+      case '30d_desc':  return (Number(b.price_change_30d) || -999) - (Number(a.price_change_30d) || -999);
+      case '30d_asc':   return (Number(a.price_change_30d) || 999) - (Number(b.price_change_30d) || 999);
       case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
       default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
@@ -629,6 +658,8 @@ function renderBuyoutGrid() {
   var search = (document.getElementById('buyout-search').value || '').toUpperCase();
   var riskFilter = document.getElementById('buyout-filter').value;
   var catFilter = document.getElementById('buyout-catalyst').value;
+  var sortBy = (document.getElementById('buyout-sort')?.value) || 'buyout';
+  var chartFilter = (document.getElementById('buyout-chart')?.value) || 'all';
 
   // Combine PDUFA events + recently approved companies, dedupe
   var all = [];
@@ -750,11 +781,22 @@ function renderBuyoutGrid() {
     if (catFilter === 'approved' && !d.approved_drug) return false;
     if (catFilter === 'pdufa' && !d.has_pdufa) return false;
     if (catFilter === 'both' && !d.approved_drug && !d.has_pdufa) return false;
+    if (chartFilter !== 'all' && (d.chart_pattern || '') !== chartFilter) return false;
     return d.buyout_score > 0;
   });
 
-  // Sort by buyout score descending
-  filtered.sort(function(a, b) { return (b.buyout_score || 0) - (a.buyout_score || 0); });
+  // Sort
+  filtered.sort(function(a, b) {
+    switch (sortBy) {
+      case '30d_desc': return (Number(b.price_change_30d) || -999) - (Number(a.price_change_30d) || -999);
+      case '30d_asc': return (Number(a.price_change_30d) || 999) - (Number(b.price_change_30d) || 999);
+      case 'tam': return (Number(b.tam_ratio) || 0) - (Number(a.tam_ratio) || 0);
+      case 'revenue': return (Number(b.revenue_m) || 0) - (Number(a.revenue_m) || 0);
+      case 'cap': return (Number(b.market_cap) || 0) - (Number(a.market_cap) || 0);
+      case 'ticker': return a.ticker.localeCompare(b.ticker);
+      default: return (b.buyout_score || 0) - (a.buyout_score || 0);
+    }
+  });
 
   var display = filtered.slice(0, 50);
 
