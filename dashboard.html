@@ -297,6 +297,7 @@
           <option value="poa">Sort: PoA ↓</option>
           <option value="30d_desc">Sort: 30D % ↓</option>
           <option value="30d_asc">Sort: 30D % ↑</option>
+          <option value="vol">Sort: Vol ↓</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
         </select>
@@ -337,6 +338,7 @@
           <option value="buyout">Score ↓</option>
           <option value="30d_desc">30D % ↓</option>
           <option value="30d_asc">30D % ↑</option>
+          <option value="vol">Vol ↓</option>
           <option value="tam">TAM/Cap ↓</option>
           <option value="revenue">Revenue ↓</option>
           <option value="cap">Cap ↓</option>
@@ -491,6 +493,7 @@ function renderScanner() {
       case 'poa':       return (b.poa || 0) - (a.poa || 0);
       case '30d_desc':  return (Number(b.price_change_30d) || -999) - (Number(a.price_change_30d) || -999);
       case '30d_asc':   return (Number(a.price_change_30d) || 999) - (Number(b.price_change_30d) || 999);
+      case 'vol':       return (Number(b.realized_vol_30d) || 0) - (Number(a.realized_vol_30d) || 0);
       case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
       default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
@@ -538,13 +541,13 @@ function renderScanner() {
             <div class="score-box-label">30D</div>
             <div class="score-box-val ${d.price_change_30d > 0 ? 'green' : d.price_change_30d < 0 ? 'red' : 'white'}">${d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : '—'}</div>
           </div>
+          <div class="score-box" title="30-day annualized realized volatility. Higher = bigger expected event move.">
+            <div class="score-box-label">Vol</div>
+            <div class="score-box-val ${d.realized_vol_30d >= 80 ? 'red' : d.realized_vol_30d >= 50 ? 'amber' : d.realized_vol_30d > 0 ? 'cyan' : 'white'}">${d.realized_vol_30d ? Math.round(d.realized_vol_30d) + '%' : '—'}</div>
+          </div>
           <div class="score-box">
             <div class="score-box-label">Runway</div>
             <div class="score-box-val ${d.revenue_M >= 50 ? 'green' : d.runway_months && d.runway_months <= 12 ? 'red' : d.runway_months && d.runway_months <= 24 ? 'amber' : d.runway_months && d.runway_months > 24 ? 'green' : 'white'}">${d.revenue_M >= 50 ? 'CF+' : d.runway_months && d.runway_months < 999 ? Math.round(d.runway_months) + 'mo' : '—'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">Insider</div>
-            <div class="score-box-val ${d.insider_signal === 'BULLISH' ? 'green' : d.insider_signal === 'BEARISH' ? 'red' : 'white'}">${d.insider_signal && d.insider_signal !== 'NEUTRAL' ? d.insider_signal : '—'}</div>
           </div>
           <div class="score-box">
             <div class="score-box-label">Revenue</div>
@@ -566,22 +569,45 @@ function renderScanner() {
           </div>
         </div>
         ${(() => {
-          // Volatility Intelligence: realized vol vs expected move
+          // ─── VOL EDGE ANALYSIS — the killer feature ───────────────
           var v30 = d.realized_vol_30d || 0;
           var v10 = d.realized_vol_10d || 0;
           if (v30 <= 0) return '';
-          // Implied single-day move from vol: vol / sqrt(252) 
-          var impliedDailyMove = (v30 / Math.sqrt(252)).toFixed(1);
-          var impliedEventMove = (impliedDailyMove * 2).toFixed(1); // ~2 day event window
+          var dailyMove = (v30 / Math.sqrt(252));
+          var impliedEventMove = (dailyMove * 2).toFixed(1);
           var stn = d.sell_news_risk || '';
-          var volColor = v30 >= 80 ? 'var(--red)' : v30 >= 50 ? 'var(--amber)' : 'var(--accent)';
-          var edge = '';
-          if (stn === 'HIGH' && v30 >= 60) edge = '📊 HIGH STN + ' + v30.toFixed(0) + '% vol → market may be underpricing sell-the-news risk';
-          else if (stn === 'LOW' && v30 >= 60) edge = '📊 LOW STN + ' + v30.toFixed(0) + '% vol → elevated IV may overstate risk — approval likely positive';
-          else if (v30 >= 80) edge = '📊 ' + v30.toFixed(0) + '% realized vol → implied ±' + impliedEventMove + '% event move';
-          else if (v10 > v30 * 1.3) edge = '📊 10D vol (' + v10.toFixed(0) + '%) spiking above 30D (' + v30.toFixed(0) + '%) → market positioning for catalyst';
-          if (!edge) return '';
-          return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + volColor + ';line-height:1.5;color:var(--text);">' + edge + '</div>';
+          var borderCol = 'var(--border)';
+          var bgCol = 'rgba(0,212,255,0.03)';
+          var icon = '📊';
+          var headline = '';
+          var detail = '';
+
+          if (stn === 'HIGH' && v30 >= 60) {
+            borderCol = 'var(--red)'; bgCol = 'rgba(255,68,68,0.06)'; icon = '🔻';
+            headline = 'VOL EDGE: HIGH STN + ' + Math.round(v30) + '% Vol';
+            detail = 'Market pricing ±' + impliedEventMove + '% move — but STN says direction is likely DOWN on approval. 3/3 historical pattern: REPL (−63%), RCKT (−20%), BIIB (−5%). Selling IV or avoiding longs may have edge.';
+          } else if ((stn === 'LOW' || stn === 'VERY LOW') && v30 >= 50) {
+            borderCol = 'var(--accent2)'; bgCol = 'rgba(0,255,157,0.04)'; icon = '📈';
+            headline = 'VOL EDGE: LOW STN + ' + Math.round(v30) + '% Vol';
+            detail = 'Market pricing ±' + impliedEventMove + '% move — STN says the move is likely UP. Approval not fully priced in. Buying calls or going long into event may have edge. VNDA (+45%) fit this pattern.';
+          } else if (v10 > v30 * 1.3 && v10 > 40) {
+            borderCol = 'var(--amber)'; bgCol = 'rgba(245,166,35,0.04)'; icon = '⚡';
+            headline = 'VOL SPIKE: 10D vol ' + Math.round(v10) + '% vs 30D ' + Math.round(v30) + '%';
+            detail = 'Near-term vol spiking — market actively positioning for this catalyst. Implied ±' + impliedEventMove + '% event move. Smart money is getting set.';
+          } else if (v30 >= 80) {
+            borderCol = 'var(--amber)'; bgCol = 'rgba(245,166,35,0.04)'; icon = '📊';
+            headline = 'HIGH VOL: ' + Math.round(v30) + '% realized';
+            detail = 'Implied ±' + impliedEventMove + '% event move. High vol cuts both ways — large move expected but direction depends on STN classification (' + stn + ').';
+          } else if (v30 >= 40) {
+            headline = 'Vol: ' + Math.round(v30) + '% → implied ±' + impliedEventMove + '% event move';
+            detail = '';
+          }
+
+          if (!headline) return '';
+          return '<div style="font-family:var(--mono);font-size:0.6rem;margin-top:0.5rem;padding:0.6rem 0.65rem;background:' + bgCol + ';border-left:3px solid ' + borderCol + ';line-height:1.6;">' +
+            '<div style="color:' + borderCol + ';font-weight:700;margin-bottom:0.2rem;">' + icon + ' ' + headline + '</div>' +
+            (detail ? '<div style="color:var(--text);font-size:0.55rem;">' + detail + '</div>' : '') +
+          '</div>';
         })()}
         ${(() => {
           // Buyout timeline + acquirer context
@@ -768,6 +794,8 @@ function renderBuyoutGrid() {
           price_change_30d: Number(c.price_change_30d) || 0,
           short_interest: Number(c.short_interest) || 0,
           chart_pattern: c.chart_pattern || '',
+          realized_vol_30d: Number(c.realized_vol_30d) || 0,
+          realized_vol_10d: Number(c.realized_vol_10d) || 0,
           current_price: Number(c.current_price) || 0,
           ct_nct_id: c.ct_nct_id || '',
           ct_enrollment: Number(c.ct_enrollment) || 0,
@@ -823,6 +851,7 @@ function renderBuyoutGrid() {
     switch (sortBy) {
       case '30d_desc': return (Number(b.price_change_30d) || -999) - (Number(a.price_change_30d) || -999);
       case '30d_asc': return (Number(a.price_change_30d) || 999) - (Number(b.price_change_30d) || 999);
+      case 'vol': return (Number(b.realized_vol_30d) || 0) - (Number(a.realized_vol_30d) || 0);
       case 'tam': return (Number(b.tam_ratio) || 0) - (Number(a.tam_ratio) || 0);
       case 'revenue': return (Number(b.revenue_m) || 0) - (Number(a.revenue_m) || 0);
       case 'cap': return (Number(b.market_cap) || 0) - (Number(a.market_cap) || 0);
@@ -907,19 +936,34 @@ function renderBuyoutGrid() {
         var rw = d.runway_months ? Math.round(d.runway_months) : 0;
         var rev = d.revenue_m || d.revenue_M || 0;
         var p30 = d.price_change_30d != null ? Number(d.price_change_30d) : null;
-        var si = d.short_interest ? Number(d.short_interest) : 0;
-        if (!dil && !ins && !rw && p30 === null) return '';
+        var v30 = Number(d.realized_vol_30d) || 0;
+        if (!dil && !rw && p30 === null && !v30) return '';
         var dilColor = dil === 'EXTREME' || dil === 'HIGH' ? 'red' : dil === 'MODERATE' ? 'amber' : dil === 'LOW' || dil === 'MINIMAL' ? 'green' : 'white';
-        var insColor = ins === 'BULLISH' ? 'green' : ins === 'BEARISH' ? 'red' : 'white';
+        var volColor = v30 >= 80 ? 'red' : v30 >= 50 ? 'amber' : v30 > 0 ? 'cyan' : 'white';
         var rwDisplay = rev >= 50 ? 'CF+' : (rw > 0 && rw < 999 ? rw + 'mo' : '—');
         var rwColor = rev >= 50 ? 'green' : rw > 0 && rw <= 12 ? 'red' : rw > 12 && rw <= 24 ? 'amber' : rw > 24 ? 'green' : 'white';
         var p30Color = p30 > 0 ? 'green' : p30 < 0 ? 'red' : 'white';
         return '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">' +
           '<div class="score-box" title="' + (d.dilution_detail || '').replace(/"/g,'') + '"><div class="score-box-label">Dilution</div><div class="score-box-val ' + dilColor + '">' + (dil || '—') + '</div></div>' +
-          '<div class="score-box"><div class="score-box-label">Insider</div><div class="score-box-val ' + insColor + '">' + (ins || '—') + '</div></div>' +
+          '<div class="score-box" title="30-day annualized realized volatility"><div class="score-box-label">Vol</div><div class="score-box-val ' + volColor + '">' + (v30 > 0 ? Math.round(v30) + '%' : '—') + '</div></div>' +
           '<div class="score-box"><div class="score-box-label">Runway</div><div class="score-box-val ' + rwColor + '">' + rwDisplay + '</div></div>' +
           '<div class="score-box"><div class="score-box-label">30D</div><div class="score-box-val ' + p30Color + '">' + (p30 !== null ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—') + '</div></div>' +
         '</div>';
+      })() +
+
+      // Vol Edge analysis for buyout targets with PDUFA
+      (function() {
+        var v30 = Number(d.realized_vol_30d) || 0;
+        if (v30 <= 0 || !d.has_pdufa) return '';
+        var dailyMove = v30 / Math.sqrt(252);
+        var impliedMove = (dailyMove * 2).toFixed(1);
+        var stn = d.sell_news_risk || '';
+        if (stn === 'HIGH' && v30 >= 60) {
+          return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.5rem;background:rgba(255,68,68,0.06);border-left:3px solid var(--red);line-height:1.5;"><span style="color:var(--red);font-weight:700;">🔻 VOL EDGE:</span> <span style="color:var(--text);">HIGH STN + ' + Math.round(v30) + '% vol → implied ±' + impliedMove + '% move but direction likely DOWN. Buyout value may be the floor.</span></div>';
+        } else if (v30 >= 50) {
+          return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.3rem;padding:0.35rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid var(--muted);color:var(--muted);line-height:1.4;">📊 ' + Math.round(v30) + '% vol → implied ±' + impliedMove + '% event move</div>';
+        }
+        return '';
       })() +
 
       // Acquirer thesis box (the key insight)
@@ -1171,7 +1215,7 @@ function switchTab(btn, id) {
   // Load recently approved companies for buyout scanner
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct, dilution_risk, dilution_detail, capital_raise_signal, pipe_risk, insider_signal, runway_months, price_change_30d, short_interest, chart_pattern, current_price, ct_nct_id, ct_enrollment, ct_sites, shelf_active, atm_active, last_raise_date, last_raise_amount')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct, dilution_risk, dilution_detail, capital_raise_signal, pipe_risk, insider_signal, runway_months, price_change_30d, short_interest, chart_pattern, current_price, ct_nct_id, ct_enrollment, ct_sites, shelf_active, atm_active, last_raise_date, last_raise_amount, realized_vol_30d, realized_vol_10d')
       .eq('is_acquired', false)
       .gt('buyout_score', 0)
       .order('buyout_score', { ascending: false })
