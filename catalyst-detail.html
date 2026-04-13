@@ -720,59 +720,70 @@ async function generateAISummary(d) {
     var prompt;
 
     if (d.type === 'COMPANY' || d.date === '—') {
-      // General biotech company deep dive (no PDUFA event)
-      prompt = 'Provide a comprehensive biotech intelligence deep dive on ' + d.ticker + ' (' + (d.company_name || d.ticker) + '). Provide THREE clearly separated sections using these exact headers:\n\n' +
+      // General biotech company deep dive with full live data
+      var v30c = Number(d.realized_vol_30d) || 0;
+      var revc = Number(d.revenue_m) || 0;
+      var mcapc = Number(d.estimated_market_cap) || 0;
+      var mcapStrc = mcapc >= 1e9 ? '$' + (mcapc/1e9).toFixed(1) + 'B' : mcapc >= 1e6 ? '$' + Math.round(mcapc/1e6) + 'M' : 'unknown';
+
+      prompt = 'Provide a comprehensive biotech intelligence deep dive on ' + d.ticker + ' (' + (d.company_name || d.ticker) + '). Use the full live data below. Provide THREE clearly separated sections using these exact headers:\n\n' +
         '**COMPANY OVERVIEW & PIPELINE**\n' +
-        'Market cap tier: ' + (d.market_cap_tier || 'UNKNOWN') + '.\n' +
-        'Cover: What does this company do? What drugs/therapies are in their pipeline? What stage are they (preclinical, Phase 1/2/3, commercial)? What therapeutic areas do they focus on? Do they have any approved products generating revenue? What is their competitive position?\n\n' +
+        'Market cap: ' + mcapStrc + '. Revenue: ' + (revc > 0 ? '$' + Math.round(revc) + 'M' : 'pre-revenue') + '. Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '.\n' +
+        'LIVE DATA: 30D momentum: ' + (d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : 'unknown') + '. Chart: ' + (d.chart_pattern || 'unknown') + '. Vol (30D): ' + (v30c ? Math.round(v30c) + '%' : 'unknown') + '. RSI: ' + (d.rsi_14d || 'unknown') + '. Short interest: ' + (d.short_interest ? Number(d.short_interest).toFixed(1) + '%' : 'unknown') + '.\n' +
+        'Dilution: ' + (d.dilution_risk || 'UNKNOWN') + '. Detail: ' + (d.dilution_detail || 'none') + '. Runway: ' + (revc >= 50 ? 'CF+' : d.runway_months ? Math.round(d.runway_months) + 'mo' : 'unknown') + '. Insider: ' + (d.insider_signal || 'NEUTRAL') + '.\n' +
+        'Cover: What does this company do? What drugs are in their pipeline? What stage? What therapeutic areas? Do they have approved products? What is their competitive position? Reference the live momentum and vol data — is the stock building, coiling, or weak heading into catalysts?\n\n' +
         '**CATALYST ANALYSIS & BUYOUT POTENTIAL**\n' +
+        'Buyout score: ' + (d.buyout_score || 0) + '/100. Risk: ' + (d.buyout_risk || 'UNLIKELY') + '. Acquirer: ' + (d.acquirer_urgency_top || 'none') + '. Timeline: ' + (d.buyout_timeline || 'none') + '. Partner: ' + (d.partner_name || 'none') + '. TAM/Cap: ' + (d.tam_ratio || 'unknown') + 'x. Probability: ' + (d.buyout_probability_pct || 0) + '%.\n' +
+        (d.months_since_approval ? 'Approved drug: ' + (d.drug || 'yes') + '. Months since approval: ' + d.months_since_approval + '.\n' : '') +
         'Analyze:\n' +
-        '1. What are the next major catalysts for this company? (upcoming data readouts, PDUFA dates, conference presentations, earnings)\n' +
-        '2. Buyout potential: Is this company an acquisition target? What factors make it attractive or unattractive to larger pharma? Is their drug first-in-class? Do they have commercial infrastructure or would an acquirer need to build it?\n' +
-        '3. Post-catalyst behavioral pattern: Based on the company profile, which pattern is most likely after their next catalyst — Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction?\n' +
-        '4. Competitive landscape: Who are the main competitors? Is the market crowded or is there significant unmet need?\n' +
-        '5. Insider and institutional activity: Any notable buying/selling patterns?\n\n' +
+        '1. What are the next major catalysts? (data readouts, PDUFA dates, conferences, earnings)\n' +
+        '2. Buyout potential: Given the scanner data, is this an acquisition target? Which Big Pharma has the therapeutic gap and patent cliff urgency?\n' +
+        '3. Behavioral pattern: Based on vol (' + (v30c ? Math.round(v30c) + '%' : 'unknown') + '), momentum (' + (d.price_change_30d ? Number(d.price_change_30d).toFixed(1) + '%' : 'unknown') + '), and chart pattern (' + (d.chart_pattern || 'unknown') + '), what setup is forming?\n' +
+        '4. Competitive landscape and unmet need.\n\n' +
         '**INVESTMENT SCENARIOS**\n' +
-        'Based on the pipeline, competitive position, and catalyst timeline:\n' +
-        '1. Bull case: Everything goes right — key catalysts hit, no dilution, potential buyout. What could the stock realistically do?\n' +
-        '2. Base case: Mixed results, moderate pipeline progress. Expected trajectory.\n' +
-        '3. Bear case: Key catalyst fails, dilution, competitive threat. Downside risk.\n' +
-        '4. Key question: What is the single most important factor that will determine this company\'s trajectory over the next 12 months?\n' +
-        '5. Risk factors: What could go wrong that most investors aren\'t thinking about?\n\n' +
-        'Be specific with analysis. This is for investors evaluating whether to add this company to their watchlist. End with disclaimer.';
+        'Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '. Vol: ' + (v30c ? Math.round(v30c) + '%' : 'unknown') + '.\n' +
+        '1. Bull case: Key catalysts hit, no dilution, potential buyout at ' + (mcapc >= 1e8 ? '$' + (mcapc * 1.6 / 1e9).toFixed(1) + 'B' : 'premium') + '. Realistic upside.\n' +
+        '2. Base case: Mixed results, moderate pipeline progress.\n' +
+        '3. Bear case: Catalyst fails, dilution (' + (d.dilution_risk || 'UNKNOWN') + ' risk), competitive threat.\n' +
+        '4. Vol assessment: At ' + (v30c ? Math.round(v30c) + '%' : 'unknown') + ' realized vol, is the stock priced for the catalysts ahead or is there a mispricing?\n' +
+        '5. Key question: Single most important factor for the next 12 months.\n\n' +
+        'Be specific. Reference the live data provided. This is for investors evaluating whether to add this to their watchlist. End with disclaimer.';
     } else {
-      // PDUFA-specific deep dive (existing prompt)
-      prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
+      // PDUFA-specific deep dive with full live data
+      var v30 = Number(d.realized_vol_30d) || 0;
+      var implMove = v30 > 0 ? (v30 / Math.sqrt(252) * 2).toFixed(1) : '—';
+      var rev = Number(d.revenue_m) || 0;
+      var mcap = Number(d.estimated_market_cap) || 0;
+      var mcapStr = mcap >= 1e9 ? '$' + (mcap/1e9).toFixed(1) + 'B' : mcap >= 1e6 ? '$' + Math.round(mcap/1e6) + 'M' : 'unknown';
+
+      prompt = 'Analyze the ' + d.ticker + ' PDUFA setup using the full scanner data below. Provide THREE clearly separated sections using these exact headers:\n\n' +
       '**EXECUTIVE SUMMARY**\n' +
       'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '.\n' +
-      'Scanner data — PoA: ' + (d.poa || 0).toFixed(1) + '%. STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
-      'Runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '. ' +
-      'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Net insider buys (90d): ' + (d.insider_net_buys || 0) + '. ' +
-      'Shelf active: ' + (d.shelf_active ? 'YES' : 'No') + '. ATM active: ' + (d.atm_active ? 'YES' : 'No') + '. ' +
-      'Partnership detected: ' + (d.partnership_detected ? 'YES' : 'No') + '. ' +
-      'Drug TAM: ' + (d.tam_label || 'Unknown') + '. TAM/Cap ratio: ' + (d.tam_ratio || 'Unknown') + 'x. ' +
-      'Net Edge Score: ' + (d.net_edge_score || d.score || 0).toFixed(1) + '/100. Grade: ' + (d.grade || 'WATCH') + '.\n' +
+      'Scanner data — PoA Range: ' + (d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%') + ' (Confidence: ' + (d.data_confidence || 'LOW') + '). STN Risk: ' + stnRisk + '. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + '. Net Edge: ' + (d.net_edge_score || d.score || 0).toFixed(1) + '. Grade: ' + (d.grade || 'WATCH') + '.\n' +
+      'LIVE MARKET DATA: Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '. 30D momentum: ' + (d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : 'unknown') + '. 7D momentum: ' + (d.price_change_7d ? (d.price_change_7d > 0 ? '+' : '') + Number(d.price_change_7d).toFixed(1) + '%' : 'unknown') + '. Chart pattern: ' + (d.chart_pattern || 'unknown') + '. RSI-14: ' + (d.rsi_14d || 'unknown') + '.\n' +
+      'VOLATILITY: Realized vol (30D): ' + (v30 ? Math.round(v30) + '%' : 'unknown') + '. Realized vol (10D): ' + (d.realized_vol_10d ? Math.round(d.realized_vol_10d) + '%' : 'unknown') + '. Implied event move: ±' + implMove + '%. ' +
+      (stnRisk === 'HIGH' && v30 >= 60 ? 'VOL EDGE FLAG: HIGH STN + HIGH VOL — historical pattern (REPL -63%, RCKT -20%, BIIB -5%) suggests market underpricing sell-the-news risk. ' :
+       (stnRisk === 'LOW' || stnRisk === 'VERY LOW') && v30 >= 50 ? 'VOL EDGE FLAG: LOW STN + HIGH VOL — approval likely not priced in, positive surprise potential. VNDA (+45%) fit this pattern. ' : '') + '\n' +
+      'Short interest: ' + (d.short_interest ? d.short_interest.toFixed(1) + '%' : 'unknown') + '. Market cap: ' + mcapStr + '. Revenue: ' + (rev > 0 ? '$' + Math.round(rev) + 'M' : 'pre-revenue') + '.\n' +
+      'DILUTION: ' + (d.dilution_risk || 'UNKNOWN') + '. Detail: ' + (d.dilution_detail || 'none') + '. Shelf: ' + (d.shelf_active ? 'ACTIVE' : 'No') + '. ATM: ' + (d.atm_active ? 'ACTIVE' : 'No') + '. PIPE risk: ' + (d.pipe_risk || 'unknown') + '. Capital raise signal: ' + (d.capital_raise_signal || 'unknown') + '. Runway: ' + (rev >= 50 ? 'CF+ (revenue-stage)' : d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '.\n' +
+      'BUYOUT: Score ' + (d.buyout_score || 0) + '/100. Risk: ' + (d.buyout_risk || 'UNLIKELY') + '. Acquirer: ' + (d.acquirer_urgency_top || 'none') + '. Timeline: ' + (d.buyout_timeline || 'none') + '. Partner: ' + (d.partner_name || 'none') + '. Probability: ' + (d.buyout_probability_pct || 0) + '%. TAM/Cap: ' + (d.tam_ratio || 'unknown') + 'x.\n' +
+      'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Months since approval: ' + (d.months_since_approval || 'N/A') + '.\n' +
       'Risk flags: ' + (d.flags || []).join(', ') + '.\n' +
-      'Dilution flags: ' + (d.dilution_flags || []).join(', ') + '.\n' +
-      'Notes: ' + (d.notes || 'none') + '.\n' +
-      'Write 2-3 paragraphs covering: regulatory pathway assessment, key risk factors, sell-the-news dynamics, dilution risk assessment, and overall setup quality.\n\n' +
+      'Write 2-3 paragraphs covering: (1) regulatory pathway assessment with specific reference to the PoA range and confidence level, (2) volatility analysis — is the market correctly pricing this event given the STN risk and realized vol, (3) key risk factors including dilution timing and sell-the-news dynamics.\n\n' +
       '**SEC FILING & DILUTION RISK ANALYSIS**\n' +
-      'For ' + d.ticker + ', analyze the following dilution risk factors:\n' +
-      '1. Has the company filed any recent 424B5 prospectus supplements, S-3 shelf registrations, or S-1 registration statements?\n' +
-      '2. Does the company have an active ATM facility? Scanner says: ' + (d.atm_active ? 'YES — ACTIVE ATM DETECTED' : 'No active ATM detected') + '\n' +
-      '3. Shelf registration status: ' + (d.shelf_active ? 'ACTIVE — company can sell shares at any time' : 'No active shelf detected') + '\n' +
-      '4. Cash runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown — check latest 10-Q') + '. Will they need to raise capital?\n' +
-      '5. Is this a "shorting the launch" setup — commercial launch costs exceeding cash position?\n' +
-      '6. Dilution score from scanner: ' + (d.dilution_score || 0) + '/100 (' + (d.dilution_risk || 'UNKNOWN') + ')\n\n' +
-      '**PRICE TARGETS & SCENARIOS**\n' +
-      'Based on the drug\'s commercial potential, indication size, competitive landscape, SEC filing signals, dilution risk profile, and current market dynamics:\n' +
-      '1. Bull case: Approval + no dilution + strong commercial signal. Realistic % move.\n' +
-      '2. Base case: Approval as expected. Likely move given STN risk of ' + stnRisk + ' and dilution risk of ' + (d.dilution_risk || 'UNKNOWN') + '.\n' +
-      '3. Bear case: CRL, or approval with immediate dilution. Expected downside.\n' +
-      '4. Analyst consensus if known.\n' +
-      '5. Key question: Single most important factor for whether this approval moves the stock.\n' +
-      '6. Setup assessment: Given the STN + dilution + TAM profile, characterize the overall setup quality — what risk factors would a systematic model flag, and what historical pattern does this most closely resemble?\n\n' +
-      'Be specific with numbers and percentages. This is for researchers evaluating the risk/reward profile of a binary event. End with disclaimer that this is quantitative analysis, not investment advice.';
+      'Dilution detail from scanner: ' + (d.dilution_detail || 'No signals detected') + '.\n' +
+      'Shelf: ' + (d.shelf_active ? 'ACTIVE' : 'No') + '. ATM: ' + (d.atm_active ? 'ACTIVE' : 'No') + '. PIPE risk: ' + (d.pipe_risk || 'LOW') + '.\n' +
+      'Capital raise signal: ' + (d.capital_raise_signal || 'NEUTRAL') + '. Runway: ' + (rev >= 50 ? 'CF+ revenue-stage' : d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown') + '.\n' +
+      'Analyze: (1) Is dilution timing a risk near this PDUFA? (2) Would a concurrent PIPE on approval night be likely? (3) For revenue-stage companies, is dilution even a relevant concern? (4) How does the capital raise history affect the post-approval setup?\n\n' +
+      '**PRICE TARGETS & VOL EDGE**\n' +
+      'Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '. Realized vol implies ±' + implMove + '% event move. STN Risk: ' + stnRisk + '.\n' +
+      'Based on the drug\'s commercial potential, vol profile, STN risk, and dilution exposure:\n' +
+      '1. Bull case: Approval + LOW STN + no dilution. Realistic % move and price target.\n' +
+      '2. Base case: Approval as expected with STN risk of ' + stnRisk + '. Likely move factoring in realized vol.\n' +
+      '3. Bear case: CRL, or approval with immediate dilution/sell-the-news. Expected downside.\n' +
+      '4. Vol edge assessment: Is the implied ±' + implMove + '% move too high, too low, or fair given the STN classification? Should a trader be buying or selling vol into this event?\n' +
+      '5. Key question: Single most important factor for whether this PDUFA moves the stock positively.\n\n' +
+      'Be specific with numbers. Reference the live data provided. This is for researchers evaluating the risk/reward of a binary event. End with disclaimer that this is quantitative analysis, not investment advice.';
     }
 
     var res = await fetch(EDGE_URL, {
