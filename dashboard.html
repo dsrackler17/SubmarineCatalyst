@@ -566,6 +566,24 @@ function renderScanner() {
           </div>
         </div>
         ${(() => {
+          // Volatility Intelligence: realized vol vs expected move
+          var v30 = d.realized_vol_30d || 0;
+          var v10 = d.realized_vol_10d || 0;
+          if (v30 <= 0) return '';
+          // Implied single-day move from vol: vol / sqrt(252) 
+          var impliedDailyMove = (v30 / Math.sqrt(252)).toFixed(1);
+          var impliedEventMove = (impliedDailyMove * 2).toFixed(1); // ~2 day event window
+          var stn = d.sell_news_risk || '';
+          var volColor = v30 >= 80 ? 'var(--red)' : v30 >= 50 ? 'var(--amber)' : 'var(--accent)';
+          var edge = '';
+          if (stn === 'HIGH' && v30 >= 60) edge = '📊 HIGH STN + ' + v30.toFixed(0) + '% vol → market may be underpricing sell-the-news risk';
+          else if (stn === 'LOW' && v30 >= 60) edge = '📊 LOW STN + ' + v30.toFixed(0) + '% vol → elevated IV may overstate risk — approval likely positive';
+          else if (v30 >= 80) edge = '📊 ' + v30.toFixed(0) + '% realized vol → implied ±' + impliedEventMove + '% event move';
+          else if (v10 > v30 * 1.3) edge = '📊 10D vol (' + v10.toFixed(0) + '%) spiking above 30D (' + v30.toFixed(0) + '%) → market positioning for catalyst';
+          if (!edge) return '';
+          return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + volColor + ';line-height:1.5;color:var(--text);">' + edge + '</div>';
+        })()}
+        ${(() => {
           // Buyout timeline + acquirer context
           if (!d.buyout_score || d.buyout_score < 35) return '';
           var tl = d.buyout_timeline || '';
@@ -1135,6 +1153,11 @@ function switchTab(btn, id) {
           pipe_risk: e.pipe_risk || '',
           last_raise_date: e.last_raise_date || '',
           last_raise_amount: Number(e.last_raise_amount) || 0,
+          realized_vol_30d: Number(e.realized_vol_30d) || 0,
+          realized_vol_10d: Number(e.realized_vol_10d) || 0,
+          iv_implied_move: Number(e.iv_implied_move) || 0,
+          vol_edge: Number(e.vol_edge) || 0,
+          vol_signal: e.vol_signal || '',
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
