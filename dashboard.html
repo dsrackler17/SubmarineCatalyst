@@ -524,7 +524,7 @@ function renderScanner() {
             <div class="score-box-label">STN Risk</div>
             <div class="score-box-val ${d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? 'green' : 'amber'}">${d.sell_news_risk || 'MOD'}</div>
           </div>
-          <div class="score-box">
+          <div class="score-box" title="${d.dilution_detail || ''}">
             <div class="score-box-label">Dilution</div>
             <div class="score-box-val ${d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL' ? 'green' : 'white'}">${d.dilution_risk || '—'}</div>
           </div>
@@ -592,6 +592,12 @@ function renderScanner() {
           if (d.institutional_pct >= 70) parts.push('🏛️ Inst. ' + Math.round(d.institutional_pct) + '%');
           if (d.cmc_risk && d.cmc_risk !== 'UNKNOWN' && d.cmc_risk !== 'LOW') parts.push((d.cmc_risk === 'HIGH' ? '🚨' : '⚠️') + ' CMC: ' + d.cmc_risk);
           if (d.buyout_probability_pct && d.buyout_probability_pct >= 20) parts.push('🎯 ' + d.buyout_probability_pct + '% buyout prob');
+          if (d.capital_raise_signal === 'HEAVY_DILUTION') parts.push('🚨 Heavy dilution (4Q)');
+          else if (d.capital_raise_signal === 'RECENT_RAISE') parts.push('💰 Raised recently');
+          if (d.pipe_risk === 'HIGH') parts.push('⚠️ PIPE risk');
+          if (d.shelf_active && d.atm_active) parts.push('📋 ATM + Shelf');
+          else if (d.atm_active) parts.push('📋 ATM active');
+          else if (d.shelf_active) parts.push('📋 Shelf on file');
           if (parts.length > 0) {
             return '<div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.4rem;display:flex;flex-wrap:wrap;gap:0.5rem;">' + parts.map(function(p){return '<span style="background:rgba(0,212,255,0.05);padding:0.15rem 0.4rem;border:1px solid rgba(0,212,255,0.1);">' + p + '</span>'}).join('') + '</div>';
           }
@@ -611,16 +617,19 @@ function renderScanner() {
           return '';
         })()}
         ${(() => {
-          // Dilution Radar: visual warning when cash runway conflicts with PDUFA timing
+          // Dilution Intelligence: context from shelf/ATM/raise analysis
           // Only relevant for pre-revenue companies — revenue-stage companies are self-funding
           var rm = d.runway_months ? Math.round(d.runway_months) : null;
           var rev = d.revenue_M || 0;
           var daysOut = Math.round((new Date(d.date) - new Date()) / 86400000);
-          if (rev >= 50) return ''; // Revenue-stage — runway is irrelevant
+          var detail = d.dilution_detail || '';
+          if (rev >= 50) return ''; // Revenue-stage — dilution radar irrelevant
           if (rm !== null && rm < 6 && rm > 0 && daysOut > 0) {
-            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:var(--red);line-height:1.5;">⚠️ DILUTION RADAR: ' + rm + '-month cash runway with PDUFA ' + daysOut + ' days out. Capital raise risk is elevated near approval.</div>';
+            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:var(--red);line-height:1.5;">⚠️ DILUTION RADAR: ' + rm + 'mo runway with PDUFA ' + daysOut + 'd out.' + (detail ? ' ' + detail : ' Capital raise risk elevated near approval.') + '</div>';
           } else if (rm !== null && rm < 12 && rm > 0 && daysOut > 60) {
-            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.15);color:var(--amber);line-height:1.5;">📊 RUNWAY NOTE: ' + rm + '-month cash runway. Monitor for SEC filings as PDUFA approaches.</div>';
+            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.15);color:var(--amber);line-height:1.5;">📊 RUNWAY: ' + rm + 'mo cash.' + (detail ? ' ' + detail : ' Monitor SEC filings as PDUFA approaches.') + '</div>';
+          } else if (detail && d.dilution_risk !== 'MINIMAL') {
+            return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid var(--muted);color:var(--muted);line-height:1.4;">📋 ' + detail + '</div>';
           }
           return '';
         })()}
@@ -733,6 +742,9 @@ function renderBuyoutGrid() {
           institutional_pct: Number(c.institutional_pct) || 0,
           news_items: c.news_items || [],
           dilution_risk: c.dilution_risk || '',
+          dilution_detail: c.dilution_detail || '',
+          capital_raise_signal: c.capital_raise_signal || '',
+          pipe_risk: c.pipe_risk || '',
           insider_signal: c.insider_signal || '',
           runway_months: Number(c.runway_months) || 0,
           price_change_30d: Number(c.price_change_30d) || 0,
@@ -885,7 +897,7 @@ function renderBuyoutGrid() {
         var rwColor = rev >= 50 ? 'green' : rw > 0 && rw <= 12 ? 'red' : rw > 12 && rw <= 24 ? 'amber' : rw > 24 ? 'green' : 'white';
         var p30Color = p30 > 0 ? 'green' : p30 < 0 ? 'red' : 'white';
         return '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">' +
-          '<div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + dilColor + '">' + (dil || '—') + '</div></div>' +
+          '<div class="score-box" title="' + (d.dilution_detail || '').replace(/"/g,'') + '"><div class="score-box-label">Dilution</div><div class="score-box-val ' + dilColor + '">' + (dil || '—') + '</div></div>' +
           '<div class="score-box"><div class="score-box-label">Insider</div><div class="score-box-val ' + insColor + '">' + (ins || '—') + '</div></div>' +
           '<div class="score-box"><div class="score-box-label">Runway</div><div class="score-box-val ' + rwColor + '">' + rwDisplay + '</div></div>' +
           '<div class="score-box"><div class="score-box-label">30D</div><div class="score-box-val ' + p30Color + '">' + (p30 !== null ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—') + '</div></div>' +
@@ -1118,6 +1130,11 @@ function switchTab(btn, id) {
           poa_range_low: Number(e.poa_low) || 0,
           poa_range_high: Number(e.poa_high) || 0,
           poa_confidence: e.data_confidence || '',
+          dilution_detail: e.dilution_detail || '',
+          capital_raise_signal: e.capital_raise_signal || '',
+          pipe_risk: e.pipe_risk || '',
+          last_raise_date: e.last_raise_date || '',
+          last_raise_amount: Number(e.last_raise_amount) || 0,
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
@@ -1131,7 +1148,7 @@ function switchTab(btn, id) {
   // Load recently approved companies for buyout scanner
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct, dilution_risk, insider_signal, runway_months, price_change_30d, short_interest, chart_pattern, current_price, ct_nct_id, ct_enrollment, ct_sites')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct, dilution_risk, dilution_detail, capital_raise_signal, pipe_risk, insider_signal, runway_months, price_change_30d, short_interest, chart_pattern, current_price, ct_nct_id, ct_enrollment, ct_sites, shelf_active, atm_active, last_raise_date, last_raise_amount')
       .eq('is_acquired', false)
       .gt('buyout_score', 0)
       .order('buyout_score', { ascending: false })
