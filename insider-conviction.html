@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTYLL5DC4Y"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JTYLL5DC4Y');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insider Conviction Scanner — Submarine Catalyst</title>
+<meta name="description" content="Rank every biotech company by insider buying conviction. Cluster buys, dollar-weighted volume, C-suite vs board, proximity to PDUFA dates, and dilution filing cross-checks.">
+<meta name="twitter:site" content="@DRackler">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy:    #040d1a;
+    --deep:    #07152b;
+    --surface: #0b1f3a;
+    --panel:   #0f2647;
+    --border:  #1a3a5c;
+    --accent:  #00d4ff;
+    --accent2: #00ff9d;
+    --amber:   #f5a623;
+    --red:     #ff4444;
+    --text:    #c8dff0;
+    --muted:   #5a7a99;
+    --white:   #eaf4ff;
+    --mono:    'Space Mono', monospace;
+    --serif:   'DM Serif Display', serif;
+    --sans:    'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  nav, .dash-layout, footer { position: relative; z-index: 1; }
+
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 2rem; border-bottom: 1px solid var(--border); background: rgba(4,13,26,0.92); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
+  .nav-logo { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
+  .sonar-icon { width: 26px; height: 26px; }
+  .sonar-icon svg { width: 100%; height: 100%; }
+  .nav-wordmark { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; color: var(--white); letter-spacing: 0.12em; text-transform: uppercase; }
+  .nav-wordmark span { color: var(--accent); }
+  .nav-center { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
+  .nav-center a { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .nav-center a:hover, .nav-center a.active { color: var(--accent); }
+  .nav-right { display: flex; align-items: center; gap: 1rem; }
+  .nav-user { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
+  .nav-signout { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 0.3rem 0.75rem; transition: all 0.2s; }
+  .nav-signout:hover { color: var(--red); border-color: rgba(255,68,68,0.4); }
+
+  .dash-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 58px); }
+  .sidebar { background: var(--deep); border-right: 1px solid var(--border); padding: 1.5rem 0; position: sticky; top: 58px; height: calc(100vh - 58px); overflow-y: auto; }
+  .sidebar-section { margin-bottom: 2rem; }
+  .sidebar-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); padding: 0 1.25rem; margin-bottom: 0.5rem; display: block; }
+  .sidebar-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 1.25rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: none; transition: all 0.15s; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
+  .sidebar-item:hover { color: var(--white); background: rgba(0,212,255,0.04); }
+  .sidebar-item.active { color: var(--accent); background: rgba(0,212,255,0.07); border-left: 2px solid var(--accent); }
+  .sidebar-icon { font-size: 0.85rem; width: 16px; text-align: center; }
+
+  .dash-main { padding: 2rem; overflow-y: auto; }
+
+  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+  .section-title { font-family: var(--serif); font-size: 1.5rem; color: var(--white); }
+  .section-meta { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
+  .section-sub { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.7; max-width: 700px; }
+
+  .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .stat-cell { background: var(--surface); padding: 1.25rem 1.5rem; animation: fadeUp 0.5s ease both; }
+  .stat-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+  .stat-val { font-family: var(--serif); font-size: 1.8rem; color: var(--white); line-height: 1; }
+  .stat-val.green { color: var(--accent2); }
+  .stat-val.cyan  { color: var(--accent); }
+  .stat-val.amber { color: var(--amber); }
+  .stat-val.red   { color: var(--red); }
+  .stat-sub { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; }
+
+  /* ── TABLE ── */
+  .insider-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); margin-bottom: 2rem; }
+  .insider-table th {
+    background: var(--panel); padding: 0.65rem 0.75rem;
+    font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); text-align: left;
+    border-bottom: 1px solid var(--border); position: sticky; top: 0; cursor: pointer;
+    white-space: nowrap; user-select: none;
+  }
+  .insider-table th:hover { background: var(--surface); }
+  .insider-table th .sort-arrow { font-size: 0.5rem; margin-left: 0.3rem; opacity: 0.4; }
+  .insider-table th.sorted .sort-arrow { opacity: 1; color: var(--accent); }
+  .insider-table td {
+    padding: 0.6rem 0.75rem; border-bottom: 1px solid rgba(26,58,92,0.5);
+    font-family: var(--mono); font-size: 0.72rem; color: var(--text);
+    white-space: nowrap; animation: fadeUp 0.4s ease both;
+  }
+  .insider-table tr:hover td { background: rgba(0,212,255,0.03); }
+  .insider-table tr { cursor: pointer; }
+
+  .conviction-bar { display: inline-block; height: 6px; border-radius: 3px; vertical-align: middle; margin-left: 0.4rem; }
+  .conviction-bar.strong { background: var(--accent2); }
+  .conviction-bar.moderate { background: var(--accent); }
+  .conviction-bar.neutral { background: var(--muted); }
+  .conviction-bar.negative { background: var(--red); }
+
+  .signal-badge { font-family: var(--mono); font-size: 0.58rem; padding: 0.15rem 0.5rem; border: 1px solid; letter-spacing: 0.06em; }
+  .signal-bullish  { color: var(--accent2); border-color: rgba(0,255,157,0.4); background: rgba(0,255,157,0.08); }
+  .signal-positive { color: var(--accent);  border-color: rgba(0,212,255,0.4); background: rgba(0,212,255,0.08); }
+  .signal-neutral  { color: var(--muted);   border-color: rgba(90,122,153,0.3); background: transparent; }
+  .signal-bearish  { color: var(--red);     border-color: rgba(255,68,68,0.4);  background: rgba(255,68,68,0.08); }
+
+  .pdufa-proximity { font-family: var(--mono); font-size: 0.6rem; padding: 0.1rem 0.4rem; border-radius: 2px; }
+  .prox-hot  { color: var(--red); background: rgba(255,68,68,0.1); }
+  .prox-warm { color: var(--amber); background: rgba(245,166,35,0.1); }
+  .prox-cool { color: var(--accent); background: rgba(0,212,255,0.06); }
+
+  .dilution-check { font-size: 0.7rem; }
+  .check-clean { color: var(--accent2); }
+  .check-dirty { color: var(--red); }
+
+  .filter-bar { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
+  .filter-bar select, .filter-bar input {
+    font-family: var(--mono); font-size: 0.68rem; background: var(--surface);
+    border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.75rem;
+  }
+
+  .method-panel { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
+  .method-title { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; cursor: pointer; }
+  .method-title::after { content: ' ▾'; font-size: 0.6rem; }
+  .method-body { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); line-height: 1.8; display: none; }
+  .method-body.open { display: block; }
+
+  .paywall-gate { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; }
+  .paywall-gate h2 { font-family: var(--serif); font-size: 1.5rem; color: var(--white); margin-bottom: 0.75rem; }
+  .paywall-gate p { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); max-width: 400px; margin: 0 auto 1.5rem; line-height: 1.7; }
+  .paywall-gate a { display: inline-block; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--accent); color: var(--navy); padding: 0.75rem 2rem; text-decoration: none; font-weight: 700; }
+
+  footer { display: flex; align-items: center; justify-content: center; gap: 2rem; padding: 1.5rem 2rem; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.06em; text-align: center; flex-wrap: wrap; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 768px) {
+    .dash-layout { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stat-strip { grid-template-columns: repeat(2, 1fr); }
+    .insider-table { font-size: 0.65rem; }
+    .insider-table td, .insider-table th { padding: 0.4rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="sonar-icon"><svg viewBox="0 0 36 36" fill="none"><circle cx="18" cy="18" r="3" fill="#00d4ff"/><circle cx="18" cy="18" r="8" stroke="#00d4ff" stroke-width="1.5" opacity="0.5"/><circle cx="18" cy="18" r="14" stroke="#00d4ff" stroke-width="1" opacity="0.25"/></svg></span>
+    <span class="nav-wordmark">SUBMARINE <span>CATALYST</span></span>
+  </a>
+  <ul class="nav-center">
+    <li><a href="/dashboard.html">Dashboard</a></li>
+    <li><a href="/track-record.html">Track Record</a></li>
+    <li><a href="/calendar.html">Calendar</a></li>
+  </ul>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user"></span>
+    <a href="#" class="nav-signout" onclick="scSignOut()">Sign Out</a>
+  </div>
+</nav>
+
+<div class="dash-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-section">
+      <span class="sidebar-label">Scanners</span>
+      <button class="sidebar-item" onclick="window.location.href='/dashboard.html'">
+        <span class="sidebar-icon">📡</span> PDUFA Scanner
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/dashboard.html#buyout'">
+        <span class="sidebar-icon">🏷️</span> Buyout Scanner
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'">
+        <span class="sidebar-icon">🔄</span> CRL Recovery
+      </button>
+      <button class="sidebar-item active">
+        <span class="sidebar-icon">👤</span> Insider Conviction
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/pipeline-concentration.html'">
+        <span class="sidebar-icon">🎯</span> Pipeline Risk
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Tools</span>
+      <button class="sidebar-item" onclick="window.location.href='/calendar.html'">
+        <span class="sidebar-icon">📅</span> Calendar
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/compare.html'">
+        <span class="sidebar-icon">⚖️</span> Compare
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/research.html'">
+        <span class="sidebar-icon">🤖</span> AI Research
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <span class="sidebar-label">Account</span>
+      <button class="sidebar-item" onclick="window.location.href='/dashboard.html#account'">
+        <span class="sidebar-icon">⚙️</span> Account & Billing
+      </button>
+    </div>
+  </aside>
+
+  <div class="dash-main">
+
+    <div class="paywall-gate" id="gate">
+      <div style="font-size:2rem;margin-bottom:1rem;">🔒</div>
+      <h2>Subscription Required</h2>
+      <p>Access the Insider Conviction Scanner with Form 4 cluster analysis, PDUFA proximity scoring, and dilution cross-checks.</p>
+      <a href="/signup.html">Subscribe — $29.99/month</a>
+    </div>
+
+    <div id="scanner-content" style="display:none;">
+
+      <div class="section-header">
+        <h2 class="section-title">Insider Conviction Scanner</h2>
+        <span class="section-meta" id="scan-timestamp">Loading...</span>
+      </div>
+      <p class="section-sub">
+        Insider buying within 90 days of a PDUFA with no concurrent dilution filing is one of the strongest signals in biotech.
+        This scanner ranks every company by insider conviction strength, cross-referenced with PDUFA proximity and SEC filing activity.
+      </p>
+
+      <div class="stat-strip">
+        <div class="stat-cell">
+          <div class="stat-label">Bullish Signals</div>
+          <div class="stat-val green" id="stat-bullish">—</div>
+          <div class="stat-sub">insider buying detected</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Clean + Buying</div>
+          <div class="stat-val cyan" id="stat-clean">—</div>
+          <div class="stat-sub">no dilution filings</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">≤90d to PDUFA</div>
+          <div class="stat-val amber" id="stat-proximity">—</div>
+          <div class="stat-sub">with insider activity</div>
+        </div>
+        <div class="stat-cell">
+          <div class="stat-label">Bearish Signals</div>
+          <div class="stat-val red" id="stat-bearish">—</div>
+          <div class="stat-sub">selling or dilution</div>
+        </div>
+      </div>
+
+      <div class="method-panel">
+        <div class="method-title" onclick="this.nextElementSibling.classList.toggle('open')">Conviction Scoring Methodology</div>
+        <div class="method-body">
+          <strong style="color:var(--white);">Insider Conviction Score (0–100)</strong><br><br>
+          <strong style="color:var(--accent);">Insider Signal Strength (35 pts)</strong> — BULLISH = 35, POSITIVE = 25, NEUTRAL = 10, BEARISH = 0<br>
+          <strong style="color:var(--accent);">PDUFA Proximity Bonus (25 pts)</strong> — Buying within 30d of PDUFA = 25, 60d = 20, 90d = 15, 180d = 5<br>
+          <strong style="color:var(--accent);">Dilution Clean Check (20 pts)</strong> — No shelf + no ATM = 20, Shelf only = 10, ATM active = 5, Both = 0<br>
+          <strong style="color:var(--accent);">PoA Alignment (10 pts)</strong> — Insider buying + PoA ≥ 70% = 10, ≥ 60% = 7, ≥ 50% = 4<br>
+          <strong style="color:var(--accent);">Runway Support (10 pts)</strong> — 18+ months runway + buying = 10, 12+ = 7, &lt;12 = 3<br><br>
+          The strongest conviction signal: C-suite cluster buying within 90 days of PDUFA, no dilution filings, with PoA ≥ 70%.
+          The weakest: board-level single trades with concurrent ATM activity.
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <select id="insider-sort" onchange="renderInsiderTable()">
+          <option value="conviction">Sort: Conviction Score ↓</option>
+          <option value="pdufa_proximity">Sort: PDUFA Proximity</option>
+          <option value="poa">Sort: PoA ↓</option>
+          <option value="ticker">Sort: Ticker A-Z</option>
+        </select>
+        <select id="insider-signal-filter" onchange="renderInsiderTable()">
+          <option value="all">All Signals</option>
+          <option value="bullish">BULLISH Only</option>
+          <option value="positive">POSITIVE+</option>
+          <option value="bearish">BEARISH Only</option>
+        </select>
+        <select id="insider-dilution-filter" onchange="renderInsiderTable()">
+          <option value="all">All Dilution Status</option>
+          <option value="clean">Clean (no filings)</option>
+          <option value="dirty">Active Filings</option>
+        </select>
+        <select id="insider-proximity-filter" onchange="renderInsiderTable()">
+          <option value="all">All PDUFA Timing</option>
+          <option value="30">≤ 30 days</option>
+          <option value="90">≤ 90 days</option>
+          <option value="180">≤ 180 days</option>
+        </select>
+        <input type="text" id="insider-search" placeholder="Search ticker..." oninput="renderInsiderTable()" style="width:150px;">
+        <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);" id="insider-count"></span>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table class="insider-table" id="insider-table">
+          <thead>
+            <tr>
+              <th>Ticker</th>
+              <th>Drug</th>
+              <th>PDUFA</th>
+              <th>Days Out</th>
+              <th>Insider Signal</th>
+              <th>Conviction</th>
+              <th>Dilution</th>
+              <th>PoA</th>
+              <th>Runway</th>
+              <th>Grade</th>
+            </tr>
+          </thead>
+          <tbody id="insider-tbody"></tbody>
+        </table>
+      </div>
+
+      <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin-top:2rem;">
+        ⚠️ Insider transaction data is derived from SEC Form 4 filings. Classifications are quantitative research outputs, not trade recommendations.
+        Insiders may buy for reasons unrelated to upcoming FDA decisions.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span style="font-family:var(--mono);font-size:0.7rem;font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</span>
+  <span>Not investment advice · Quantitative signals only · Trading involves risk of loss</span>
+  <div style="display:flex;gap:1.5rem">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<script>
+var INSIDER_DATA = [];
+
+function daysUntil(dateStr) {
+  if (!dateStr) return 9999;
+  var today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((new Date(dateStr) - today) / 86400000);
+}
+
+// ── CONVICTION SCORING ───────────────────────────────────────────────────────
+function scoreConviction(e) {
+  var score = 0;
+  var flags = [];
+  var signal = (e.insider_signal || 'NEUTRAL').toUpperCase();
+
+  // Insider Signal Strength (35 pts)
+  if (signal === 'BULLISH')       { score += 35; flags.push('🟢 BULLISH insider activity detected'); }
+  else if (signal === 'POSITIVE') { score += 25; flags.push('🔵 POSITIVE insider signal'); }
+  else if (signal === 'NEUTRAL')  { score += 10; }
+  else if (signal === 'BEARISH')  { score += 0;  flags.push('🔴 BEARISH insider activity — selling detected'); }
+  else if (signal === 'NEGATIVE') { score += 0;  flags.push('🔴 NEGATIVE insider signal'); }
+
+  // PDUFA Proximity Bonus (25 pts)
+  var days = daysUntil(e.date);
+  if (days > 0 && days <= 30 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
+    score += 25; flags.push('🔥 Insider buying within 30 days of PDUFA');
+  } else if (days > 0 && days <= 60 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
+    score += 20; flags.push('⚡ Insider buying within 60 days of PDUFA');
+  } else if (days > 0 && days <= 90 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
+    score += 15; flags.push('📊 Insider buying within 90 days of PDUFA');
+  } else if (days > 0 && days <= 180 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
+    score += 5;
+  }
+
+  // Dilution Clean Check (20 pts)
+  var shelfActive = e.shelf_active || false;
+  var atmActive = e.atm_active || false;
+  if (!shelfActive && !atmActive) {
+    score += 20; flags.push('✅ No dilution filings — clean');
+  } else if (shelfActive && !atmActive) {
+    score += 10; flags.push('📄 Shelf registration on file (not active ATM)');
+  } else if (!shelfActive && atmActive) {
+    score += 5;  flags.push('⚠️ ATM facility active');
+  } else {
+    score += 0;  flags.push('🚨 Both shelf + ATM active — dilution risk');
+  }
+
+  // PoA Alignment (10 pts)
+  var poa = Number(e.poa) || 0;
+  if ((signal === 'BULLISH' || signal === 'POSITIVE') && poa >= 70) {
+    score += 10; flags.push('🎯 Insider conviction aligns with PoA ≥ 70%');
+  } else if ((signal === 'BULLISH' || signal === 'POSITIVE') && poa >= 60) {
+    score += 7;
+  } else if ((signal === 'BULLISH' || signal === 'POSITIVE') && poa >= 50) {
+    score += 4;
+  }
+
+  // Runway Support (10 pts)
+  var runway = e.runway_months;
+  if (runway && runway >= 18 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
+    score += 10; flags.push('💰 Funded + buying — no financing pressure');
+  } else if (runway && runway >= 12) {
+    score += 7;
+  } else if (runway) {
+    score += 3;
+  }
+
+  score = Math.max(0, Math.min(100, score));
+
+  var conviction_level;
+  if (score >= 75)      conviction_level = 'STRONG';
+  else if (score >= 50) conviction_level = 'MODERATE';
+  else if (score >= 25) conviction_level = 'NEUTRAL';
+  else                  conviction_level = 'WEAK';
+
+  return { score: score, level: conviction_level, flags: flags };
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────────────────────────
+function renderInsiderTable() {
+  if (INSIDER_DATA.length === 0) {
+    document.getElementById('insider-tbody').innerHTML =
+      '<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted);">Loading insider data...</td></tr>';
+    return;
+  }
+
+  var sortBy = document.getElementById('insider-sort').value;
+  var signalFilter = document.getElementById('insider-signal-filter').value;
+  var dilutionFilter = document.getElementById('insider-dilution-filter').value;
+  var proximityFilter = document.getElementById('insider-proximity-filter').value;
+  var search = (document.getElementById('insider-search').value || '').toUpperCase();
+
+  var filtered = INSIDER_DATA.filter(function(d) {
+    if (search && !d.ticker.toUpperCase().includes(search)) return false;
+    var sig = (d.insider_signal || 'NEUTRAL').toUpperCase();
+    if (signalFilter === 'bullish' && sig !== 'BULLISH') return false;
+    if (signalFilter === 'positive' && sig !== 'BULLISH' && sig !== 'POSITIVE') return false;
+    if (signalFilter === 'bearish' && sig !== 'BEARISH' && sig !== 'NEGATIVE') return false;
+    if (dilutionFilter === 'clean' && (d.shelf_active || d.atm_active)) return false;
+    if (dilutionFilter === 'dirty' && !d.shelf_active && !d.atm_active) return false;
+    if (proximityFilter !== 'all') {
+      var maxDays = parseInt(proximityFilter);
+      var days = daysUntil(d.date);
+      if (days < 0 || days > maxDays) return false;
+    }
+    return true;
+  });
+
+  filtered.sort(function(a, b) {
+    switch (sortBy) {
+      case 'pdufa_proximity': return daysUntil(a.date) - daysUntil(b.date);
+      case 'poa':             return (b.poa || 0) - (a.poa || 0);
+      case 'ticker':          return a.ticker.localeCompare(b.ticker);
+      default:                return b.conviction_score - a.conviction_score;
+    }
+  });
+
+  document.getElementById('insider-count').textContent = filtered.length + ' of ' + INSIDER_DATA.length + ' events';
+
+  document.getElementById('insider-tbody').innerHTML = filtered.map(function(d, i) {
+    var days = daysUntil(d.date);
+    var sig = (d.insider_signal || 'NEUTRAL').toUpperCase();
+
+    var signalCls = sig === 'BULLISH' ? 'signal-bullish' :
+                    sig === 'POSITIVE' ? 'signal-positive' :
+                    sig === 'BEARISH' || sig === 'NEGATIVE' ? 'signal-bearish' : 'signal-neutral';
+
+    var proxCls = days <= 30 ? 'prox-hot' : days <= 90 ? 'prox-warm' : 'prox-cool';
+
+    var convColor = d.conviction_score >= 75 ? 'var(--accent2)' :
+                    d.conviction_score >= 50 ? 'var(--accent)' :
+                    d.conviction_score >= 25 ? 'var(--amber)' : 'var(--muted)';
+
+    var barCls = d.conviction_score >= 75 ? 'strong' :
+                 d.conviction_score >= 50 ? 'moderate' :
+                 d.conviction_score >= 25 ? 'neutral' : 'negative';
+
+    var dilutionClean = !d.shelf_active && !d.atm_active;
+    var dilutionIcon = dilutionClean ? '<span class="dilution-check check-clean">✓ Clean</span>' :
+                       '<span class="dilution-check check-dirty">⚠ ' +
+                       (d.atm_active && d.shelf_active ? 'ATM+Shelf' : d.atm_active ? 'ATM' : 'Shelf') + '</span>';
+
+    var gradeCls = d.grade === 'ELITE' ? 'color:var(--accent2)' :
+                   d.grade === 'STRONG' ? 'color:var(--accent)' :
+                   d.grade === 'WATCH' ? 'color:var(--amber)' : 'color:var(--muted)';
+
+    var poaColor = (d.poa || 0) >= 70 ? 'color:var(--accent2)' :
+                   (d.poa || 0) >= 55 ? 'color:var(--accent)' :
+                   (d.poa || 0) >= 40 ? 'color:var(--amber)' : 'color:var(--muted)';
+
+    var runwayColor = (d.runway_months || 0) >= 18 ? 'color:var(--accent2)' :
+                      (d.runway_months || 0) >= 12 ? 'color:var(--accent)' :
+                      (d.runway_months || 0) >= 6 ? 'color:var(--amber)' : 'color:var(--red)';
+
+    return '<tr onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="animation-delay:' + (i * 0.03) + 's">' +
+      '<td style="font-weight:700;color:var(--white);">' + d.ticker + '</td>' +
+      '<td style="font-size:0.65rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;">' + (d.drug || '—') + '</td>' +
+      '<td style="font-size:0.62rem;">' + (d.date || '—') + '</td>' +
+      '<td><span class="pdufa-proximity ' + proxCls + '">' + (days > 0 ? days + 'd' : 'PAST') + '</span></td>' +
+      '<td><span class="signal-badge ' + signalCls + '">' + sig + '</span></td>' +
+      '<td style="color:' + convColor + ';font-weight:700;">' + d.conviction_score +
+        '<span class="conviction-bar ' + barCls + '" style="width:' + d.conviction_score + 'px;"></span></td>' +
+      '<td>' + dilutionIcon + '</td>' +
+      '<td style="' + poaColor + '">' + (d.poa ? d.poa.toFixed(1) + '%' : '—') + '</td>' +
+      '<td style="' + runwayColor + '">' + (d.runway_months ? Math.round(d.runway_months) + 'mo' : '—') + '</td>' +
+      '<td style="' + gradeCls + ';font-size:0.62rem;">' + (d.grade || '—') + '</td>' +
+    '</tr>';
+  }).join('');
+
+  // Stats
+  var bullish = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); return s === 'BULLISH' || s === 'POSITIVE'; }).length;
+  var clean = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); return (s === 'BULLISH' || s === 'POSITIVE') && !d.shelf_active && !d.atm_active; }).length;
+  var proximate = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); var days = daysUntil(d.date); return (s === 'BULLISH' || s === 'POSITIVE') && days > 0 && days <= 90; }).length;
+  var bearish = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); return s === 'BEARISH' || s === 'NEGATIVE'; }).length;
+
+  document.getElementById('stat-bullish').textContent = bullish;
+  document.getElementById('stat-clean').textContent = clean;
+  document.getElementById('stat-proximity').textContent = proximate;
+  document.getElementById('stat-bearish').textContent = bearish;
+  document.getElementById('scan-timestamp').textContent =
+    'Updated: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+(async function() {
+  var session = await scRequireAuth();
+  if (!session) return;
+
+  var profile = await scGetProfile(session.user.id);
+  if (!profile || !profile.is_paid) {
+    document.getElementById('gate').style.display = 'flex';
+    return;
+  }
+
+  document.getElementById('scanner-content').style.display = 'block';
+  document.getElementById('nav-user').innerHTML =
+    '<span style="color:var(--muted);font-size:0.62rem;">' + session.user.email + '</span>';
+
+  var sb = getSupabase();
+
+  try {
+    // Fetch from server-side gated endpoint (same as PDUFA scanner)
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+      headers: {
+        'Authorization': 'Bearer ' + (session.access_token || ''),
+        'Content-Type': 'application/json',
+      },
+    });
+
+    var result = await res.json();
+
+    if (result.events && result.events.length > 0) {
+      INSIDER_DATA = result.events.map(function(e) {
+        var scored = scoreConviction(e);
+        return {
+          ticker: e.ticker,
+          drug: e.drug || '',
+          indication: e.indication || '',
+          date: e.date,
+          type: e.type || 'PDUFA',
+          grade: e.grade || 'WATCH',
+          poa: Number(e.poa) || 0,
+          score: Number(e.score) || 0,
+          net_edge_score: Number(e.net_edge_score) || 0,
+          insider_signal: e.insider_signal || 'NEUTRAL',
+          shelf_active: e.shelf_active || false,
+          atm_active: e.atm_active || false,
+          dilution_risk: e.dilution_risk || 'UNKNOWN',
+          runway_months: e.runway_months,
+          conviction_score: scored.score,
+          conviction_level: scored.level,
+          conviction_flags: scored.flags,
+        };
+      });
+
+      // Sort by conviction score descending by default
+      INSIDER_DATA.sort(function(a, b) { return b.conviction_score - a.conviction_score; });
+      console.log('[SC] Insider Conviction: loaded ' + INSIDER_DATA.length + ' events');
+    }
+  } catch (err) {
+    console.warn('[SC] Insider data load error:', err);
+  }
+
+  renderInsiderTable();
+})();
+</script>
+</body>
+</html>
