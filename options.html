@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTYLL5DC4Y"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JTYLL5DC4Y');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Options Scanner — Submarine Catalyst</title>
+<meta name="description" content="PDUFA options event scanner. Structure classifications, IV crush risk, and entry window analysis for every upcoming FDA binary event. Not financial advice.">
+<meta name="twitter:site" content="@DRackler">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<script src="/js/supabase-client.js"></script>
+<script src="/js/auth.js"></script>
+<style>
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh;display:flex;flex-direction:column;}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+nav,main,footer{position:relative;z-index:1;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 2.5rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100;}
+.nav-logo{display:flex;align-items:center;gap:0.65rem;text-decoration:none;}
+.nav-wordmark{font-family:var(--mono);font-size:0.78rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase;}
+.nav-wordmark span{color:var(--accent);}
+.nav-right{display:flex;align-items:center;gap:1.25rem;}
+.nav-link{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s;}
+.nav-link:hover,.nav-link.active{color:var(--accent);}
+.nav-user{font-family:var(--mono);font-size:0.65rem;color:var(--muted);}
+.nav-signout{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:0.3rem 0.75rem;transition:all 0.2s;}
+.nav-signout:hover{color:var(--red);border-color:rgba(255,68,68,0.4);}
+
+main{flex:1;max-width:1300px;width:100%;margin:0 auto;padding:2rem 2.5rem 5rem;}
+
+/* Page header */
+.page-eyebrow{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.22em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.75rem;}
+.page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
+.page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.4rem;line-height:1.15;}
+.page-sub{font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.7;max-width:680px;margin-bottom:0.75rem;}
+.disclaimer-banner{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);border-left:3px solid var(--amber);padding:0.6rem 1rem;font-family:var(--mono);font-size:0.62rem;color:var(--amber);letter-spacing:0.04em;margin-bottom:2rem;line-height:1.6;}
+
+/* Stats bar */
+.stats-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;}
+.stat{background:var(--surface);padding:1rem;text-align:center;}
+.stat-val{font-family:var(--mono);font-size:1.35rem;font-weight:700;color:var(--accent);}
+.stat-val.green{color:var(--accent2);}
+.stat-val.amber{color:var(--amber);}
+.stat-val.red{color:var(--red);}
+.stat-label{font-family:var(--mono);font-size:0.58rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;margin-top:0.25rem;}
+
+/* Filters */
+.filters{display:flex;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;align-items:center;}
+.filters select,.filters input{font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.45rem 0.85rem;outline:none;cursor:pointer;transition:border-color 0.2s;}
+.filters select:focus,.filters input:focus{border-color:var(--accent);}
+.filters input{min-width:200px;}
+
+/* Table */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;border:1px solid var(--border);font-size:0.72rem;}
+th{background:var(--panel);padding:0.65rem 0.6rem;text-align:left;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.08em;text-transform:uppercase;border:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+th:hover{color:var(--white);}
+th .sort-indicator{color:var(--muted);margin-left:0.3rem;}
+td{padding:0.55rem 0.6rem;font-family:var(--mono);border:1px solid var(--border);color:var(--text);vertical-align:middle;}
+tr{cursor:pointer;transition:background 0.12s;}
+tr:hover{background:rgba(0,212,255,0.05);}
+tr:nth-child(even){background:var(--deep);}
+tr:nth-child(even):hover{background:rgba(0,212,255,0.07);}
+.ticker-cell{font-size:0.85rem;font-weight:700;color:var(--white);}
+.dte-urgent{color:var(--red);font-weight:700;}
+.dte-soon{color:var(--amber);font-weight:700;}
+.dte-normal{color:var(--accent);}
+.dte-far{color:var(--muted);}
+
+/* Structure classification badges */
+.struct-badge{display:inline-block;font-family:var(--mono);font-size:0.56rem;letter-spacing:0.06em;text-transform:uppercase;padding:0.2rem 0.55rem;border:1px solid;white-space:nowrap;}
+.struct-directional{color:var(--accent2);border-color:rgba(0,255,157,0.35);background:rgba(0,255,157,0.07);}
+.struct-hedged{color:var(--accent);border-color:rgba(0,212,255,0.35);background:rgba(0,212,255,0.07);}
+.struct-binary{color:var(--amber);border-color:rgba(245,166,35,0.35);background:rgba(245,166,35,0.07);}
+.struct-crush{color:var(--red);border-color:rgba(255,68,68,0.35);background:rgba(255,68,68,0.07);}
+.struct-inverse{color:#ff8c8c;border-color:rgba(255,68,68,0.25);background:rgba(255,68,68,0.05);}
+.struct-uncertain{color:var(--muted);border-color:rgba(90,122,153,0.3);background:transparent;}
+
+/* Crush risk */
+.crush-none{color:var(--accent2);}
+.crush-low{color:var(--accent);}
+.crush-mod{color:var(--amber);}
+.crush-high{color:var(--red);font-weight:700;}
+.crush-extreme{color:var(--red);font-weight:700;animation:pulse 1.8s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.5;}}
+
+/* Entry window badges */
+.window-watch{color:var(--muted);font-size:0.6rem;}
+.window-pre{color:var(--accent2);font-size:0.6rem;}
+.window-accum{color:var(--accent);font-size:0.6rem;}
+.window-event{color:var(--amber);font-size:0.6rem;font-weight:700;}
+.window-gamma{color:var(--red);font-size:0.6rem;font-weight:700;}
+
+/* Grade badges */
+.grade-elite{color:var(--accent2);}
+.grade-strong{color:var(--accent);}
+.grade-watch{color:var(--amber);}
+.grade-weak{color:var(--muted);}
+
+.poa-high{color:var(--accent2);font-weight:700;}
+.poa-mod{color:var(--accent);}
+.poa-neutral{color:var(--amber);}
+.poa-low{color:var(--red);}
+
+.move-big{color:var(--accent2);font-weight:700;}
+.move-med{color:var(--accent);}
+.move-small{color:var(--muted);}
+
+/* STN display */
+.stn-vl{color:var(--accent2);font-size:0.62rem;}
+.stn-l{color:var(--accent);font-size:0.62rem;}
+.stn-m{color:var(--amber);font-size:0.62rem;}
+.stn-e{color:var(--red);font-size:0.62rem;}
+.stn-h{color:var(--red);font-weight:700;font-size:0.62rem;}
+
+.empty{text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);}
+.row-count{font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.75rem;}
+
+/* Gate */
+.gate{display:none;position:fixed;inset:0;background:rgba(4,13,26,0.93);backdrop-filter:blur(12px);z-index:200;justify-content:center;align-items:center;flex-direction:column;gap:1.5rem;text-align:center;padding:2rem;}
+.gate-title{font-family:var(--mono);font-size:1rem;color:var(--white);letter-spacing:0.08em;}
+.gate-sub{font-family:var(--sans);font-size:0.88rem;color:var(--muted);max-width:420px;line-height:1.7;}
+.nav-cta{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:transparent;border:1px solid var(--accent);color:var(--accent);padding:0.5rem 1.4rem;text-decoration:none;transition:all 0.2s;display:inline-block;}
+.nav-cta:hover{background:var(--accent);color:var(--navy);}
+
+/* Modal */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(4,13,26,0.88);backdrop-filter:blur(8px);z-index:300;justify-content:center;align-items:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border);max-width:780px;width:100%;max-height:88vh;overflow-y:auto;position:relative;animation:fadeUp 0.25s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.modal-header{display:flex;align-items:flex-start;justify-content:space-between;padding:1.75rem 2rem 1.25rem;border-bottom:1px solid var(--border);gap:1rem;}
+.modal-ticker{font-family:var(--serif);font-size:2.6rem;color:var(--white);line-height:1;}
+.modal-drug{font-size:0.88rem;color:var(--text);font-weight:300;margin-top:0.2rem;}
+.modal-indication{font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.1rem;letter-spacing:0.04em;}
+.modal-close{font-family:var(--mono);font-size:0.7rem;color:var(--muted);cursor:pointer;border:1px solid var(--border);padding:0.3rem 0.75rem;transition:all 0.15s;white-space:nowrap;background:none;}
+.modal-close:hover{color:var(--red);border-color:rgba(255,68,68,0.4);}
+.modal-body{padding:1.5rem 2rem 2rem;}
+.modal-section{margin-bottom:1.75rem;}
+.modal-section-title{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.85rem;display:flex;align-items:center;gap:0.5rem;}
+.modal-section-title::before{content:'';display:block;width:1rem;height:1px;background:var(--accent);}
+
+/* Classification card */
+.classif-card{background:var(--panel);border:1px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:1rem;}
+.classif-label{font-family:var(--mono);font-size:0.72rem;font-weight:700;margin-bottom:0.3rem;}
+.classif-desc{font-size:0.82rem;color:var(--text);font-weight:300;line-height:1.6;}
+
+/* Data grid */
+.data-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:1rem;}
+.data-cell{background:var(--panel);padding:0.85rem 1rem;}
+.data-cell-label{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem;}
+.data-cell-val{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--white);}
+.data-cell-sub{font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.2rem;}
+
+/* Timing table */
+.timing-row{display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0;border-bottom:1px solid rgba(26,58,92,0.5);gap:1rem;}
+.timing-row:last-child{border-bottom:none;}
+.timing-window{font-family:var(--mono);font-size:0.62rem;color:var(--white);}
+.timing-desc{font-size:0.78rem;color:var(--muted);font-weight:300;}
+.timing-current{background:rgba(0,212,255,0.06);padding:0.4rem 0.75rem;border:1px solid rgba(0,212,255,0.15);border-radius:2px;}
+
+/* Flags */
+.opt-flags{display:flex;flex-wrap:wrap;gap:0.4rem;}
+.opt-flag{font-size:0.62rem;padding:0.2rem 0.55rem;font-family:var(--mono);border:1px solid;}
+.opt-flag-green{color:var(--accent2);border-color:rgba(0,255,157,0.2);background:rgba(0,255,157,0.05);}
+.opt-flag-amber{color:var(--amber);border-color:rgba(245,166,35,0.2);background:rgba(245,166,35,0.05);}
+.opt-flag-red{color:var(--red);border-color:rgba(255,68,68,0.2);background:rgba(255,68,68,0.05);}
+
+/* Footer */
+footer{display:flex;align-items:center;justify-content:space-between;padding:1.5rem 2.5rem;border-top:1px solid var(--border);font-family:var(--mono);font-size:0.6rem;color:var(--muted);}
+footer a{color:var(--muted);text-decoration:none;}
+footer a:hover{color:var(--accent);}
+
+@media(max-width:900px){
+  nav{padding:1rem;}
+  .nav-link:not(:last-child){display:none;}
+  main{padding:1rem 1rem 4rem;}
+  .stats-bar{grid-template-columns:1fr 1fr;}
+  .filters{flex-direction:column;}
+  table{font-size:0.62rem;}
+  th,td{padding:0.4rem 0.3rem;}
+  .modal-header{flex-direction:column;gap:0.75rem;}
+  .data-grid{grid-template-columns:1fr 1fr;}
+  footer{flex-direction:column;gap:0.5rem;text-align:center;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <span class="nav-wordmark">SUBMARINE <span>CATALYST</span></span>
+  </a>
+  <div class="nav-right">
+    <a href="/scanner.html" class="nav-link">PDUFA Scanner</a>
+    <a href="/buyout-scanner.html" class="nav-link">Buyout Scanner</a>
+    <a href="/options.html" class="nav-link active">Options Scanner</a>
+    <a href="/calendar.html" class="nav-link">Calendar</a>
+    <a href="/compare.html" class="nav-link">Compare</a>
+    <span class="nav-user" id="nav-user"></span>
+    <a href="#" class="nav-signout" id="nav-signout" onclick="scSignOut();return false;">Sign Out</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-eyebrow">Options Event Scanner</div>
+  <h1 class="page-title">PDUFA Options Structure Scanner</h1>
+  <p class="page-sub">Every upcoming FDA binary event classified by options structure archetype, IV crush exposure, and entry window timing. Derived from the 8-layer PDUFA model: PoA, STN Risk, expected move, dilution, and grade fed through a six-class options structure matrix.</p>
+  <div class="disclaimer-banner">
+    ⚠ ALL OUTPUTS ARE QUANTITATIVE RESEARCH CLASSIFICATIONS DERIVED FROM PUBLIC DATA SOURCES — NOT INVESTMENT ADVICE, NOT TRADE RECOMMENDATIONS. Options trading involves substantial risk of loss including total loss of premium. These classifications describe event structure characteristics, not strategies to execute.
+  </div>
+
+  <div class="stats-bar" id="stats-bar">
+    <div class="stat"><div class="stat-val" id="stat-total">—</div><div class="stat-label">Events Scanned</div></div>
+    <div class="stat"><div class="stat-val green" id="stat-30d">—</div><div class="stat-label">Events ≤ 30 Days</div></div>
+    <div class="stat"><div class="stat-val amber" id="stat-crush">—</div><div class="stat-label">High Crush Risk</div></div>
+    <div class="stat"><div class="stat-val" id="stat-avg-move">—</div><div class="stat-label">Avg Expected Move</div></div>
+    <div class="stat"><div class="stat-val green" id="stat-directional">—</div><div class="stat-label">Directional Setups</div></div>
+  </div>
+
+  <div class="filters">
+    <input type="text" id="search" placeholder="Search ticker or drug..." oninput="renderTable()">
+    <select id="filter-dte" onchange="renderTable()">
+      <option value="all">All DTE Windows</option>
+      <option value="gamma">Gamma Zone (≤ 7d)</option>
+      <option value="event">Event Window (8–21d)</option>
+      <option value="accum">Accumulation (22–45d)</option>
+      <option value="pre">Pre-Positioning (46–90d)</option>
+      <option value="watch">Watch List (90d+)</option>
+    </select>
+    <select id="filter-struct" onchange="renderTable()">
+      <option value="all">All Structure Types</option>
+      <option value="DIRECTIONAL APPROVAL">Directional Approval</option>
+      <option value="HEDGED DIRECTIONAL">Hedged Directional</option>
+      <option value="BIASED BINARY">Biased Binary</option>
+      <option value="SYMMETRIC BINARY">Symmetric Binary</option>
+      <option value="CRUSH RISK PROFILE">Crush Risk Profile</option>
+      <option value="INVERSE CATALYST">Inverse Catalyst</option>
+    </select>
+    <select id="filter-crush" onchange="renderTable()">
+      <option value="all">All Crush Levels</option>
+      <option value="NO CRUSH RISK">No Crush Risk</option>
+      <option value="LOW CRUSH RISK">Low Crush Risk</option>
+      <option value="MODERATE CRUSH RISK">Moderate Crush Risk</option>
+      <option value="HIGH CRUSH RISK">High Crush Risk</option>
+      <option value="EXTREME CRUSH RISK">Extreme Crush Risk</option>
+    </select>
+    <select id="filter-grade" onchange="renderTable()">
+      <option value="all">All Grades</option>
+      <option value="ELITE">ELITE</option>
+      <option value="STRONG">STRONG</option>
+      <option value="WATCH">WATCH</option>
+      <option value="WEAK">WEAK</option>
+    </select>
+    <select id="sort-by" onchange="renderTable()">
+      <option value="dte">Sort: DTE ↑</option>
+      <option value="move">Sort: Expected Move ↓</option>
+      <option value="poa">Sort: PoA ↓</option>
+      <option value="score">Sort: Score ↓</option>
+    </select>
+  </div>
+
+  <div class="table-wrap">
+    <div id="table-container"></div>
+  </div>
+  <div class="row-count" id="row-count"></div>
+</main>
+
+<!-- Paywall gate -->
+<div class="gate" id="gate">
+  <div style="font-size:2.5rem;">⚙</div>
+  <div class="gate-title">Options Scanner — Subscriber Access</div>
+  <div class="gate-sub">The options structure scanner classifies every upcoming PDUFA event by IV crush risk, structure archetype, and entry window timing. Part of the full Submarine Catalyst subscription.</div>
+  <a href="/signup.html" class="nav-cta" style="margin-top:1rem;">Get Access — $29.99/month</a>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-ticker" id="m-ticker">—</div>
+        <div class="modal-drug" id="m-drug">—</div>
+        <div class="modal-indication" id="m-indication">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal(null)">✕ CLOSE</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Classification card -->
+      <div class="modal-section">
+        <div class="modal-section-title">Structure Classification</div>
+        <div class="classif-card" id="m-classif-card">
+          <div class="classif-label" id="m-classif-label">—</div>
+          <div class="classif-desc" id="m-classif-desc">—</div>
+        </div>
+      </div>
+
+      <!-- Key metrics grid -->
+      <div class="modal-section">
+        <div class="modal-section-title">Event Metrics</div>
+        <div class="data-grid">
+          <div class="data-cell">
+            <div class="data-cell-label">PDUFA Date</div>
+            <div class="data-cell-val" id="m-date">—</div>
+            <div class="data-cell-sub" id="m-dte-sub">—</div>
+          </div>
+          <div class="data-cell">
+            <div class="data-cell-label">Approval Probability</div>
+            <div class="data-cell-val" id="m-poa">—</div>
+            <div class="data-cell-sub" id="m-grade-sub">—</div>
+          </div>
+          <div class="data-cell">
+            <div class="data-cell-label">Expected Move</div>
+            <div class="data-cell-val" id="m-move">—</div>
+            <div class="data-cell-sub">Scanner historical volatility model</div>
+          </div>
+          <div class="data-cell">
+            <div class="data-cell-label">Sell-The-News Risk</div>
+            <div class="data-cell-val" id="m-stn">—</div>
+            <div class="data-cell-sub">Post-approval price behavior</div>
+          </div>
+          <div class="data-cell">
+            <div class="data-cell-label">IV Crush Exposure</div>
+            <div class="data-cell-val" id="m-crush">—</div>
+            <div class="data-cell-sub">Binary event IV compression risk</div>
+          </div>
+          <div class="data-cell">
+            <div class="data-cell-label">Dilution Risk</div>
+            <div class="data-cell-val" id="m-dilution">—</div>
+            <div class="data-cell-sub">Shelf / ATM / runway classification</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Entry window timing -->
+      <div class="modal-section">
+        <div class="modal-section-title">Entry Window Framework</div>
+        <div id="m-timing-table"></div>
+      </div>
+
+      <!-- Options-specific risk flags -->
+      <div class="modal-section" id="m-flags-section">
+        <div class="modal-section-title">Options-Relevant Risk Flags</div>
+        <div class="opt-flags" id="m-flags"></div>
+      </div>
+
+      <!-- Deep dive link -->
+      <div style="margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);display:flex;gap:1rem;align-items:center;">
+        <a id="m-scanner-link" href="#" style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;color:var(--accent);text-decoration:none;text-transform:uppercase;">Full PDUFA Analysis →</a>
+        <span style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);">7-layer PoA breakdown, AdCom history, clinical trial data</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div>All outputs are quantitative research classifications, not financial advice.</div>
+  <div style="display:flex;gap:1.5rem;">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+    <a href="/track-record.html">Track Record</a>
+  </div>
+</footer>
+
+<script>
+var ALL_EVENTS = [];
+var SORT_DIR = {};
+
+// ─── Options Classification Engine ────────────────────────────────────────────
+
+function classifyStructure(poa, stnRisk) {
+  var stnNorm = (stnRisk || '').toUpperCase().replace(/-/g,' ');
+  var isLow   = stnNorm === 'VERY LOW' || stnNorm === 'LOW';
+  var isMod   = stnNorm === 'MODERATE';
+  var isHigh  = stnNorm === 'ELEVATED' || stnNorm === 'HIGH';
+
+  if (poa >= 75) {
+    if (isLow)  return 'DIRECTIONAL APPROVAL';
+    if (isMod)  return 'HEDGED DIRECTIONAL';
+    if (isHigh) return 'CRUSH RISK PROFILE';
+  }
+  if (poa >= 55) {
+    if (isLow)  return 'BIASED BINARY';
+    return 'SYMMETRIC BINARY';
+  }
+  if (poa >= 40) {
+    return 'SYMMETRIC BINARY';
+  }
+  return 'INVERSE CATALYST';
+}
+
+function structureClass(struct) {
+  var m = {
+    'DIRECTIONAL APPROVAL':'struct-directional',
+    'HEDGED DIRECTIONAL':'struct-hedged',
+    'BIASED BINARY':'struct-binary',
+    'SYMMETRIC BINARY':'struct-binary',
+    'CRUSH RISK PROFILE':'struct-crush',
+    'INVERSE CATALYST':'struct-inverse'
+  };
+  return m[struct] || 'struct-uncertain';
+}
+
+function structureDesc(struct, poa, stnRisk, expectedMove) {
+  var em = expectedMove && !isNaN(parseFloat(expectedMove)) ? '±' + Math.abs(parseFloat(expectedMove)).toFixed(0) + '%' : '';
+  var descs = {
+    'DIRECTIONAL APPROVAL': 'PoA ≥75% with LOW/VERY LOW post-approval sell risk. The approval probability is strong and the market has not fully priced in the outcome. Long premium on the approval side carries lower-than-average IV crush exposure for a binary event. ' + (em ? 'Scanner expected move: ' + em + '.' : ''),
+    'HEDGED DIRECTIONAL': 'PoA ≥75% but MODERATE post-approval sell risk. Directional approval bias exists, but some pricing-in is evident — a spread structure reduces premium outlay and caps crush exposure on the long side relative to an outright position. ' + (em ? 'Expected move: ' + em + '.' : ''),
+    'CRUSH RISK PROFILE': 'PoA ≥75% with ELEVATED/HIGH post-approval sell risk. The approval scenario is well-priced. IV will compress significantly when the binary resolves regardless of outcome. Long premium on this structure requires the move to exceed what IV has priced in. ' + (em ? 'Expected move: ' + em + '.' : ''),
+    'BIASED BINARY': 'PoA 55–74% with LOW post-approval sell risk. Directional bias exists but approval uncertainty is real. Long premium on the positive side retains asymmetric upside if approval surprises the market. ' + (em ? 'Expected move: ' + em + '.' : ''),
+    'SYMMETRIC BINARY': 'PoA 40–74% with MODERATE+ STN risk. Neither outcome is dominant enough to bias a directional structure. Event volatility is high; both paths carry meaningful move potential. Symmetric structures (straddle/strangle) reflect this balanced uncertainty. ' + (em ? 'Expected move: ' + em + '.' : ''),
+    'INVERSE CATALYST': 'PoA below 40%. Rejection probability dominates. The stock is most likely to move sharply on a rejection scenario. Long puts or bear spreads reflect the structural asymmetry. Note that even high-PoA events can be rejected — this classification reflects quantitative probability, not certainty. ' + (em ? 'Expected move: ' + em + '.' : '')
+  };
+  return descs[struct] || 'Classification pending additional data.';
+}
+
+function classifyCrush(stnRisk) {
+  var s = (stnRisk || '').toUpperCase().replace(/-/g,' ');
+  if (s === 'VERY LOW') return 'NO CRUSH RISK';
+  if (s === 'LOW')      return 'LOW CRUSH RISK';
+  if (s === 'MODERATE') return 'MODERATE CRUSH RISK';
+  if (s === 'ELEVATED') return 'HIGH CRUSH RISK';
+  if (s === 'HIGH')     return 'EXTREME CRUSH RISK';
+  return 'UNKNOWN';
+}
+
+function crushClass(crush) {
+  var m = {'NO CRUSH RISK':'crush-none','LOW CRUSH RISK':'crush-low','MODERATE CRUSH RISK':'crush-mod','HIGH CRUSH RISK':'crush-high','EXTREME CRUSH RISK':'crush-extreme'};
+  return m[crush] || 'crush-mod';
+}
+
+function entryWindow(dte) {
+  if (dte === null || dte === undefined) return {label:'UNKNOWN',cls:'window-watch'};
+  if (dte <= 0)  return {label:'EVENT / RESOLVED',cls:'window-gamma'};
+  if (dte <= 7)  return {label:'GAMMA ZONE',cls:'window-gamma'};
+  if (dte <= 21) return {label:'EVENT WINDOW',cls:'window-event'};
+  if (dte <= 45) return {label:'ACCUMULATION',cls:'window-accum'};
+  if (dte <= 90) return {label:'PRE-POSITIONING',cls:'window-pre'};
+  return {label:'WATCH LIST',cls:'window-watch'};
+}
+
+function dteClass(dte) {
+  if (dte === null || dte === undefined) return 'dte-far';
+  if (dte <= 7)  return 'dte-urgent';
+  if (dte <= 21) return 'dte-soon';
+  if (dte <= 45) return 'dte-normal';
+  return 'dte-far';
+}
+
+function stnClass(stn) {
+  var s = (stn || '').toUpperCase().replace(/-/g,' ');
+  if (s === 'VERY LOW') return 'stn-vl';
+  if (s === 'LOW')      return 'stn-l';
+  if (s === 'MODERATE') return 'stn-m';
+  if (s === 'ELEVATED') return 'stn-e';
+  if (s === 'HIGH')     return 'stn-h';
+  return 'stn-m';
+}
+
+function poaClass(poa) {
+  if (poa >= 70) return 'poa-high';
+  if (poa >= 55) return 'poa-mod';
+  if (poa >= 40) return 'poa-neutral';
+  return 'poa-low';
+}
+
+function moveClass(move) {
+  if (!move || isNaN(parseFloat(move))) return 'move-small';
+  var v = Math.abs(parseFloat(move));
+  if (v >= 40) return 'move-big';
+  if (v >= 20) return 'move-med';
+  return 'move-small';
+}
+
+function gradeClass(grade) {
+  var m = {'ELITE':'grade-elite','STRONG':'grade-strong','WATCH':'grade-watch','WEAK':'grade-weak'};
+  return m[(grade||'').toUpperCase()] || 'grade-watch';
+}
+
+function fmtMove(move) {
+  if (!move || isNaN(parseFloat(move))) return '—';
+  return '±' + Math.abs(parseFloat(move)).toFixed(0) + '%';
+}
+
+function fmtDate(d) {
+  if (!d || d === '—') return '—';
+  return d.substring(0,10);
+}
+
+function calcDTE(dateStr) {
+  if (!dateStr || dateStr === '—') return null;
+  var diff = Math.round((new Date(dateStr) - new Date()) / 86400000);
+  return diff;
+}
+
+// ─── Render Table ─────────────────────────────────────────────────────────────
+
+function renderTable() {
+  var search     = (document.getElementById('search').value || '').toUpperCase();
+  var dteFilter  = document.getElementById('filter-dte').value;
+  var structFilt = document.getElementById('filter-struct').value;
+  var crushFilt  = document.getElementById('filter-crush').value;
+  var gradeFilt  = document.getElementById('filter-grade').value;
+  var sortBy     = document.getElementById('sort-by').value;
+
+  var filtered = ALL_EVENTS.filter(function(e) {
+    if (search && !e.ticker.includes(search) && !(e.drug||'').toUpperCase().includes(search) && !(e.indication||'').toUpperCase().includes(search)) return false;
+    if (gradeFilt !== 'all' && (e.grade||'').toUpperCase() !== gradeFilt) return false;
+    if (structFilt !== 'all' && e.struct !== structFilt) return false;
+    if (crushFilt !== 'all' && e.crush !== crushFilt) return false;
+    if (dteFilter !== 'all') {
+      var dte = e.dte;
+      if (dte === null) return false;
+      if (dteFilter === 'gamma'  && !(dte >= 0 && dte <= 7)) return false;
+      if (dteFilter === 'event'  && !(dte >= 8 && dte <= 21)) return false;
+      if (dteFilter === 'accum'  && !(dte >= 22 && dte <= 45)) return false;
+      if (dteFilter === 'pre'    && !(dte >= 46 && dte <= 90)) return false;
+      if (dteFilter === 'watch'  && !(dte > 90)) return false;
+    }
+    return true;
+  });
+
+  // Sort
+  filtered.sort(function(a,b) {
+    if (sortBy === 'dte')   return (a.dte === null ? 9999 : a.dte) - (b.dte === null ? 9999 : b.dte);
+    if (sortBy === 'move')  return Math.abs(parseFloat(b.expected_move)||0) - Math.abs(parseFloat(a.expected_move)||0);
+    if (sortBy === 'poa')   return (b.poa||0) - (a.poa||0);
+    if (sortBy === 'score') return (b.score||0) - (a.score||0);
+    return 0;
+  });
+
+  if (filtered.length === 0) {
+    document.getElementById('table-container').innerHTML = '<div class="empty">No events match selected filters.</div>';
+    document.getElementById('row-count').textContent = '';
+    return;
+  }
+
+  var html = '<table><thead><tr>';
+  html += '<th>Ticker</th>';
+  html += '<th>PDUFA Date</th>';
+  html += '<th>DTE</th>';
+  html += '<th>Drug / Type</th>';
+  html += '<th>Grade</th>';
+  html += '<th>PoA</th>';
+  html += '<th>Exp. Move</th>';
+  html += '<th>STN Risk</th>';
+  html += '<th>Structure</th>';
+  html += '<th>IV Crush Risk</th>';
+  html += '<th>Entry Window</th>';
+  html += '<th></th>';
+  html += '</tr></thead><tbody>';
+
+  filtered.forEach(function(e) {
+    var ew = entryWindow(e.dte);
+    html += '<tr onclick="openModal(\'' + e.ticker + '\')">';
+    html += '<td class="ticker-cell">' + e.ticker + '</td>';
+    html += '<td style="color:var(--text)">' + fmtDate(e.date) + '</td>';
+    html += '<td class="' + dteClass(e.dte) + '">' + (e.dte !== null ? (e.dte <= 0 ? 'TODAY' : e.dte + 'd') : '—') + '</td>';
+    html += '<td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"><span style="color:var(--white);font-size:0.68rem;">' + (e.drug||'—') + '</span><br><span style="color:var(--muted);font-size:0.55rem;">' + (e.type||'—') + '</span></td>';
+    html += '<td class="' + gradeClass(e.grade) + '">' + (e.grade||'—') + '</td>';
+    html += '<td class="' + poaClass(e.poa) + '">' + (e.poa ? e.poa.toFixed(1) + '%' : '—') + '</td>';
+    html += '<td class="' + moveClass(e.expected_move) + '">' + fmtMove(e.expected_move) + '</td>';
+    html += '<td class="' + stnClass(e.sell_news_risk) + '">' + (e.sell_news_risk||'—') + '</td>';
+    html += '<td><span class="struct-badge ' + structureClass(e.struct) + '">' + e.struct + '</span></td>';
+    html += '<td class="' + crushClass(e.crush) + '">' + e.crush + '</td>';
+    html += '<td class="' + ew.cls + '">' + ew.label + '</td>';
+    html += '<td><span style="color:var(--accent);font-size:0.58rem;letter-spacing:0.04em;">DETAIL →</span></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table>';
+  document.getElementById('table-container').innerHTML = html;
+  document.getElementById('row-count').textContent = 'Showing ' + filtered.length + ' of ' + ALL_EVENTS.length + ' events';
+}
+
+// ─── Modal ────────────────────────────────────────────────────────────────────
+
+function openModal(ticker) {
+  var e = ALL_EVENTS.find(function(x) { return x.ticker === ticker; });
+  if (!e) return;
+
+  document.getElementById('m-ticker').textContent = e.ticker;
+  document.getElementById('m-drug').textContent = (e.drug||'—') + (e.company ? ' · ' + e.company : '');
+  document.getElementById('m-indication').textContent = (e.indication||'—') + ' · ' + (e.type||'—');
+
+  // Classification
+  var structDesc = structureDesc(e.struct, e.poa, e.sell_news_risk, e.expected_move);
+  var card = document.getElementById('m-classif-card');
+  card.className = 'classif-card'; // reset
+  var labelEl = document.getElementById('m-classif-label');
+  labelEl.textContent = e.struct;
+  labelEl.className = 'classif-label ' + (
+    e.struct === 'DIRECTIONAL APPROVAL' ? 'poa-high' :
+    e.struct === 'HEDGED DIRECTIONAL' ? 'poa-mod' :
+    e.struct === 'CRUSH RISK PROFILE' || e.struct === 'INVERSE CATALYST' ? 'poa-low' :
+    'poa-neutral'
+  );
+  document.getElementById('m-classif-desc').textContent = structDesc;
+
+  // Metrics
+  document.getElementById('m-date').textContent = fmtDate(e.date);
+  document.getElementById('m-dte-sub').textContent = e.dte !== null ? e.dte + ' days to event' : '—';
+  document.getElementById('m-poa').textContent = e.poa ? e.poa.toFixed(1) + '%' : '—';
+  document.getElementById('m-grade-sub').textContent = 'Grade: ' + (e.grade||'—');
+  document.getElementById('m-move').textContent = fmtMove(e.expected_move);
+  document.getElementById('m-stn').textContent = e.sell_news_risk || '—';
+  document.getElementById('m-crush').textContent = e.crush;
+  document.getElementById('m-crush').className = 'data-cell-val ' + crushClass(e.crush);
+  document.getElementById('m-dilution').textContent = e.dilution_risk || '—';
+
+  // Timing table
+  var dte = e.dte;
+  var windows = [
+    {range: '> 90d',   label: 'WATCH LIST',      desc: 'IV flat. Monitor setup development. No premium deployment.'},
+    {range: '46–90d',  label: 'PRE-POSITIONING',  desc: 'IV beginning to inflate. Optimal window for structures with defined risk. Theta decay manageable.'},
+    {range: '22–45d',  label: 'ACCUMULATION',     desc: 'IV rising as event approaches. Premium cost increasing. Optimal risk/reward window for most directional structures.'},
+    {range: '8–21d',   label: 'EVENT WINDOW',     desc: 'Peak IV territory. Long premium cost elevated. Close proximity to binary resolution. High gamma.'},
+    {range: '1–7d',    label: 'GAMMA ZONE',       desc: 'Extreme gamma. Max crush risk on long premium. Maximum risk/reward for lottery-style structures only.'},
+  ];
+  var currentWindowLabel = entryWindow(dte).label;
+  var timingHtml = windows.map(function(w) {
+    var isCurrent = w.label === currentWindowLabel && dte !== null && dte >= 0;
+    return '<div class="timing-row' + (isCurrent ? ' timing-current' : '') + '">' +
+      '<span class="timing-window">' + w.range + ' — ' + w.label + (isCurrent ? ' ◀ NOW' : '') + '</span>' +
+      '<span class="timing-desc">' + w.desc + '</span></div>';
+  }).join('');
+  document.getElementById('m-timing-table').innerHTML = timingHtml;
+
+  // Flags
+  var rawFlags = e.flags || [];
+  var optionFlags = [];
+
+  // Synthesize options-specific flags from existing data
+  if (['HIGH','EXTREME CRUSH RISK'].includes(e.crush)) {
+    optionFlags.push({color:'red', text:'IV CRUSH HIGH — long premium post-event at significant disadvantage'});
+  }
+  if (e.sell_news_risk === 'HIGH' || e.sell_news_risk === 'ELEVATED') {
+    optionFlags.push({color:'red', text:'STN ' + e.sell_news_risk + ' — approval may not move stock directionally'});
+  }
+  if (e.dilution_risk === 'HIGH' || e.dilution_risk === 'CRITICAL') {
+    optionFlags.push({color:'red', text:'Dilution risk ' + e.dilution_risk + ' — shelf/ATM activity can spike IV unpredictably'});
+  }
+  if (e.shelf_active) optionFlags.push({color:'amber', text:'Active shelf registration — potential ATM offering risk pre-event'});
+  if (e.atm_active)   optionFlags.push({color:'amber', text:'ATM program active — continuous dilution pressure on underlying'});
+  if (e.poa >= 80)    optionFlags.push({color:'green', text:'PoA ' + e.poa.toFixed(1) + '% — high probability approval setup'});
+  if (e.poa <= 35)    optionFlags.push({color:'red', text:'PoA ' + (e.poa||0).toFixed(1) + '% — rejection scenario dominates'});
+  if (e.grade === 'ELITE') optionFlags.push({color:'green', text:'ELITE grade — strongest signal tier in scanner'});
+  if (dte !== null && dte <= 7 && dte >= 0) optionFlags.push({color:'amber', text:'Gamma zone — max IV, extreme intraday moves possible on any news'});
+
+  // Add a few original flags if present
+  rawFlags.slice(0,4).forEach(function(f) {
+    var color = f.includes('✅') ? 'green' : (f.includes('🚨') || f.includes('⚠️')) ? 'amber' : 'green';
+    var clean = f.replace(/^[✅⚠️🚨📋🏷️]\s*/,'').trim();
+    if (clean.length > 4) optionFlags.push({color:color, text:clean.substring(0,80)});
+  });
+
+  if (optionFlags.length === 0) {
+    optionFlags.push({color:'amber', text:'No additional options-specific flags generated for this event.'});
+  }
+
+  document.getElementById('m-flags').innerHTML = optionFlags.map(function(f) {
+    return '<span class="opt-flag opt-flag-' + f.color + '">' + f.text + '</span>';
+  }).join('');
+
+  document.getElementById('m-scanner-link').href = '/scanner.html?ticker=' + e.ticker;
+
+  document.getElementById('modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modal-overlay')) return;
+  document.getElementById('modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeModal(null);
+});
+
+// ─── Bootstrap ────────────────────────────────────────────────────────────────
+
+(async function() {
+  var session = await scRequireAuth();
+  if (!session) return;
+
+  // Show user email in nav
+  var navUser = document.getElementById('nav-user');
+  if (navUser && session.user && session.user.email) {
+    navUser.textContent = session.user.email.split('@')[0];
+  }
+
+  var profile = await scGetProfile(session.user.id);
+  if (!profile || !profile.is_paid) {
+    document.getElementById('gate').style.display = 'flex';
+    return;
+  }
+
+  try {
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+      headers: { 'Authorization': 'Bearer ' + session.access_token, 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+
+    var result = await res.json();
+    var events = result.events || [];
+
+    events.forEach(function(e) {
+      var dte = calcDTE(e.date);
+      var struct = classifyStructure(Number(e.poa) || 0, e.sell_news_risk);
+      var crush  = classifyCrush(e.sell_news_risk);
+
+      ALL_EVENTS.push({
+        ticker:        e.ticker,
+        drug:          e.drug || '—',
+        indication:    e.indication || '—',
+        company:       e.company_name || '',
+        type:          e.type || '—',
+        date:          e.date || '—',
+        dte:           dte,
+        grade:         (e.grade || 'WATCH').toUpperCase(),
+        poa:           Number(e.poa) || 0,
+        score:         Number(e.score || e.net_edge_score) || 0,
+        sell_news_risk: e.sell_news_risk || '—',
+        expected_move: e.expected_move || null,
+        dilution_risk: e.dilution_risk || '—',
+        shelf_active:  e.shelf_active || false,
+        atm_active:    e.atm_active || false,
+        flags:         e.flags || [],
+        struct:        struct,
+        crush:         crush,
+      });
+    });
+
+    // Stats
+    var now30 = ALL_EVENTS.filter(function(e) { return e.dte !== null && e.dte >= 0 && e.dte <= 30; }).length;
+    var highCrush = ALL_EVENTS.filter(function(e) { return e.crush === 'HIGH CRUSH RISK' || e.crush === 'EXTREME CRUSH RISK'; }).length;
+    var moves = ALL_EVENTS.map(function(e) { return Math.abs(parseFloat(e.expected_move)||0); }).filter(Boolean);
+    var avgMove = moves.length ? (moves.reduce(function(a,b){return a+b;},0) / moves.length).toFixed(0) : '—';
+    var directional = ALL_EVENTS.filter(function(e) { return e.struct === 'DIRECTIONAL APPROVAL' || e.struct === 'HEDGED DIRECTIONAL'; }).length;
+
+    document.getElementById('stat-total').textContent      = ALL_EVENTS.length;
+    document.getElementById('stat-30d').textContent        = now30;
+    document.getElementById('stat-crush').textContent      = highCrush;
+    document.getElementById('stat-avg-move').textContent   = avgMove !== '—' ? '±' + avgMove + '%' : '—';
+    document.getElementById('stat-directional').textContent = directional;
+
+    renderTable();
+
+  } catch(err) {
+    console.error('Options scanner load error:', err);
+    document.getElementById('table-container').innerHTML =
+      '<div class="empty" style="color:var(--amber)">Failed to load scanner data. Check console (F12) for details.<br><span style="font-size:0.6rem;color:var(--muted);margin-top:0.5rem;display:block;">' + err.message + '</span></div>';
+  }
+})();
+</script>
+</body>
+</html>
