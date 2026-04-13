@@ -890,6 +890,9 @@ async function generateAISummary(d) {
         date: e.date,
         grade: e.grade || 'WATCH',
         poa: Number(e.poa) || 0,
+        poa_low: Number(e.poa_low) || 0,
+        poa_high: Number(e.poa_high) || 0,
+        data_confidence: e.data_confidence || '',
         score: Number(e.score) || 0,
         flags: e.flags || [],
         notes: e.notes || '',
@@ -903,27 +906,45 @@ async function generateAISummary(d) {
         dilution_risk: e.dilution_risk || 'UNKNOWN',
         dilution_score: Number(e.dilution_score) || 0,
         dilution_flags: e.dilution_flags || [],
+        dilution_detail: e.dilution_detail || '',
+        capital_raise_signal: e.capital_raise_signal || '',
+        pipe_risk: e.pipe_risk || '',
         runway_months: e.runway_months,
         runway_risk: e.runway_risk || 'UNKNOWN',
         insider_signal: e.insider_signal || 'NEUTRAL',
         insider_net_buys: Number(e.insider_net_buys) || 0,
         shelf_active: e.shelf_active || false,
         atm_active: e.atm_active || false,
+        last_raise_date: e.last_raise_date || '',
+        last_raise_amount: Number(e.last_raise_amount) || 0,
         partnership_detected: e.has_partnership || e.partnership_detected || false,
+        has_partnership: e.has_partnership || e.partnership_detected || false,
         partner_name: e.partner_name || '',
         acquirer_urgency_top: e.acquirer_urgency_top || '',
         buyout_score: Number(e.buyout_score) || 0,
         buyout_risk: e.buyout_risk || 'UNLIKELY',
         buyout_flags: e.buyout_flags || [],
         buyout_timeline: e.buyout_timeline || '',
+        buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
         drug_tam_estimate: Number(e.drug_tam_estimate) || 0,
         tam_ratio: Number(e.tam_ratio) || 0,
         tam_label: e.tam_label || '',
         news_items: e.news_items || [],
         revenue_m: Number(e.revenue_m) || 0,
-        estimated_market_cap: Number(e.estimated_market_cap) || 0,
+        estimated_market_cap: Number(e.estimated_market_cap || e.market_cap) || 0,
         months_since_approval: e.months_since_approval || null,
         institutional_pct: Number(e.institutional_pct) || 0,
+        // Live Polygon data
+        price_change_30d: Number(e.price_change_30d) || 0,
+        price_change_7d: Number(e.price_change_7d) || 0,
+        chart_pattern: e.chart_pattern || '',
+        realized_vol_30d: Number(e.realized_vol_30d) || 0,
+        realized_vol_10d: Number(e.realized_vol_10d) || 0,
+        current_price: Number(e.current_price) || 0,
+        rsi_14d: Number(e.rsi_14d) || 0,
+        short_interest: Number(e.short_interest) || 0,
+        cmc_risk: e.cmc_risk || '',
+        cmc_flags: e.cmc_flags || [],
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;
@@ -932,45 +953,104 @@ async function generateAISummary(d) {
     console.warn('[SC] Failed to fetch event data:', err);
   }
 
+  // ─── ENRICH FROM BIOTECH_UNIVERSE — fills gaps when pdufa_events hasn't synced ──
+  try {
+    var sb = getSupabase();
+    var { data: liveData } = await sb.from('biotech_universe')
+      .select('price_change_30d, price_change_7d, chart_pattern, realized_vol_30d, realized_vol_10d, current_price, rsi_14d, short_interest, dilution_risk, dilution_detail, capital_raise_signal, pipe_risk, insider_signal, runway_months, revenue_m, estimated_market_cap, buyout_score, buyout_risk, buyout_timeline, acquirer_urgency_top, has_partnership, partner_name, months_since_approval, cmc_risk, cmc_flags, buyout_probability_pct, news_items')
+      .eq('ticker', ticker)
+      .single();
+
+    if (liveData && eventData) {
+      // Only fill gaps — don't overwrite existing scored data
+      if (!eventData.price_change_30d && liveData.price_change_30d) eventData.price_change_30d = Number(liveData.price_change_30d);
+      if (!eventData.price_change_7d && liveData.price_change_7d) eventData.price_change_7d = Number(liveData.price_change_7d);
+      if (!eventData.chart_pattern && liveData.chart_pattern) eventData.chart_pattern = liveData.chart_pattern;
+      if (!eventData.realized_vol_30d && liveData.realized_vol_30d) eventData.realized_vol_30d = Number(liveData.realized_vol_30d);
+      if (!eventData.realized_vol_10d && liveData.realized_vol_10d) eventData.realized_vol_10d = Number(liveData.realized_vol_10d);
+      if (!eventData.current_price && liveData.current_price) eventData.current_price = Number(liveData.current_price);
+      if (!eventData.rsi_14d && liveData.rsi_14d) eventData.rsi_14d = Number(liveData.rsi_14d);
+      if (!eventData.short_interest && liveData.short_interest) eventData.short_interest = Number(liveData.short_interest);
+      if (!eventData.dilution_detail && liveData.dilution_detail) eventData.dilution_detail = liveData.dilution_detail;
+      if (!eventData.capital_raise_signal && liveData.capital_raise_signal) eventData.capital_raise_signal = liveData.capital_raise_signal;
+      if (!eventData.pipe_risk && liveData.pipe_risk) eventData.pipe_risk = liveData.pipe_risk;
+      if (eventData.dilution_risk === 'UNKNOWN' && liveData.dilution_risk) eventData.dilution_risk = liveData.dilution_risk;
+      if (eventData.insider_signal === 'NEUTRAL' && liveData.insider_signal) eventData.insider_signal = liveData.insider_signal;
+      if (!eventData.runway_months && liveData.runway_months) eventData.runway_months = Number(liveData.runway_months);
+      if (!eventData.revenue_m && liveData.revenue_m) eventData.revenue_m = Number(liveData.revenue_m);
+      if (!eventData.estimated_market_cap && liveData.estimated_market_cap) eventData.estimated_market_cap = Number(liveData.estimated_market_cap);
+      if (!eventData.buyout_score && liveData.buyout_score) eventData.buyout_score = Number(liveData.buyout_score);
+      if (eventData.buyout_risk === 'UNLIKELY' && liveData.buyout_risk) eventData.buyout_risk = liveData.buyout_risk;
+      if (!eventData.buyout_timeline && liveData.buyout_timeline) eventData.buyout_timeline = liveData.buyout_timeline;
+      if (!eventData.acquirer_urgency_top && liveData.acquirer_urgency_top) eventData.acquirer_urgency_top = liveData.acquirer_urgency_top;
+      if (!eventData.partner_name && liveData.partner_name) { eventData.partner_name = liveData.partner_name; eventData.has_partnership = true; }
+      if (!eventData.months_since_approval && liveData.months_since_approval) eventData.months_since_approval = liveData.months_since_approval;
+      if (!eventData.cmc_risk && liveData.cmc_risk) eventData.cmc_risk = liveData.cmc_risk;
+      if ((!eventData.cmc_flags || !eventData.cmc_flags.length) && liveData.cmc_flags) eventData.cmc_flags = liveData.cmc_flags;
+      if (!eventData.buyout_probability_pct && liveData.buyout_probability_pct) eventData.buyout_probability_pct = Number(liveData.buyout_probability_pct);
+      if ((!eventData.news_items || !eventData.news_items.length) && liveData.news_items) eventData.news_items = liveData.news_items;
+      console.log('[SC] Enriched ' + ticker + ' with live data from biotech_universe');
+    }
+  } catch (err) {
+    console.warn('[SC] Universe enrichment failed:', err);
+  }
+
   if (!eventData) {
     // No PDUFA event — check if ticker exists in biotech universe
     try {
       var sb = getSupabase();
       var { data: company } = await sb.from('biotech_universe')
-        .select('ticker, company_name, market_cap_tier')
+        .select('ticker, company_name, market_cap_tier, price_change_30d, price_change_7d, chart_pattern, realized_vol_30d, realized_vol_10d, current_price, rsi_14d, short_interest, dilution_risk, dilution_detail, capital_raise_signal, pipe_risk, insider_signal, runway_months, revenue_m, estimated_market_cap, buyout_score, buyout_risk, buyout_timeline, acquirer_urgency_top, has_partnership, partner_name, months_since_approval, cmc_risk, cmc_flags, buyout_probability_pct, news_items, tam_ratio, approved_drug, shelf_active, atm_active')
         .eq('ticker', ticker)
         .single();
 
       if (company) {
         eventData = {
           ticker: company.ticker,
-          drug: '',
+          drug: company.approved_drug || '',
           indication: 'Biotech Company',
           type: 'COMPANY',
           date: '—',
-          grade: '—',
-          poa: 0,
-          score: 0,
-          flags: [],
-          notes: '',
-          source_url: '',
-          sell_news_risk: '—',
-          move_score: 0,
-          expected_move: '',
-          move_flags: [],
+          grade: company.buyout_score >= 70 ? 'STRONG' : 'WATCH',
+          poa: 0, score: 0, flags: [], notes: '', source_url: '',
+          sell_news_risk: '—', move_score: 0, expected_move: '', move_flags: [],
           net_edge_score: 0,
-          dilution_risk: 'UNKNOWN',
-          dilution_score: 0,
-          dilution_flags: [],
-          runway_months: null,
+          dilution_risk: company.dilution_risk || 'UNKNOWN',
+          dilution_score: 0, dilution_flags: [],
+          dilution_detail: company.dilution_detail || '',
+          capital_raise_signal: company.capital_raise_signal || '',
+          pipe_risk: company.pipe_risk || '',
+          runway_months: Number(company.runway_months) || 0,
           runway_risk: 'UNKNOWN',
-          insider_signal: 'NEUTRAL',
+          insider_signal: company.insider_signal || 'NEUTRAL',
           insider_net_buys: 0,
-          shelf_active: false,
-          atm_active: false,
-          partnership_detected: false,
+          shelf_active: company.shelf_active || false,
+          atm_active: company.atm_active || false,
+          partnership_detected: company.has_partnership || false,
+          has_partnership: company.has_partnership || false,
+          partner_name: company.partner_name || '',
+          acquirer_urgency_top: company.acquirer_urgency_top || '',
+          buyout_score: Number(company.buyout_score) || 0,
+          buyout_risk: company.buyout_risk || 'UNLIKELY',
+          buyout_timeline: company.buyout_timeline || '',
+          buyout_probability_pct: Number(company.buyout_probability_pct) || 0,
+          tam_ratio: Number(company.tam_ratio) || 0,
+          revenue_m: Number(company.revenue_m) || 0,
+          estimated_market_cap: Number(company.estimated_market_cap) || 0,
+          months_since_approval: company.months_since_approval || null,
           company_name: company.company_name || ticker,
           market_cap_tier: company.market_cap_tier || 'UNKNOWN',
+          price_change_30d: Number(company.price_change_30d) || 0,
+          price_change_7d: Number(company.price_change_7d) || 0,
+          chart_pattern: company.chart_pattern || '',
+          realized_vol_30d: Number(company.realized_vol_30d) || 0,
+          realized_vol_10d: Number(company.realized_vol_10d) || 0,
+          current_price: Number(company.current_price) || 0,
+          rsi_14d: Number(company.rsi_14d) || 0,
+          short_interest: Number(company.short_interest) || 0,
+          cmc_risk: company.cmc_risk || '',
+          cmc_flags: company.cmc_flags || [],
+          news_items: company.news_items || [],
         };
       }
     } catch (err) {
