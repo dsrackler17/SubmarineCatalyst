@@ -8,14 +8,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post-Catalyst Behavior Patterns — Submarine Catalyst</title>
 <meta name="description" content="Understand how biotech stocks behave after FDA catalysts. Data-driven behavioral patterns including post-approval spikes, deep dives, sustained ascents, and buyout signals.">
-<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:card" content="summary">
 <meta name="twitter:site" content="@DRackler">
-<meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
-<meta property="og:title" content="Post-Catalyst Behavior Patterns — Submarine Catalyst">
-<meta property="og:description" content="How biotech stocks behave after FDA catalysts — post-approval spikes, sell-the-news drops, buyout waves, and sustained ascents. Pattern data from real PDUFA outcomes.">
-<meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
-<meta property="og:url" content="https://submarinecatalyst.com/behavior-patterns.html">
-<link rel="canonical" href="https://submarinecatalyst.com/behavior-patterns.html">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
@@ -115,10 +109,12 @@ footer a:hover{color:var(--accent);}
       <strong style="color:var(--white);">Higher probability when:</strong><br>
       → HIGH STN Risk · Unanimous AdCom (priced in) · Resubmission after CRL<br>
       → Active ATM/shelf registration · Runway &lt;12 months · Insider selling<br>
-      → Ultra-rare indication (limited revenue) · sNDA/supplement (incremental)
+      → Ultra-rare indication (limited revenue) · sNDA/supplement (incremental)<br>
+      → HIGH realized volatility + HIGH STN Risk (vol intelligence signal)
     </div>
     <div class="pattern-example">
-      <strong>Real example:</strong> RCKT — 77.5% PoA, HIGH STN Risk. Approved, then dropped -20%. Unanimous AdCom, resubmission, ultra-rare gene therapy (~30 patients/yr), $100M ATM filed 18 days before PDUFA. Every deep dive indicator was present.
+      <strong>Real example — RCKT:</strong> 77.5% PoA, HIGH STN Risk. Approved, then dropped -20%. Unanimous AdCom, resubmission, ultra-rare gene therapy (~30 patients/yr), $100M ATM filed 18 days before PDUFA.<br><br>
+      <strong>Real example — REPL:</strong> 84% PoA, HIGH STN Risk. CRL issued — stock dropped <strong style="color:var(--red);">-63% after hours</strong>. STN HIGH correctly identified severe downside exposure even though the PoA model missed the rejection. This is the most extreme deep dive in the track record.
     </div>
   </div>
 
@@ -175,9 +171,26 @@ footer a:hover{color:var(--accent);}
   <h2>How the Scanner Uses These Patterns</h2>
 
   <div class="callout">
-    <p>Each PDUFA event in the scanner is assessed against all five patterns simultaneously. The combination of PoA, STN Risk, Dilution Radar, runway, insider activity, and market cap tier determines which behavioral pattern is most likely.</p>
+    <p>Each PDUFA event in the scanner is assessed against all five patterns simultaneously. The combination of PoA range, STN Risk, Dilution Intelligence, runway, insider activity, realized volatility, 30D momentum, and chart pattern determines which behavioral pattern is most likely.</p>
     <p>A single event can have elevated probability for multiple patterns. For example, RCKT had moderate probability of both a post-approval spike (which happened briefly in premarket) AND a deep dive (which dominated by market open). The scanner flagged HIGH STN Risk, which correctly predicted the deep dive would overpower the spike.</p>
     <p style="margin-bottom:0;"><strong>The goal isn't to predict the exact move. The goal is to understand which behaviors are most likely so you can plan your trade accordingly</strong> — when to take profits, when to hold, when to avoid, and how to size your position relative to the risk.</p>
+  </div>
+
+  <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:1.25rem;margin:1.5rem 0;">
+    <div style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.75rem;">📊 Volatility Intelligence — Identifying Which Pattern Is In Play</div>
+    <p style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:0.75rem;">The scanner now tracks realized volatility (30D and 10D) on every ticker. Combined with STN Risk, this creates a volatility signal that maps directly to behavioral patterns:</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:0.75rem;">
+      <div style="padding:0.75rem;background:rgba(255,68,68,0.06);border-left:2px solid var(--red);">
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--red);font-weight:700;">HIGH STN + HIGH VOL → Deep Dive</div>
+        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--text);margin-top:0.3rem;line-height:1.5;">Market expects a big move but STN says the direction is likely down. REPL (−63%) and RCKT (−20%) both fit this pattern. The vol was there — the direction was wrong for longs.</div>
+      </div>
+      <div style="padding:0.75rem;background:rgba(0,255,157,0.04);border-left:2px solid var(--accent2);">
+        <div style="font-family:var(--mono);font-size:0.62rem;color:var(--accent2);font-weight:700;">LOW STN + HIGH VOL → Post-Approval Spike</div>
+        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--text);margin-top:0.3rem;line-height:1.5;">Market expects a big move and STN says the direction is likely up. VNDA (+45%) and DNLI (+8%) fit this pattern. High vol + low STN = the setup for a genuine positive surprise.</div>
+      </div>
+    </div>
+    <p style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:0.5rem;">Additional live data now on every scanner card: 30D price momentum, chart pattern (COILING/BUILDING/EXTENDED/WEAK), cash runway, dilution intelligence with shelf capacity and raise recency, and insider signals. All from live Polygon market data, updated daily.</p>
+    <p style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);">The naive "always approve" baseline gets 87.5% on approval prediction — the scanner ties it there. The edge is in behavioral pattern identification: 8/8 correct on price direction, 3/3 on approval-day drops caught. <a href="/track-record.html" style="color:var(--accent);">Full benchmark comparison →</a></p>
   </div>
 
   <h2>Full Biotech Universe Coverage</h2>
@@ -196,7 +209,7 @@ footer a:hover{color:var(--accent);}
       <a href="/beginners-guide.html" style="color:var(--accent);">New to PDUFA trading? Start with the Beginner's Guide →</a>
     </p>
     <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $29.99/month</a>
-    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · All risk layers · AI research · Behavioral patterns</p>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · STN Risk · Vol intel · Live Polygon data · 30D momentum · 870+ companies</p>
   </div>
 </main>
 

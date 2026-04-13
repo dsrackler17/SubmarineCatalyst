@@ -249,9 +249,8 @@ footer a:hover { color:var(--accent); }
 
   <div class="stat-strip">
     <div class="stat-cell">
-      <div class="stat-label">PoA Range</div>
+      <div class="stat-label">PoA Score</div>
       <div class="stat-val" id="stat-poa">—</div>
-      <div id="stat-confidence" style="font-family:var(--mono);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;margin-top:0.25rem;"></div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">STN Risk</div>
@@ -360,11 +359,6 @@ footer a:hover { color:var(--accent); }
         </div>
       </div>
 
-      <div class="sidebar-section" id="section-ctgov" style="display:none;">
-        <div class="sidebar-title">ClinicalTrials.gov</div>
-        <div id="ct-data"></div>
-      </div>
-
       <div class="sidebar-section locked-block" id="section-stn-badge">
         <div class="sidebar-title">Sell-The-News Risk</div>
         <div class="lockable" id="stn-badge"></div>
@@ -417,47 +411,6 @@ function gradeBadgeHTML(grade) {
   return '<span class="grade-pill ' + cls + '">' + lbl + '</span>';
 }
 
-// ─── POA RANGE — max 10-point band, tighter at higher confidence ─────────────
-function computePoARange(poa, confidence) {
-  var halfWidth;
-  switch ((confidence || 'LOW').toUpperCase()) {
-    case 'HIGH':      halfWidth = 3; break;
-    case 'MODERATE':  halfWidth = 4; break;
-    case 'LOW':       halfWidth = 5; break;
-    case 'VERY_LOW':  halfWidth = 5; break;
-    default:          halfWidth = 5; break;
-  }
-  var low  = Math.max(10, Math.round(poa - halfWidth));
-  var high = Math.min(95, Math.round(poa + halfWidth));
-  if (high - low < halfWidth * 2) {
-    if (low === 10) high = Math.min(95, low + halfWidth * 2);
-    if (high === 95) low = Math.max(10, high - halfWidth * 2);
-  }
-  return { low: low, high: high, width: high - low, confidence: confidence || 'LOW' };
-}
-
-function determineConfidence(d) {
-  var score = 2; // Start at MODERATE
-  var flagText = (d.flags || []).join(' ').toLowerCase();
-
-  // Upgrades
-  if (flagText.includes('adcom'))                              score++;
-  if (flagText.includes('breakthrough'))                       score++;
-  if (d.ct_status === 'COMPLETED' || d.ct_status === 'ACTIVE_NOT_RECRUITING') score++;
-  if (d.ct_enrollment && d.ct_enrollment > 100)                score++;
-
-  // Downgrades
-  if (d.indication === 'Unknown')                              score--;
-  if (flagText.includes('surrogate'))                          score--;
-  if (flagText.includes('resubmission') || flagText.includes('post-crl')) score--;
-  if (flagText.includes('major amendment'))                    score--;
-  if (!d.ct_nct_id)                                            score--;
-  if (d.cmc_risk === 'HIGH')                                   score--;
-
-  score = Math.max(0, Math.min(3, score));
-  return ['VERY_LOW', 'LOW', 'MODERATE', 'HIGH'][score];
-}
-
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
 function populatePage(d, isPaid) {
   document.title = d.ticker + ' — Catalyst Deep Dive — Submarine Catalyst';
@@ -471,15 +424,7 @@ function populatePage(d, isPaid) {
   document.getElementById('countdown-days').textContent = days >= 0 ? days : 'Resolved';
   document.getElementById('countdown-date').textContent = d.date;
 
-  document.getElementById('stat-poa').textContent       = (d.poa || 0).toFixed(1) + '%';
-
-  // Compute and display PoA range
-  var confidence = d.data_confidence || determineConfidence(d);
-  var range = computePoARange(d.poa || 0, confidence);
-  document.getElementById('stat-poa').textContent = range.low + '-' + range.high + '%';
-  var confColors = {'HIGH':'var(--accent2)','MODERATE':'var(--amber)','LOW':'var(--red)','VERY_LOW':'var(--red)'};
-  document.getElementById('stat-confidence').innerHTML = '<span style="color:' + (confColors[confidence] || 'var(--muted)') + ';">' + confidence + ' CONFIDENCE</span>';
-
+  document.getElementById('stat-poa').textContent = d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%';
   var stnRisk = d.sell_news_risk || 'MODERATE';
   var stnEl = document.getElementById('stat-stn');
   stnEl.textContent = stnRisk;
@@ -497,41 +442,29 @@ function populatePage(d, isPaid) {
     ['Application',   d.type || 'PDUFA'],
     ['Indication',    d.indication || 'Unknown'],
     ['Grade',         d.grade || 'WATCH'],
-    ['PoA Range',     range.low + '-' + range.high + '%'],
-    ['Confidence',    confidence],
+    ['PoA Range',     d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%'],
+    ['Confidence',    d.data_confidence || '—'],
     ['STN Risk',      d.sell_news_risk || 'MODERATE'],
-    ['Move Score',    (d.move_score || 0) + '/100'],
+    ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
+    ['30D Momentum',  d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : '—'],
+    ['Chart Pattern', d.chart_pattern || '—'],
+    ['Realized Vol',  d.realized_vol_30d ? d.realized_vol_30d.toFixed(0) + '%' : '—'],
     ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
-    ['Dilution Score', (d.dilution_score || 0) + '/100'],
-    ['Runway',        d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown'],
+    ['Dilution Detail', d.dilution_detail || '—'],
+    ['Runway',        (d.revenue_m || 0) >= 50 ? 'CF+ (revenue-stage)' : d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown'],
+    ['Revenue',       d.revenue_m ? '$' + Math.round(d.revenue_m) + 'M' : 'Pre-revenue'],
+    ['Market Cap',    d.estimated_market_cap >= 1e9 ? '$' + (d.estimated_market_cap/1e9).toFixed(1) + 'B' : d.estimated_market_cap >= 1e6 ? '$' + Math.round(d.estimated_market_cap/1e6) + 'M' : '—'],
     ['Insider Signal', d.insider_signal || 'NEUTRAL'],
     ['Shelf Active',  d.shelf_active ? 'YES' : 'No'],
     ['ATM Active',    d.atm_active ? 'YES' : 'No'],
     ['Buyout Score',  (d.buyout_score || 0) + '/100'],
     ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
+    ['Acquirer',      d.acquirer_urgency_top || '—'],
     ['Drug TAM',      d.tam_label || 'Unknown'],
     ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—'],
-    ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
   ].map(function(pair) {
-    var valColor = '';
-    if (pair[0] === 'Confidence') valColor = 'style="color:' + (confColors[pair[1]] || 'var(--muted)') + '"';
-    return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val" ' + valColor + '>' + pair[1] + '</span></div>';
+    return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
   }).join('');
-
-  // CT.gov data in sidebar
-  if (d.ct_nct_id) {
-    document.getElementById('section-ctgov').style.display = 'block';
-    var ctStatus = d.ct_status || 'Unknown';
-    var ctBadgeClass = ctStatus === 'COMPLETED' ? 'background:rgba(0,255,157,0.1);color:var(--accent2);border:1px solid rgba(0,255,157,0.25)' :
-                       ctStatus.includes('ACTIVE') ? 'background:rgba(0,212,255,0.08);color:var(--accent);border:1px solid rgba(0,212,255,0.25)' :
-                       'background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.25)';
-    document.getElementById('ct-data').innerHTML =
-      '<div class="metric-row"><span class="metric-label">NCT ID</span><span class="metric-val"><a href="https://clinicaltrials.gov/study/' + d.ct_nct_id + '" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:none;font-size:0.68rem;">' + d.ct_nct_id + ' ↗</a></span></div>' +
-      '<div class="metric-row"><span class="metric-label">Status</span><span class="metric-val"><span style="font-size:0.6rem;padding:0.1rem 0.4rem;' + ctBadgeClass + ';display:inline-block;">' + ctStatus.replace(/_/g, ' ') + '</span></span></div>' +
-      (d.ct_enrollment ? '<div class="metric-row"><span class="metric-label">Enrolled</span><span class="metric-val">' + Number(d.ct_enrollment).toLocaleString() + '</span></div>' : '') +
-      (d.ct_sites ? '<div class="metric-row"><span class="metric-label">Sites</span><span class="metric-val">' + d.ct_sites + ' locations</span></div>' : '') +
-      (d.ct_phase ? '<div class="metric-row"><span class="metric-label">Phase</span><span class="metric-val">' + d.ct_phase.replace(/_/g, ' ') + '</span></div>' : '');
-  }
 
   // Show risk flags
   var flags = d.flags || [];
@@ -594,16 +527,13 @@ function populatePage(d, isPaid) {
   document.getElementById('targets-content').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating price target analysis for ' + d.ticker + '...</span>';
 
   // PoA breakdown from scored data
-  var poaColor = d.poa >= 75 ? 'green' : d.poa >= 55 ? 'default' : 'amber';
   document.getElementById('poa-bars').innerHTML = [
     {label: 'Indication (' + (d.indication || 'Unknown') + ')', pct: Math.min(100, d.poa * 1.05), color: 'green', val: (d.poa || 0).toFixed(1) + '%'},
     {label: 'Review pathway (' + (d.type || 'Standard') + ')', pct: 75, color: 'default', val: d.type || 'Standard'},
-    {label: 'Confidence', pct: confidence === 'HIGH' ? 90 : confidence === 'MODERATE' ? 60 : 30, color: confidence === 'HIGH' ? 'green' : confidence === 'MODERATE' ? 'amber' : 'red', val: confidence},
+    {label: 'Final PoA composite', pct: d.poa || 50, color: d.poa >= 75 ? 'green' : d.poa >= 55 ? 'default' : 'amber', val: (d.poa || 0).toFixed(1) + '%'},
   ].map(function(b) {
     return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:' + b.pct + '%"></div></div><span class="bar-val ' + b.color + '">' + b.val + '</span></div>';
-  }).join('') +
-  '<hr class="bar-divider">' +
-  '<div class="bar-total"><div><div class="bar-total-label">PoA RANGE</div></div><div class="bar-total-val" style="font-size:1.6rem;color:' + (confColors[confidence] || 'var(--accent2)') + ';">' + range.low + '-' + range.high + '%</div></div>';
+  }).join('');
 
   // Convexity breakdown
   var convScore = d.score * 0.6 || 30;
@@ -838,16 +768,6 @@ async function generateAISummary(d) {
         estimated_market_cap: Number(e.estimated_market_cap) || 0,
         months_since_approval: e.months_since_approval || null,
         institutional_pct: Number(e.institutional_pct) || 0,
-        ct_status: e.ct_status || '',
-        ct_enrollment: e.ct_enrollment || null,
-        ct_sites: e.ct_sites || null,
-        ct_nct_id: e.ct_nct_id || '',
-        ct_phase: e.ct_phase || '',
-        ct_title: e.ct_title || '',
-        data_confidence: e.data_confidence || '',
-        cmc_risk: e.cmc_risk || '',
-        poa_low: e.poa_low || null,
-        poa_high: e.poa_high || null,
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;

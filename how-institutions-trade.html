@@ -151,6 +151,12 @@ footer a:hover{color:var(--accent);}
 
   <p><strong>Where to check:</strong> Go to <a href="https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&type=424B5&dateb=&owner=include&count=40" style="color:var(--accent);">SEC EDGAR</a> and search the company's ticker. Look for any 424B5, S-3, or 8-K filings in the 90 days before the PDUFA date. The scanner's STN Risk model now flags these automatically when detected.</p>
 
+  <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:1.25rem;margin:1.5rem 0;">
+    <div style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">📡 See This Live In The Scanner</div>
+    <p style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:0.5rem;">The Dilution Intelligence layer now tracks shelf capacity remaining (not just binary active/inactive), capital raise recency (did they raise in the last 90 days?), PIPE risk (even without a shelf, concurrent PIPEs happen on catalyst night), and cash runway. Revenue-stage companies are auto-classified as low dilution risk — showing "5mo runway" next to "$600M revenue" is misleading. The scanner knows the difference.</p>
+    <p style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);">Hover over any Dilution badge in the PDUFA scanner to see the full breakdown.</p>
+  </div>
+
   <h2>What Short Interest Tells You</h2>
   <p><strong>Short interest</strong> is the percentage of a stock's float that has been sold short. High short interest before a PDUFA can mean two very different things:</p>
 
@@ -165,6 +171,12 @@ footer a:hover{color:var(--accent);}
   </div>
 
   <p>The key question isn't "is short interest high?" — it's "is the approval a surprise or not?" High short interest + surprise approval = squeeze. High short interest + expected approval = shorts were right.</p>
+
+  <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);padding:1.25rem;margin:1.5rem 0;">
+    <div style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.5rem;">📡 Live Market Intelligence On Every Ticker</div>
+    <p style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:0.5rem;">The scanner now pulls live Polygon market data daily across 870+ companies: 30-day momentum, chart pattern (COILING/BUILDING/EXTENDED/WEAK), realized volatility, short interest, and insider signals. Combined with the STN Risk layer, this tells you whether the market has already priced in the catalyst — or is about to be surprised.</p>
+    <p style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;">New: <strong style="color:var(--accent);">Volatility Intelligence</strong> compares realized vol against STN Risk. HIGH STN + HIGH VOL = market underpricing sell-the-news risk (REPL pattern, −63% AH). LOW STN + HIGH VOL = approval likely positive and the move may be large (VNDA pattern, +45%).</p>
+  </div>
 
   <h2>How to Use This Information</h2>
 
@@ -195,7 +207,7 @@ footer a:hover{color:var(--accent);}
     <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">FDA approval rates by indication: <a href="/fda-approval-rates-by-indication.html" style="color:var(--accent);">Approval Rates →</a></p>
     <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.75rem;">Want to understand post-approval behavior? Read <a href="/behavior-patterns.html" style="color:var(--accent);">Post-Catalyst Behavior Patterns →</a></p>
     <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $29.99/month</a>
-    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">PDUFA scanner · Buyout scanner · STN Risk scores · AI research tool · 870+ companies</p>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">PDUFA scanner · Buyout scanner · STN Risk · Live Polygon data · Vol intel · Dilution intelligence · 870+ companies</p>
   </div>
 </main>
 
