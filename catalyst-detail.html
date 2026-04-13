@@ -247,9 +247,9 @@ footer a:hover { color:var(--accent); }
     </div>
   </div>
 
-  <div class="stat-strip">
+  <div class="stat-strip" style="grid-template-columns:repeat(4,1fr);">
     <div class="stat-cell">
-      <div class="stat-label">PoA Score</div>
+      <div class="stat-label">PoA Range</div>
       <div class="stat-val" id="stat-poa">—</div>
     </div>
     <div class="stat-cell">
@@ -261,12 +261,26 @@ footer a:hover { color:var(--accent); }
       <div class="stat-val" id="stat-dilution">—</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Net Edge Score</div>
+      <div class="stat-label">Net Edge</div>
       <div class="stat-val white" id="stat-final">—</div>
     </div>
+  </div>
+  <div class="stat-strip" style="grid-template-columns:repeat(4,1fr);margin-top:-1px;margin-bottom:2rem;">
     <div class="stat-cell">
-      <div class="stat-label">Application</div>
-      <div class="stat-val amber" id="stat-type">—</div>
+      <div class="stat-label">30D</div>
+      <div class="stat-val" id="stat-30d">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Vol (30D)</div>
+      <div class="stat-val" id="stat-vol">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Buyout</div>
+      <div class="stat-val" id="stat-buyout">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">TAM/Cap</div>
+      <div class="stat-val" id="stat-tam">—</div>
     </div>
   </div>
 
@@ -434,37 +448,140 @@ function populatePage(d, isPaid) {
   dilEl.textContent = dilRisk;
   dilEl.style.color = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)','UNKNOWN':'var(--muted)'}[dilRisk] || 'var(--muted)';
   document.getElementById('stat-final').textContent     = (d.net_edge_score || d.score || 0).toFixed(1);
-  document.getElementById('stat-type').textContent      = d.type || 'PDUFA';
 
-  document.getElementById('key-metrics').innerHTML = [
-    ['PDUFA Date',    d.date],
-    ['Days Out',      days >= 0 ? days + 'd' : 'Resolved'],
-    ['Application',   d.type || 'PDUFA'],
-    ['Indication',    d.indication || 'Unknown'],
-    ['Grade',         d.grade || 'WATCH'],
-    ['PoA Range',     d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%'],
-    ['Confidence',    d.data_confidence || '—'],
-    ['STN Risk',      d.sell_news_risk || 'MODERATE'],
-    ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
-    ['30D Momentum',  d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : '—'],
-    ['Chart Pattern', d.chart_pattern || '—'],
-    ['Realized Vol',  d.realized_vol_30d ? d.realized_vol_30d.toFixed(0) + '%' : '—'],
-    ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
-    ['Dilution Detail', d.dilution_detail || '—'],
-    ['Runway',        (d.revenue_m || 0) >= 50 ? 'CF+ (revenue-stage)' : d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown'],
-    ['Revenue',       d.revenue_m ? '$' + Math.round(d.revenue_m) + 'M' : 'Pre-revenue'],
-    ['Market Cap',    d.estimated_market_cap >= 1e9 ? '$' + (d.estimated_market_cap/1e9).toFixed(1) + 'B' : d.estimated_market_cap >= 1e6 ? '$' + Math.round(d.estimated_market_cap/1e6) + 'M' : '—'],
-    ['Insider Signal', d.insider_signal || 'NEUTRAL'],
-    ['Shelf Active',  d.shelf_active ? 'YES' : 'No'],
-    ['ATM Active',    d.atm_active ? 'YES' : 'No'],
-    ['Buyout Score',  (d.buyout_score || 0) + '/100'],
-    ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
-    ['Acquirer',      d.acquirer_urgency_top || '—'],
-    ['Drug TAM',      d.tam_label || 'Unknown'],
-    ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—'],
-  ].map(function(pair) {
-    return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
-  }).join('');
+  // Row 2: 30D, Vol, Buyout, TAM
+  var p30val = Number(d.price_change_30d) || 0;
+  var stat30d = document.getElementById('stat-30d');
+  stat30d.textContent = p30val ? (p30val > 0 ? '+' : '') + p30val.toFixed(1) + '%' : '—';
+  stat30d.style.color = p30val > 0 ? 'var(--accent2)' : p30val < 0 ? 'var(--red)' : 'var(--muted)';
+
+  var volVal = Number(d.realized_vol_30d) || 0;
+  var statVol = document.getElementById('stat-vol');
+  statVol.textContent = volVal > 0 ? Math.round(volVal) + '%' : '—';
+  statVol.style.color = volVal >= 80 ? 'var(--red)' : volVal >= 50 ? 'var(--amber)' : volVal > 0 ? 'var(--accent)' : 'var(--muted)';
+
+  var bScoreVal = Number(d.buyout_score) || 0;
+  var statBuyout = document.getElementById('stat-buyout');
+  statBuyout.textContent = bScoreVal > 0 ? bScoreVal : '—';
+  statBuyout.style.color = bScoreVal >= 70 ? 'var(--accent2)' : bScoreVal >= 50 ? 'var(--accent)' : bScoreVal >= 30 ? 'var(--amber)' : 'var(--muted)';
+
+  var tamVal = Number(d.tam_ratio) || 0;
+  var statTam = document.getElementById('stat-tam');
+  statTam.textContent = tamVal > 0 ? tamVal + 'x' : '—';
+  statTam.style.color = tamVal >= 5 ? 'var(--accent2)' : tamVal >= 1 ? 'var(--accent)' : 'var(--muted)';
+
+  // ─── SECTION BUILDER ─────────────────────────────────────────────────────
+  function metricSection(title, rows) {
+    var html = '<div style="margin-bottom:1.25rem;">';
+    html += '<div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;padding-bottom:0.3rem;border-bottom:1px solid var(--border);">' + title + '</div>';
+    rows.forEach(function(r) {
+      if (!r) return;
+      var label = r[0], val = r[1], color = r[2] || '';
+      var style = color ? 'color:' + color + ';font-weight:700;' : '';
+      html += '<div class="metric-row"><span class="metric-label">' + label + '</span><span class="metric-val" style="' + style + '">' + val + '</span></div>';
+    });
+    html += '</div>';
+    return html;
+  }
+
+  // Color helpers
+  var stnColor = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[d.sell_news_risk] || '';
+  var dilColor = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)'}[d.dilution_risk] || '';
+  var gradeColor = {'ELITE':'var(--accent2)','STRONG':'var(--accent)','WATCH':'var(--amber)','WEAK':'var(--red)'}[d.grade] || '';
+  var p30 = Number(d.price_change_30d) || 0;
+  var p7 = Number(d.price_change_7d) || 0;
+  var v30 = Number(d.realized_vol_30d) || 0;
+  var v10 = Number(d.realized_vol_10d) || 0;
+  var rsi = Number(d.rsi_14d) || 0;
+  var si = Number(d.short_interest) || 0;
+  var rev = Number(d.revenue_m) || 0;
+  var mcap = Number(d.estimated_market_cap || d.market_cap) || 0;
+  var rw = Number(d.runway_months) || 0;
+  var bScore = Number(d.buyout_score) || 0;
+  var bProb = Number(d.buyout_probability_pct) || 0;
+  var dailyMove = v30 > 0 ? (v30 / Math.sqrt(252)) : 0;
+  var impliedMove = (dailyMove * 2).toFixed(1);
+  var mcapDisplay = mcap >= 1e9 ? '$' + (mcap/1e9).toFixed(1) + 'B' : mcap >= 1e6 ? '$' + Math.round(mcap/1e6) + 'M' : '—';
+  var takeout = mcap >= 1e8 ? '$' + (mcap * 1.6 / 1e9).toFixed(1) + 'B' : '—';
+
+  document.getElementById('key-metrics').innerHTML =
+
+    metricSection('Core Scoring', [
+      ['Grade', d.grade || 'WATCH', gradeColor],
+      ['PoA Range', d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%', 'var(--accent2)'],
+      ['Confidence', d.data_confidence || '—'],
+      ['STN Risk', d.sell_news_risk || 'MODERATE', stnColor],
+      ['Dilution Risk', d.dilution_risk || 'UNKNOWN', dilColor],
+      ['Net Edge', (d.net_edge_score || d.score || 0).toFixed(1) + ' / 100'],
+      ['PDUFA Date', d.date],
+      ['Days Out', days >= 0 ? days + 'd' : 'Resolved'],
+      ['Application', d.type || 'PDUFA'],
+      ['Indication', d.indication || 'Unknown'],
+    ]) +
+
+    metricSection('Live Market Data (Polygon)', [
+      ['Current Price', d.current_price ? '$' + Number(d.current_price).toFixed(2) : '—'],
+      ['30D Momentum', p30 ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—', p30 > 0 ? 'var(--accent2)' : p30 < 0 ? 'var(--red)' : ''],
+      ['7D Momentum', p7 ? (p7 > 0 ? '+' : '') + p7.toFixed(1) + '%' : '—', p7 > 0 ? 'var(--accent2)' : p7 < 0 ? 'var(--red)' : ''],
+      ['Chart Pattern', d.chart_pattern || '—', d.chart_pattern === 'COILING' ? 'var(--accent2)' : d.chart_pattern === 'EXTENDED' ? 'var(--amber)' : d.chart_pattern === 'WEAK' ? 'var(--red)' : ''],
+      ['Realized Vol (30D)', v30 ? Math.round(v30) + '%' : '—', v30 >= 80 ? 'var(--red)' : v30 >= 50 ? 'var(--amber)' : ''],
+      ['Realized Vol (10D)', v10 ? Math.round(v10) + '%' : '—', v10 > v30 * 1.3 ? 'var(--amber)' : ''],
+      ['Implied Event Move', v30 > 0 ? '±' + impliedMove + '%' : '—', v30 >= 60 ? 'var(--amber)' : ''],
+      ['RSI-14', rsi > 0 ? rsi.toFixed(0) : '—', rsi >= 70 ? 'var(--red)' : rsi <= 30 ? 'var(--accent2)' : ''],
+      ['Short Interest', si > 0 ? si.toFixed(1) + '%' : '—', si >= 20 ? 'var(--red)' : si >= 10 ? 'var(--amber)' : ''],
+    ]) +
+
+    metricSection('Financial Profile', [
+      ['Market Cap', mcapDisplay],
+      ['Revenue', rev > 0 ? '$' + Math.round(rev) + 'M' : 'Pre-revenue', rev >= 100 ? 'var(--accent2)' : ''],
+      ['Cash Runway', rev >= 50 ? 'CF+ (revenue-stage)' : rw > 0 ? Math.round(rw) + ' months' : '—', rev >= 50 ? 'var(--accent2)' : rw <= 12 && rw > 0 ? 'var(--red)' : ''],
+      ['Takeout Price (60% premium)', takeout],
+      d.months_since_approval ? ['Months Since Approval', d.months_since_approval + 'mo'] : null,
+    ]) +
+
+    metricSection('Dilution Intelligence', [
+      ['Dilution Risk', d.dilution_risk || '—', dilColor],
+      ['Dilution Detail', d.dilution_detail || 'No signals detected'],
+      ['Shelf Active', d.shelf_active ? '⚠️ YES' : '✅ No', d.shelf_active ? 'var(--amber)' : 'var(--accent2)'],
+      ['ATM Active', d.atm_active ? '🚨 YES' : '✅ No', d.atm_active ? 'var(--red)' : 'var(--accent2)'],
+      ['PIPE Risk', d.pipe_risk || '—', d.pipe_risk === 'HIGH' ? 'var(--red)' : d.pipe_risk === 'MODERATE' ? 'var(--amber)' : ''],
+      ['Capital Raise Signal', d.capital_raise_signal || '—', d.capital_raise_signal === 'HEAVY_DILUTION' ? 'var(--red)' : d.capital_raise_signal === 'RECENT_RAISE' ? 'var(--amber)' : ''],
+      d.last_raise_date ? ['Last Raise', d.last_raise_date + (d.last_raise_amount ? ' ($' + Math.round(d.last_raise_amount) + 'M)' : '')] : null,
+      ['Insider Signal', d.insider_signal || 'NEUTRAL', d.insider_signal === 'BULLISH' ? 'var(--accent2)' : d.insider_signal === 'BEARISH' ? 'var(--red)' : ''],
+    ]) +
+
+    metricSection('Buyout Analysis', [
+      ['Buyout Score', bScore > 0 ? bScore + ' / 100' : '—', bScore >= 70 ? 'var(--accent2)' : bScore >= 50 ? 'var(--accent)' : ''],
+      ['Buyout Risk', d.buyout_risk || '—', d.buyout_risk === 'HIGH' ? 'var(--accent2)' : d.buyout_risk === 'MODERATE' ? 'var(--accent)' : ''],
+      ['Most Likely Acquirer', d.acquirer_urgency_top || '—'],
+      ['Buyout Timeline', d.buyout_timeline || '—'],
+      d.has_partnership && d.partner_name ? ['Partner', '🤝 ' + d.partner_name, 'var(--accent2)'] : null,
+      bProb > 0 ? ['Buyout Probability', bProb + '%'] : null,
+      ['Drug TAM', d.tam_label || '—'],
+      ['TAM / Cap', d.tam_ratio ? d.tam_ratio + 'x' : '—', d.tam_ratio >= 5 ? 'var(--accent2)' : d.tam_ratio >= 1 ? 'var(--accent)' : ''],
+    ]) +
+
+    // CMC / Supply Chain
+    (function() {
+      var cmcRisk = d.cmc_risk || 'UNKNOWN';
+      var cmcFlags = d.cmc_flags || [];
+      if (cmcRisk === 'UNKNOWN' && cmcFlags.length === 0) return '';
+      var cmcColor = cmcRisk === 'HIGH' ? 'var(--red)' : cmcRisk === 'ELEVATED' ? 'var(--amber)' : cmcRisk === 'MODERATE' ? 'var(--accent)' : 'var(--accent2)';
+      return metricSection('Supply Chain / CMC', [
+        ['CMC Risk', cmcRisk, cmcColor],
+      ].concat(cmcFlags.slice(0, 3).map(function(f) { return ['', f]; })));
+    })() +
+
+    // News
+    (function() {
+      var news = d.news_items || [];
+      if (news.length === 0) return '';
+      return metricSection('Latest News', news.slice(0, 3).map(function(n) {
+        var sig = n.signal || '📰';
+        var typeColor = n.type === 'M&A' ? 'var(--accent2)' : n.type === 'CATALYST' ? 'var(--accent)' : n.type === 'RISK' ? 'var(--amber)' : '';
+        return [n.date || '', sig + ' ' + (n.headline || '').slice(0, 80), typeColor];
+      }));
+    })();
 
   // Show risk flags
   var flags = d.flags || [];
