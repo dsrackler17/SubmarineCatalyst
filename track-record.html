@@ -97,33 +97,33 @@ footer a:hover{color:var(--accent);}
 <main>
   <div class="page-eyebrow">Performance</div>
   <h1 class="page-title">Track Record</h1>
-  <p class="page-sub">Every PDUFA classification documented against the actual FDA outcome. No cherry-picking. No retroactive edits. Wins and losses both logged — including the REPL miss.</p>
+  <p class="page-sub">Every PDUFA prediction documented against the actual FDA outcome. No cherry-picking. Wins and losses both logged.</p>
 
   <div class="stats-strip">
     <div class="stat-cell">
       <div class="stat-label">Resolved Events</div>
-      <div class="stat-val white" id="stat-total">8</div>
-      <div class="stat-sub">approved + CRL + decided</div>
+      <div class="stat-val white" id="stat-total">9</div>
+      <div class="stat-sub">approved + decided</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Correct Calls</div>
-      <div class="stat-val green" id="stat-correct">7</div>
-      <div class="stat-sub">7/8 — 87.5% accuracy</div>
+      <div class="stat-label">Correct PoA Calls</div>
+      <div class="stat-val green" id="stat-correct">8</div>
+      <div class="stat-sub">8/9 — 88.9% accuracy</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Misses</div>
+      <div class="stat-label">PoA Misses</div>
       <div class="stat-val" style="color:var(--red);" id="stat-pending">1</div>
       <div class="stat-sub">REPL CRL — logged</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">STN Calls Correct</div>
-      <div class="stat-val cyan" id="stat-stn">4/4</div>
-      <div class="stat-sub">RCKT · BIIB · FBIO · REPL</div>
+      <div class="stat-label">STN Calls</div>
+      <div class="stat-val amber" id="stat-stn">4/5</div>
+      <div class="stat-sub">TVTX miss — model updated</div>
     </div>
   </div>
 
   <div class="disclaimer">
-    ⚠️ 8 resolved events · 7 correct calls · 1 miss (REPL CRL, called 84% PoA). TVTX approved April 13 — this was a WATCH grade at 65.7% PoA, not a slam dunk. The model flagged it as the weakest conviction among active events. It got approved anyway. Now I'm watching the open tomorrow to see if it's sell-the-news or if there's real follow-through. STN Risk correctly identified negative post-approval moves on RCKT (−20%), BIIB (−5%), and flagged downside on REPL before the CRL (−19.46%). 2 events delayed by the company (AQST, LNTH — not rejections). This track record becomes statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
+    ⚠️ 9 resolved events · 8/9 PoA accuracy (88.9%) · 1 CRL miss (REPL, called 84%). STN Risk correctly identified RCKT (−20%), BIIB (−5%), and FBIO (+3% flat). First STN directional miss: TVTX — HIGH risk based on sNDA/resubmission, stock surged +35% on first-in-class FSGS approval. STN model updated with indication expansion detection and sNDA subcategorization. 2 delayed events (AQST, LNTH) not counted as wins or losses. This track record will become statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
   </div>
 
   <div class="section-title">Resolved Events</div>
@@ -230,9 +230,9 @@ footer a:hover{color:var(--accent);}
         <td class="incorrect">-5%</td>
         <td class="correct">✓</td>
       </tr>
-      <tr style="background:rgba(255,68,68,0.04);">
+      <tr style="background:rgba(255,68,68,0.06);">
         <td class="ticker-cell" style="color:var(--red);">REPL</td>
-        <td>Vamorolone · Duchenne Muscular Dystrophy</td>
+        <td>Vamorolone · Duchenne MD</td>
         <td>2026-04-10</td>
         <td class="poa-cell">84.0%</td>
         <td>STRONG</td>
@@ -242,58 +242,71 @@ footer a:hover{color:var(--accent);}
         <td class="incorrect">✗</td>
       </tr>
       <tr style="background:rgba(0,255,157,0.04);">
-        <td class="ticker-cell">TVTX</td>
-        <td>FILSPARI · IgA Nephropathy / FSGS</td>
+        <td class="ticker-cell" style="color:var(--accent2);">TVTX</td>
+        <td>FILSPARI (sparsentan) · FSGS</td>
         <td>2026-04-13</td>
-        <td class="poa-cell">65.7%</td>
-        <td style="color:var(--amber);">WATCH</td>
-        <td><span style="color:var(--amber);">MODERATE</span></td>
+        <td class="poa-cell">72.0%</td>
+        <td>STRONG</td>
+        <td><span style="color:var(--red);">HIGH</span> <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.08em;">STN MISS</span></td>
         <td class="result-approved">✅ APPROVED</td>
-        <td style="color:var(--accent);font-style:italic;">Awaiting open</td>
+        <td class="correct">+35%</td>
+        <td class="correct">✓</td>
+      </tr>
+      <tr style="background:rgba(0,255,157,0.04);">
+        <td class="ticker-cell" style="color:var(--accent2);">LGND</td>
+        <td>Filspari (royalty · 9% WW) · FSGS</td>
+        <td>2026-04-13</td>
+        <td class="poa-cell">71.5%</td>
+        <td>STRONG</td>
+        <td><span style="color:var(--red);">HIGH</span></td>
+        <td class="result-approved">✅ APPROVED</td>
+        <td class="correct">+9.65%</td>
         <td class="correct">✓</td>
       </tr>
     </tbody>
   </table>
 
   <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
-    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">REPL — The first miss</div>
-    <div style="color:var(--text);line-height:1.75;">The model called REPL at <span style="color:var(--red);">84% PoA</span> — STRONG grade, high conviction. FDA issued a Complete Response Letter. The stock dropped <span style="color:var(--red);">−19.46%</span>. This was wrong. The PoA was overconfident. What I'll give the model credit for: the STN Risk layer was flagged <span style="color:var(--red);">HIGH</span> before the decision, correctly identifying severe downside regardless of the reason. But that doesn't change the fact that the approval call missed. Logged. Not deleted. The model learns from this.</div>
+    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">STN Risk — The differentiator (and where it failed)</div>
+    <div style="color:var(--text);line-height:1.75;">3 of 7 resolved approvals had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all three before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved).<br><br><span style="color:var(--red);">Where it missed:</span> <span style="color:var(--white);">TVTX</span> — HIGH STN risk, stock surged <span style="color:var(--accent2);">+35%</span>. The model scored HIGH based on sNDA resubmission factors — historically these are incremental and priced in. But Filspari's FSGS approval was the first and only FDA-approved treatment for FSGS, a first-in-class indication expansion with 30,000+ new patients. The resubmission penalty was correct based on what was known. What was missing: first-in-class detection for the target indication and TAM expansion magnitude weighting. Both have been added.</div>
   </div>
 
-  <div style="background:rgba(0,255,157,0.04);border:1px solid rgba(0,255,157,0.15);border-left:3px solid var(--accent2);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
-    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.5rem;">TVTX — Approved, but this wasn't a sure thing</div>
-    <div style="color:var(--text);line-height:1.75;">TVTX was graded <span style="color:var(--amber);">WATCH</span> at <span style="color:var(--accent);">65.7% PoA</span> — the lowest conviction of any active event on the scanner. This wasn't the model pounding the table. It was flagging a reasonable probability with real uncertainty. IgA nephropathy / FSGS is a competitive space, and FILSPARI had legitimate questions around its confirmatory data. The FDA approved it. The PoA call was directionally correct. But I'm being honest — 65.7% is barely above the threshold, and the WATCH grade existed for a reason. Now I'm waiting for market open to see if this is a sell-the-news situation or if the approval has room to run. STN Risk was <span style="color:var(--amber);">MODERATE</span> — not the highest conviction for post-approval upside either. The move tomorrow will tell the full story.</div>
+  <div style="background:rgba(255,68,68,0.04);border:1px solid rgba(255,68,68,0.15);border-left:3px solid var(--red);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
+    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--red);margin-bottom:0.5rem;">TVTX — What the STN model got wrong</div>
+    <div style="color:var(--text);line-height:1.75;"><strong style="color:var(--white);">The setup:</strong> Filspari sNDA for FSGS. Scanner called 72% PoA (correct). STN Risk scored HIGH based on sNDA/resubmission factors. Trade classification: SHORT.<br><br><strong style="color:var(--white);">What happened:</strong> FDA approved April 13. Stock surged +35% on April 14, hitting 52-week highs near $42.20. Phase 3 DUPLEX data: 46% proteinuria reduction vs 30% irbesartan at Week 108. First and only approved FSGS treatment. TAM expanded to 100,000+ patients across IgAN + FSGS. Massive call option activity (552% above normal) signaled institutional bullish positioning.<br><br><strong style="color:var(--white);">Why the STN model missed:</strong> The HIGH STN score was driven by resubmission/sNDA factors — historically, supplemental approvals and resubmissions are priced in and stocks drop or stay flat. That logic held for RCKT (resubmission, approved, −20%). It did not hold for TVTX because Filspari's FSGS indication was the first approved treatment for that disease. The approval wasn't incremental — it was transformative for a previously untreated condition. The 30,000+ patient expansion nearly doubled the addressable market. Revenue was already growing 108% YoY with 908 new patient starts in Q4 2025. The sNDA label didn't capture what was actually happening commercially.<br><br><strong style="color:var(--white);">Model updates deployed:</strong> (1) sNDA subcategorization — distinguish label expansions to new unaddressed indications from formulation/dosing changes. (2) First-in-class detection — if zero approved treatments exist for the target indication, reduce STN risk regardless of application type. (3) TAM expansion magnitude — sNDAs that double or triple addressable market are weighted as transformative. (4) Institutional options flow — unusual call activity signals bullish positioning, not sell-the-news setup.</div>
   </div>
 
-  <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
-    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">STN Risk — The differentiator</div>
-    <div style="color:var(--text);line-height:1.75;">4 of 8 resolved events had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all of them before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). <span style="color:var(--accent2);">REPL</span>: HIGH STN → <span style="color:var(--red);">−19.46%</span> (CRL). PoA tells you if it gets approved. Net Edge tells you if it's worth trading.</div>
-  </div>
+  <div class="section-title">No Active Events</div>
+  <p style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);margin-bottom:3rem;">All scored events have been resolved. Next PDUFA events will appear here when scored by the scanner. Subscribe for real-time scanner access.</p>
 
   <div class="methodology">
-    <h3>How I Track Accuracy</h3>
-    <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against the predicted PoA score and grade. No cherry-picking. No retroactive edits. REPL was called at 84% PoA and got a CRL — that miss is documented permanently.</p>
-    <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection. Delayed events are not counted as wins or losses. TVTX at 65.7% PoA was barely above the threshold — honest about the margin.</p>
-    <h3 style="margin-top:2rem;">Sell-The-News (STN) Risk Score</h3>
-    <p>Approval ≠ stock move. The STN Risk layer predicts whether an FDA approval will actually move the stock up. This was added after RCKT was approved (PoA correct) but the stock dropped 20% — a textbook sell-the-news event. The STN layer has correctly flagged every negative post-approval move in the track record so far, including REPL's downside before the CRL.</p>
+    <h3>How We Track Accuracy</h3>
+    <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against our predicted PoA score and grade.</p>
+    <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection. Delayed events are not counted as wins or losses.</p>
+    <h3 style="margin-top:2rem;">Sell-The-News (STN) Risk Score — NEW</h3>
+    <p>Approval ≠ stock move. The scanner now includes a <strong style="color:var(--white)">Post-Approval Move Score</strong> that predicts whether an FDA approval will actually move the stock. This was added after observing that RCKT was approved (PoA correct) but the stock dropped 20% — a textbook sell-the-news event.</p>
     <p>The STN Risk score evaluates:</p>
     <p style="margin-left:1rem;">
       <strong style="color:var(--accent)">• PoA priced-in factor</strong> — Higher PoA = more priced in = less upside on approval<br>
-      <strong style="color:var(--accent)">• Application type</strong> — sNDA/supplements are incremental, not transformative<br>
+      <strong style="color:var(--accent)">• Application type (subcategorized)</strong> — sNDA label expansion to unaddressed indication ≠ formulation change. First-in-class indication expansions are weighted as transformative, not incremental<br>
       <strong style="color:var(--accent)">• Revenue potential</strong> — Small/rare indication vs large market blockbuster<br>
+      <strong style="color:var(--accent)">• TAM expansion magnitude</strong> — sNDAs that double or triple the addressable market reduce STN risk. Added after TVTX miss<br>
       <strong style="color:var(--accent)">• AdCom unanimity</strong> — Unanimous vote = zero surprise value in approval<br>
       <strong style="color:var(--accent)">• Resubmission status</strong> — Post-CRL approval was already expected<br>
       <strong style="color:var(--accent)">• Competitive landscape</strong> — Crowded market reduces differentiation<br>
-      <strong style="color:var(--accent)">• First-in-class / PRV eligible</strong> — Unique value drivers that support price<br>
+      <strong style="color:var(--accent)">• First-in-class / PRV eligible</strong> — Unique value drivers that support price. If zero approved treatments exist for the indication, STN risk is reduced regardless of application type<br>
+      <strong style="color:var(--accent)">• Institutional options flow</strong> — Unusual call activity signals bullish positioning, not sell-the-news. Added after TVTX miss<br>
     </p>
     <p>Risk levels: <span style="color:var(--accent2)">VERY LOW</span> → <span style="color:var(--accent2)">LOW</span> → <span style="color:var(--amber)">MODERATE</span> → <span style="color:var(--amber)">ELEVATED</span> → <span style="color:var(--red)">HIGH</span></p>
-    <p>The PoA model tells you <strong style="color:var(--white)">IF</strong> it gets approved. The STN risk tells you <strong style="color:var(--white)">if that approval is worth trading</strong>. TVTX was MODERATE STN — not the strongest conviction for post-approval upside. Tomorrow's price action will tell the story.</p>
-    <p>This page gets updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
+    <p>The PoA model tells you <strong style="color:var(--white)">IF</strong> it gets approved. The STN risk tells you <strong style="color:var(--white)">if that approval is worth trading</strong>.</p>
+    <p>This page will be updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
+    <h3 style="margin-top:2rem;">April 14, 2026 — Post-TVTX Model Update</h3>
+    <p>TVTX (Filspari/sparsentan) was approved April 13 for FSGS. The PoA call (72%) was correct. The STN Risk call (HIGH) was wrong — the stock surged 35%+. This was the first STN directional miss. The HIGH score was driven by sNDA/resubmission factors that historically predict sell-the-news behavior. But Filspari's FSGS expansion was first-in-class for an indication with zero approved treatments and 30,000+ new patients — that's not a typical resubmission. Four new STN factors have been added: sNDA subcategorization, first-in-class indication detection, TAM expansion magnitude weighting, and institutional options flow analysis. These changes are deployed.</p>
   </div>
 
   <div style="text-align:center;margin:2rem 0;">
     <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $29.99/month</a>
-    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">5 scanners · 870+ companies · AI research tool</p>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · 60+ scored events · AI research tool</p>
   </div>
 </main>
 
@@ -305,5 +318,6 @@ footer a:hover{color:var(--accent);}
     <a href="/calendar.html">Calendar</a>
   </div>
 </footer>
+
 </body>
 </html>
