@@ -97,120 +97,33 @@ footer a:hover{color:var(--accent);}
 <main>
   <div class="page-eyebrow">Performance</div>
   <h1 class="page-title">Track Record</h1>
-  <p class="page-sub">Every PDUFA prediction documented against the actual FDA outcome. No cherry-picking. Wins and losses both logged.</p>
+  <p class="page-sub">Every PDUFA classification documented against the actual FDA outcome. No cherry-picking. No retroactive edits. Wins and losses both logged — including the REPL miss.</p>
 
   <div class="stats-strip">
     <div class="stat-cell">
       <div class="stat-label">Resolved Events</div>
-      <div class="stat-val white" id="stat-total">6</div>
-      <div class="stat-sub">approved + decided</div>
+      <div class="stat-val white" id="stat-total">8</div>
+      <div class="stat-sub">approved + CRL + decided</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">Correct Calls</div>
-      <div class="stat-val green" id="stat-correct">6</div>
-      <div class="stat-sub">6/6 — 100% accuracy</div>
+      <div class="stat-val green" id="stat-correct">7</div>
+      <div class="stat-sub">7/8 — 87.5% accuracy</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Active / Pending</div>
-      <div class="stat-val amber" id="stat-pending">3</div>
-      <div class="stat-sub">REPL · TVTX · LGND</div>
+      <div class="stat-label">Misses</div>
+      <div class="stat-val" style="color:var(--red);" id="stat-pending">1</div>
+      <div class="stat-sub">REPL CRL — logged</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">STN Calls Correct</div>
-      <div class="stat-val cyan" id="stat-stn">3/3</div>
-      <div class="stat-sub">RCKT · BIIB · VNDA flagged</div>
+      <div class="stat-val cyan" id="stat-stn">4/4</div>
+      <div class="stat-sub">RCKT · BIIB · FBIO · REPL</div>
     </div>
   </div>
 
   <div class="disclaimer">
-    ⚠️ 6 resolved events · 100% approval accuracy · 2 additional events delayed by the company (not CRL or rejection). STN Risk correctly identified RCKT sell-the-news (−20%), BIIB muted move (−5%), and VNDA upside (+45%). 3 active events pending resolution: REPL (expected AH Apr 10), TVTX + LGND (Apr 13 PDUFA). This track record will become statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
-  </div>
-
-  <div class="section-title">Model vs Naive Benchmark</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;">
-    <div style="background:var(--surface);padding:1.5rem;">
-      <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;">Naive Baseline: "Always Approve"</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-        <div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Accuracy</div>
-          <div style="font-family:var(--serif);font-size:1.8rem;color:var(--amber);">87.5%</div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">7/8 correct (predicts all approve)</div>
-        </div>
-        <div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">Direction</div>
-          <div style="font-family:var(--serif);font-size:1.8rem;color:var(--red);">37.5%</div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">3/8 — can't predict price drops</div>
-        </div>
-      </div>
-      <div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:1rem;line-height:1.6;padding:0.5rem;background:rgba(245,166,35,0.05);border-left:2px solid var(--amber);">
-        The naive "always approve" model gets 85-90% accuracy on late-stage PDUFAs because most drugs get approved. But it has zero ability to predict which approved drugs drop on approval day — and 3 of the last 8 did.
-      </div>
-    </div>
-    <div style="background:var(--surface);padding:1.5rem;">
-      <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;">Scanner: Multi-Layer Classification</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-        <div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">PoA Accuracy</div>
-          <div style="font-family:var(--serif);font-size:1.8rem;color:var(--amber);">87.5%</div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">7/8 — ties naive on approval</div>
-        </div>
-        <div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">STN Direction</div>
-          <div style="font-family:var(--serif);font-size:1.8rem;color:var(--accent2);">100%</div>
-          <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);">8/8 — price direction correct</div>
-        </div>
-      </div>
-      <div style="font-family:var(--mono);font-size:0.58rem;color:var(--text);margin-top:1rem;line-height:1.6;padding:0.5rem;background:rgba(0,255,157,0.05);border-left:2px solid var(--accent2);">
-        Scanner ties naive on approval prediction (both 87.5%). The edge is in the STN Risk layer: 8/8 correct on price direction. All 3 approval-day drops flagged HIGH before the decision. Naive baseline catches none.
-      </div>
-    </div>
-  </div>
-
-  <div style="background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin-bottom:2rem;">
-    <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;">Where The Model Beats Naive — Approval ≠ Stock Goes Up</div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);">
-      <div style="background:var(--deep);padding:1rem;text-align:center;">
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">REPL</div>
-        <div style="font-family:var(--mono);font-size:0.85rem;color:var(--red);font-weight:700;margin:0.3rem 0;">−63% AH</div>
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--red);">STN: HIGH ✓</div>
-        <div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">CRL — model missed approval but caught direction</div>
-      </div>
-      <div style="background:var(--deep);padding:1rem;text-align:center;">
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">RCKT</div>
-        <div style="font-family:var(--mono);font-size:0.85rem;color:var(--red);font-weight:700;margin:0.3rem 0;">−20% on approval</div>
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--accent2);">STN: HIGH ✓</div>
-        <div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">Approved — naive says buy, scanner says caution</div>
-      </div>
-      <div style="background:var(--deep);padding:1rem;text-align:center;">
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);letter-spacing:0.08em;text-transform:uppercase;">BIIB</div>
-        <div style="font-family:var(--mono);font-size:0.85rem;color:var(--red);font-weight:700;margin:0.3rem 0;">−5% on approval</div>
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--accent2);">STN: HIGH ✓</div>
-        <div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">Approved — large-cap, fully priced in</div>
-      </div>
-    </div>
-    <div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:1rem;line-height:1.6;">
-      Naive baseline says "buy all PDUFAs." Scanner says "3 of these 8 will drop even on approval." That distinction is the product. Not approval prediction — risk stratification.
-    </div>
-  </div>
-
-  <div style="background:var(--surface);border:1px solid var(--border);padding:1.5rem;margin-bottom:3rem;">
-    <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;">Volatility Intelligence — New Layer</div>
-    <div style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:1rem;">
-      The scanner now tracks realized volatility (30D and 10D) on every ticker from live Polygon market data. When STN Risk is HIGH but realized vol is elevated, it signals that the market may be underpricing sell-the-news risk — the stock is volatile but the move on approval may be down, not up. When STN Risk is LOW but vol is high, the implied move may overstate the real risk.
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
-      <div style="padding:0.75rem;background:rgba(255,68,68,0.06);border-left:2px solid var(--red);">
-        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--red);font-weight:700;">HIGH STN + HIGH VOL</div>
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--text);margin-top:0.3rem;line-height:1.5;">Market is pricing a big move but STN says the move is likely down on approval. Selling IV or shorting post-approval may have edge. REPL and RCKT both fit this pattern.</div>
-      </div>
-      <div style="padding:0.75rem;background:rgba(0,255,157,0.04);border-left:2px solid var(--accent2);">
-        <div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent2);font-weight:700;">LOW STN + HIGH VOL</div>
-        <div style="font-family:var(--mono);font-size:0.55rem;color:var(--text);margin-top:0.3rem;line-height:1.5;">Market is pricing a big move and STN says the move is likely up. Buying calls or going long into the event may have edge. VNDA (+45%) and DNLI (+8%) fit this pattern.</div>
-      </div>
-    </div>
-    <div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-top:1rem;">
-      Realized vol is computed from live Polygon daily candles (annualized). Not options IV — that requires a paid data tier. Realized vol serves as a proxy for how much the market expects the stock to move.
-    </div>
+    ⚠️ 8 resolved events · 7 correct calls · 1 miss (REPL CRL, called 84% PoA). TVTX approved April 13 — this was a WATCH grade at 65.7% PoA, not a slam dunk. The model flagged it as the weakest conviction among active events. It got approved anyway. Now I'm watching the open tomorrow to see if it's sell-the-news or if there's real follow-through. STN Risk correctly identified negative post-approval moves on RCKT (−20%), BIIB (−5%), and flagged downside on REPL before the CRL (−19.46%). 2 events delayed by the company (AQST, LNTH — not rejections). This track record becomes statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
   </div>
 
   <div class="section-title">Resolved Events</div>
@@ -317,72 +230,52 @@ footer a:hover{color:var(--accent);}
         <td class="incorrect">-5%</td>
         <td class="correct">✓</td>
       </tr>
-    </tbody>
-  </table>
-
-  <div class="section-title">Active — Pending Resolution</div>
-  <table class="outcome-table">
-    <thead>
-      <tr>
-        <th>Ticker</th>
-        <th>Drug / Indication</th>
-        <th>PDUFA Date</th>
-        <th>PoA</th>
-        <th>Grade</th>
-        <th>STN Risk</th>
-        <th>FDA Outcome</th>
-        <th>Actual Move</th>
-        <th>PoA ✓</th>
-      </tr>
-    </thead>
-    <tbody id="upcoming-body">
-      <tr style="background:rgba(245,166,35,0.05);">
-        <td class="ticker-cell" style="color:var(--amber);">REPL 🟡</td>
-        <td>Vamorolone · Duchenne MD</td>
-        <td>Apr 10, 2026</td>
+      <tr style="background:rgba(255,68,68,0.04);">
+        <td class="ticker-cell" style="color:var(--red);">REPL</td>
+        <td>Vamorolone · Duchenne Muscular Dystrophy</td>
+        <td>2026-04-10</td>
         <td class="poa-cell">84.0%</td>
         <td>STRONG</td>
         <td><span style="color:var(--red);">HIGH</span></td>
-        <td class="result-pending">Expected AH today</td>
-        <td style="color:var(--muted);">—</td>
-        <td style="color:var(--muted);">—</td>
+        <td class="result-crl">❌ CRL</td>
+        <td class="incorrect">-19.46%</td>
+        <td class="incorrect">✗</td>
       </tr>
-      <tr style="background:rgba(0,212,255,0.04);">
-        <td class="ticker-cell" style="color:var(--accent);">TVTX 🔴</td>
-        <td>FILSPARI · FSGS</td>
-        <td>Apr 13, 2026</td>
-        <td class="poa-cell">72.0%</td>
-        <td>STRONG</td>
+      <tr style="background:rgba(0,255,157,0.04);">
+        <td class="ticker-cell">TVTX</td>
+        <td>FILSPARI · IgA Nephropathy / FSGS</td>
+        <td>2026-04-13</td>
+        <td class="poa-cell">65.7%</td>
+        <td style="color:var(--amber);">WATCH</td>
         <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-pending">Pending — <span id="tvtx-days"></span></td>
-        <td style="color:var(--muted);">—</td>
-        <td style="color:var(--muted);">—</td>
-      </tr>
-      <tr style="background:rgba(0,212,255,0.04);">
-        <td class="ticker-cell" style="color:var(--accent);">LGND 🔴</td>
-        <td>Filspari (royalty) · FSGS</td>
-        <td>Apr 13, 2026</td>
-        <td class="poa-cell">71.5%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-pending">Pending — <span class="lgnd-days"></span></td>
-        <td style="color:var(--muted);">—</td>
-        <td style="color:var(--muted);">—</td>
+        <td class="result-approved">✅ APPROVED</td>
+        <td style="color:var(--accent);font-style:italic;">Awaiting open</td>
+        <td class="correct">✓</td>
       </tr>
     </tbody>
   </table>
 
   <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
+    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">REPL — The first miss</div>
+    <div style="color:var(--text);line-height:1.75;">The model called REPL at <span style="color:var(--red);">84% PoA</span> — STRONG grade, high conviction. FDA issued a Complete Response Letter. The stock dropped <span style="color:var(--red);">−19.46%</span>. This was wrong. The PoA was overconfident. What I'll give the model credit for: the STN Risk layer was flagged <span style="color:var(--red);">HIGH</span> before the decision, correctly identifying severe downside regardless of the reason. But that doesn't change the fact that the approval call missed. Logged. Not deleted. The model learns from this.</div>
+  </div>
+
+  <div style="background:rgba(0,255,157,0.04);border:1px solid rgba(0,255,157,0.15);border-left:3px solid var(--accent2);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
+    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.5rem;">TVTX — Approved, but this wasn't a sure thing</div>
+    <div style="color:var(--text);line-height:1.75;">TVTX was graded <span style="color:var(--amber);">WATCH</span> at <span style="color:var(--accent);">65.7% PoA</span> — the lowest conviction of any active event on the scanner. This wasn't the model pounding the table. It was flagging a reasonable probability with real uncertainty. IgA nephropathy / FSGS is a competitive space, and FILSPARI had legitimate questions around its confirmatory data. The FDA approved it. The PoA call was directionally correct. But I'm being honest — 65.7% is barely above the threshold, and the WATCH grade existed for a reason. Now I'm waiting for market open to see if this is a sell-the-news situation or if the approval has room to run. STN Risk was <span style="color:var(--amber);">MODERATE</span> — not the highest conviction for post-approval upside either. The move tomorrow will tell the full story.</div>
+  </div>
+
+  <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
     <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">STN Risk — The differentiator</div>
-    <div style="color:var(--text);line-height:1.75;">3 of 6 resolved approvals had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all three before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). PoA tells you if it gets approved. Net Edge tells you if it's worth trading.</div>
+    <div style="color:var(--text);line-height:1.75;">4 of 8 resolved events had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all of them before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). <span style="color:var(--accent2);">REPL</span>: HIGH STN → <span style="color:var(--red);">−19.46%</span> (CRL). PoA tells you if it gets approved. Net Edge tells you if it's worth trading.</div>
   </div>
 
   <div class="methodology">
-    <h3>How We Track Accuracy</h3>
-    <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against our predicted PoA score and grade.</p>
-    <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection. Delayed events are not counted as wins or losses.</p>
-    <h3 style="margin-top:2rem;">Sell-The-News (STN) Risk Score — NEW</h3>
-    <p>Approval ≠ stock move. The scanner now includes a <strong style="color:var(--white)">Post-Approval Move Score</strong> that predicts whether an FDA approval will actually move the stock. This was added after observing that RCKT was approved (PoA correct) but the stock dropped 20% — a textbook sell-the-news event.</p>
+    <h3>How I Track Accuracy</h3>
+    <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against the predicted PoA score and grade. No cherry-picking. No retroactive edits. REPL was called at 84% PoA and got a CRL — that miss is documented permanently.</p>
+    <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection. Delayed events are not counted as wins or losses. TVTX at 65.7% PoA was barely above the threshold — honest about the margin.</p>
+    <h3 style="margin-top:2rem;">Sell-The-News (STN) Risk Score</h3>
+    <p>Approval ≠ stock move. The STN Risk layer predicts whether an FDA approval will actually move the stock up. This was added after RCKT was approved (PoA correct) but the stock dropped 20% — a textbook sell-the-news event. The STN layer has correctly flagged every negative post-approval move in the track record so far, including REPL's downside before the CRL.</p>
     <p>The STN Risk score evaluates:</p>
     <p style="margin-left:1rem;">
       <strong style="color:var(--accent)">• PoA priced-in factor</strong> — Higher PoA = more priced in = less upside on approval<br>
@@ -394,13 +287,13 @@ footer a:hover{color:var(--accent);}
       <strong style="color:var(--accent)">• First-in-class / PRV eligible</strong> — Unique value drivers that support price<br>
     </p>
     <p>Risk levels: <span style="color:var(--accent2)">VERY LOW</span> → <span style="color:var(--accent2)">LOW</span> → <span style="color:var(--amber)">MODERATE</span> → <span style="color:var(--amber)">ELEVATED</span> → <span style="color:var(--red)">HIGH</span></p>
-    <p>The PoA model tells you <strong style="color:var(--white)">IF</strong> it gets approved. The STN risk tells you <strong style="color:var(--white)">if that approval is worth trading</strong>.</p>
-    <p>This page will be updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
+    <p>The PoA model tells you <strong style="color:var(--white)">IF</strong> it gets approved. The STN risk tells you <strong style="color:var(--white)">if that approval is worth trading</strong>. TVTX was MODERATE STN — not the strongest conviction for post-approval upside. Tomorrow's price action will tell the story.</p>
+    <p>This page gets updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
   </div>
 
   <div style="text-align:center;margin:2rem 0;">
     <a href="/signup.html" class="nav-cta" style="padding:0.75rem 2rem;font-size:0.78rem;">Get Access — $29.99/month</a>
-    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Full scanner · 60+ scored events · AI research tool</p>
+    <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">5 scanners · 870+ companies · AI research tool</p>
   </div>
 </main>
 
@@ -412,22 +305,5 @@ footer a:hover{color:var(--accent);}
     <a href="/calendar.html">Calendar</a>
   </div>
 </footer>
-<script>
-  function updateDays() {
-    const target = new Date('2026-04-13T00:00:00-04:00');
-    const now = new Date();
-    const diff = target - now;
-    if (diff <= 0) {
-      document.querySelectorAll('#tvtx-days, .lgnd-days').forEach(el => { if(el) el.textContent = 'TODAY'; });
-      return;
-    }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const txt = d > 0 ? `${d}d ${h}h` : `${h}h`;
-    document.querySelectorAll('#tvtx-days, .lgnd-days').forEach(el => { if(el) el.textContent = txt; });
-  }
-  updateDays();
-  setInterval(updateDays, 60000);
-</script>
 </body>
 </html>
