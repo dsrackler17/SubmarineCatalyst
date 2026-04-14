@@ -265,6 +265,23 @@ footer a:hover { color: var(--accent); }
   text-transform: uppercase; padding: 0.2rem 0.6rem; background: rgba(0,255,157,0.1);
   color: var(--accent2); border: 1px solid rgba(0,255,157,0.25); margin-left: 0.75rem; vertical-align: middle;
 }
+/* ── TESTIMONIAL ── */
+.testimonial-section { background: var(--navy); border-top: 1px solid var(--border); }
+.testimonial-card { background: var(--surface); border: 1px solid var(--border); padding: 2.5rem 2rem; position: relative; max-width: 700px; }
+.testimonial-card::before { content: '"'; font-family: var(--serif); font-size: 4rem; color: rgba(0,212,255,0.15); position: absolute; top: 0.5rem; left: 1.25rem; line-height: 1; }
+.testimonial-quote { font-size: 1.1rem; color: var(--white); font-weight: 300; line-height: 1.8; margin-bottom: 1.25rem; padding-left: 0.5rem; }
+.testimonial-result { display: inline-block; font-family: var(--mono); font-size: 1.4rem; font-weight: 700; color: var(--accent2); margin-bottom: 1rem; }
+.testimonial-detail { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); line-height: 1.7; margin-bottom: 1rem; }
+.testimonial-detail strong { color: var(--accent); }
+.testimonial-name { font-family: var(--mono); font-size: 0.72rem; color: var(--text); letter-spacing: 0.06em; }
+.testimonial-name span { color: var(--muted); font-size: 0.65rem; }
+/* ── TIME SAVINGS ── */
+.time-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 3rem; border: 1px solid var(--border); }
+.time-card { padding: 2rem 1.75rem; border-right: 1px solid var(--border); text-align: center; }
+.time-card:last-child { border-right: none; }
+.time-before { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; color: var(--red); line-height: 1; text-decoration: line-through; opacity: 0.6; }
+.time-after { font-family: var(--mono); font-size: 1.8rem; font-weight: 700; color: var(--accent2); line-height: 1; margin-top: 0.5rem; }
+.time-label { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.12em; text-transform: uppercase; margin-top: 0.75rem; }
 /* ── SCANNER SUITE ── */
 .suite-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 3.5rem; border: 1px solid var(--border); }
 .suite-card { padding: 2.5rem 2rem; border-right: 1px solid var(--border); position: relative; overflow: hidden; transition: background 0.4s; }
@@ -293,7 +310,7 @@ footer a:hover { color: var(--accent); }
 .suite-count-box { font-family: var(--mono); text-align: center; }
 .suite-count-val { font-family: var(--serif); font-size: 2.5rem; color: var(--white); line-height: 1; }
 .suite-count-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
-@media (max-width: 1024px) { .hero { grid-template-columns: 1fr; padding: 4rem 2rem; } .how-grid { grid-template-columns: 1fr 1fr; } .how-card { border-bottom: 1px solid var(--border); } .signals-grid { grid-template-columns: 1fr; } .pricing-wrapper { grid-template-columns: 1fr; } .origin-grid { grid-template-columns: 1fr; gap: 3rem; } nav { padding: 1rem 1.5rem; } .nav-links { display: none; } .suite-grid { grid-template-columns: 1fr; } .suite-card { border-right: none; border-bottom: 1px solid var(--border); } .suite-card:last-child { border-bottom: none; } .suite-existing { grid-template-columns: 1fr; } .suite-existing-card { border-right: none; border-bottom: 1px solid var(--border); } }
+@media (max-width: 1024px) { .hero { grid-template-columns: 1fr; padding: 4rem 2rem; } .how-grid { grid-template-columns: 1fr 1fr; } .how-card { border-bottom: 1px solid var(--border); } .signals-grid { grid-template-columns: 1fr; } .pricing-wrapper { grid-template-columns: 1fr; } .origin-grid { grid-template-columns: 1fr; gap: 3rem; } nav { padding: 1rem 1.5rem; } .nav-links { display: none; } .suite-grid { grid-template-columns: 1fr; } .suite-card { border-right: none; border-bottom: 1px solid var(--border); } .suite-card:last-child { border-bottom: none; } .suite-existing { grid-template-columns: 1fr; } .suite-existing-card { border-right: none; border-bottom: 1px solid var(--border); } .time-grid { grid-template-columns: 1fr; } .time-card { border-right: none; border-bottom: 1px solid var(--border); } }
 @media (max-width: 640px) { .how-grid { grid-template-columns: 1fr; } .origin-stats { grid-template-columns: 1fr 1fr; } .section { padding: 3.5rem 1.5rem; } }
 </style>
 <script type="application/ld+json">
@@ -370,8 +387,8 @@ footer a:hover { color: var(--accent); }
   <div class="hero">
     <div class="hero-left">
       <div class="hero-eyebrow">Biotech Catalyst Research Terminal</div>
-      <h1 class="hero-headline">870+ companies. Five scanners.<br><em>One terminal.</em></h1>
-      <p class="hero-sub">Five independent scanners — PDUFA scoring, buyout probability, CRL recovery tracking, insider conviction ranking, and pipeline concentration risk — structured from FDA filings, SEC EDGAR, and clinical data. Updated daily. Built for biotech investors who do their own work.</p>
+      <h1 class="hero-headline">Stop spending 5 hours researching <em>one ticker.</em></h1>
+      <p class="hero-sub">I built this because I was tired of digging through FDA filings, EDGAR, clinical data, and cash runway math for hours — only to miss the one thing that tanked the trade. Five scanners, 870+ companies, eight scoring layers. Everything you need to evaluate a biotech PDUFA setup, on one screen, updated daily. So you can spend your time trading instead of researching.</p>
       <div id="auth-status" class="auth-status hidden"></div>
       <div class="hero-actions">
         <button id="signup-btn" class="btn-primary">Get Access</button>
@@ -491,8 +508,8 @@ footer a:hover { color: var(--accent); }
 <section id="how" style="background: var(--deep); border-top: 1px solid var(--border);">
   <div class="section reveal">
     <div class="section-label">The Method</div>
-    <h2 class="section-heading">Not a calendar. Not a screener.<span class="diff-badge">vs BioPharma Catalyst</span><br>An intelligence platform.</h2>
-    <p class="section-sub">Eight independent analysis layers sourced from FDA filings, SEC EDGAR, and peer-reviewed literature (Hay et al. 2014 · Wong et al. 2019). Every score is documented. No black boxes. Unlike calendar-only tools, Submarine Catalyst models <em>both</em> approval probability and post-decision price behavior from the same dataset.</p>
+    <h2 class="section-heading">Not a calendar. Not a screener.<span class="diff-badge">vs BioPharma Catalyst</span><br>Everything you need, in one place.</h2>
+    <p class="section-sub">Eight independent analysis layers sourced from FDA filings, SEC EDGAR, and peer-reviewed literature (Hay et al. 2014 · Wong et al. 2019). Every score is documented. No black boxes. Unlike calendar-only tools, I built Submarine Catalyst to model <em>both</em> approval probability and post-decision price behavior from the same dataset — so you're not stitching together five different services to get the full picture.</p>
     <div class="how-grid">
       <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
       <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
@@ -555,8 +572,8 @@ footer a:hover { color: var(--accent); }
 <section id="coverage" style="padding:4rem 3rem;">
   <div class="section reveal">
     <div class="section-label">Full Coverage</div>
-    <h2 class="section-heading">The entire biotech universe. One platform.</h2>
-    <p class="section-sub">Submarine Catalyst tracks every FDA binary event across the full market cap spectrum — not just the small-caps that retail traders already know about.</p>
+    <h2 class="section-heading">Small-cap, mid-cap, large-cap. It's all here.</h2>
+    <p class="section-sub">I track every FDA binary event across the full market cap spectrum — not just the small-caps that everyone on Reddit already knows about. Whether you're trading a $200M micro-cap PDUFA or watching how a large-cap approval ripples through the sector, the data is scored and ready.</p>
     <div class="how-grid">
       <div class="how-card"><span class="how-num" style="color:var(--accent2)">SC</span><div class="how-title">Small-Cap ($0–$2B)</div><p class="how-desc">Highest volatility. Highest spike potential. Highest dilution risk. Where the asymmetric PDUFA trades live — and where the scanner's STN Risk and Dilution Radar add the most value.</p></div>
       <div class="how-card"><span class="how-num" style="color:var(--accent)">MC</span><div class="how-title">Mid-Cap ($2B–$10B)</div><p class="how-desc">More institutional coverage, more efficient pricing. Moderate moves on approval (+10-25%). Sell-the-news risk is higher. sNDA/label expansions are common. Where the smart money operates.</p></div>
@@ -568,8 +585,8 @@ footer a:hover { color: var(--accent); }
 <section id="scanners" style="background: var(--deep); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
   <div class="section reveal">
     <div class="section-label">Scanner Suite</div>
-    <h2 class="section-heading">Five scanners. Not one screener with filters.<br>A full research terminal.</h2>
-    <p class="section-sub">Most biotech tools give you a calendar and a prayer. Submarine Catalyst runs five independent scanners — each one built to surface a specific signal that the market misses. The PDUFA Scanner and Buyout Scanner have been live since day one. Three new scanners just dropped.</p>
+    <h2 class="section-heading">Five scanners. One login.<br>No more juggling 10 browser tabs.</h2>
+    <p class="section-sub">Most biotech tools give you a calendar and leave you to figure out the rest. I've been there — EDGAR in one tab, ClinicalTrials.gov in another, Finnhub for insider data, a spreadsheet for the math. Submarine Catalyst puts all of that into five purpose-built scanners that do the work for you. Two have been live since day one. Three just dropped.</p>
 
     <div class="suite-existing">
       <div class="suite-existing-card">
@@ -628,11 +645,51 @@ footer a:hover { color: var(--accent); }
   </div>
 </section>
 
+<section class="testimonial-section" style="padding:4rem 3rem;">
+  <div class="section reveal">
+    <div class="section-label">Time Is Money</div>
+    <h2 class="section-heading">Research that used to take hours.<br>Now it's already done when you log in.</h2>
+    <p class="section-sub">Before I built this, I'd spend an entire evening on a single PDUFA setup — pulling approval rates from Hay 2014, cross-referencing SEC filings for dilution, checking insider transactions on multiple sites, doing the TAM math by hand. Now all of that runs automatically across 870+ companies every day. You open the dashboard and the work is done. The scores are computed. The risks are flagged. You just need to decide what to do with the information.</p>
+
+    <div class="time-grid">
+      <div class="time-card">
+        <div class="time-before">5 hours</div>
+        <div class="time-after">30 seconds</div>
+        <div class="time-label">Per-ticker PDUFA research</div>
+      </div>
+      <div class="time-card">
+        <div class="time-before">12 tabs</div>
+        <div class="time-after">1 screen</div>
+        <div class="time-label">FDA + SEC + Clinical + Market data</div>
+      </div>
+      <div class="time-card">
+        <div class="time-before">Manual</div>
+        <div class="time-after">Daily auto</div>
+        <div class="time-label">Dilution scans, insider tracking, scoring</div>
+      </div>
+    </div>
+
+    <div style="margin-top:3.5rem;">
+      <div class="testimonial-card">
+        <div class="testimonial-result">+67% on VERA calls</div>
+        <div class="testimonial-quote">"Used the scanner to find the setup. Bought at $4.50, sold at $7.50. Timestamps and all."</div>
+        <div class="testimonial-detail">Found the ticker on the PDUFA Scanner. Checked the PoA, STN Risk, Dilution Radar, and TAM/Cap — all on one screen. Made the decision in minutes instead of hours. Closed the trade with <strong>67% gains</strong> on calls.</div>
+        <div class="testimonial-name">— Evan <span>· Submarine Catalyst subscriber</span></div>
+      </div>
+    </div>
+
+    <div style="margin-top:2.5rem;max-width:700px;">
+      <p style="font-family:var(--sans);font-size:0.92rem;color:var(--text);font-weight:300;line-height:1.8;">Look — I'm not going to tell you this platform will make you money. PDUFA events are binary. You can do everything right and still lose. What I can tell you is that you'll walk into every trade with more information than 95% of the people on the other side of it. And you'll get that information in seconds instead of hours. That's the edge. Not a crystal ball. A faster, more complete picture.</p>
+      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Individual results vary. Past gains do not guarantee future results. PDUFA binary events carry substantial risk of loss. This is a research tool, not investment advice.</p>
+    </div>
+  </div>
+</section>
+
 <section id="pricing">
   <div class="section reveal">
     <div class="section-label">Pricing</div>
-    <h2 class="section-heading">Full database access. One subscription.</h2>
-    <p class="section-sub">No freemium limitations. No data delays. No upsells. Complete quantitative research output, updated daily.</p>
+    <h2 class="section-heading">One price. Everything included. No gotchas.</h2>
+    <p class="section-sub">No freemium walls. No "upgrade to see dilution data." No delayed feeds. You get the full platform — every scanner, every score, every ticker — for less than one bad trade costs you in commissions.</p>
     <div class="pricing-wrapper">
       <ul class="pricing-context">
         <strong>What you get</strong>
@@ -695,10 +752,10 @@ footer a:hover { color: var(--accent); }
     <div class="origin-grid">
       <div class="origin-text">
         <div class="section-label">Who Built This</div>
-        <h2 class="section-heading">A submarine, a spreadsheet, and a problem nobody was solving.</h2>
+        <h2 class="section-heading">A submarine, a spreadsheet, and a problem that was costing me money.</h2>
         <p>I spent three years in the Navy, most of it on the USS Montana during dry dock in Newport News, Virginia. Eleven months inside a boat that wasn't in the water yet. What you learn in that environment is that everything runs on procedure, verification, and trusting your instruments when your instincts are screaming something else. That stuck with me.</p>
-        <p>I got medically separated and enrolled at Texas Tech for a BBA in IT systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker, digging through FDA history, EDGAR filings, clinical trial data, cash runway math, and still miss something that tanked the trade. So I started building a tool to do the research for me.</p>
-        <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across 870+ biotech companies, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
+        <p>I got medically separated and enrolled at Texas Tech for a BBA in IT systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem hit me fast — I could spend five hours researching a single ticker, digging through FDA history, EDGAR filings, clinical trial data, cash runway math, and still miss the one thing that killed the trade. I was losing money because I didn't have enough time to do the research properly. So I started building a tool to do it for me.</p>
+        <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs five scanners across 870+ biotech companies, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too. Evan used it to find VERA and closed +67% on calls. Other subscribers use it every morning before the open. The research that used to take me all night now takes 30 seconds.</p>
         <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this platform from a basic PDUFA calendar.</p>
         <p>REPL on April 10, 2026 was the first PoA miss. The model called 84% approval. FDA issued a CRL. The stock dropped 19.46%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
       </div>
@@ -715,8 +772,8 @@ footer a:hover { color: var(--accent); }
 <section id="faq" style="background: var(--navy); border-top: 1px solid var(--border);">
   <div class="section reveal">
     <div class="section-label">FAQ</div>
-    <h2 class="section-heading">Common questions.</h2>
-    <p class="section-sub">Straight answers. No marketing filler.</p>
+    <h2 class="section-heading">Got questions? Fair enough.</h2>
+    <p class="section-sub">I'd want answers before paying for anything too. Here's the straight version.</p>
     <div class="faq-list" style="margin-top:2.5rem; max-width:780px;">
 
       <div class="faq-item">
@@ -806,8 +863,8 @@ footer a:hover { color: var(--accent); }
 <section id="updates" style="background:var(--deep);border-top:1px solid var(--border);">
   <div class="section reveal" style="text-align:center;">
     <div class="section-label" style="justify-content:center;">Research Updates</div>
-    <h2 class="section-heading">Monthly catalyst briefing. Free.</h2>
-    <p class="section-sub" style="margin:0 auto 2.5rem;">Upcoming PDUFA dates, new risk classifications, model updates, and resolved event outcomes. No spam. No financial advice. Unsubscribe anytime.</p>
+    <h2 class="section-heading">Want to see what I'm watching? Free monthly briefing.</h2>
+    <p class="section-sub" style="margin:0 auto 2.5rem;">Upcoming PDUFA dates, new risk classifications, model updates, and how resolved events played out. I write it like I'm texting a friend who trades biotech. No spam. Unsubscribe anytime.</p>
     <form class="email-capture" id="email-capture" action="https://formspree.io/f/mlgpanlj" method="POST">
       <input type="email" name="email" class="email-input" placeholder="you@example.com" required autocomplete="email" />
       <button type="submit" class="email-btn" id="email-btn">Subscribe</button>
