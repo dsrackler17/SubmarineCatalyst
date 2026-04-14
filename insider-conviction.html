@@ -75,7 +75,43 @@
   .stat-val.red   { color: var(--red); }
   .stat-sub { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; }
 
-  /* ── TABLE ── */
+  /* ── SCANNER GRID ── */
+  .scanner-grid { display: grid; gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
+  .insider-card { background: var(--surface); padding: 1.5rem; transition: background 0.2s; cursor: pointer; position: relative; overflow: hidden; animation: fadeUp 0.5s ease both; }
+  .insider-card:hover { background: rgba(11,31,58,0.95); }
+  .insider-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
+  .insider-card.strong_buy::before { background: var(--accent2); }
+  .insider-card.buy::before { background: var(--accent); }
+  .insider-card.neutral::before { background: var(--muted); }
+  .insider-card.sell::before, .insider-card.strong_sell::before { background: var(--red); }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
+  .card-ticker { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: 0.08em; }
+  .card-sub { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 0.15rem; }
+
+  .score-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 0.5rem; }
+  .score-box { background: var(--deep); padding: 0.5rem; text-align: center; }
+  .score-box-label { font-family: var(--mono); font-size: 0.48rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
+  .score-box-val { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; }
+  .score-box-val.green { color: var(--accent2); }
+  .score-box-val.cyan  { color: var(--accent); }
+  .score-box-val.amber { color: var(--amber); }
+  .score-box-val.red   { color: var(--red); }
+  .score-box-val.white { color: var(--white); }
+
+  .flow-bar { height: 8px; background: var(--deep); border: 1px solid var(--border); position: relative; overflow: hidden; margin: 0.5rem 0; }
+  .flow-fill { height: 100%; position: absolute; top: 0; }
+  .flow-buy { background: var(--accent2); left: 50%; }
+  .flow-sell { background: var(--red); right: 50%; }
+  .flow-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.48rem; color: var(--muted); }
+
+  .txn-list { font-family: var(--mono); font-size: 0.58rem; line-height: 1.6; margin-top: 0.5rem; max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+  .txn-list.open { max-height: 300px; overflow-y: auto; }
+  .txn-row { display: grid; grid-template-columns: 60px 1fr 80px 70px; gap: 0.3rem; padding: 0.25rem 0; border-bottom: 1px solid rgba(26,58,92,0.3); align-items: center; }
+  .txn-buy { color: var(--accent2); }
+  .txn-sell { color: var(--red); }
+
+  /* ── TABLE (kept for compact view) ── */
   .insider-table { width: 100%; border-collapse: collapse; border: 1px solid var(--border); margin-bottom: 2rem; }
   .insider-table th {
     background: var(--panel); padding: 0.65rem 0.75rem;
@@ -227,88 +263,70 @@
 
       <div class="stat-strip">
         <div class="stat-cell">
-          <div class="stat-label">Bullish Signals</div>
+          <div class="stat-label">Strong Buy</div>
           <div class="stat-val green" id="stat-bullish">—</div>
-          <div class="stat-sub">insider buying detected</div>
+          <div class="stat-sub">conviction ≥ 75</div>
         </div>
         <div class="stat-cell">
-          <div class="stat-label">Clean + Buying</div>
+          <div class="stat-label">Cluster Buys</div>
           <div class="stat-val cyan" id="stat-clean">—</div>
-          <div class="stat-sub">no dilution filings</div>
+          <div class="stat-sub">3+ insiders in 30d</div>
         </div>
         <div class="stat-cell">
-          <div class="stat-label">≤90d to PDUFA</div>
+          <div class="stat-label">Net $ Flow (90d)</div>
           <div class="stat-val amber" id="stat-proximity">—</div>
-          <div class="stat-sub">with insider activity</div>
+          <div class="stat-sub">buys minus sells</div>
         </div>
         <div class="stat-cell">
-          <div class="stat-label">Bearish Signals</div>
+          <div class="stat-label">C-Suite Buying</div>
           <div class="stat-val red" id="stat-bearish">—</div>
-          <div class="stat-sub">selling or dilution</div>
+          <div class="stat-sub">CEO/CFO/CMO active</div>
         </div>
       </div>
 
       <div class="method-panel">
-        <div class="method-title" onclick="this.nextElementSibling.classList.toggle('open')">Conviction Scoring Methodology</div>
+        <div class="method-title" onclick="this.nextElementSibling.classList.toggle('open')">Conviction Scoring Methodology — Real Form 4 Data</div>
         <div class="method-body">
-          <strong style="color:var(--white);">Insider Conviction Score (0–100)</strong><br><br>
-          <strong style="color:var(--accent);">Insider Signal Strength (35 pts)</strong> — BULLISH = 35, POSITIVE = 25, NEUTRAL = 10, BEARISH = 0<br>
-          <strong style="color:var(--accent);">PDUFA Proximity Bonus (25 pts)</strong> — Buying within 30d of PDUFA = 25, 60d = 20, 90d = 15, 180d = 5<br>
+          <strong style="color:var(--white);">Insider Conviction Score (0–100) — Computed from SEC Form 4 filings via Finnhub</strong><br><br>
+          <strong style="color:var(--accent);">Net Buying Signal (35 pts)</strong> — Net $500K+ bought in 90d = 35, $100K+ = 28, $25K+ = 20, Any net buying = 12, No activity = 5, Net selling = 0<br>
+          <strong style="color:var(--accent);">PDUFA Proximity (25 pts)</strong> — Buying within 30d of PDUFA = 25, 60d = 20, 90d = 15, 180d = 5<br>
           <strong style="color:var(--accent);">Dilution Clean Check (20 pts)</strong> — No shelf + no ATM = 20, Shelf only = 10, ATM active = 5, Both = 0<br>
-          <strong style="color:var(--accent);">PoA Alignment (10 pts)</strong> — Insider buying + PoA ≥ 70% = 10, ≥ 60% = 7, ≥ 50% = 4<br>
-          <strong style="color:var(--accent);">Runway Support (10 pts)</strong> — 18+ months runway + buying = 10, 12+ = 7, &lt;12 = 3<br><br>
-          The strongest conviction signal: C-suite cluster buying within 90 days of PDUFA, no dilution filings, with PoA ≥ 70%.
-          The weakest: board-level single trades with concurrent ATM activity.
+          <strong style="color:var(--accent);">Cluster + C-Suite (10 pts)</strong> — 3+ unique insiders buying in 30d + C-suite = 10, Cluster only = 7, C-suite only = 5<br>
+          <strong style="color:var(--accent);">PoA Alignment (10 pts)</strong> — Buying + PoA ≥ 70% = 10, ≥ 60% = 7, ≥ 50% = 4<br><br>
+          Data refreshes daily via Finnhub insider transactions API. Individual Form 4 filings are stored and used to compute aggregate conviction per ticker.
+          The strongest signal: C-suite cluster buying $500K+ within 30 days of PDUFA, no dilution filings, PoA ≥ 70%.
         </div>
       </div>
 
       <div class="filter-bar">
-        <select id="insider-sort" onchange="renderInsiderTable()">
+        <select id="insider-sort" onchange="renderInsiderGrid()">
           <option value="conviction">Sort: Conviction Score ↓</option>
+          <option value="net_flow">Sort: Net $ Flow ↓</option>
           <option value="pdufa_proximity">Sort: PDUFA Proximity</option>
           <option value="poa">Sort: PoA ↓</option>
           <option value="ticker">Sort: Ticker A-Z</option>
         </select>
-        <select id="insider-signal-filter" onchange="renderInsiderTable()">
+        <select id="insider-signal-filter" onchange="renderInsiderGrid()">
           <option value="all">All Signals</option>
-          <option value="bullish">BULLISH Only</option>
-          <option value="positive">POSITIVE+</option>
-          <option value="bearish">BEARISH Only</option>
+          <option value="bullish">STRONG BUY / BUY</option>
+          <option value="bearish">SELL Only</option>
         </select>
-        <select id="insider-dilution-filter" onchange="renderInsiderTable()">
+        <select id="insider-dilution-filter" onchange="renderInsiderGrid()">
           <option value="all">All Dilution Status</option>
           <option value="clean">Clean (no filings)</option>
           <option value="dirty">Active Filings</option>
         </select>
-        <select id="insider-proximity-filter" onchange="renderInsiderTable()">
+        <select id="insider-proximity-filter" onchange="renderInsiderGrid()">
           <option value="all">All PDUFA Timing</option>
           <option value="30">≤ 30 days</option>
           <option value="90">≤ 90 days</option>
           <option value="180">≤ 180 days</option>
         </select>
-        <input type="text" id="insider-search" placeholder="Search ticker..." oninput="renderInsiderTable()" style="width:150px;">
+        <input type="text" id="insider-search" placeholder="Search ticker..." oninput="renderInsiderGrid()" style="width:150px;">
         <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);" id="insider-count"></span>
       </div>
 
-      <div style="overflow-x:auto;">
-        <table class="insider-table" id="insider-table">
-          <thead>
-            <tr>
-              <th>Ticker</th>
-              <th>Drug</th>
-              <th>PDUFA</th>
-              <th>Days Out</th>
-              <th>Insider Signal</th>
-              <th>Conviction</th>
-              <th>Dilution</th>
-              <th>PoA</th>
-              <th>Runway</th>
-              <th>Grade</th>
-            </tr>
-          </thead>
-          <tbody id="insider-tbody"></tbody>
-        </table>
-      </div>
+      <div id="insider-grid" class="scanner-grid" style="grid-template-columns:repeat(auto-fill,minmax(380px,1fr));"></div>
 
       <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin-top:2rem;">
         ⚠️ Insider transaction data is derived from SEC Form 4 filings. Classifications are quantitative research outputs, not trade recommendations.
@@ -332,87 +350,28 @@
 <script src="/js/config.js"></script>
 <script>
 var INSIDER_DATA = [];
+var TXN_DATA = {};  // ticker -> [transactions]
 
 function daysUntil(dateStr) {
   if (!dateStr) return 9999;
   var today = new Date(); today.setHours(0,0,0,0);
   return Math.round((new Date(dateStr) - today) / 86400000);
 }
-
-// ── CONVICTION SCORING ───────────────────────────────────────────────────────
-function scoreConviction(e) {
-  var score = 0;
-  var flags = [];
-  var signal = (e.insider_signal || 'NEUTRAL').toUpperCase();
-
-  // Insider Signal Strength (35 pts)
-  if (signal === 'BULLISH')       { score += 35; flags.push('🟢 BULLISH insider activity detected'); }
-  else if (signal === 'POSITIVE') { score += 25; flags.push('🔵 POSITIVE insider signal'); }
-  else if (signal === 'NEUTRAL')  { score += 10; }
-  else if (signal === 'BEARISH')  { score += 0;  flags.push('🔴 BEARISH insider activity — selling detected'); }
-  else if (signal === 'NEGATIVE') { score += 0;  flags.push('🔴 NEGATIVE insider signal'); }
-
-  // PDUFA Proximity Bonus (25 pts)
-  var days = daysUntil(e.date);
-  if (days > 0 && days <= 30 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
-    score += 25; flags.push('🔥 Insider buying within 30 days of PDUFA');
-  } else if (days > 0 && days <= 60 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
-    score += 20; flags.push('⚡ Insider buying within 60 days of PDUFA');
-  } else if (days > 0 && days <= 90 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
-    score += 15; flags.push('📊 Insider buying within 90 days of PDUFA');
-  } else if (days > 0 && days <= 180 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
-    score += 5;
-  }
-
-  // Dilution Clean Check (20 pts)
-  var shelfActive = e.shelf_active || false;
-  var atmActive = e.atm_active || false;
-  if (!shelfActive && !atmActive) {
-    score += 20; flags.push('✅ No dilution filings — clean');
-  } else if (shelfActive && !atmActive) {
-    score += 10; flags.push('📄 Shelf registration on file (not active ATM)');
-  } else if (!shelfActive && atmActive) {
-    score += 5;  flags.push('⚠️ ATM facility active');
-  } else {
-    score += 0;  flags.push('🚨 Both shelf + ATM active — dilution risk');
-  }
-
-  // PoA Alignment (10 pts)
-  var poa = Number(e.poa) || 0;
-  if ((signal === 'BULLISH' || signal === 'POSITIVE') && poa >= 70) {
-    score += 10; flags.push('🎯 Insider conviction aligns with PoA ≥ 70%');
-  } else if ((signal === 'BULLISH' || signal === 'POSITIVE') && poa >= 60) {
-    score += 7;
-  } else if ((signal === 'BULLISH' || signal === 'POSITIVE') && poa >= 50) {
-    score += 4;
-  }
-
-  // Runway Support (10 pts)
-  var runway = e.runway_months;
-  if (runway && runway >= 18 && (signal === 'BULLISH' || signal === 'POSITIVE')) {
-    score += 10; flags.push('💰 Funded + buying — no financing pressure');
-  } else if (runway && runway >= 12) {
-    score += 7;
-  } else if (runway) {
-    score += 3;
-  }
-
-  score = Math.max(0, Math.min(100, score));
-
-  var conviction_level;
-  if (score >= 75)      conviction_level = 'STRONG';
-  else if (score >= 50) conviction_level = 'MODERATE';
-  else if (score >= 25) conviction_level = 'NEUTRAL';
-  else                  conviction_level = 'WEAK';
-
-  return { score: score, level: conviction_level, flags: flags };
+function fmtDollars(v) {
+  if (!v || v === 0) return '$0';
+  if (Math.abs(v) >= 1e6) return '$' + (v / 1e6).toFixed(1) + 'M';
+  if (Math.abs(v) >= 1e3) return '$' + (v / 1e3).toFixed(0) + 'K';
+  return '$' + Math.round(v);
 }
 
-// ── RENDER TABLE ─────────────────────────────────────────────────────────────
-function renderInsiderTable() {
+// ── RENDER CARDS ─────────────────────────────────────────────────────────────
+function renderInsiderGrid() {
+  var grid = document.getElementById('insider-grid');
   if (INSIDER_DATA.length === 0) {
-    document.getElementById('insider-tbody').innerHTML =
-      '<tr><td colspan="10" style="text-align:center;padding:2rem;color:var(--muted);">Loading insider data...</td></tr>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--amber);">' +
+      '⚠️ No insider conviction data yet. Run the fetch-insider-data edge function to populate:<br>' +
+      '<code style="color:var(--accent);font-size:0.72rem;">supabase functions deploy fetch-insider-data --no-verify-jwt</code><br>' +
+      'Then invoke it to pull Form 4 data from Finnhub.</div>';
     return;
   }
 
@@ -424,15 +383,15 @@ function renderInsiderTable() {
 
   var filtered = INSIDER_DATA.filter(function(d) {
     if (search && !d.ticker.toUpperCase().includes(search)) return false;
-    var sig = (d.insider_signal || 'NEUTRAL').toUpperCase();
-    if (signalFilter === 'bullish' && sig !== 'BULLISH') return false;
-    if (signalFilter === 'positive' && sig !== 'BULLISH' && sig !== 'POSITIVE') return false;
-    if (signalFilter === 'bearish' && sig !== 'BEARISH' && sig !== 'NEGATIVE') return false;
+    var sig = (d.conviction_signal || 'NEUTRAL').toUpperCase();
+    if (signalFilter === 'bullish' && sig !== 'STRONG_BUY' && sig !== 'BUY') return false;
+    if (signalFilter === 'positive' && sig !== 'STRONG_BUY' && sig !== 'BUY') return false;
+    if (signalFilter === 'bearish' && sig !== 'SELL' && sig !== 'STRONG_SELL') return false;
     if (dilutionFilter === 'clean' && (d.shelf_active || d.atm_active)) return false;
     if (dilutionFilter === 'dirty' && !d.shelf_active && !d.atm_active) return false;
     if (proximityFilter !== 'all') {
       var maxDays = parseInt(proximityFilter);
-      var days = daysUntil(d.date);
+      var days = d.days_to_pdufa || 9999;
       if (days < 0 || days > maxDays) return false;
     }
     return true;
@@ -440,75 +399,110 @@ function renderInsiderTable() {
 
   filtered.sort(function(a, b) {
     switch (sortBy) {
-      case 'pdufa_proximity': return daysUntil(a.date) - daysUntil(b.date);
+      case 'pdufa_proximity': return (a.days_to_pdufa || 9999) - (b.days_to_pdufa || 9999);
+      case 'net_flow':        return (b.net_value_90d || 0) - (a.net_value_90d || 0);
       case 'poa':             return (b.poa || 0) - (a.poa || 0);
       case 'ticker':          return a.ticker.localeCompare(b.ticker);
-      default:                return b.conviction_score - a.conviction_score;
+      default:                return (b.conviction_score || 0) - (a.conviction_score || 0);
     }
   });
 
-  document.getElementById('insider-count').textContent = filtered.length + ' of ' + INSIDER_DATA.length + ' events';
+  document.getElementById('insider-count').textContent = filtered.length + ' of ' + INSIDER_DATA.length + ' tickers';
 
-  document.getElementById('insider-tbody').innerHTML = filtered.map(function(d, i) {
-    var days = daysUntil(d.date);
-    var sig = (d.insider_signal || 'NEUTRAL').toUpperCase();
+  grid.innerHTML = filtered.map(function(d, i) {
+    var sig = (d.conviction_signal || 'NEUTRAL').toLowerCase();
+    var scoreColor = d.conviction_score >= 75 ? 'green' : d.conviction_score >= 50 ? 'cyan' : d.conviction_score >= 25 ? 'amber' : 'red';
+    var days = d.days_to_pdufa || 9999;
+    var proxColor = days <= 30 ? 'var(--red)' : days <= 90 ? 'var(--amber)' : 'var(--accent)';
 
-    var signalCls = sig === 'BULLISH' ? 'signal-bullish' :
-                    sig === 'POSITIVE' ? 'signal-positive' :
-                    sig === 'BEARISH' || sig === 'NEGATIVE' ? 'signal-bearish' : 'signal-neutral';
-
-    var proxCls = days <= 30 ? 'prox-hot' : days <= 90 ? 'prox-warm' : 'prox-cool';
-
-    var convColor = d.conviction_score >= 75 ? 'var(--accent2)' :
-                    d.conviction_score >= 50 ? 'var(--accent)' :
-                    d.conviction_score >= 25 ? 'var(--amber)' : 'var(--muted)';
-
-    var barCls = d.conviction_score >= 75 ? 'strong' :
-                 d.conviction_score >= 50 ? 'moderate' :
-                 d.conviction_score >= 25 ? 'neutral' : 'negative';
+    var sigBadge = d.conviction_signal === 'STRONG_BUY' ? '<span style="color:var(--accent2);border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);padding:0.15rem 0.5rem;font-size:0.55rem;letter-spacing:0.08em;">STRONG BUY</span>' :
+                   d.conviction_signal === 'BUY' ? '<span style="color:var(--accent);border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);padding:0.15rem 0.5rem;font-size:0.55rem;letter-spacing:0.08em;">BUY</span>' :
+                   d.conviction_signal === 'SELL' ? '<span style="color:var(--red);border:1px solid rgba(255,68,68,0.4);background:rgba(255,68,68,0.08);padding:0.15rem 0.5rem;font-size:0.55rem;letter-spacing:0.08em;">SELL</span>' :
+                   '<span style="color:var(--muted);border:1px solid rgba(90,122,153,0.3);padding:0.15rem 0.5rem;font-size:0.55rem;letter-spacing:0.08em;">NEUTRAL</span>';
 
     var dilutionClean = !d.shelf_active && !d.atm_active;
-    var dilutionIcon = dilutionClean ? '<span class="dilution-check check-clean">✓ Clean</span>' :
-                       '<span class="dilution-check check-dirty">⚠ ' +
-                       (d.atm_active && d.shelf_active ? 'ATM+Shelf' : d.atm_active ? 'ATM' : 'Shelf') + '</span>';
+    var dilutionBadge = dilutionClean ? '<span style="color:var(--accent2);font-size:0.6rem;">✓ Clean</span>' :
+      '<span style="color:var(--red);font-size:0.6rem;">⚠ ' + (d.atm_active && d.shelf_active ? 'ATM+Shelf' : d.atm_active ? 'ATM' : 'Shelf') + '</span>';
 
-    var gradeCls = d.grade === 'ELITE' ? 'color:var(--accent2)' :
-                   d.grade === 'STRONG' ? 'color:var(--accent)' :
-                   d.grade === 'WATCH' ? 'color:var(--amber)' : 'color:var(--muted)';
+    // Net flow bar: center-aligned, buys go right, sells go left
+    var maxFlow = Math.max(Math.abs(d.buy_value_90d || 0), Math.abs(d.sell_value_90d || 0), 1);
+    var buyPct = Math.min(50, ((d.buy_value_90d || 0) / (maxFlow * 2)) * 100);
+    var sellPct = Math.min(50, ((d.sell_value_90d || 0) / (maxFlow * 2)) * 100);
+    var netColor = (d.net_value_90d || 0) >= 0 ? 'var(--accent2)' : 'var(--red)';
 
-    var poaColor = (d.poa || 0) >= 70 ? 'color:var(--accent2)' :
-                   (d.poa || 0) >= 55 ? 'color:var(--accent)' :
-                   (d.poa || 0) >= 40 ? 'color:var(--amber)' : 'color:var(--muted)';
+    // Transaction detail
+    var txns = TXN_DATA[d.ticker] || [];
+    var recentTxns = txns.filter(function(t) { return t.transaction_type === 'BUY' || t.transaction_type === 'SELL'; }).slice(0, 8);
 
-    var runwayColor = (d.runway_months || 0) >= 18 ? 'color:var(--accent2)' :
-                      (d.runway_months || 0) >= 12 ? 'color:var(--accent)' :
-                      (d.runway_months || 0) >= 6 ? 'color:var(--amber)' : 'color:var(--red)';
+    return '<div class="insider-card ' + sig + '" style="animation-delay:' + (i * 0.04) + 's"' +
+      ' onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'">' +
 
-    return '<tr onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="animation-delay:' + (i * 0.03) + 's">' +
-      '<td style="font-weight:700;color:var(--white);">' + d.ticker + '</td>' +
-      '<td style="font-size:0.65rem;color:var(--muted);max-width:120px;overflow:hidden;text-overflow:ellipsis;">' + (d.drug || '—') + '</td>' +
-      '<td style="font-size:0.62rem;">' + (d.date || '—') + '</td>' +
-      '<td><span class="pdufa-proximity ' + proxCls + '">' + (days > 0 ? days + 'd' : 'PAST') + '</span></td>' +
-      '<td><span class="signal-badge ' + signalCls + '">' + sig + '</span></td>' +
-      '<td style="color:' + convColor + ';font-weight:700;">' + d.conviction_score +
-        '<span class="conviction-bar ' + barCls + '" style="width:' + d.conviction_score + 'px;"></span></td>' +
-      '<td>' + dilutionIcon + '</td>' +
-      '<td style="' + poaColor + '">' + (d.poa ? d.poa.toFixed(1) + '%' : '—') + '</td>' +
-      '<td style="' + runwayColor + '">' + (d.runway_months ? Math.round(d.runway_months) + 'mo' : '—') + '</td>' +
-      '<td style="' + gradeCls + ';font-size:0.62rem;">' + (d.grade || '—') + '</td>' +
-    '</tr>';
+      '<div class="card-top">' +
+        '<div>' +
+          '<div class="card-ticker">' + d.ticker +
+            (d.is_cluster_buy ? ' <span style="font-size:0.55rem;color:var(--accent2);border:1px solid rgba(0,255,157,0.3);padding:0.1rem 0.35rem;margin-left:0.3rem;">CLUSTER</span>' : '') +
+            (d.csuite_buying ? ' <span style="font-size:0.55rem;color:var(--accent);border:1px solid rgba(0,212,255,0.3);padding:0.1rem 0.35rem;">C-SUITE</span>' : '') +
+          '</div>' +
+          '<div class="card-sub">' + (d.grade || '—') + ' · PDUFA ' + (d.pdufa_date || '—') +
+            (days < 9999 && days > 0 ? ' · <span style="color:' + proxColor + '">' + days + 'd</span>' : '') + '</div>' +
+        '</div>' +
+        sigBadge +
+      '</div>' +
+
+      '<div class="score-grid">' +
+        '<div class="score-box"><div class="score-box-label">Conviction</div><div class="score-box-val ' + scoreColor + '">' + (d.conviction_score || 0) + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Net Flow 90d</div><div class="score-box-val" style="color:' + netColor + ';font-size:0.7rem;">' + fmtDollars(d.net_value_90d) + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Buyers</div><div class="score-box-val ' + ((d.unique_buyers_90d || 0) >= 3 ? 'green' : (d.unique_buyers_90d || 0) >= 1 ? 'cyan' : 'white') + '">' + (d.unique_buyers_90d || 0) + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val">' + dilutionBadge + '</div></div>' +
+      '</div>' +
+
+      // Flow bar
+      '<div class="flow-bar">' +
+        '<div class="flow-fill flow-buy" style="width:' + buyPct + '%;"></div>' +
+        '<div class="flow-fill flow-sell" style="width:' + sellPct + '%;right:50%;left:auto;"></div>' +
+      '</div>' +
+      '<div class="flow-labels"><span style="color:var(--red);">Sells ' + fmtDollars(d.sell_value_90d) + '</span><span style="color:var(--accent2);">Buys ' + fmtDollars(d.buy_value_90d) + '</span></div>' +
+
+      // Largest buy callout
+      (d.largest_buy_value && d.largest_buy_value > 0 ? '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.5rem;padding:0.4rem 0.5rem;background:rgba(0,255,157,0.04);border-left:2px solid var(--accent2);color:var(--text);line-height:1.5;">' +
+        '💰 Largest buy: <strong style="color:var(--accent2);">' + fmtDollars(d.largest_buy_value) + '</strong> by ' + (d.largest_buy_name || 'Unknown') +
+        (d.largest_buy_title ? ' (' + d.largest_buy_title + ')' : '') + '</div>' : '') +
+
+      // PoA context
+      (d.poa ? '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.3rem;color:var(--muted);">PoA: ' +
+        '<span style="color:' + (d.poa >= 70 ? 'var(--accent2)' : d.poa >= 55 ? 'var(--accent)' : 'var(--amber)') + '">' + d.poa.toFixed(1) + '%</span>' +
+        (d.poa >= 70 && (d.unique_buyers_90d || 0) > 0 && dilutionClean ? ' · <span style="color:var(--accent2);">Insider + PoA + Clean = strongest signal</span>' : '') +
+        '</div>' : '') +
+
+      // Recent transactions (collapsed)
+      (recentTxns.length > 0 ? '<div style="font-family:var(--mono);font-size:0.52rem;color:var(--accent);margin-top:0.5rem;cursor:pointer;letter-spacing:0.08em;" onclick="event.stopPropagation();this.nextElementSibling.classList.toggle(\'open\');">▸ ' + recentTxns.length + ' recent transactions</div>' +
+        '<div class="txn-list">' +
+        recentTxns.map(function(t) {
+          var cls = t.transaction_type === 'BUY' ? 'txn-buy' : 'txn-sell';
+          var icon = t.transaction_type === 'BUY' ? '▲' : '▼';
+          return '<div class="txn-row ' + cls + '">' +
+            '<span>' + (t.transaction_date || '').slice(5) + '</span>' +
+            '<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + (t.insider_name || '').slice(0, 25) + '</span>' +
+            '<span>' + icon + ' ' + (t.shares || 0).toLocaleString() + ' sh</span>' +
+            '<span>' + fmtDollars(t.value_usd) + '</span>' +
+          '</div>';
+        }).join('') +
+        '</div>' : '') +
+
+      '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
+    '</div>';
   }).join('');
 
   // Stats
-  var bullish = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); return s === 'BULLISH' || s === 'POSITIVE'; }).length;
-  var clean = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); return (s === 'BULLISH' || s === 'POSITIVE') && !d.shelf_active && !d.atm_active; }).length;
-  var proximate = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); var days = daysUntil(d.date); return (s === 'BULLISH' || s === 'POSITIVE') && days > 0 && days <= 90; }).length;
-  var bearish = INSIDER_DATA.filter(function(d) { var s = (d.insider_signal||'').toUpperCase(); return s === 'BEARISH' || s === 'NEGATIVE'; }).length;
+  var strongBuy = INSIDER_DATA.filter(function(d) { return d.conviction_score >= 75; }).length;
+  var clusters = INSIDER_DATA.filter(function(d) { return d.is_cluster_buy; }).length;
+  var totalNet = INSIDER_DATA.reduce(function(s, d) { return s + (d.net_value_90d || 0); }, 0);
+  var csuite = INSIDER_DATA.filter(function(d) { return d.csuite_buying; }).length;
 
-  document.getElementById('stat-bullish').textContent = bullish;
-  document.getElementById('stat-clean').textContent = clean;
-  document.getElementById('stat-proximity').textContent = proximate;
-  document.getElementById('stat-bearish').textContent = bearish;
+  document.getElementById('stat-bullish').textContent = strongBuy;
+  document.getElementById('stat-clean').textContent = clusters;
+  document.getElementById('stat-proximity').textContent = fmtDollars(totalNet);
+  document.getElementById('stat-bearish').textContent = csuite;
   document.getElementById('scan-timestamp').textContent =
     'Updated: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
@@ -531,49 +525,110 @@ function renderInsiderTable() {
   var sb = getSupabase();
 
   try {
-    // Fetch from server-side gated endpoint (same as PDUFA scanner)
-    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
-      headers: {
-        'Authorization': 'Bearer ' + (session.access_token || ''),
-        'Content-Type': 'application/json',
-      },
-    });
+    // 1. Try loading from insider_scores table (real Finnhub data)
+    var { data: scores, error: scErr } = await sb.from('insider_scores')
+      .select('*')
+      .order('conviction_score', { ascending: false });
 
-    var result = await res.json();
-
-    if (result.events && result.events.length > 0) {
-      INSIDER_DATA = result.events.map(function(e) {
-        var scored = scoreConviction(e);
+    if (!scErr && scores && scores.length > 0) {
+      INSIDER_DATA = scores.map(function(s) {
+        var topBuyers = s.top_buyers || [];
+        var topSellers = s.top_sellers || [];
+        var largestBuy = topBuyers.length > 0 ? topBuyers[0] : null;
         return {
-          ticker: e.ticker,
-          drug: e.drug || '',
-          indication: e.indication || '',
-          date: e.date,
-          type: e.type || 'PDUFA',
-          grade: e.grade || 'WATCH',
-          poa: Number(e.poa) || 0,
-          score: Number(e.score) || 0,
-          net_edge_score: Number(e.net_edge_score) || 0,
-          insider_signal: e.insider_signal || 'NEUTRAL',
-          shelf_active: e.shelf_active || false,
-          atm_active: e.atm_active || false,
-          dilution_risk: e.dilution_risk || 'UNKNOWN',
-          runway_months: e.runway_months,
-          conviction_score: scored.score,
-          conviction_level: scored.level,
-          conviction_flags: scored.flags,
+          ticker: s.ticker,
+          conviction_signal: s.conviction_level || 'NEUTRAL',
+          conviction_score: s.conviction_score || 0,
+          pdufa_date: s.pdufa_date,
+          days_to_pdufa: s.days_to_pdufa,
+          shelf_active: s.shelf_active || false,
+          atm_active: s.atm_active || false,
+          poa: s.poa || 0,
+          grade: s.grade || '—',
+          net_value_90d: Number(s.net_value_90d) || 0,
+          buy_value_90d: Number(s.total_bought_value_90d) || 0,
+          sell_value_90d: Number(s.total_sold_value_90d) || 0,
+          unique_buyers_90d: s.unique_buyers_90d || 0,
+          unique_sellers_90d: s.unique_sellers_90d || 0,
+          is_cluster_buy: s.is_cluster_buy || false,
+          cluster_insiders: s.cluster_insiders || 0,
+          csuite_buying: false, // TODO: detect from transaction names
+          largest_buy_name: largestBuy ? largestBuy.name : null,
+          largest_buy_value: largestBuy ? largestBuy.total : null,
+          largest_buy_title: null,
         };
       });
+      console.log('[SC] Insider Conviction: loaded ' + scores.length + ' tickers from insider_scores');
 
-      // Sort by conviction score descending by default
-      INSIDER_DATA.sort(function(a, b) { return b.conviction_score - a.conviction_score; });
-      console.log('[SC] Insider Conviction: loaded ' + INSIDER_DATA.length + ' events');
+      // 2. Load recent transactions for detail expansion
+      var { data: txns } = await sb.from('insider_transactions')
+        .select('ticker, insider_name, transaction_date, transaction_code, share_change, transaction_price, total_value')
+        .in('transaction_code', ['P', 'S'])
+        .order('transaction_date', { ascending: false })
+        .limit(500);
+
+      if (txns) {
+        txns.forEach(function(t) {
+          if (!TXN_DATA[t.ticker]) TXN_DATA[t.ticker] = [];
+          TXN_DATA[t.ticker].push({
+            ticker: t.ticker,
+            insider_name: t.insider_name,
+            transaction_date: t.transaction_date,
+            transaction_type: t.transaction_code === 'P' ? 'BUY' : 'SELL',
+            shares: Math.abs(t.share_change || 0),
+            value_usd: t.total_value || 0,
+          });
+        });
+        console.log('[SC] Loaded ' + txns.length + ' individual transactions');
+      }
+
+    } else {
+      // 3. Fallback: use pdufa_events insider_signal (old method)
+      console.warn('[SC] insider_scores table not available, falling back to pdufa_events');
+      var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+        headers: {
+          'Authorization': 'Bearer ' + (session.access_token || ''),
+          'Content-Type': 'application/json',
+        },
+      });
+
+      var result = await res.json();
+      if (result.events && result.events.length > 0) {
+        INSIDER_DATA = result.events.map(function(e) {
+          var sig = (e.insider_signal || 'NEUTRAL').toUpperCase();
+          var convSignal = sig === 'BULLISH' ? 'STRONG_BUY' : sig === 'POSITIVE' ? 'BUY' :
+                           sig === 'BEARISH' ? 'SELL' : 'NEUTRAL';
+          var score = sig === 'BULLISH' ? 65 : sig === 'POSITIVE' ? 45 : sig === 'BEARISH' ? 10 : 20;
+          var days = daysUntil(e.date);
+          return {
+            ticker: e.ticker,
+            conviction_signal: convSignal,
+            conviction_score: score,
+            pdufa_date: e.date,
+            days_to_pdufa: days > 0 ? days : null,
+            shelf_active: e.shelf_active || false,
+            atm_active: e.atm_active || false,
+            poa: Number(e.poa) || 0,
+            grade: e.grade || 'WATCH',
+            net_value_90d: 0,
+            buy_value_90d: 0,
+            sell_value_90d: 0,
+            unique_buyers_90d: 0,
+            is_cluster_buy: false,
+            csuite_buying: false,
+            largest_buy_name: null,
+            largest_buy_value: null,
+            largest_buy_title: null,
+          };
+        });
+        console.log('[SC] Fallback: loaded ' + INSIDER_DATA.length + ' events from pdufa_events');
+      }
     }
   } catch (err) {
     console.warn('[SC] Insider data load error:', err);
   }
 
-  renderInsiderTable();
+  renderInsiderGrid();
 })();
 </script>
 </body>
