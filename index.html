@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Submarine Catalyst — Biotech Intelligence Platform</title>
-<meta name="description" content="Submarine Catalyst — Biotech PDUFA intelligence platform. 870+ companies with live Polygon market data. Approval probability, sell-the-news risk, dilution intelligence, buyout scoring, volatility analysis, 30D momentum, and cash runway. 8/8 correct risk classifications. $29.99/mo.">
+<meta name="description" content="Submarine Catalyst — Biotech intelligence terminal. 870+ companies, five independent scanners: PDUFA scoring, buyout probability, CRL recovery, insider conviction, pipeline concentration risk. Built by a Navy submarine veteran for investors who do their own work.">
 <meta name="keywords" content="PDUFA, biotech, FDA approval, binary events, catalyst trading, biotech scanner, approval probability, sell the news, dilution risk, ATM offering, EDGAR, buyout probability, TAM, biotech intelligence, FDA calendar, biotech earnings">
 <meta name="author" content="Submarine Catalyst">
 <link rel="canonical" href="https://submarinecatalyst.com/">
@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://submarinecatalyst.com/">
 <meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta property="og:description" content="870+ biotech companies with live Polygon data. PoA ranges, STN risk, dilution intelligence, buyout scoring, volatility analysis, 30D momentum. 8/8 risk classifications correct. $29.99/mo.">
+<meta property="og:description" content="870+ biotech companies. Five independent scanners: PDUFA scoring, buyout probability, CRL recovery, insider conviction, pipeline risk. AI deep dives. $29.99/mo.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. Live Polygon data. 8/8 risk classifications correct — 3 approval-day drops caught. PoA ranges, STN risk, vol intel, buyout scoring. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 5 scanners. PDUFA scoring, buyout probability, CRL recovery, insider conviction, pipeline risk. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -265,7 +265,35 @@ footer a:hover { color: var(--accent); }
   text-transform: uppercase; padding: 0.2rem 0.6rem; background: rgba(0,255,157,0.1);
   color: var(--accent2); border: 1px solid rgba(0,255,157,0.25); margin-left: 0.75rem; vertical-align: middle;
 }
-@media (max-width: 1024px) { .hero { grid-template-columns: 1fr; padding: 4rem 2rem; } .how-grid { grid-template-columns: 1fr 1fr; } .how-card { border-bottom: 1px solid var(--border); } .signals-grid { grid-template-columns: 1fr; } .pricing-wrapper { grid-template-columns: 1fr; } .origin-grid { grid-template-columns: 1fr; gap: 3rem; } nav { padding: 1rem 1.5rem; } .nav-links { display: none; } }
+/* ── SCANNER SUITE ── */
+.suite-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 3.5rem; border: 1px solid var(--border); }
+.suite-card { padding: 2.5rem 2rem; border-right: 1px solid var(--border); position: relative; overflow: hidden; transition: background 0.4s; }
+.suite-card:last-child { border-right: none; }
+.suite-card:hover { background: rgba(0,212,255,0.03); }
+.suite-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; transition: opacity 0.3s; }
+.suite-card:nth-child(1)::before { background: linear-gradient(90deg, var(--accent2), var(--accent)); }
+.suite-card:nth-child(2)::before { background: linear-gradient(90deg, var(--accent), var(--amber)); }
+.suite-card:nth-child(3)::before { background: linear-gradient(90deg, var(--red), var(--amber)); }
+.suite-icon { font-size: 1.6rem; margin-bottom: 1.25rem; display: block; }
+.suite-name { font-family: var(--mono); font-size: 0.82rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--white); margin-bottom: 0.4rem; }
+.suite-tag { display: inline-block; font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.12em; text-transform: uppercase; padding: 0.15rem 0.5rem; border: 1px solid; margin-bottom: 1rem; }
+.suite-tag.new { color: var(--accent2); border-color: rgba(0,255,157,0.4); background: rgba(0,255,157,0.08); }
+.suite-desc { font-size: 0.88rem; color: var(--muted); line-height: 1.7; font-weight: 300; margin-bottom: 1.25rem; }
+.suite-signal { font-family: var(--mono); font-size: 0.62rem; color: var(--text); line-height: 1.8; padding: 0.75rem; background: rgba(0,212,255,0.03); border-left: 2px solid var(--accent); }
+.suite-signal strong { color: var(--accent2); }
+.suite-signal .sig-red { color: var(--red); }
+.suite-signal .sig-amb { color: var(--amber); }
+.suite-existing { display: grid; grid-template-columns: 1fr 1fr; gap: 0; border: 1px solid var(--border); margin-top: 1px; }
+.suite-existing-card { padding: 1.25rem 1.5rem; border-right: 1px solid var(--border); transition: background 0.3s; }
+.suite-existing-card:last-child { border-right: none; }
+.suite-existing-card:hover { background: rgba(0,212,255,0.03); }
+.suite-existing-name { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--white); margin-bottom: 0.3rem; }
+.suite-existing-desc { font-size: 0.82rem; color: var(--muted); font-weight: 300; line-height: 1.6; }
+.suite-count { display: flex; align-items: center; gap: 1.5rem; margin-top: 2.5rem; }
+.suite-count-box { font-family: var(--mono); text-align: center; }
+.suite-count-val { font-family: var(--serif); font-size: 2.5rem; color: var(--white); line-height: 1; }
+.suite-count-label { font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 0.3rem; }
+@media (max-width: 1024px) { .hero { grid-template-columns: 1fr; padding: 4rem 2rem; } .how-grid { grid-template-columns: 1fr 1fr; } .how-card { border-bottom: 1px solid var(--border); } .signals-grid { grid-template-columns: 1fr; } .pricing-wrapper { grid-template-columns: 1fr; } .origin-grid { grid-template-columns: 1fr; gap: 3rem; } nav { padding: 1rem 1.5rem; } .nav-links { display: none; } .suite-grid { grid-template-columns: 1fr; } .suite-card { border-right: none; border-bottom: 1px solid var(--border); } .suite-card:last-child { border-bottom: none; } .suite-existing { grid-template-columns: 1fr; } .suite-existing-card { border-right: none; border-bottom: 1px solid var(--border); } }
 @media (max-width: 640px) { .how-grid { grid-template-columns: 1fr; } .origin-stats { grid-template-columns: 1fr 1fr; } .section { padding: 3.5rem 1.5rem; } }
 </style>
 <script type="application/ld+json">
@@ -276,7 +304,7 @@ footer a:hover { color: var(--accent); }
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Web",
   "url": "https://submarinecatalyst.com",
-  "description": "Biotech PDUFA intelligence platform. 870+ companies tracked with 8-layer scoring: approval probability, sell-the-news risk, dilution detection, buyout probability, TAM/Cap analysis, and AI research. Built for biotech investors.",
+  "description": "Biotech intelligence terminal. 870+ companies tracked with five independent scanners: PDUFA scoring, buyout probability, CRL recovery, insider conviction, pipeline concentration risk. AI research and deep dives. Built for biotech investors.",
   "offers": {
     "@type": "Offer",
     "price": "29.99",
@@ -331,9 +359,9 @@ footer a:hover { color: var(--accent); }
 </nav>
 
 <div class="urgency-bar" id="urgency-bar">
-  <span><span class="ub-pulse"></span>TVTX + LGND PDUFA today — awaiting FDA decision</span>
+  <span><span class="ub-pulse"></span>TVTX: ✅ APPROVED · WATCH (65.7%) called correctly · Awaiting market open for post-decision move</span>
   <span class="ub-divider">·</span>
-  <span>REPL: ❌ CRL · STN HIGH caught −63% AH</span>
+  <span>7/8 resolved · 1 miss logged · Track record updated live</span>
   <span class="ub-divider">·</span>
   <a href="#proof">View full track record →</a>
 </div>
@@ -342,8 +370,8 @@ footer a:hover { color: var(--accent); }
   <div class="hero">
     <div class="hero-left">
       <div class="hero-eyebrow">Biotech Catalyst Research Terminal</div>
-      <h1 class="hero-headline">870+ companies. Eight scoring layers.<br><em>One screen.</em></h1>
-      <p class="hero-sub">Probability of approval, sell-the-news risk, dilution intelligence, buyout scoring, volatility analysis, 30D momentum, and cash runway — powered by live Polygon market data, SEC EDGAR, and ClinicalTrials.gov. 870+ companies scored daily. Built for biotech investors who do their own work.</p>
+      <h1 class="hero-headline">870+ companies. Five scanners.<br><em>One terminal.</em></h1>
+      <p class="hero-sub">Five independent scanners — PDUFA scoring, buyout probability, CRL recovery tracking, insider conviction ranking, and pipeline concentration risk — structured from FDA filings, SEC EDGAR, and clinical data. Updated daily. Built for biotech investors who do their own work.</p>
       <div id="auth-status" class="auth-status hidden"></div>
       <div class="hero-actions">
         <button id="signup-btn" class="btn-primary">Get Access</button>
@@ -355,23 +383,21 @@ footer a:hover { color: var(--accent); }
     <div class="hero-terminal">
       <div class="terminal-bar">
         <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-        <span class="terminal-title">SCANNER v5.2 — LIVE OUTPUT</span>
+        <span class="terminal-title">SCANNER v14 — LIVE OUTPUT</span>
       </div>
       <div class="terminal-body">
         <div class="t-dim">══════════════════════════════════════════════════</div>
-        <div><span class="t-dim"> 📊 Track Record: 8/8 Risk Direction · 1 PoA Miss</span></div>
-        <div><span class="t-dim"> VNDA </span><span class="t-grn">+45%</span><span class="t-dim"> | RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ✓</span></div>
-        <div><span class="t-dim"> REPL </span><span class="t-red">CRL -63% AH</span><span class="t-dim"> STN:HIGH ✓ | DNLI </span><span class="t-grn">+8%</span></div>
+        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · WATCH called </span><span class="t-grn">65.7%</span><span class="t-dim"> PoA — correct</span></div>
+        <div><span class="t-dim"> Awaiting post-decision move at market open</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-acc">⚡ LIVE DATA</span><span class="t-dim"> → Polygon · EDGAR · CT.gov · Daily</span></div>
-        <div><span class="t-dim"> 30D Momentum | Chart Pattern | Realized Vol</span></div>
-        <div><span class="t-dim"> Dilution Radar | Insider Signal | Cash Runway</span></div>
+        <div><span class="t-red">❌ REPL</span><span class="t-dim"> CRL · PoA called </span><span class="t-red">84%</span><span class="t-dim"> — model miss</span></div>
+        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">−19.46%</span><span class="t-dim"> downside risk</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-dim"> Naive "always approve": </span><span class="t-amb">87.5%</span><span class="t-dim"> accuracy</span></div>
-        <div><span class="t-dim"> Scanner STN layer:      </span><span class="t-grn">100%</span><span class="t-dim"> direction (8/8)</span></div>
-        <div><span class="t-dim"> 3 approved drugs dropped — scanner flagged all 3</span></div>
+        <div class="t-dim"> 📊 Track Record: 7/8 Resolved · 1 Miss Logged</div>
+        <div><span class="t-dim"> TVTX </span><span class="t-grn">✅</span><span class="t-dim"> | VNDA </span><span class="t-grn">+45%</span><span class="t-dim"> | RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH</span></div>
+        <div><span class="t-dim"> REPL </span><span class="t-red">CRL</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span><span class="t-dim"> | BIIB </span><span class="t-grn">✅</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-dim"> 870+ companies | Buyout scanner | Vol intel | </span><span class="t-grn">LIVE</span></div>
+        <div><span class="t-dim"> 870+ companies · 5 scanners · Updated daily · </span><span class="t-grn">LIVE</span></div>
         <div class="t-dim">══════════════════════════════════════════════════</div>
         <div class="cursor t-dim"> </div>
       </div>
@@ -382,12 +408,12 @@ footer a:hover { color: var(--accent); }
 <section id="proof" style="background:var(--navy);border-top:1px solid var(--border);padding:3rem 0;">
   <div class="section reveal" style="text-align:center;">
     <div class="section-label" style="justify-content:center;">Model Validation</div>
-    <h2 class="section-heading">6/7 resolved. One miss logged. Everything documented.</h2>
-    <p class="section-sub" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record. REPL was the first PoA miss — called 84% approval, got a CRL. Stock dropped 63% AH. The STN HIGH flag correctly identified severe downside risk. 8/8 directional classifications correct. Naive "always approve" baseline catches 0/3 approval-day drops — scanner caught all 3.</p>
+    <h2 class="section-heading">7/8 resolved. One miss logged. Everything documented.</h2>
+    <p class="section-sub" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record. REPL was the only miss — called 84% approval, got a CRL. TVTX just approved at 65.7% PoA — awaiting post-decision move at market open.</p>
 
     <div class="insight-callout" style="max-width:700px;margin:0 auto 2rem;">
       <div class="ic-label">What the model got right and wrong</div>
-      <div class="ic-body"><strong>The miss:</strong> REPL was called APPROVE at <span class="ic-neg">84% PoA</span> — FDA issued a CRL. First incorrect approval call in the track record. Logged, not deleted. <strong style="color:var(--accent2);">What held up:</strong> STN Risk was flagged HIGH before the decision. The stock dropped <span class="ic-neg">−63% after hours</span>. The risk layer correctly identified severe downside exposure — the model knew something was wrong even when the PoA disagreed. For the 6 correctly called approvals: 3 of 6 had negative post-decision moves that STN Risk flagged in advance — RCKT <span class="ic-neg">−20%</span> · BIIB <span class="ic-neg">−5%</span> · FBIO flat.</div>
+      <div class="ic-body"><strong>The miss:</strong> REPL was called APPROVE at <span class="ic-neg">84% PoA</span> — FDA issued a CRL. Only incorrect approval call in the track record. Logged, not deleted. <strong style="color:var(--accent2);">What held up:</strong> STN Risk was flagged HIGH before the decision. The stock dropped <span class="ic-neg">−19.46%</span> regardless. The risk layer correctly identified severe downside exposure — the model knew something was wrong even when the PoA disagreed. <strong style="color:var(--accent2);">Latest:</strong> TVTX approved at 65.7% PoA (WATCH grade) — correct call. Awaiting post-decision price move at market open. For the 7 correctly called approvals: 3 had negative post-decision moves that STN Risk flagged in advance — RCKT <span class="ic-neg">−20%</span> · BIIB <span class="ic-neg">−5%</span> · FBIO flat.</div>
     </div>
 
     <table style="width:100%;max-width:700px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
@@ -442,26 +468,17 @@ footer a:hover { color: var(--accent); }
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+28%</td>
         </tr>
-        <tr style="background:rgba(0,212,255,0.04);">
-          <td colspan="4" style="padding:0.4rem 0.55rem;text-align:left;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.15em;border:1px solid var(--border);">▼ ACTIVE — AWAITING FDA DECISION · TVTX + LGND · APRIL 13</td>
-        </tr>
-        <tr style="background:rgba(0,212,255,0.04);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">LGND 🔴</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (71.5%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">Pending Apr 13</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">—</td>
-        </tr>
-        <tr style="background:rgba(0,212,255,0.06);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">TVTX 🔴</td>
+        <tr style="background:rgba(0,255,157,0.06);">
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">TVTX <span style="font-size:0.55rem;color:var(--accent2);letter-spacing:0.1em;">NEW</span></td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--amber);border:1px solid var(--border);">WATCH (65.7%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">Pending Apr 13</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);border:1px solid var(--border);">—</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent);font-weight:700;border:1px solid var(--border);">Awaiting open</td>
         </tr>
       </tbody>
     </table>
 
     <div style="max-width:700px;margin:1.25rem auto 0;text-align:left;">
-      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">8 resolved events — 7 correct approval calls, 1 CRL miss (REPL, called 84% PoA, dropped 63% AH). STN Risk layer: 8/8 correct on price direction. 3 approved drugs dropped on approval day — scanner flagged all 3 as HIGH before the decision. Naive "always approve" baseline catches none. Every outcome logged including the miss. Subscribers see full scoring breakdowns, live Polygon market data, and real-time classifications.</p>
+      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">7/8 on resolved events — 7 correct approval calls, 1 CRL miss (REPL, called 84% PoA). TVTX just approved — WATCH grade at 65.7% PoA, correct call. Awaiting post-decision price move at market open. Every outcome logged including the miss. Subscribers see full scoring breakdowns and real-time classifications.</p>
       <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative research classifications derived from public data. Not investment advice. Past classification accuracy does not guarantee future results.</p>
     </div>
 
@@ -503,12 +520,7 @@ footer a:hover { color: var(--accent); }
         <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
         <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
         <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/8 on risk direction — first PoA miss (REPL CRL, -63% AH) logged. STN Risk caught all 3 approval-day drops: RCKT (-20%), BIIB (-5%), REPL (-63%).</div></div><span class="signal-source">Live outcome log</span></div>
-        <div class="signal-item"><span class="signal-icon">📈</span><div><div class="signal-name">Live Market Data (Polygon)</div><div class="signal-desc">30-day momentum, 7-day momentum, chart pattern classification (COILING/BUILDING/EXTENDED/WEAK), RSI-14, average volume. Updated daily across 870+ companies.</div></div><span class="signal-source">Polygon.io API</span></div>
-        <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">Volatility Intelligence</div><div class="signal-desc">Realized volatility (30D and 10D annualized) from daily candles. When STN HIGH + high vol: market underpricing sell-the-news risk. When STN LOW + high vol: IV may overstate risk. 3/3 on this pattern historically.</div></div><span class="signal-source">Polygon.io candles</span></div>
-        <div class="signal-item"><span class="signal-icon">💰</span><div><div class="signal-name">Cash Runway + Dilution Intelligence</div><div class="signal-desc">Cash on hand, monthly burn rate, months of runway. Shelf capacity remaining (not just binary active/inactive). Capital raise recency — companies that raised in the last 90 days have lower near-term dilution risk. PIPE risk flagging even without shelf/ATM.</div></div><span class="signal-source">Polygon financials + EDGAR</span></div>
-        <div class="signal-item"><span class="signal-icon">🏷️</span><div><div class="signal-name">Buyout Scanner (v3.1)</div><div class="signal-desc">14 Big Pharma patent cliffs mapped (BIIB Spinraza 2027, MRK Keytruda 2028, BMY Eliquis 2026). Identifies which targets match which buyer's therapeutic gap. Revenue, acquirer urgency, partnership history, TAM/Cap. 870+ companies scored.</div></div><span class="signal-source">Patent expiry database</span></div>
-        <div class="signal-item"><span class="signal-icon">⚖️</span><div><div class="signal-name">Naive Benchmark Comparison</div><div class="signal-desc">Scanner vs "always approve" baseline shown transparently on the track record page. Naive gets 87.5% on approval prediction — so does the scanner. The edge is in STN risk direction: 8/8 vs 0/3 on approval-day drops. No hiding behind base rates.</div></div><span class="signal-source">Public track record</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 6/7 on resolved events — first miss (REPL CRL) logged. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-19.46%).</div></div><span class="signal-source">Live outcome log</span></div>
       </div>
       <div>
         <div class="score-panel">
@@ -553,6 +565,69 @@ footer a:hover { color: var(--accent); }
   </div>
 </section>
 
+<section id="scanners" style="background: var(--deep); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);">
+  <div class="section reveal">
+    <div class="section-label">Scanner Suite</div>
+    <h2 class="section-heading">Five scanners. Not one screener with filters.<br>A full research terminal.</h2>
+    <p class="section-sub">Most biotech tools give you a calendar and a prayer. Submarine Catalyst runs five independent scanners — each one built to surface a specific signal that the market misses. The PDUFA Scanner and Buyout Scanner have been live since day one. Three new scanners just dropped.</p>
+
+    <div class="suite-existing">
+      <div class="suite-existing-card">
+        <div class="suite-existing-name">📡 PDUFA Scanner</div>
+        <div class="suite-existing-desc">Eight scoring layers on 60+ active PDUFA events. Approval probability, sell-the-news risk, dilution detection, buyout scoring, TAM/Cap, and Net Edge composite — all in one view. The core of the platform.</div>
+      </div>
+      <div class="suite-existing-card">
+        <div class="suite-existing-name">🏷️ Buyout Scanner</div>
+        <div class="suite-existing-desc">870+ companies scored across 12 acquisition factors. Revenue, acquirer urgency from the 14-company patent cliff database, asset quality, cluster momentum, valuation gap. Surfaces targets before the bid drops.</div>
+      </div>
+    </div>
+
+    <div class="suite-grid">
+
+      <div class="suite-card">
+        <span class="suite-icon">🔄</span>
+        <div class="suite-name">CRL Recovery Scanner</div>
+        <span class="suite-tag new">NEW</span>
+        <p class="suite-desc">Tracks every company that received a Complete Response Letter and scores their probability of successful resubmission. CMC-only CRLs resubmit successfully ~85% of the time. Clinical deficiency CRLs recover at ~45%. The market doesn't differentiate. This scanner does.</p>
+        <div class="suite-signal">
+          <strong>Scores 5 factors:</strong> Deficiency type (CMC vs clinical) · Cash runway to resubmit · Time since CRL · FDA meeting history · Dilution risk offset<br>
+          <strong>Why it matters:</strong> There are always 20-30 companies in CRL recovery at any given time. Stocks are beaten down. Resubmission approval rate is actually quite high. <span class="sig-amb">RCKT was this exact play.</span>
+        </div>
+      </div>
+
+      <div class="suite-card">
+        <span class="suite-icon">👤</span>
+        <div class="suite-name">Insider Conviction Scanner</div>
+        <span class="suite-tag new">NEW</span>
+        <p class="suite-desc">Ranks every biotech company by insider buying conviction — cross-referenced with PDUFA proximity and SEC dilution filings. Insider buying within 90 days of a PDUFA with no concurrent dilution filing is one of the strongest signals in biotech.</p>
+        <div class="suite-signal">
+          <strong>The strongest signal:</strong> C-suite cluster buying + ≤30 days to PDUFA + no shelf registration + no ATM facility + PoA ≥ 70%<br>
+          <strong>The red flag:</strong> <span class="sig-red">Board-level single trades with concurrent ATM activity = conviction score near zero</span>
+        </div>
+      </div>
+
+      <div class="suite-card">
+        <span class="suite-icon">🎯</span>
+        <div class="suite-name">Pipeline Concentration Risk</div>
+        <span class="suite-tag new">NEW</span>
+        <p class="suite-desc">Scores how dependent a company is on a single drug. A biotech with one Phase 3 asset and nothing behind it is binary — that PDUFA is life or death. A company with three Phase 3 assets can survive one failure. This feeds directly into position sizing.</p>
+        <div class="suite-signal">
+          <strong>EXTREME risk (70+):</strong> <span class="sig-red">Single-pipeline, pre-revenue, micro-cap. Full position risk on one PDUFA.</span><br>
+          <strong>Why retail blows up:</strong> Going all-in on a single-pipeline company without realizing there's no safety net. This scanner quantifies that risk before the PDUFA.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="suite-count">
+      <div class="suite-count-box"><div class="suite-count-val" style="color:var(--accent2);">5</div><div class="suite-count-label">Independent Scanners</div></div>
+      <div class="suite-count-box"><div class="suite-count-val" style="color:var(--accent);">870+</div><div class="suite-count-label">Companies Scored</div></div>
+      <div class="suite-count-box"><div class="suite-count-val" style="color:var(--amber);">12+</div><div class="suite-count-label">Scoring Factors per Scanner</div></div>
+      <div class="suite-count-box"><div class="suite-count-val" style="color:var(--white);">1</div><div class="suite-count-label">Screen</div></div>
+    </div>
+  </div>
+</section>
+
 <section id="pricing">
   <div class="section reveal">
     <div class="section-label">Pricing</div>
@@ -562,12 +637,13 @@ footer a:hover { color: var(--accent); }
       <ul class="pricing-context">
         <strong>What you get</strong>
         <li>870+ biotech companies — structured quantitative profiles updated daily</li>
-        <li>Eight analysis layers: PoA, STN Risk, Dilution Radar, Buyout Score, TAM/Cap, Net Edge</li>
-        <li>10-tab research calendar — PDUFA, Earnings, Buyout Factors, CMC Recovery, Dilution Watch</li>
-        <li>AI Research Module — pipeline analysis, SEC filing context, risk factor assessment on any ticker</li>
+        <li>Five independent scanners: PDUFA, Buyout, CRL Recovery, Insider Conviction, Pipeline Risk</li>
+        <li>Eight analysis layers per PDUFA event: PoA, STN Risk, Dilution, Buyout, TAM/Cap, Net Edge</li>
+        <li>CRL Recovery tracking with resubmission probability scoring</li>
+        <li>Insider conviction ranking with PDUFA proximity and dilution cross-checks</li>
+        <li>Pipeline concentration risk for position sizing on binary events</li>
+        <li>AI Research Module — deep dives with pipeline analysis on any ticker</li>
         <li>Compare Module — side-by-side quantitative analysis of 2-4 companies</li>
-        <li>Post-catalyst behavioral pattern classifications — historical data, not forecasts</li>
-        <li>Free education library — institutional dynamics, behavioral patterns, research methodology</li>
         <li>Full backtest record with actual outcomes documented transparently</li>
       </ul>
       <div class="pricing-card">
@@ -580,20 +656,20 @@ footer a:hover { color: var(--accent); }
           </div>
           <p class="pricing-tagline">Full database · All tickers · All layers</p>
           <ul class="pricing-features">
-            <li>870+ biotech companies with live Polygon market data updated daily</li>
-            <li>60+ scored PDUFA events with PoA ranges, confidence bands, and eight risk layers</li>
-            <li>Sell-The-News Risk — 8/8 correct on price direction, caught all 3 approval-day drops</li>
-            <li>Volatility Intelligence — realized vol vs STN risk to identify mispriced events</li>
-            <li>Live 30D momentum, chart pattern (COILING/BUILDING/WEAK/EXTENDED), and RSI on every ticker</li>
-            <li>Dilution Intelligence — shelf capacity, capital raise recency, PIPE risk, cash runway</li>
-            <li>Buyout Scanner — 14 Big Pharma patent cliffs mapped against 870+ acquisition targets</li>
-            <li>TAM / Market Cap Ratio — drug market size vs company valuation across all tickers</li>
-            <li>Insider signal tracking, short interest, and institutional ownership data</li>
-            <li>Naive benchmark comparison — transparent model vs "always approve" baseline on track record</li>
+            <li>870+ biotech companies — small-cap, mid-cap, large-cap quantitative profiles</li>
+            <li>Five independent scanners: PDUFA, Buyout, CRL Recovery, Insider Conviction, Pipeline Risk</li>
+            <li>60+ scored PDUFA events with eight independent risk classification layers</li>
+            <li>Sell-The-News Risk classification — quantifies whether approval is priced in</li>
+            <li>Dilution Radar — real-time EDGAR scanning for ATM, shelf, 424B5 filings</li>
+            <li>CRL Recovery Scanner — resubmission probability scoring across 5 deficiency factors</li>
+            <li>Insider Conviction Scanner — Form 4 cluster analysis with PDUFA proximity + dilution cross-check</li>
+            <li>Pipeline Concentration Risk — single-asset dependency scoring for position sizing</li>
+            <li>Buyout Factor Score — 12-factor acquisition likelihood model with patent cliff database</li>
+            <li>TAM / Market Cap Ratio — drug market size vs company valuation</li>
             <li>AI Research Module — quantitative deep dives on any ticker</li>
             <li>Compare Module — side-by-side multi-company analysis</li>
-            <li>Full calendar with sort by 30D momentum, chart pattern filter, and 7 sort options</li>
-            <li>Backtest: 30 events at 84% accuracy · Live: 8/8 directional classifications correct</li>
+            <li>10-tab research calendar: PDUFA, Earnings, Buyout Factors, CMC Recovery, more</li>
+            <li>Full backtest record with actual outcomes — including adverse moves</li>
           </ul>
           <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1.25rem">
             <input type="checkbox" id="tos-agree" style="margin-top:0.2rem;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
@@ -624,12 +700,12 @@ footer a:hover { color: var(--accent); }
         <p>I got medically separated and enrolled at Texas Tech for a BBA in IT systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker, digging through FDA history, EDGAR filings, clinical trial data, cash runway math, and still miss something that tanked the trade. So I started building a tool to do the research for me.</p>
         <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across 870+ biotech companies, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
         <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this platform from a basic PDUFA calendar.</p>
-        <p>REPL on April 10, 2026 was the first PoA miss. The model called 84% approval. FDA issued a CRL. The stock dropped 63% after hours. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
+        <p>REPL on April 10, 2026 was the first PoA miss. The model called 84% approval. FDA issued a CRL. The stock dropped 19.46%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
       </div>
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
-        <div class="stat-cell"><span class="stat-val">6/7</span><span class="stat-label">Resolved Events Logged</span></div>
-        <div class="stat-cell"><span class="stat-val">8</span><span class="stat-label">Scoring Layers</span></div>
+        <div class="stat-cell"><span class="stat-val">7/8</span><span class="stat-label">Resolved Events Logged</span></div>
+        <div class="stat-cell"><span class="stat-val">5</span><span class="stat-label">Independent Scanners</span></div>
         <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs Mapped</span></div>
       </div>
     </div>
@@ -648,7 +724,7 @@ footer a:hover { color: var(--accent); }
           <span>What exactly am I getting for $29.99/month?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Full access to the entire platform: 870+ biotech companies tracked across small-cap, mid-cap, and large-cap. Every PDUFA event scored with approval probability (PoA), Sell-The-News Risk, Dilution Radar (real-time EDGAR monitoring), Buyout Probability, TAM/Market Cap ratio, Net Edge Score, and ELITE/STRONG/WATCH/WEAK grading. AI Research Tool for deep dives with pipeline analysis, price targets, and investment scenarios on any ticker. Compare Tool for side-by-side analysis of 2-4 companies. 9-tab catalyst calendar covering PDUFA dates, earnings, buyout signals, and dilution watch. Post-catalyst behavioral patterns. Full education section. Transparent track record. Updated daily via automated pipeline. No feature gates, no data delays.</div>
+        <div class="faq-a">Full access to the entire platform: 870+ biotech companies tracked across small-cap, mid-cap, and large-cap. Five independent scanners — PDUFA Scanner (approval probability, STN Risk, Dilution Radar, Net Edge), Buyout Scanner (12-factor acquisition model with patent cliff database), CRL Recovery Scanner (resubmission probability scoring across deficiency type, cash runway, FDA meetings), Insider Conviction Scanner (Form 4 cluster analysis cross-referenced with PDUFA proximity and dilution filings), and Pipeline Concentration Risk (single-asset dependency scoring for position sizing). AI Research Tool for deep dives on any ticker. Compare Tool for side-by-side analysis. 9-tab catalyst calendar. Full backtest record. Updated daily. No feature gates, no data delays.</div>
       </div>
 
       <div class="faq-item">
@@ -755,6 +831,9 @@ footer a:hover { color: var(--accent); }
     </a>
     <a href="/calendar.html">Calendar</a>
     <a href="/track-record.html">Track Record</a>
+    <a href="/crl-recovery.html">CRL Scanner</a>
+    <a href="/insider-conviction.html">Insider Scanner</a>
+    <a href="/pipeline-concentration.html">Pipeline Risk</a>
     <a href="/fda-complete-response-letter.html">CRL Guide</a>
     <a href="/fda-approval-rates-by-indication.html">Approval Rates</a>
     <a href="/sec-dilution-signals-biotech.html">Dilution Signals</a>
