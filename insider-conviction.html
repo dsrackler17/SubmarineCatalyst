@@ -263,23 +263,23 @@
 
       <div class="stat-strip">
         <div class="stat-cell">
-          <div class="stat-label">Strong Buy</div>
+          <div class="stat-label">Active Buying</div>
           <div class="stat-val green" id="stat-bullish">—</div>
-          <div class="stat-sub">conviction ≥ 75</div>
+          <div class="stat-sub">conviction ≥ 50</div>
         </div>
         <div class="stat-cell">
-          <div class="stat-label">Cluster Buys</div>
+          <div class="stat-label">Multi-Buyer</div>
           <div class="stat-val cyan" id="stat-clean">—</div>
-          <div class="stat-sub">3+ insiders in 30d</div>
+          <div class="stat-sub">3+ insiders buying</div>
         </div>
         <div class="stat-cell">
-          <div class="stat-label">Net $ Flow (90d)</div>
+          <div class="stat-label">Net $ Flow (buyers)</div>
           <div class="stat-val amber" id="stat-proximity">—</div>
-          <div class="stat-sub">buys minus sells</div>
+          <div class="stat-sub">companies with buying only</div>
         </div>
         <div class="stat-cell">
           <div class="stat-label">C-Suite Buying</div>
-          <div class="stat-val red" id="stat-bearish">—</div>
+          <div class="stat-val cyan" id="stat-bearish">—</div>
           <div class="stat-sub">CEO/CFO/CMO active</div>
         </div>
       </div>
@@ -494,10 +494,23 @@ function renderInsiderGrid() {
   }).join('');
 
   // Stats
-  var strongBuy = INSIDER_DATA.filter(function(d) { return d.conviction_score >= 75; }).length;
-  var clusters = INSIDER_DATA.filter(function(d) { return d.is_cluster_buy; }).length;
-  var totalNet = INSIDER_DATA.reduce(function(s, d) { return s + (d.net_value_90d || 0); }, 0);
-  var csuite = INSIDER_DATA.filter(function(d) { return d.csuite_buying; }).length;
+  var strongBuy = INSIDER_DATA.filter(function(d) { return d.conviction_score >= 50; }).length;
+  var clusters = INSIDER_DATA.filter(function(d) { return d.unique_buyers_90d >= 3; }).length;
+
+  // Net flow only for companies with actual buying (filter out routine large-cap selling noise)
+  var buyingTickers = INSIDER_DATA.filter(function(d) { return (d.buy_value_90d || 0) > 0; });
+  var totalNet = buyingTickers.reduce(function(s, d) { return s + (d.net_value_90d || 0); }, 0);
+
+  // C-suite: check top_buyers for officer titles or known C-level patterns
+  var csuiteTitles = ['CEO','CFO','COO','CMO','CTO','CSO','PRESIDENT','CHIEF','EXECUTIVE'];
+  var csuite = INSIDER_DATA.filter(function(d) {
+    var buyers = d.top_buyers || [];
+    if (!Array.isArray(buyers)) try { buyers = JSON.parse(buyers); } catch(e) { buyers = []; }
+    return buyers.some(function(b) {
+      var str = ((b.title || '') + ' ' + (b.name || '')).toUpperCase();
+      return csuiteTitles.some(function(t) { return str.includes(t); });
+    });
+  }).length;
 
   document.getElementById('stat-bullish').textContent = strongBuy;
   document.getElementById('stat-clean').textContent = clusters;
@@ -525,7 +538,7 @@ function renderInsiderGrid() {
   var sb = getSupabase();
 
   try {
-    // 1. Try loading from insider_scores table (real Finnhub data)
+    // 1. Load from insider_scores table (real SEC EDGAR Form 4 data)
     var { data: scores, error: scErr } = await sb.from('insider_scores')
       .select('*')
       .order('conviction_score', { ascending: false });
@@ -552,7 +565,8 @@ function renderInsiderGrid() {
           unique_sellers_90d: s.unique_sellers_90d || 0,
           is_cluster_buy: s.is_cluster_buy || false,
           cluster_insiders: s.cluster_insiders || 0,
-          csuite_buying: false, // TODO: detect from transaction names
+          csuite_buying: false,
+          top_buyers: topBuyers,
           largest_buy_name: largestBuy ? largestBuy.name : null,
           largest_buy_value: largestBuy ? largestBuy.total : null,
           largest_buy_title: null,
