@@ -117,6 +117,7 @@
   .crl-card.moderate::before { background: var(--accent); }
   .crl-card.low::before     { background: var(--amber); }
   .crl-card.stalled::before { background: var(--red); }
+  .crl-card.resolved::before { background: var(--accent2); opacity: 0.5; }
 
   .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
   .card-ticker { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: 0.08em; }
@@ -126,6 +127,7 @@
   .badge-moderate { color: var(--accent);  border-color: rgba(0,212,255,0.4);  background: rgba(0,212,255,0.08); }
   .badge-low      { color: var(--amber);   border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
   .badge-stalled  { color: var(--red);     border-color: rgba(255,68,68,0.4);  background: rgba(255,68,68,0.08); }
+  .badge-resolved { color: var(--accent2); border-color: rgba(0,255,157,0.3); background: rgba(0,255,157,0.06); }
 
   .card-drug { font-size: 0.82rem; color: var(--text); margin-bottom: 0.2rem; font-weight: 300; }
   .card-indication { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; margin-bottom: 0.75rem; }
@@ -305,9 +307,9 @@
         </select>
         <select id="crl-type-filter" onchange="renderCRLGrid()">
           <option value="all">All Deficiency Types</option>
-          <option value="cmc">CMC Only</option>
-          <option value="clinical">Clinical</option>
-          <option value="mixed">Mixed</option>
+          <option value="cmc">CMC / Facility</option>
+          <option value="clinical">Clinical (Efficacy/Safety)</option>
+          <option value="other">Human Factors / Other</option>
         </select>
         <select id="crl-recovery-filter" onchange="renderCRLGrid()">
           <option value="all">All Recovery Levels</option>
@@ -350,8 +352,10 @@ function scoreCRL(item) {
 
   // Deficiency Type (30 pts)
   var defType = (item.crl_type || '').toUpperCase();
-  if (defType === 'CMC' || defType === 'CMC_ONLY') {
-    score += 30; flags.push('✅ CMC-only deficiency (~85% resub rate)');
+  if (defType === 'CMC' || defType === 'CMC_ONLY' || defType === 'FACILITY') {
+    score += 30; flags.push('✅ CMC/facility-only deficiency (~85% resub rate)');
+  } else if (defType === 'HUMAN_FACTORS') {
+    score += 28; flags.push('✅ Human factors/labeling deficiency — fixable without new trials');
   } else if (defType === 'CMC_CLINICAL' || defType === 'MIXED') {
     score += 20; flags.push('⚠️ Mixed CMC + clinical deficiency');
   } else if (defType === 'CLINICAL_EFFICACY' || defType === 'EFFICACY') {
@@ -366,6 +370,12 @@ function scoreCRL(item) {
     } else {
       score += 15; flags.push('❓ Deficiency type not classified — review SEC filings');
     }
+  }
+
+  // Second CRL penalty (-10 pts)
+  if ((item.crl_number || 1) >= 2) {
+    score -= 10;
+    flags.push('🚨 This is CRL #' + item.crl_number + ' — repeat rejection significantly reduces recovery odds');
   }
 
   // Cash Runway (25 pts)
@@ -452,7 +462,7 @@ function renderCRLGrid() {
     if (search && !d.ticker.toUpperCase().includes(search)) return false;
     if (typeFilter === 'cmc' && d.crl_type_category !== 'CMC') return false;
     if (typeFilter === 'clinical' && d.crl_type_category !== 'CLINICAL') return false;
-    if (typeFilter === 'mixed' && d.crl_type_category !== 'MIXED') return false;
+    if (typeFilter === 'other' && d.crl_type_category !== 'OTHER' && d.crl_type_category !== 'MIXED') return false;
     if (recoveryFilter === 'high' && d.recovery_score < 70) return false;
     if (recoveryFilter === 'moderate' && d.recovery_score < 45) return false;
     return true;
@@ -476,10 +486,14 @@ function renderCRLGrid() {
     var runwayColor = (d.runway_months || 0) >= 18 ? 'green' : (d.runway_months || 0) >= 12 ? 'cyan' : (d.runway_months || 0) >= 6 ? 'amber' : 'red';
 
     return '<div class="crl-card ' + lvl + '" style="animation-delay:' + (i * 0.05) + 's"' +
-      ' onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'">' +
+      (d.is_active !== false ? ' onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'"' : '') + '>' +
       '<div class="card-top">' +
         '<div>' +
-          '<div class="card-ticker">' + d.ticker + '</div>' +
+          '<div class="card-ticker">' + d.ticker +
+            (d.crl_number > 1 ? ' <span style="font-size:0.55rem;color:var(--red);">CRL #' + d.crl_number + '</span>' : '') +
+            (d.resolution ? ' <span style="font-size:0.55rem;color:var(--accent2);">✅ ' + d.resolution + '</span>' : '') +
+          '</div>' +
+          '<div class="card-date">' + (d.company_name || d.ticker) + '</div>' +
           '<div class="card-date">CRL: ' + (d.crl_date || 'Unknown') + ' · ' + (d.crl_type || 'Unclassified') + '</div>' +
         '</div>' +
         '<span class="card-badge ' + badgeCls + '">' + d.recovery_level + '</span>' +
@@ -501,11 +515,14 @@ function renderCRLGrid() {
         '</div>' +
         '<div class="score-box">' +
           '<div class="score-box-label">Mkt Cap</div>' +
-          '<div class="score-box-val white">' + (d.market_cap ? '$' + (d.market_cap / 1e6).toFixed(0) + 'M' : '—') + '</div>' +
+          '<div class="score-box-val white">' + (d.market_cap ? (d.market_cap >= 1e9 ? '$' + (d.market_cap / 1e9).toFixed(1) + 'B' : '$' + (d.market_cap / 1e6).toFixed(0) + 'M') : '—') + '</div>' +
         '</div>' +
       '</div>' +
-      (d.resub_status ? '<div class="crl-context" style="background:rgba(0,255,157,0.04);border-left:2px solid var(--accent2);">' +
-        '📋 Resubmission: ' + d.resub_status + (d.resub_pdufa ? ' · Target PDUFA: ' + d.resub_pdufa : '') + '</div>' : '') +
+      (d.crl_details ? '<div class="crl-context" style="background:rgba(0,212,255,0.03);border-left:2px solid var(--border);font-size:0.56rem;line-height:1.6;color:var(--muted);max-height:3.4em;overflow:hidden;">' +
+        d.crl_details.slice(0, 200) + (d.crl_details.length > 200 ? '…' : '') + '</div>' : '') +
+      (d.resub_status && d.resub_status !== 'NOT_FILED' ? '<div class="crl-context" style="background:rgba(0,255,157,0.04);border-left:2px solid var(--accent2);">' +
+        '📋 ' + d.resub_status.replace(/_/g, ' ') + (d.resub_pdufa ? ' · Target PDUFA: ' + d.resub_pdufa : '') +
+        (d.fda_meeting && d.fda_meeting !== 'NONE' ? ' · FDA Meeting: ' + d.fda_meeting : '') + '</div>' : '') +
       '<div class="crl-flags">' +
         d.recovery_flags.map(function(f) {
           var color = f.startsWith('✅') || f.startsWith('💰') || f.startsWith('📋 Resub') ? 'var(--accent2)' :
@@ -513,7 +530,8 @@ function renderCRLGrid() {
           return '<div class="crl-flag" style="color:' + color + '">' + f + '</div>';
         }).join('') +
       '</div>' +
-      '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>' +
+      (d.is_active !== false ? '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>' :
+        '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent2);margin-top:0.75rem;letter-spacing:0.06em;">✅ Recovery complete — approved</div>') +
     '</div>';
   }).join('');
 
@@ -548,134 +566,119 @@ function renderCRLGrid() {
 
   var sb = getSupabase();
 
-  // Load CRL data from pdufa_events (type contains CRL or resubmission references)
-  // Also load from biotech_universe for companies with CRL history
   try {
-    // Primary: pdufa_events with CRL-related types or flags
-    var { data: crlEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, cmc_risk, cmc_flags, dilution_risk, dilution_score, runway_months, insider_signal, shelf_active, atm_active, estimated_market_cap, buyout_score, flags, notes')
-      .or('type.ilike.%CRL%,type.ilike.%resubmission%,type.ilike.%resub%,type.eq.sNDA,type.eq.NDA Resubmission');
+    // Query the dedicated crl_events table
+    var { data: crlRows, error } = await sb.from('crl_events')
+      .select('*')
+      .eq('is_active', true)
+      .order('crl_date', { ascending: false });
 
-    // Fallback: look for tickers with high CMC risk that had past events
-    var { data: cmcHighEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, cmc_risk, cmc_flags, dilution_risk, dilution_score, runway_months, insider_signal, shelf_active, atm_active, estimated_market_cap, buyout_score, flags, notes')
-      .in('cmc_risk', ['HIGH', 'ELEVATED'])
-      .lt('date', new Date().toISOString().split('T')[0]);
+    if (error) {
+      console.warn('[SC] CRL table query error:', error);
+      // Fallback: show message to check table exists
+      document.getElementById('crl-grid').innerHTML =
+        '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--amber);">' +
+        '⚠️ CRL events table not found. Run crl-events-table.sql in Supabase SQL Editor to create and populate it.</div>';
+      return;
+    }
+
+    // Also load resolved CRL events for success story context
+    var { data: resolvedRows } = await sb.from('crl_events')
+      .select('*')
+      .eq('is_active', false)
+      .not('resolution', 'is', null)
+      .order('resolution_date', { ascending: false });
 
     var allCRL = [];
-    var seen = {};
 
-    // Process explicit CRL events
-    if (crlEvents) {
-      crlEvents.forEach(function(e) {
-        if (!seen[e.ticker + e.drug]) {
-          seen[e.ticker + e.drug] = true;
-          var crlType = 'UNKNOWN';
-          var crlTypeCategory = 'UNKNOWN';
-          var cmcR = (e.cmc_risk || '').toUpperCase();
-          var cmcF = e.cmc_flags || [];
-          var flagStr = (e.flags || []).join(' ').toLowerCase();
-
-          if (cmcR === 'HIGH' || cmcR === 'ELEVATED' || cmcF.length > 0) {
-            if (flagStr.includes('efficacy') || flagStr.includes('clinical')) {
-              crlType = 'CMC + Clinical'; crlTypeCategory = 'MIXED';
-            } else {
-              crlType = 'CMC'; crlTypeCategory = 'CMC';
-            }
-          } else if (flagStr.includes('safety')) {
-            crlType = 'Clinical Safety'; crlTypeCategory = 'CLINICAL';
-          } else if (flagStr.includes('efficacy')) {
-            crlType = 'Clinical Efficacy'; crlTypeCategory = 'CLINICAL';
-          } else {
-            crlType = 'Unclassified'; crlTypeCategory = 'UNKNOWN';
-          }
-
-          var monthsSince = 0;
-          if (e.date) {
-            var crlDate = new Date(e.date);
-            monthsSince = Math.round((new Date() - crlDate) / (30 * 86400000));
-          }
-
-          var item = {
-            ticker: e.ticker,
-            drug: e.drug,
-            indication: e.indication || '—',
-            crl_date: e.date,
-            crl_type: crlType,
-            crl_type_category: crlTypeCategory,
-            months_since_crl: monthsSince,
-            runway_months: e.runway_months,
-            shelf_active: e.shelf_active,
-            atm_active: e.atm_active,
-            market_cap: Number(e.estimated_market_cap) || 0,
-            cmc_risk: e.cmc_risk,
-            cmc_flags: e.cmc_flags || [],
-            dilution_risk: e.dilution_risk,
-            buyout_score: Number(e.buyout_score) || 0,
-            resub_status: null,
-            resub_pdufa: null,
-            fda_meeting: null,
-          };
-
-          var scored = scoreCRL(item);
-          item.recovery_score = scored.score;
-          item.recovery_level = scored.recovery_level;
-          item.recovery_flags = scored.flags;
-
-          allCRL.push(item);
+    if (crlRows && crlRows.length > 0) {
+      crlRows.forEach(function(e) {
+        var monthsSince = 0;
+        if (e.crl_date) {
+          monthsSince = Math.round((new Date() - new Date(e.crl_date)) / (30 * 86400000));
         }
+
+        var item = {
+          ticker: e.ticker,
+          company_name: e.company_name || e.ticker,
+          drug: e.drug,
+          indication: e.indication || '—',
+          crl_date: e.crl_date,
+          crl_type: e.crl_type || 'UNKNOWN',
+          crl_type_category: e.crl_type_category || 'UNKNOWN',
+          crl_number: e.crl_number || 1,
+          crl_details: e.crl_details || '',
+          months_since_crl: monthsSince,
+          runway_months: e.runway_months,
+          shelf_active: e.shelf_active || false,
+          atm_active: e.atm_active || false,
+          market_cap: Number(e.estimated_market_cap) || 0,
+          revenue: Number(e.revenue_m) || 0,
+          cash_m: Number(e.cash_m) || 0,
+          resub_status: e.resub_status || 'NOT_FILED',
+          resub_pdufa: e.resub_pdufa || null,
+          fda_meeting: e.fda_meeting || 'NONE',
+          notes: e.notes || '',
+          is_active: e.is_active,
+          resolution: e.resolution,
+        };
+
+        var scored = scoreCRL(item);
+        item.recovery_score = scored.score;
+        item.recovery_level = scored.recovery_level;
+        item.recovery_flags = scored.flags;
+
+        allCRL.push(item);
       });
     }
 
-    // Process high CMC risk past events (potential CRL candidates)
-    if (cmcHighEvents) {
-      cmcHighEvents.forEach(function(e) {
-        if (!seen[e.ticker + e.drug]) {
-          seen[e.ticker + e.drug] = true;
-
-          var monthsSince = 0;
-          if (e.date) {
-            monthsSince = Math.round((new Date() - new Date(e.date)) / (30 * 86400000));
-          }
-          // Only include if the event date has passed (possible CRL)
-          if (monthsSince <= 0) return;
-
-          var item = {
-            ticker: e.ticker,
-            drug: e.drug,
-            indication: e.indication || '—',
-            crl_date: e.date,
-            crl_type: 'CMC (inferred)',
-            crl_type_category: 'CMC',
-            months_since_crl: monthsSince,
-            runway_months: e.runway_months,
-            shelf_active: e.shelf_active,
-            atm_active: e.atm_active,
-            market_cap: Number(e.estimated_market_cap) || 0,
-            cmc_risk: e.cmc_risk,
-            cmc_flags: e.cmc_flags || [],
-            dilution_risk: e.dilution_risk,
-            buyout_score: Number(e.buyout_score) || 0,
-            resub_status: null,
-            resub_pdufa: null,
-            fda_meeting: null,
-          };
-
-          var scored = scoreCRL(item);
-          item.recovery_score = scored.score;
-          item.recovery_level = scored.recovery_level;
-          item.recovery_flags = scored.flags;
-
-          allCRL.push(item);
+    // Add resolved events with a RESOLVED tag
+    if (resolvedRows && resolvedRows.length > 0) {
+      resolvedRows.forEach(function(e) {
+        var monthsSince = 0;
+        if (e.crl_date) {
+          monthsSince = Math.round((new Date() - new Date(e.crl_date)) / (30 * 86400000));
         }
+
+        allCRL.push({
+          ticker: e.ticker,
+          company_name: e.company_name || e.ticker,
+          drug: e.drug,
+          indication: e.indication || '—',
+          crl_date: e.crl_date,
+          crl_type: e.crl_type || 'UNKNOWN',
+          crl_type_category: e.crl_type_category || 'UNKNOWN',
+          crl_number: e.crl_number || 1,
+          crl_details: e.crl_details || '',
+          months_since_crl: monthsSince,
+          runway_months: e.runway_months,
+          shelf_active: false,
+          atm_active: false,
+          market_cap: Number(e.estimated_market_cap) || 0,
+          revenue: Number(e.revenue_m) || 0,
+          cash_m: Number(e.cash_m) || 0,
+          resub_status: e.resub_status || 'APPROVED',
+          resub_pdufa: e.resub_pdufa || null,
+          fda_meeting: e.fda_meeting || 'COMPLETE',
+          notes: e.notes || '',
+          is_active: false,
+          resolution: e.resolution,
+          recovery_score: 100,
+          recovery_level: 'RESOLVED',
+          recovery_flags: ['✅ ' + e.resolution + ' — CRL recovery complete'],
+        });
       });
     }
 
     CRL_DATA = allCRL;
-    console.log('[SC] CRL Recovery: loaded ' + CRL_DATA.length + ' events');
+    console.log('[SC] CRL Recovery: loaded ' + CRL_DATA.length + ' events (' +
+      crlRows.length + ' active, ' + (resolvedRows ? resolvedRows.length : 0) + ' resolved)');
 
   } catch (err) {
     console.warn('[SC] CRL data load error:', err);
+    document.getElementById('crl-grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--red);">' +
+      'Error loading CRL data: ' + err.message + '</div>';
   }
 
   renderCRLGrid();
