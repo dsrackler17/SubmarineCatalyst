@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 8/9 resolved events — 1 PoA miss, 1 STN miss documented. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 8/9 resolved events — 1 PoA miss, 2 STN misses documented. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -331,7 +331,7 @@ footer a:hover { color: var(--accent); }
 </nav>
 
 <div class="urgency-bar" id="urgency-bar">
-  <span><span class="ub-pulse"></span>TVTX: ✅ Approved +35% · STN HIGH miss — model updated</span>
+  <span><span class="ub-pulse"></span>TVTX: ✅ Approved +35% · LGND: +9.65% · Both STN HIGH — miss · Model updated</span>
   <span class="ub-divider">·</span>
   <span>REPL: ❌ CRL · PoA miss (called 84%) · STN HIGH correctly flagged −19.46%</span>
   <span class="ub-divider">·</span>
@@ -381,11 +381,11 @@ footer a:hover { color: var(--accent); }
   <div class="section reveal" style="text-align:center;">
     <div class="section-label" style="justify-content:center;">Model Validation</div>
     <h2 class="section-heading">8/9 resolved. Two misses logged. Everything documented.</h2>
-    <p class="section-sub" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record. REPL was the first PoA miss — called 84% approval, got a CRL. TVTX was the first STN miss — called HIGH sell-the-news risk, stock surged 35% on first-in-class FSGS approval. Both logged. Model updated.</p>
+    <p class="section-sub" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record. REPL was the first PoA miss — called 84% approval, got a CRL. TVTX and LGND were the first STN misses — both scored HIGH sell-the-news risk, both surged on the same first-in-class FSGS approval. All logged. Model updated.</p>
 
     <div class="insight-callout" style="max-width:700px;margin:0 auto 2rem;">
       <div class="ic-label">What the model got right and wrong</div>
-      <div class="ic-body"><strong>PoA miss:</strong> REPL was called APPROVE at <span class="ic-neg">84% PoA</span> — FDA issued a CRL. Logged, not deleted. <strong>STN miss:</strong> TVTX was called <span class="ic-neg">HIGH STN risk</span> based on sNDA/resubmission factors — stock surged <span style="color:var(--accent2);">+35%</span> on first-in-class FSGS approval. The sNDA penalty was correct for typical resubmissions (RCKT: resubmission, approved, −20%) but wrong when the indication expansion is first-in-class for an untreated disease. <strong style="color:var(--accent2);">What held up:</strong> 8/9 PoA accuracy. STN correctly flagged all three negative post-approval moves: RCKT <span class="ic-neg">−20%</span> · BIIB <span class="ic-neg">−5%</span> · FBIO flat. Model updated with 4 new STN factors.</div>
+      <div class="ic-body"><strong>PoA miss:</strong> REPL was called APPROVE at <span class="ic-neg">84% PoA</span> — FDA issued a CRL. Logged, not deleted. <strong>STN misses:</strong> TVTX and LGND were both called <span class="ic-neg">HIGH STN risk</span> — same event, same drug, same broken logic. TVTX surged <span style="color:var(--accent2);">+35%</span>, LGND popped <span style="color:var(--accent2);">+9.65%</span> on the Filspari FSGS approval. The sNDA penalty was correct for typical resubmissions (RCKT: resubmission, approved, −20%) but wrong when the indication expansion is first-in-class for an untreated disease. Two misses, one root cause. <strong style="color:var(--accent2);">What held up:</strong> 8/9 PoA accuracy. STN correctly flagged all three negative post-approval moves: RCKT <span class="ic-neg">−20%</span> · BIIB <span class="ic-neg">−5%</span> · FBIO flat. Model updated with 4 new STN factors.</div>
     </div>
 
     <table style="width:100%;max-width:700px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
@@ -447,7 +447,7 @@ footer a:hover { color: var(--accent); }
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+35%</td>
         </tr>
         <tr style="background:rgba(0,255,157,0.04);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">LGND</td>
+          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">LGND <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.1em;">STN MISS</span></td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (71.5%)</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
           <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+9.65%</td>
@@ -456,7 +456,7 @@ footer a:hover { color: var(--accent); }
     </table>
 
     <div style="max-width:700px;margin:1.25rem auto 0;text-align:left;">
-      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">8/9 on resolved events — 8 correct PoA calls, 1 CRL miss (REPL, called 84% PoA). First STN directional miss on TVTX — HIGH STN risk, stock surged +35% on first-in-class FSGS approval. Every outcome logged including both misses. STN model updated with sNDA subcategorization, first-in-class detection, TAM expansion weighting, and institutional options flow. Subscribers see full scoring breakdowns and real-time classifications.</p>
+      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">8/9 on resolved events — 8 correct PoA calls, 1 CRL miss (REPL, called 84% PoA). Two STN directional misses: TVTX (+35%) and LGND (+9.65%) — both scored HIGH STN risk, both surged on the same first-in-class FSGS approval. Two misses, one root cause. Every outcome logged including all misses. STN model updated with sNDA subcategorization, first-in-class detection, TAM expansion weighting, and 30D price momentum. Subscribers see full scoring breakdowns and real-time classifications.</p>
       <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative research classifications derived from public data. Not investment advice. Past classification accuracy does not guarantee future results.</p>
     </div>
 
@@ -474,7 +474,7 @@ footer a:hover { color: var(--accent); }
     <div class="how-grid">
       <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
       <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
-      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and institutional positioning. Calibrated against real outcomes — RCKT (approved, −20%), VNDA (approved, +45%), TVTX (approved, +35% — STN miss, model updated). Now includes sNDA subcategorization and first-in-class indication detection.</p></div>
+      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and price momentum. Calibrated against real outcomes — RCKT (approved, −20%), VNDA (approved, +45%), TVTX + LGND (approved, +35% / +9.65% — 2 STN misses, model updated). Now includes sNDA subcategorization, first-in-class detection, and 30D momentum.</p></div>
       <div class="how-card"><span class="how-num">04</span><div class="how-title">Dilution Radar</div><p class="how-desc">Scans SEC EDGAR for 424B5 filings, S-3 shelf registrations, ATM offerings, and sales agent changes near PDUFA dates. Detects the capital raises that destroy post-approval gains before you buy.</p></div>
       <div class="how-card"><span class="how-num">05</span><div class="how-title">Net Edge Score</div><p class="how-desc">Combines PoA, STN Risk, Dilution Radar, cash runway, and insider activity into a single composite. One number that answers "is this a good trade" — not just "will it get approved."</p></div>
       <div class="how-card"><span class="how-num">06</span><div class="how-title">Behavioral Patterns</div><p class="how-desc">Classifies each event into five post-catalyst behaviors: Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction. Not predictions — behavioral tendencies drawn from historical data.</p></div>
@@ -498,7 +498,7 @@ footer a:hover { color: var(--accent); }
         <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
         <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
         <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/9 on PoA calls — REPL CRL miss logged. STN correctly flagged RCKT (-20%), BIIB (-5%). TVTX STN miss (+35%) prompted 4 new factors: sNDA subcategorization, first-in-class detection, TAM expansion, options flow.</div></div><span class="signal-source">Live outcome log</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/9 on PoA calls — REPL CRL miss logged. STN correctly flagged RCKT (-20%), BIIB (-5%). TVTX + LGND STN miss (both surged) prompted 4 new factors: sNDA subcategorization, first-in-class detection, TAM expansion, 30D momentum.</div></div><span class="signal-source">Live outcome log</span></div>
       </div>
       <div>
         <div class="score-panel">
@@ -613,7 +613,7 @@ footer a:hover { color: var(--accent); }
         <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across 870+ biotech companies, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
         <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this platform from a basic PDUFA calendar.</p>
         <p>REPL on April 10, 2026 was the first PoA miss. The model called 84% approval. FDA issued a CRL. The stock dropped 19.46%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters.</p>
-        <p>TVTX on April 13, 2026 was the first STN miss. The model called HIGH sell-the-news risk based on sNDA/resubmission factors. FDA approved Filspari for FSGS — the first and only treatment for the disease — and the stock surged 35%. I was short. Lost 40% on the position. The sNDA penalty made sense for typical resubmissions. It did not make sense when the indication expansion was first-in-class for an untreated disease with 30,000+ new patients. I added four new STN factors that day. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
+        <p>TVTX on April 13, 2026 was the first STN miss — and LGND was the second, same event. Both scored HIGH sell-the-news risk based on sNDA/resubmission factors. FDA approved Filspari for FSGS — the first and only treatment for the disease — and TVTX surged 35%, LGND popped 9.65%. Two misses from the same broken logic. The sNDA penalty made sense for typical resubmissions. It did not make sense when the indication expansion was first-in-class for an untreated disease with 30,000+ new patients. I added four new STN factors that day. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
       </div>
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
