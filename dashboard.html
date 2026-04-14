@@ -227,15 +227,6 @@
       <button class="sidebar-item" onclick="switchTab(this,'buyout')">
         <span class="sidebar-icon">🏷️</span> Buyout Scanner
       </button>
-      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'">
-        <span class="sidebar-icon">🔄</span> CRL Recovery
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/insider-conviction.html'">
-        <span class="sidebar-icon">👤</span> Insider Conviction
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/pipeline-concentration.html'">
-        <span class="sidebar-icon">🎯</span> Pipeline Risk
-      </button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
@@ -259,9 +250,9 @@
 
   <div class="dash-main">
 
-    <div id="live-event-banner" style="background:rgba(0,255,157,0.06);border:1px solid rgba(0,255,157,0.25);padding:0.65rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);letter-spacing:0.04em;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
-      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--accent2);flex-shrink:0;"></span>
-      <span><strong>TVTX ✅ APPROVED +35%</strong> · PoA 72% correct · <span style="color:var(--red);">STN HIGH — MISS</span> · First-in-class FSGS &nbsp;|&nbsp; LGND +9.65% <span style="color:var(--red);">STN MISS</span> &nbsp;|&nbsp; STN model updated &nbsp;|&nbsp; <strong style="color:var(--accent);">8/9</strong> <span style="color:var(--accent);">PoA accuracy</span></span>
+    <div id="live-event-banner" style="background:rgba(255,68,68,0.06);border:1px solid rgba(255,68,68,0.25);padding:0.65rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--red);letter-spacing:0.04em;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+      <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;"></span>
+      <span><strong>REPL ❌ CRL</strong> · RP1 melanoma BLA rejected (2nd CRL) · PoA miss (called 84%) · STN HIGH flagged −64% downside correctly &nbsp;|&nbsp; <strong style="color:var(--amber);">⚡ NEXT:</strong> <span style="color:var(--amber);">TVTX + LGND PDUFA Apr 13</span> (<span id="dash-countdown" style="color:var(--accent);">...</span>)</span>
       <span style="margin-left:auto;opacity:0.6;cursor:pointer;color:var(--muted);" onclick="this.parentElement.style.display='none'">✕</span>
     </div>
 
@@ -1059,6 +1050,23 @@ function switchTab(btn, id) {
   }
 
   renderBuyoutGrid();
+})();
+
+// Live event countdown
+(function() {
+  const target = new Date('2026-04-13T00:00:00-04:00');
+  function tick() {
+    const diff = target - new Date();
+    const el = document.getElementById('dash-countdown');
+    if (!el) return;
+    if (diff <= 0) { el.textContent = 'TODAY'; return; }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    el.textContent = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
+  }
+  tick();
+  setInterval(tick, 30000);
 })();
 </script>
 </body>

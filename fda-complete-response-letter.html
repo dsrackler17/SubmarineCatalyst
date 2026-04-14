@@ -97,7 +97,7 @@ footer a:hover{color:var(--accent);}
       "name": "How much does a stock drop on a CRL?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "CRL stock drops typically range from 20% to 70% depending on the market cap tier and whether the CRL was expected. Small-cap biotechs often drop 40-70%. Mid-caps typically drop 20-40%. The REPL CRL on April 10, 2026 caused a 63% drop after hours — one of the more severe CRL reactions, consistent with small-cap binary event risk."
+        "text": "CRL stock drops typically range from 20% to 70% depending on the market cap tier and whether the CRL was expected. Small-cap biotechs often drop 40-70%. Mid-caps typically drop 20-40%. The REPL CRL on April 10, 2026 caused a 64% drop — the second BLA rejection for RP1 (vusolimogene oderparepvec) in advanced melanoma raised viability concerns for the entire program."
       }
     },
     {
@@ -239,19 +239,19 @@ footer a:hover{color:var(--accent);}
 
   <div class="callout callout-blue">
     <div class="callout-title">The STN risk signal and CRL risk</div>
-    <p style="margin-bottom:0;">The Submarine Catalyst scanner's STN (Sell-The-News) Risk layer scores downside risk before every PDUFA event. A HIGH STN risk flag doesn't only mean "stock drops after approval" — it also reflects elevated binary risk in both directions. Drugs with HIGH STN risk have historically experienced severe downside whether the outcome was approval-with-disappointment OR a CRL. The model flagged REPL HIGH before the decision. The stock dropped 63% after hours on the CRL.</p>
+    <p style="margin-bottom:0;">The Submarine Catalyst scanner's STN (Sell-The-News) Risk layer scores downside risk before every PDUFA event. A HIGH STN risk flag doesn't only mean "stock drops after approval" — it also reflects elevated binary risk in both directions. Drugs with HIGH STN risk have historically experienced severe downside whether the outcome was approval-with-disappointment OR a CRL. The model flagged REPL HIGH before the decision. The stock dropped 64% on the second CRL.</p>
   </div>
 
   <h2>Real Case Studies</h2>
 
   <div class="example-box">
     <div class="crl-label">Case Study — REPL (Replimune Group · Apr 10, 2026)</div>
-    Drug: Vamorolone · Indication: Duchenne Muscular Dystrophy (DMD)<br>
+    Drug: RP1 (vusolimogene oderparepvec) + nivolumab · Indication: Advanced Melanoma (anti-PD-1 failed)<br>
     Scanner PoA: 84% · Scanner STN Risk: <strong style="color:var(--red)">HIGH</strong><br><br>
-    Outcome: ❌ CRL — FDA issued Complete Response Letter<br>
-    Post-CRL move: <strong style="color:var(--red)">−63% AH</strong><br><br>
-    CRL type: CMC/manufacturing (chemistry, manufacturing, and controls deficiency)<br>
-    Analysis: The scanner's PoA model called 84% approval — a miss. The clinical data for vamorolone was strong; the CRL was a manufacturing issue, not an efficacy concern. Crucially, the STN HIGH flag was correct: the stock dropped hard regardless of the reason. The REPL CRL directly prompted an update to Submarine Catalyst's scoring model to add explicit CMC risk detection as a PoA penalty layer.
+    Outcome: ❌ CRL — FDA issued second Complete Response Letter<br>
+    Post-CRL move: <strong style="color:var(--red)">−64%</strong><br><br>
+    CRL type: Efficacy evidence / trial design (FDA concluded the IGNYTE Phase I/II trial did not establish substantial evidence of effectiveness; could not isolate RP1's contribution in the combination; heterogeneity and response-assessment methodology concerns)<br>
+    Analysis: The scanner's PoA model called 84% approval — a miss. The IGNYTE trial showed a 34% ORR with 24.8-month median DOR, and RP1 had Breakthrough Therapy designation, but the FDA determined the single-arm design and inability to demonstrate contribution of effect did not meet the evidentiary bar for accelerated approval. This was the second CRL — the first was issued July 2025 over similar trial design concerns. The company announced RP1 development was no longer viable without timely approval and initiated layoffs. Crucially, the STN HIGH flag was correct: the stock collapsed 64%. The REPL CRL prompted updates to Submarine Catalyst's scoring model to add a resubmission-after-CRL penalty and a prior-rejection modifier for BLAs with unresolved trial design objections.
   </div>
 
   <div class="example-box">

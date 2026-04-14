@@ -236,7 +236,7 @@ footer a:hover{color:var(--accent);}
       </tr>
     </tbody>
   </table>
-  <p class="source-note">Sources: Hay et al. 2014 (Nature Biotechnology), Wong et al. 2019 (Biostatistics), FDA PDUFA VII performance reports, Submarine Catalyst outcome tracking. DMD/ALS rates reflect updated analysis post-REPL (Apr 2026).</p>
+  <p class="source-note">Sources: Hay et al. 2014 (Nature Biotechnology), Wong et al. 2019 (Biostatistics), FDA PDUFA VII performance reports, Submarine Catalyst outcome tracking. DMD/ALS rates reflect category-specific analysis added to the model in April 2026.</p>
 
   <h2>How Review Pathway Modifies the Base Rate</h2>
   <p>The indication base rate is only half the input. The FDA review pathway the drug received also significantly affects approval probability. The base rates above assume standard review. These pathway multipliers are blended 50/50 with the indication rate in Submarine Catalyst's PoA model:</p>
@@ -255,11 +255,11 @@ footer a:hover{color:var(--accent);}
     </tbody>
   </table>
 
-  <h2>The REPL Case Study — When the Base Rate Warning Was Ignored</h2>
+  <h2>The REPL Case Study — When Resubmission Risk Was Underweighted</h2>
   <div class="callout callout-amber">
     <div class="callout-title">How the model missed REPL (Apr 10, 2026)</div>
-    <p>Vamorolone for Duchenne Muscular Dystrophy was assigned the "Unknown" base rate (75%) because the indication classifier didn't recognize DMD as a distinct category. It should have been 53% (DMD-specific rate). Combined with orphan/rare/pediatric positive modifiers, the model output was 84% PoA.</p>
-    <p style="margin-bottom:0;">The fix: Submarine Catalyst's scoring model now has an explicit DMD base rate (53%), a neuromuscular disease category (56%), and a CMC risk penalty layer that discounts PoA when manufacturing signals are present in EDGAR filings. These updates were deployed after the REPL CRL on April 10, 2026.</p>
+    <p>RP1 (vusolimogene oderparepvec) + nivolumab for advanced melanoma had strong surface-level inputs: oncology base rate (85.5%), Breakthrough Therapy designation (90%), and a 34% ORR with 24.8-month median DOR in the IGNYTE trial. The model output was 84% PoA. But REPL was a BLA resubmission after a prior CRL (July 2025) where FDA had raised the same fundamental objection — that the single-arm IGNYTE trial could not establish RP1's contribution of effect in the combination. The resubmission pathway modifier (65%) was applied, but the model did not adequately penalize for a second submission facing the same unresolved trial design concern.</p>
+    <p style="margin-bottom:0;">The fix: Submarine Catalyst's scoring model now applies a compounding penalty when a resubmission faces the same class of FDA objection as the prior CRL. A second CRL for efficacy/trial design concerns is fundamentally different from a first CRL for CMC — the resubmission modifier alone doesn't capture that distinction. The model also now weights single-arm combination studies more conservatively when contribution-of-effect has been challenged.</p>
   </div>
 
   <h2>What This Means for Evaluating Biotech Stocks</h2>
