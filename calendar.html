@@ -157,17 +157,6 @@ footer a:hover{color:var(--accent);}
   <!-- Filters -->
   <div class="filter-bar">
     <input type="text" class="search-input" id="search-input" placeholder="Search ticker..." oninput="applyFilters()">
-    <span class="filter-label">Sort:</span>
-    <select class="filter-select" id="filter-sort" onchange="applyFilters()">
-      <option value="date">Soonest First</option>
-      <option value="30d_desc">30D % ↓</option>
-      <option value="30d_asc">30D % ↑</option>
-      <option value="vol">Vol ↓</option>
-      <option value="poa">PoA ↓</option>
-      <option value="buyout">Buyout Score ↓</option>
-      <option value="tam">TAM/Cap ↓</option>
-      <option value="ticker">Ticker A-Z</option>
-    </select>
     <span class="filter-label">Cap:</span>
     <select class="filter-select" id="filter-cap" onchange="applyFilters()">
       <option value="all">All Cap</option>
@@ -181,14 +170,6 @@ footer a:hover{color:var(--accent);}
       <option value="ELITE">ELITE</option>
       <option value="STRONG">STRONG</option>
       <option value="WATCH">WATCH</option>
-      <option value="WEAK">WEAK</option>
-    </select>
-    <span class="filter-label">Chart:</span>
-    <select class="filter-select" id="filter-chart" onchange="applyFilters()">
-      <option value="all">All Patterns</option>
-      <option value="COILING">COILING</option>
-      <option value="BUILDING">BUILDING</option>
-      <option value="EXTENDED">EXTENDED</option>
       <option value="WEAK">WEAK</option>
     </select>
     <span class="filter-label">Window:</span>
@@ -303,9 +284,6 @@ function matchesFilters(e) {
   var grade = document.getElementById('filter-grade').value;
   if (grade !== 'all' && e.grade !== grade) return false;
 
-  var chartF = document.getElementById('filter-chart').value;
-  if (chartF !== 'all' && (e.chart_pattern || '') !== chartF) return false;
-
   var window_val = document.getElementById('filter-window').value;
   if (window_val !== 'all') {
     if (e.date === '—') return false;
@@ -326,22 +304,11 @@ function renderTable() {
     return;
   }
 
-  var sortBy = document.getElementById('filter-sort').value;
   filtered.sort(function(a, b) {
-    switch (sortBy) {
-      case '30d_desc': return (Number(b.price_change_30d) || -999) - (Number(a.price_change_30d) || -999);
-      case '30d_asc': return (Number(a.price_change_30d) || 999) - (Number(b.price_change_30d) || 999);
-      case 'vol': return (Number(b.realized_vol_30d) || 0) - (Number(a.realized_vol_30d) || 0);
-      case 'poa': return (Number(b.poa) || 0) - (Number(a.poa) || 0);
-      case 'buyout': return (Number(b.buyout_score) || 0) - (Number(a.buyout_score) || 0);
-      case 'tam': return (Number(b.tam_ratio) || 0) - (Number(a.tam_ratio) || 0);
-      case 'ticker': return a.ticker.localeCompare(b.ticker);
-      default: // date
-        if (a.date === '—' && b.date !== '—') return 1;
-        if (a.date !== '—' && b.date === '—') return -1;
-        if (a.date === '—' && b.date === '—') return a.ticker.localeCompare(b.ticker);
-        return new Date(a.date) - new Date(b.date);
-    }
+    if (a.date === '—' && b.date !== '—') return 1;
+    if (a.date !== '—' && b.date === '—') return -1;
+    if (a.date === '—' && b.date === '—') return a.ticker.localeCompare(b.ticker);
+    return new Date(a.date) - new Date(b.date);
   });
 
   // Limit display to 200 at a time for performance
@@ -411,7 +378,6 @@ function renderTable() {
         // PDUFA/catalyst — show PoA range + STN
         var poaVal = Number(e.poa) || 0;
         var poaColor = poaVal >= 75 ? 'var(--accent2)' : poaVal >= 60 ? 'var(--accent)' : poaVal > 0 ? 'var(--amber)' : 'var(--muted)';
-        // Use DB range if available, otherwise compute client-side
         var poaDisplay = '—';
         if (poaVal > 0) {
           if (e.poa_low && e.poa_high) {
@@ -609,7 +575,7 @@ function updateCounts() {
   // ── ALWAYS LOAD: Full biotech universe ─────────────────────────────
   try {
     var { data: universe } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, sic_description, exchange, category, buyout_score, buyout_risk, buyout_flags, tam_ratio, revenue_m, acquirer_urgency_top, partner_name, has_partnership, buyout_timeline, price_change_30d, chart_pattern, dilution_risk, insider_signal, runway_months, short_interest, current_price, approved_drug, last_approval_date, months_since_approval, estimated_market_cap, realized_vol_30d')
+      .select('ticker, company_name, market_cap_tier, sic_description, exchange, category')
       .eq('active', true)
       .order('ticker', { ascending: true });
 
@@ -619,21 +585,10 @@ function updateCounts() {
       universe.forEach(function(c) { uniMap[c.ticker] = c; });
       ALL_EVENTS.forEach(function(e) {
         if (uniMap[e.ticker]) {
-          var u = uniMap[e.ticker];
-          if (!e.company_name || e.company_name === '') e.company_name = u.company_name;
-          if (!e.market_cap_tier || e.market_cap_tier === 'UNKNOWN') e.market_cap_tier = u.market_cap_tier || 'UNKNOWN';
-          if (!e.sic_description) e.sic_description = u.sic_description || '';
-          if (!e.exchange) e.exchange = u.exchange || '';
-          if (!e.price_change_30d && u.price_change_30d) e.price_change_30d = Number(u.price_change_30d);
-          if (!e.chart_pattern && u.chart_pattern) e.chart_pattern = u.chart_pattern;
-          if (!e.realized_vol_30d && u.realized_vol_30d) e.realized_vol_30d = Number(u.realized_vol_30d);
-          if (!e.dilution_risk && u.dilution_risk) e.dilution_risk = u.dilution_risk;
-          if (!e.insider_signal && u.insider_signal) e.insider_signal = u.insider_signal;
-          if (!e.runway_months && u.runway_months) e.runway_months = Number(u.runway_months);
-          if (!e.revenue_m && u.revenue_m) e.revenue_m = Number(u.revenue_m);
-          if (!e.buyout_score && u.buyout_score) e.buyout_score = Number(u.buyout_score);
-          if (!e.buyout_risk && u.buyout_risk) e.buyout_risk = u.buyout_risk;
-          if (!e.tam_ratio && u.tam_ratio) e.tam_ratio = Number(u.tam_ratio);
+          if (!e.company_name || e.company_name === '') e.company_name = uniMap[e.ticker].company_name;
+          if (!e.market_cap_tier || e.market_cap_tier === 'UNKNOWN') e.market_cap_tier = uniMap[e.ticker].market_cap_tier || 'UNKNOWN';
+          if (!e.sic_description) e.sic_description = uniMap[e.ticker].sic_description || '';
+          if (!e.exchange) e.exchange = uniMap[e.ticker].exchange || '';
         }
       });
 
@@ -652,12 +607,10 @@ function updateCounts() {
       var uniEntries = universe.filter(function(c) {
         return !existing[c.ticker];
       }).map(function(c) {
-        var bRisk = c.buyout_risk || 'UNLIKELY';
-        var bScore = Number(c.buyout_score) || 15;
-        if (!c.buyout_score) {
-          if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
-          else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
-        }
+        var bRisk = 'UNLIKELY';
+        var bScore = 15;
+        if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
+        else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
 
         var capLabel = c.market_cap_tier || 'UNKNOWN';
         var desc = c.sic_description || c.category || '';
@@ -666,30 +619,17 @@ function updateCounts() {
 
         var entry = {
           ticker: c.ticker,
-          drug: c.approved_drug || desc || c.company_name || '',
+          drug: desc || c.company_name || '',
           indication: desc,
           type: 'COMPANY',
           date: '—',
           grade: capGrade,
           poa: 0, score: bScore, flags: [],
           notes: desc,
-          sell_news_risk: '—',
-          dilution_risk: c.dilution_risk || '—',
-          insider_signal: c.insider_signal || '',
-          runway_months: Number(c.runway_months) || 0,
-          price_change_30d: Number(c.price_change_30d) || 0,
-          chart_pattern: c.chart_pattern || '',
-          realized_vol_30d: Number(c.realized_vol_30d) || 0,
-          short_interest: Number(c.short_interest) || 0,
-          revenue_m: Number(c.revenue_m) || 0,
-          tam_ratio: Number(c.tam_ratio) || 0,
+          sell_news_risk: '—', dilution_risk: '—',
           net_edge_score: bScore,
-          atm_active: false, shelf_active: false,
-          partnership_detected: c.has_partnership || false,
-          partner_name: c.partner_name || '',
-          acquirer_urgency_top: c.acquirer_urgency_top || '',
-          buyout_score: bScore, buyout_risk: bRisk, buyout_flags: c.buyout_flags || [],
-          buyout_timeline: c.buyout_timeline || '',
+          atm_active: false, shelf_active: false, partnership_detected: false,
+          buyout_score: bScore, buyout_risk: bRisk, buyout_flags: [],
           company_name: c.company_name || c.ticker,
           market_cap_tier: capLabel,
           sic_description: desc,
@@ -728,22 +668,9 @@ function updateCounts() {
           ticker: c.ticker, drug: earn.label, indication: '',
           type: 'EARNINGS', date: earn.date, grade: capGrade,
           poa: 0, score: 0, flags: [earn.label], notes: earn.label,
-          sell_news_risk: '—',
-          dilution_risk: c.dilution_risk || '—',
-          net_edge_score: 0,
-          price_change_30d: Number(c.price_change_30d) || 0,
-          chart_pattern: c.chart_pattern || '',
-          realized_vol_30d: Number(c.realized_vol_30d) || 0,
-          insider_signal: c.insider_signal || '',
-          runway_months: Number(c.runway_months) || 0,
-          revenue_m: Number(c.revenue_m) || 0,
-          tam_ratio: Number(c.tam_ratio) || 0,
-          short_interest: Number(c.short_interest) || 0,
-          atm_active: false, shelf_active: false,
-          partnership_detected: c.has_partnership || false,
-          buyout_score: Number(c.buyout_score) || 0,
-          buyout_risk: c.buyout_risk || '—',
-          buyout_flags: [],
+          sell_news_risk: '—', dilution_risk: '—', net_edge_score: 0,
+          atm_active: false, shelf_active: false, partnership_detected: false,
+          buyout_score: 0, buyout_risk: '—', buyout_flags: [],
           company_name: c.company_name || c.ticker,
           market_cap_tier: c.market_cap_tier || 'UNKNOWN',
           _tags: ['earnings', 'company'], _source: 'earnings',
