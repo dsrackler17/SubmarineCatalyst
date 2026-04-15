@@ -645,7 +645,8 @@ function renderScanner() {
           // Enrichment bar: partnership + revenue + approval status
           var parts = [];
           if (d.has_partnership && d.partner_name) parts.push('🤝 ' + d.partner_name);
-          if (d.revenue_M >= 50) parts.push('💰 $' + Math.round(d.revenue_M) + 'M rev');
+          if (d.revenue_M >= 1000) parts.push('💰 $' + (d.revenue_M / 1000).toFixed(1) + 'B rev');
+          else if (d.revenue_M >= 50) parts.push('💰 $' + Math.round(d.revenue_M) + 'M rev');
           else if (d.revenue_M > 0) parts.push('📊 $' + Math.round(d.revenue_M) + 'M rev');
           if (d.months_since_approval && d.months_since_approval <= 12) parts.push('🆕 Approved ' + d.months_since_approval + 'mo ago');
           else if (d.months_since_approval && d.months_since_approval <= 24) parts.push('✅ ' + d.months_since_approval + 'mo since approval');
@@ -895,7 +896,7 @@ function renderBuyoutGrid() {
       // Cap + Revenue + Timeline row
       '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">' +
         '<div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + (mcap || '—') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Revenue</div><div class="score-box-val ' + (rev >= 100 ? 'green' : rev >= 20 ? 'cyan' : 'white') + '" style="font-size:0.7rem;">' + (rev > 0 ? '$' + Math.round(rev) + 'M' : '—') + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Revenue</div><div class="score-box-val ' + (rev >= 100 ? 'green' : rev >= 20 ? 'cyan' : 'white') + '" style="font-size:0.7rem;">' + (rev >= 1000 ? '$' + (rev/1000).toFixed(1) + 'B' : rev > 0 ? '$' + Math.round(rev) + 'M' : '—') + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Takeout</div><div class="score-box-val cyan" style="font-size:0.7rem;">' + (takeout || '—') + '</div></div>' +
       '</div>' +
 
@@ -909,7 +910,7 @@ function renderBuyoutGrid() {
 
         // Why would they buy?
         if (d.buyout_score >= 70 && partner) lines.push('💡 Partnership → acquisition is the path of least resistance. No due diligence needed.');
-        else if (d.buyout_score >= 70 && rev >= 100) lines.push('💡 $' + Math.round(rev) + 'M revenue proves commercial viability — acquirer buys a revenue stream, not a bet.');
+        else if (d.buyout_score >= 70 && rev >= 100) lines.push('💡 $' + (rev >= 1000 ? (rev/1000).toFixed(1) + 'B' : Math.round(rev) + 'M') + ' revenue proves commercial viability — acquirer buys a revenue stream, not a bet.');
         else if (d.buyout_score >= 70) lines.push('💡 De-risked asset in a therapeutic area with active Big Pharma demand.');
         else if (d.buyout_score >= 55 && rev >= 50) lines.push('💡 Commercial traction reduces acquirer risk. Revenue covers integration cost.');
         else if (d.buyout_score >= 55) lines.push('💡 Approved asset in acquirer-demand area. Cap size makes deal digestible.');
