@@ -33,7 +33,6 @@
   body { background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; min-height: 100vh; }
   body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
   nav, .dash-layout, footer { position: relative; z-index: 1; }
-
   nav { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 2rem; border-bottom: 1px solid var(--border); background: rgba(4,13,26,0.92); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
   .nav-logo { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
   .sonar-icon { width: 26px; height: 26px; }
@@ -47,7 +46,6 @@
   .nav-user { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
   .nav-signout { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 0.3rem 0.75rem; transition: all 0.2s; }
   .nav-signout:hover { color: var(--red); border-color: rgba(255,68,68,0.4); }
-
   .dash-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 58px); }
   .sidebar { background: var(--deep); border-right: 1px solid var(--border); padding: 1.5rem 0; position: sticky; top: 58px; height: calc(100vh - 58px); overflow-y: auto; }
   .sidebar-section { margin-bottom: 2rem; }
@@ -56,14 +54,11 @@
   .sidebar-item:hover { color: var(--white); background: rgba(0,212,255,0.04); }
   .sidebar-item.active { color: var(--accent); background: rgba(0,212,255,0.07); border-left: 2px solid var(--accent); }
   .sidebar-icon { font-size: 0.85rem; width: 16px; text-align: center; }
-
   .dash-main { padding: 2rem; overflow-y: auto; }
-
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
   .section-title { font-family: var(--serif); font-size: 1.5rem; color: var(--white); }
   .section-meta { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
   .section-sub { font-family: var(--sans); font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; line-height: 1.7; max-width: 700px; }
-
   .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   .stat-cell { background: var(--surface); padding: 1.25rem 1.5rem; animation: fadeUp 0.5s ease both; }
@@ -74,8 +69,6 @@
   .stat-val.amber { color: var(--amber); }
   .stat-val.red   { color: var(--red); }
   .stat-sub { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; }
-
-  /* ── PIPELINE CARDS ── */
   .scanner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
   .pipe-card { background: var(--surface); padding: 1.5rem; transition: background 0.2s; cursor: pointer; position: relative; overflow: hidden; animation: fadeUp 0.5s ease both; }
   .pipe-card:hover { background: rgba(11,31,58,0.95); }
@@ -84,7 +77,6 @@
   .pipe-card.high::before    { background: var(--amber); }
   .pipe-card.moderate::before { background: var(--accent); }
   .pipe-card.low::before     { background: var(--accent2); }
-
   .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
   .card-ticker { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: 0.08em; }
   .card-date { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 0.15rem; }
@@ -93,9 +85,7 @@
   .badge-high     { color: var(--amber);   border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
   .badge-moderate { color: var(--accent);  border-color: rgba(0,212,255,0.4);  background: rgba(0,212,255,0.08); }
   .badge-low      { color: var(--accent2); border-color: rgba(0,255,157,0.4);  background: rgba(0,255,157,0.08); }
-
   .card-drug { font-size: 0.82rem; color: var(--text); margin-bottom: 0.2rem; font-weight: 300; }
-
   .score-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 0.5rem; }
   .score-box { background: var(--deep); padding: 0.5rem; text-align: center; }
   .score-box-label { font-family: var(--mono); font-size: 0.52rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
@@ -105,57 +95,36 @@
   .score-box-val.amber { color: var(--amber); }
   .score-box-val.red   { color: var(--red); }
   .score-box-val.white { color: var(--white); }
-
-  /* ── PIPELINE VIZ ── */
   .pipeline-bar-container { margin-top: 0.5rem; margin-bottom: 0.5rem; }
   .pipeline-bar { height: 8px; background: var(--deep); border: 1px solid var(--border); position: relative; overflow: hidden; }
   .pipeline-fill { height: 100%; position: absolute; left: 0; top: 0; }
   .pipeline-labels { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 0.5rem; color: var(--muted); margin-top: 0.2rem; }
-
   .pipe-flags { display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.5rem; }
   .pipe-flag { font-family: var(--mono); font-size: 0.55rem; padding: 0.15rem 0.4rem; background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.1); color: var(--muted); }
-
-  /* ── DRUG LIST ── */
   .drug-list { font-family: var(--mono); font-size: 0.6rem; color: var(--text); margin-top: 0.5rem; line-height: 1.8; }
   .drug-item { padding: 0.2rem 0.4rem; display: inline-block; margin: 0.1rem; border: 1px solid rgba(0,212,255,0.1); background: rgba(0,212,255,0.03); }
   .drug-item.primary { border-color: rgba(0,255,157,0.3); background: rgba(0,255,157,0.05); color: var(--accent2); }
-
   .filter-bar { display: flex; gap: 0.75rem; margin-bottom: 1.25rem; flex-wrap: wrap; align-items: center; }
-  .filter-bar select, .filter-bar input {
-    font-family: var(--mono); font-size: 0.68rem; background: var(--surface);
-    border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.75rem;
-  }
-
+  .filter-bar select, .filter-bar input { font-family: var(--mono); font-size: 0.68rem; background: var(--surface); border: 1px solid var(--border); color: var(--text); padding: 0.4rem 0.75rem; }
   .method-panel { background: var(--surface); border: 1px solid var(--border); padding: 1.25rem 1.5rem; margin-bottom: 2rem; }
   .method-title { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; cursor: pointer; }
   .method-title::after { content: ' ▾'; font-size: 0.6rem; }
   .method-body { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); line-height: 1.8; display: none; }
   .method-body.open { display: block; }
-
   .paywall-gate { display: none; flex-direction: column; align-items: center; justify-content: center; padding: 4rem 2rem; text-align: center; }
   .paywall-gate h2 { font-family: var(--serif); font-size: 1.5rem; color: var(--white); margin-bottom: 0.75rem; }
   .paywall-gate p { font-family: var(--sans); font-size: 0.9rem; color: var(--muted); max-width: 400px; margin: 0 auto 1.5rem; line-height: 1.7; }
   .paywall-gate a { display: inline-block; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--accent); color: var(--navy); padding: 0.75rem 2rem; text-decoration: none; font-weight: 700; }
-
-  /* ── POSITION SIZE GUIDE ── */
   .size-guide { background: rgba(0,212,255,0.04); border: 1px solid var(--border); padding: 1.25rem; margin-bottom: 2rem; }
   .size-guide-title { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
   .size-guide-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); }
   .size-guide-cell { background: var(--surface); padding: 0.65rem; text-align: center; }
   .size-guide-label { font-family: var(--mono); font-size: 0.55rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.3rem; }
   .size-guide-val { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; }
-
   footer { display: flex; align-items: center; justify-content: center; gap: 2rem; padding: 1.5rem 2rem; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.06em; text-align: center; flex-wrap: wrap; }
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--accent); }
-
-  @media (max-width: 768px) {
-    .dash-layout { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    .stat-strip { grid-template-columns: repeat(2, 1fr); }
-    .scanner-grid { grid-template-columns: 1fr; }
-    .size-guide-grid { grid-template-columns: repeat(2, 1fr); }
-  }
+  @media (max-width: 768px) { .dash-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .stat-strip { grid-template-columns: repeat(2, 1fr); } .scanner-grid { grid-template-columns: 1fr; } .size-guide-grid { grid-template-columns: repeat(2, 1fr); } }
 </style>
 </head>
 <body>
@@ -177,48 +146,28 @@
 </nav>
 
 <div class="dash-layout">
-
   <aside class="sidebar">
     <div class="sidebar-section">
       <span class="sidebar-label">Scanners</span>
-      <button class="sidebar-item" onclick="window.location.href='/dashboard.html'">
-        <span class="sidebar-icon">📡</span> PDUFA Scanner
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/dashboard.html#buyout'">
-        <span class="sidebar-icon">🏷️</span> Buyout Scanner
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'">
-        <span class="sidebar-icon">🔄</span> CRL Recovery
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/insider-conviction.html'">
-        <span class="sidebar-icon">👤</span> Insider Conviction
-      </button>
-      <button class="sidebar-item active">
-        <span class="sidebar-icon">🎯</span> Pipeline Risk
-      </button>
+      <button class="sidebar-item" onclick="window.location.href='/dashboard.html'"><span class="sidebar-icon">📡</span> PDUFA Scanner</button>
+      <button class="sidebar-item" onclick="window.location.href='/dashboard.html#buyout'"><span class="sidebar-icon">🏷️</span> Buyout Scanner</button>
+      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'"><span class="sidebar-icon">🔄</span> CRL Recovery</button>
+      <button class="sidebar-item" onclick="window.location.href='/insider-conviction.html'"><span class="sidebar-icon">👤</span> Insider Conviction</button>
+      <button class="sidebar-item active"><span class="sidebar-icon">🎯</span> Pipeline Risk</button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
-      <button class="sidebar-item" onclick="window.location.href='/calendar.html'">
-        <span class="sidebar-icon">📅</span> Calendar
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/compare.html'">
-        <span class="sidebar-icon">⚖️</span> Compare
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/research.html'">
-        <span class="sidebar-icon">🤖</span> AI Research
-      </button>
+      <button class="sidebar-item" onclick="window.location.href='/calendar.html'"><span class="sidebar-icon">📅</span> Calendar</button>
+      <button class="sidebar-item" onclick="window.location.href='/compare.html'"><span class="sidebar-icon">⚖️</span> Compare</button>
+      <button class="sidebar-item" onclick="window.location.href='/research.html'"><span class="sidebar-icon">🤖</span> AI Research</button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Account</span>
-      <button class="sidebar-item" onclick="window.location.href='/dashboard.html#account'">
-        <span class="sidebar-icon">⚙️</span> Account & Billing
-      </button>
+      <button class="sidebar-item" onclick="window.location.href='/dashboard.html#account'"><span class="sidebar-icon">⚙️</span> Account & Billing</button>
     </div>
   </aside>
 
   <div class="dash-main">
-
     <div class="paywall-gate" id="gate">
       <div style="font-size:2rem;margin-bottom:1rem;">🔒</div>
       <h2>Subscription Required</h2>
@@ -227,63 +176,26 @@
     </div>
 
     <div id="scanner-content" style="display:none;">
-
       <div class="section-header">
         <h2 class="section-title">Pipeline Concentration Risk</h2>
         <span class="section-meta" id="scan-timestamp">Loading...</span>
       </div>
-      <p class="section-sub">
-        A biotech with one Phase 3 asset and nothing behind it is binary — that PDUFA is life or death.
-        A company with three Phase 3 assets can survive one failure.
-        This scanner scores single-asset dependency to inform position sizing on PDUFA binary events.
-      </p>
+      <p class="section-sub">A biotech with one Phase 3 asset and nothing behind it is binary — that PDUFA is life or death. A company with three Phase 3 assets can survive one failure. This scanner scores single-asset dependency to inform position sizing on PDUFA binary events.</p>
 
       <div class="stat-strip">
-        <div class="stat-cell">
-          <div class="stat-label">Single-Pipeline</div>
-          <div class="stat-val red" id="stat-single">—</div>
-          <div class="stat-sub">extreme binary risk</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">Dual-Asset</div>
-          <div class="stat-val amber" id="stat-dual">—</div>
-          <div class="stat-sub">some diversification</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">Diversified</div>
-          <div class="stat-val green" id="stat-diversified">—</div>
-          <div class="stat-sub">3+ pipeline assets</div>
-        </div>
-        <div class="stat-cell">
-          <div class="stat-label">Companies</div>
-          <div class="stat-val cyan" id="stat-total">—</div>
-          <div class="stat-sub">with scored pipeline</div>
-        </div>
+        <div class="stat-cell"><div class="stat-label">Single-Pipeline</div><div class="stat-val red" id="stat-single">—</div><div class="stat-sub">extreme binary risk</div></div>
+        <div class="stat-cell"><div class="stat-label">Dual-Asset</div><div class="stat-val amber" id="stat-dual">—</div><div class="stat-sub">some diversification</div></div>
+        <div class="stat-cell"><div class="stat-label">Diversified</div><div class="stat-val green" id="stat-diversified">—</div><div class="stat-sub">3+ pipeline assets</div></div>
+        <div class="stat-cell"><div class="stat-label">Companies</div><div class="stat-val cyan" id="stat-total">—</div><div class="stat-sub">with scored pipeline</div></div>
       </div>
 
       <div class="size-guide">
         <div class="size-guide-title">Position Sizing Reference (not investment advice)</div>
         <div class="size-guide-grid">
-          <div class="size-guide-cell">
-            <div class="size-guide-label">Extreme</div>
-            <div class="size-guide-val" style="color:var(--red);">1-2%</div>
-            <div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">single pipeline, no revenue</div>
-          </div>
-          <div class="size-guide-cell">
-            <div class="size-guide-label">High</div>
-            <div class="size-guide-val" style="color:var(--amber);">2-4%</div>
-            <div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">1-2 assets, minimal revenue</div>
-          </div>
-          <div class="size-guide-cell">
-            <div class="size-guide-label">Moderate</div>
-            <div class="size-guide-val" style="color:var(--accent);">4-6%</div>
-            <div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">2-3 assets or revenue floor</div>
-          </div>
-          <div class="size-guide-cell">
-            <div class="size-guide-label">Low</div>
-            <div class="size-guide-val" style="color:var(--accent2);">6-10%</div>
-            <div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">diversified pipeline + revenue</div>
-          </div>
+          <div class="size-guide-cell"><div class="size-guide-label">Extreme</div><div class="size-guide-val" style="color:var(--red);">1-2%</div><div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">single pipeline, no revenue</div></div>
+          <div class="size-guide-cell"><div class="size-guide-label">High</div><div class="size-guide-val" style="color:var(--amber);">2-4%</div><div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">1-2 assets, minimal revenue</div></div>
+          <div class="size-guide-cell"><div class="size-guide-label">Moderate</div><div class="size-guide-val" style="color:var(--accent);">4-6%</div><div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">2-3 assets or revenue floor</div></div>
+          <div class="size-guide-cell"><div class="size-guide-label">Low</div><div class="size-guide-val" style="color:var(--accent2);">6-10%</div><div style="font-family:var(--mono);font-size:0.5rem;color:var(--muted);margin-top:0.2rem;">diversified pipeline + revenue</div></div>
         </div>
       </div>
 
@@ -292,10 +204,12 @@
         <div class="method-body">
           <strong style="color:var(--white);">Concentration Risk Score (0–100, higher = more concentrated = more risk)</strong><br><br>
           <strong style="color:var(--accent);">Pipeline Depth (40 pts)</strong> — 1 drug = 40, 2 drugs = 25, 3 drugs = 12, 4+ drugs = 0<br>
-          <strong style="color:var(--accent);">Revenue Dependency (25 pts)</strong> — Pre-revenue = 25, &lt;$50M = 18, $50-200M = 10, $200M+ = 0<br>
-          <strong style="color:var(--accent);">Approval History (15 pts)</strong> — No approved drugs = 15, 1 approved = 8, 2+ approved = 0<br>
-          <strong style="color:var(--accent);">Market Cap Floor (10 pts)</strong> — Sub-$500M = 10, $500M-$2B = 5, $2B+ = 0 (larger companies absorb failures better)<br>
-          <strong style="color:var(--accent);">Cash Runway Risk (10 pts)</strong> — &lt;12 months = 10, 12-24 = 5, 24+ = 0<br><br>
+          <strong style="color:var(--accent);">Revenue Dependency (25 pts)</strong> — Pre-revenue = 25, &lt;$50M = 18, $50-200M = 10, $200M-1B = 3, $1B+ = 0<br>
+          <strong style="color:var(--accent);">Approval History (15 pts)</strong> — No approved drugs = 15, 1 approved = 8, 2+ approved = 0. Inferred from revenue when not explicit.<br>
+          <strong style="color:var(--accent);">Market Cap Floor (10 pts)</strong> — Sub-$500M = 10, $500M-$2B = 5, $2B+ = 0<br>
+          <strong style="color:var(--accent);">Cash Runway Risk (10 pts)</strong> — &lt;12 months = 10, 12-24 = 5, 24+ = 0<br>
+          <strong style="color:var(--accent);">Commercial-stage discount</strong> — $1B+ revenue + $5B+ cap = -15pts. $500M+ rev + $2B+ cap = -10pts.<br>
+          <strong style="color:var(--accent);">Mega-pharma bypass</strong> — $50B+ cap + $5B+ revenue = auto LOW (10). Individual PDUFAs are label expansions, not existential.<br><br>
           EXTREME (≥70): Single-pipeline, pre-revenue, micro-cap. Full position risk on one PDUFA.<br>
           HIGH (50-69): Limited pipeline, minimal revenue. Significant binary exposure.<br>
           MODERATE (30-49): Some diversification through multiple assets or revenue.<br>
@@ -330,10 +244,8 @@
       <div class="scanner-grid" id="pipe-grid"></div>
 
       <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin-top:2rem;">
-        ⚠️ Pipeline concentration is a risk classification, not a directional recommendation. High concentration does not mean a stock will fail — it means the outcome is more binary.
-        Position sizing decisions are solely your own.
+        ⚠️ Pipeline concentration is a risk classification, not a directional recommendation. High concentration does not mean a stock will fail — it means the outcome is more binary. Position sizing decisions are solely your own.
       </div>
-
     </div>
   </div>
 </div>
@@ -341,10 +253,7 @@
 <footer>
   <span style="font-family:var(--mono);font-size:0.7rem;font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</span>
   <span>Not investment advice · Quantitative signals only · Trading involves risk of loss</span>
-  <div style="display:flex;gap:1.5rem">
-    <a href="/privacy.html">Privacy</a>
-    <a href="/terms.html">Terms</a>
-  </div>
+  <div style="display:flex;gap:1.5rem"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
@@ -358,119 +267,94 @@ function daysUntil(dateStr) {
   return Math.round((new Date(dateStr) - today) / 86400000);
 }
 
-// ── CONCENTRATION SCORING ────────────────────────────────────────────────────
+// ── FIXED CONCENTRATION SCORING ──────────────────────────────────────────────
 function scoreConcentration(ticker, drugs, events, universe) {
   var score = 0;
   var flags = [];
   var drugCount = drugs.length;
 
-  // Pipeline Depth (40 pts) — more drugs = lower concentration score
-  if (drugCount === 1) {
-    score += 40;
-    flags.push('🚨 Single-pipeline company — this PDUFA is existential');
-  } else if (drugCount === 2) {
-    score += 25;
-    flags.push('⚠️ Dual-asset pipeline — significant concentration');
-  } else if (drugCount === 3) {
-    score += 12;
-    flags.push('📊 Three pipeline assets — some diversification');
-  } else {
-    score += 0;
-    flags.push('✅ Diversified pipeline (' + drugCount + ' assets)');
-  }
-
-  // Revenue Dependency (25 pts)
+  // Calculate revenue + mcap FIRST (needed for bypass + inference)
   var revenue = 0;
   events.forEach(function(e) { if (Number(e.revenue_m) > revenue) revenue = Number(e.revenue_m); });
   if (universe && Number(universe.revenue_m) > revenue) revenue = Number(universe.revenue_m);
 
-  if (revenue <= 0) {
-    score += 25;
-    flags.push('🚨 Pre-revenue — no income floor if PDUFA fails');
-  } else if (revenue < 50) {
-    score += 18;
-    flags.push('⚠️ $' + Math.round(revenue) + 'M revenue — minimal floor');
-  } else if (revenue < 200) {
-    score += 10;
-    flags.push('📊 $' + Math.round(revenue) + 'M revenue provides some cushion');
-  } else {
-    score += 0;
-    flags.push('✅ $' + Math.round(revenue) + 'M revenue base');
+  var mcap = 0;
+  events.forEach(function(e) { var m = Number(e.estimated_market_cap); if (m > mcap) mcap = m; });
+  if (universe && Number(universe.estimated_market_cap) > mcap) mcap = Number(universe.estimated_market_cap);
+
+  var runway = null;
+  events.forEach(function(e) { if (e.runway_months && (runway === null || e.runway_months < runway)) runway = e.runway_months; });
+
+  // MEGA-PHARMA BYPASS — $50B+ cap with $5B+ rev = auto LOW
+  if (mcap >= 50e9 && revenue >= 5000) {
+    return {
+      score: 10, level: 'LOW',
+      flags: [
+        '✅ Large-cap pharma ($' + (mcap / 1e9).toFixed(0) + 'B) — single PDUFA is not existential',
+        '✅ $' + (revenue / 1000).toFixed(1) + 'B revenue base — diversified beyond any one drug',
+        '✅ Pipeline concentration scoring not meaningful at this scale'
+      ],
+      drug_count: drugCount, revenue: revenue, market_cap: mcap, runway: runway, approved_count: 10
+    };
   }
 
-  // Approval History (15 pts)
+  // INFER APPROVED DRUGS FROM REVENUE
   var approvedCount = 0;
   if (universe && universe.has_approved_drug) approvedCount++;
   events.forEach(function(e) {
     if (e.type && e.type.toLowerCase().includes('supplement')) approvedCount++;
   });
+  if (revenue >= 500) approvedCount = Math.max(approvedCount, 3);
+  else if (revenue >= 200) approvedCount = Math.max(approvedCount, 2);
+  else if (revenue >= 50) approvedCount = Math.max(approvedCount, 1);
 
-  if (approvedCount === 0) {
-    score += 15;
-    flags.push('⚠️ No approved drugs — full pre-commercial risk');
-  } else if (approvedCount === 1) {
-    score += 8;
-    flags.push('📊 1 approved drug on market');
-  } else {
-    score += 0;
-    flags.push('✅ Multiple approved drugs');
-  }
+  // Pipeline Depth (40 pts)
+  if (drugCount === 1) { score += 40; flags.push('🚨 Single-pipeline company — this PDUFA is existential'); }
+  else if (drugCount === 2) { score += 25; flags.push('⚠️ Dual-asset pipeline — significant concentration'); }
+  else if (drugCount === 3) { score += 12; flags.push('📊 Three pipeline assets — some diversification'); }
+  else { score += 0; flags.push('✅ Diversified pipeline (' + drugCount + ' assets)'); }
+
+  // Revenue Dependency (25 pts)
+  if (revenue <= 0) { score += 25; flags.push('🚨 Pre-revenue — no income floor if PDUFA fails'); }
+  else if (revenue < 50) { score += 18; flags.push('⚠️ $' + Math.round(revenue) + 'M revenue — minimal floor'); }
+  else if (revenue < 200) { score += 10; flags.push('📊 $' + Math.round(revenue) + 'M revenue provides some cushion'); }
+  else if (revenue < 1000) { score += 3; flags.push('✅ $' + Math.round(revenue) + 'M revenue base'); }
+  else { score += 0; flags.push('✅ $' + (revenue / 1000).toFixed(1) + 'B revenue base — strong floor'); }
+
+  // Approval History (15 pts)
+  if (approvedCount === 0) { score += 15; flags.push('⚠️ No approved drugs — full pre-commercial risk'); }
+  else if (approvedCount === 1) { score += 8; flags.push('📊 1 approved drug on market'); }
+  else { score += 0; flags.push('✅ Multiple approved drugs (' + approvedCount + '+)'); }
 
   // Market Cap Floor (10 pts)
-  var mcap = 0;
-  events.forEach(function(e) { var m = Number(e.estimated_market_cap); if (m > mcap) mcap = m; });
-  if (universe && Number(universe.estimated_market_cap) > mcap) mcap = Number(universe.estimated_market_cap);
-
-  if (mcap > 0 && mcap < 500e6) {
-    score += 10;
-    flags.push('⚠️ Micro-cap ($' + Math.round(mcap / 1e6) + 'M) — less capacity to absorb failure');
-  } else if (mcap >= 500e6 && mcap < 2e9) {
-    score += 5;
-    flags.push('📊 Small-cap ($' + (mcap / 1e9).toFixed(1) + 'B)');
-  } else if (mcap >= 2e9) {
-    score += 0;
-    flags.push('✅ Mid/large-cap ($' + (mcap / 1e9).toFixed(1) + 'B) — absorbs setbacks better');
-  }
+  if (mcap > 0 && mcap < 500e6) { score += 10; flags.push('⚠️ Micro-cap ($' + Math.round(mcap / 1e6) + 'M) — less capacity to absorb failure'); }
+  else if (mcap >= 500e6 && mcap < 2e9) { score += 5; flags.push('📊 Small-cap ($' + (mcap / 1e9).toFixed(1) + 'B)'); }
+  else if (mcap >= 2e9) { score += 0; flags.push('✅ Mid/large-cap ($' + (mcap / 1e9).toFixed(1) + 'B) — absorbs setbacks better'); }
 
   // Cash Runway Risk (10 pts)
-  var runway = null;
-  events.forEach(function(e) { if (e.runway_months && (runway === null || e.runway_months < runway)) runway = e.runway_months; });
+  if (runway !== null && runway < 12) { score += 10; flags.push('🚨 ' + Math.round(runway) + '-month runway — financing risk compounds binary exposure'); }
+  else if (runway !== null && runway < 24) { score += 5; flags.push('📊 ' + Math.round(runway) + '-month runway'); }
+  else if (runway !== null) { flags.push('✅ ' + Math.round(runway) + '+ month runway'); }
 
-  if (runway !== null && runway < 12) {
-    score += 10;
-    flags.push('🚨 ' + Math.round(runway) + '-month runway — financing risk compounds binary exposure');
-  } else if (runway !== null && runway < 24) {
-    score += 5;
-    flags.push('📊 ' + Math.round(runway) + '-month runway');
-  } else if (runway !== null) {
-    flags.push('✅ ' + Math.round(runway) + '+ month runway');
-  }
+  // Commercial-stage discount
+  if (revenue >= 1000 && mcap >= 5e9) score = Math.max(0, score - 15);
+  else if (revenue >= 500 && mcap >= 2e9) score = Math.max(0, score - 10);
 
   score = Math.min(100, Math.max(0, score));
 
   var level;
-  if (score >= 70)      level = 'EXTREME';
+  if (score >= 70) level = 'EXTREME';
   else if (score >= 50) level = 'HIGH';
   else if (score >= 30) level = 'MODERATE';
-  else                  level = 'LOW';
+  else level = 'LOW';
 
-  return {
-    score: score,
-    level: level,
-    flags: flags,
-    drug_count: drugCount,
-    revenue: revenue,
-    market_cap: mcap,
-    runway: runway,
-    approved_count: approvedCount,
-  };
+  return { score: score, level: level, flags: flags, drug_count: drugCount, revenue: revenue, market_cap: mcap, runway: runway, approved_count: approvedCount };
 }
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function renderPipelineGrid() {
   if (PIPELINE_DATA.length === 0) {
-    document.getElementById('pipe-grid').innerHTML =
-      '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">Loading pipeline data...</div>';
+    document.getElementById('pipe-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">Loading pipeline data...</div>';
     return;
   }
 
@@ -512,81 +396,42 @@ function renderPipelineGrid() {
       (days <= 14 ? 'rgba(255,68,68,0.4);color:var(--red);background:rgba(255,68,68,0.08)' :
        days <= 30 ? 'rgba(245,166,35,0.4);color:var(--amber);background:rgba(245,166,35,0.08)' :
        'rgba(0,212,255,0.3);color:var(--accent);background:rgba(0,212,255,0.06)') + ';">' + days + 'd</span>' : '';
-
-    // Pipeline visualization bar
     var maxDrugs = 5;
     var fillPct = Math.min(100, (d.drug_count / maxDrugs) * 100);
     var fillColor = d.drug_count === 1 ? 'var(--red)' : d.drug_count === 2 ? 'var(--amber)' : 'var(--accent2)';
-
-    // Suggested position size
     var posSize = d.concentration_score >= 70 ? '1-2%' : d.concentration_score >= 50 ? '2-4%' : d.concentration_score >= 30 ? '4-6%' : '6-10%';
     var posSizeColor = d.concentration_score >= 70 ? 'var(--red)' : d.concentration_score >= 50 ? 'var(--amber)' : d.concentration_score >= 30 ? 'var(--accent)' : 'var(--accent2)';
 
-    return '<div class="pipe-card ' + lvl + '" style="animation-delay:' + (i * 0.05) + 's"' +
-      ' onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'">' +
-      '<div class="card-top">' +
-        '<div>' +
-          '<div class="card-ticker">' + d.ticker + daysPill + '</div>' +
-          '<div class="card-date">' + d.drug_count + ' pipeline asset' + (d.drug_count > 1 ? 's' : '') +
-            (d.next_pdufa && days < 9999 ? ' · Next PDUFA: ' + d.next_pdufa : '') + '</div>' +
-        '</div>' +
-        '<span class="card-badge ' + badgeCls + '">' + d.concentration_level + '</span>' +
-      '</div>' +
-
+    return '<div class="pipe-card ' + lvl + '" style="animation-delay:' + (i * 0.05) + 's" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'">' +
+      '<div class="card-top"><div>' +
+        '<div class="card-ticker">' + d.ticker + daysPill + '</div>' +
+        '<div class="card-date">' + d.drug_count + ' pipeline asset' + (d.drug_count > 1 ? 's' : '') +
+          (d.next_pdufa && days < 9999 ? ' · Next PDUFA: ' + d.next_pdufa : '') + '</div>' +
+      '</div><span class="card-badge ' + badgeCls + '">' + d.concentration_level + '</span></div>' +
       '<div class="score-grid">' +
-        '<div class="score-box">' +
-          '<div class="score-box-label">Conc. Risk</div>' +
-          '<div class="score-box-val ' + scoreColor + '">' + d.concentration_score + '</div>' +
-        '</div>' +
-        '<div class="score-box">' +
-          '<div class="score-box-label">Assets</div>' +
-          '<div class="score-box-val ' + (d.drug_count === 1 ? 'red' : d.drug_count === 2 ? 'amber' : 'green') + '">' + d.drug_count + '</div>' +
-        '</div>' +
-        '<div class="score-box">' +
-          '<div class="score-box-label">Revenue</div>' +
-          '<div class="score-box-val ' + (d.revenue <= 0 ? 'red' : d.revenue < 50 ? 'amber' : 'green') + '">' + (d.revenue > 0 ? '$' + Math.round(d.revenue) + 'M' : 'Pre-rev') + '</div>' +
-        '</div>' +
-        '<div class="score-box">' +
-          '<div class="score-box-label">Size Ref</div>' +
-          '<div class="score-box-val" style="color:' + posSizeColor + ';font-size:0.72rem;">' + posSize + '</div>' +
-        '</div>' +
+        '<div class="score-box"><div class="score-box-label">Conc. Risk</div><div class="score-box-val ' + scoreColor + '">' + d.concentration_score + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Assets</div><div class="score-box-val ' + (d.drug_count === 1 ? 'red' : d.drug_count === 2 ? 'amber' : 'green') + '">' + d.drug_count + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Revenue</div><div class="score-box-val ' + (d.revenue <= 0 ? 'red' : d.revenue < 50 ? 'amber' : 'green') + '">' + (d.revenue >= 1000 ? '$' + (d.revenue/1000).toFixed(1) + 'B' : d.revenue > 0 ? '$' + Math.round(d.revenue) + 'M' : 'Pre-rev') + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Size Ref</div><div class="score-box-val" style="color:' + posSizeColor + ';font-size:0.72rem;">' + posSize + '</div></div>' +
       '</div>' +
-
-      '<div class="pipeline-bar-container">' +
-        '<div class="pipeline-bar"><div class="pipeline-fill" style="width:' + fillPct + '%;background:' + fillColor + ';"></div></div>' +
-        '<div class="pipeline-labels"><span>1 asset</span><span>5+ assets</span></div>' +
-      '</div>' +
-
-      '<div class="drug-list">' +
-        d.drugs.map(function(drug, idx) {
-          return '<span class="drug-item' + (idx === 0 ? ' primary' : '') + '">' + drug + '</span>';
-        }).join('') +
-      '</div>' +
-
-      '<div class="pipe-flags">' +
-        d.concentration_flags.slice(0, 4).map(function(f) {
-          var color = f.startsWith('✅') ? 'var(--accent2)' :
-                      f.startsWith('🚨') ? 'var(--red)' :
-                      f.startsWith('⚠️') ? 'var(--amber)' : 'var(--text)';
-          return '<div class="pipe-flag" style="color:' + color + '">' + f + '</div>';
-        }).join('') +
-      '</div>' +
-
-      '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>' +
-    '</div>';
+      '<div class="pipeline-bar-container"><div class="pipeline-bar"><div class="pipeline-fill" style="width:' + fillPct + '%;background:' + fillColor + ';"></div></div>' +
+      '<div class="pipeline-labels"><span>1 asset</span><span>5+ assets</span></div></div>' +
+      '<div class="drug-list">' + d.drugs.map(function(drug, idx) { return '<span class="drug-item' + (idx === 0 ? ' primary' : '') + '">' + drug + '</span>'; }).join('') + '</div>' +
+      '<div class="pipe-flags">' + d.concentration_flags.slice(0, 4).map(function(f) {
+        var color = f.startsWith('✅') ? 'var(--accent2)' : f.startsWith('🚨') ? 'var(--red)' : f.startsWith('⚠️') ? 'var(--amber)' : 'var(--text)';
+        return '<div class="pipe-flag" style="color:' + color + '">' + f + '</div>';
+      }).join('') + '</div>' +
+      '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div></div>';
   }).join('');
 
-  // Stats
   var single = PIPELINE_DATA.filter(function(d) { return d.drug_count === 1; }).length;
   var dual = PIPELINE_DATA.filter(function(d) { return d.drug_count === 2; }).length;
   var diversified = PIPELINE_DATA.filter(function(d) { return d.drug_count >= 3; }).length;
-
   document.getElementById('stat-single').textContent = single;
   document.getElementById('stat-dual').textContent = dual;
   document.getElementById('stat-diversified').textContent = diversified;
   document.getElementById('stat-total').textContent = PIPELINE_DATA.length;
-  document.getElementById('scan-timestamp').textContent =
-    'Updated: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  document.getElementById('scan-timestamp').textContent = 'Updated: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -601,47 +446,34 @@ function renderPipelineGrid() {
   }
 
   document.getElementById('scanner-content').style.display = 'block';
-  document.getElementById('nav-user').innerHTML =
-    '<span style="color:var(--muted);font-size:0.62rem;">' + session.user.email + '</span>';
+  document.getElementById('nav-user').innerHTML = '<span style="color:var(--muted);font-size:0.62rem;">' + session.user.email + '</span>';
 
   var sb = getSupabase();
 
   try {
-    // Fetch PDUFA events
     var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
-      headers: {
-        'Authorization': 'Bearer ' + (session.access_token || ''),
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': 'Bearer ' + (session.access_token || ''), 'Content-Type': 'application/json' },
     });
-
     var result = await res.json();
     var allEvents = result.events || [];
 
-    // Also fetch drug_assets for pipeline depth
     var { data: drugAssets } = await sb.from('drug_assets')
       .select('drug_name, brand_name, parent_ticker, indication, fda_status, pdufa_date')
       .order('parent_ticker');
 
-    // Also fetch biotech_universe for revenue + approval data
     var { data: universeData } = await sb.from('biotech_universe')
       .select('ticker, company_name, has_approved_drug, approved_drug, revenue_m, estimated_market_cap')
       .eq('is_acquired', false);
 
-    // Build a map of ticker → universe data
     var universeMap = {};
-    if (universeData) {
-      universeData.forEach(function(u) { universeMap[u.ticker] = u; });
-    }
+    if (universeData) { universeData.forEach(function(u) { universeMap[u.ticker] = u; }); }
 
-    // Group events by ticker
     var tickerEvents = {};
     allEvents.forEach(function(e) {
       if (!tickerEvents[e.ticker]) tickerEvents[e.ticker] = [];
       tickerEvents[e.ticker].push(e);
     });
 
-    // Also add drug_assets entries
     var tickerDrugs = {};
     if (drugAssets) {
       drugAssets.forEach(function(da) {
@@ -651,14 +483,11 @@ function renderPipelineGrid() {
         tickerDrugs[tk].add(da.drug_name || da.brand_name);
       });
     }
-
-    // Add drugs from PDUFA events
     allEvents.forEach(function(e) {
       if (!tickerDrugs[e.ticker]) tickerDrugs[e.ticker] = new Set();
       if (e.drug) tickerDrugs[e.ticker].add(e.drug);
     });
 
-    // Score each ticker
     var allTickers = new Set(Object.keys(tickerEvents).concat(Object.keys(tickerDrugs)));
     var pipelineResults = [];
 
@@ -667,43 +496,31 @@ function renderPipelineGrid() {
       var events = tickerEvents[ticker] || [];
       var universe = universeMap[ticker] || null;
 
-      // Skip if no drugs found
       if (drugs.length === 0 && events.length === 0) return;
       if (drugs.length === 0) drugs = events.map(function(e) { return e.drug || 'Unknown'; }).filter(function(d, i, a) { return a.indexOf(d) === i; });
 
       var scored = scoreConcentration(ticker, drugs, events, universe);
 
-      // Find next PDUFA
       var nextPdufa = null;
       var nextPdufaDays = 9999;
       events.forEach(function(e) {
         if (e.date) {
           var d = daysUntil(e.date);
-          if (d > 0 && d < nextPdufaDays) {
-            nextPdufaDays = d;
-            nextPdufa = e.date;
-          }
+          if (d > 0 && d < nextPdufaDays) { nextPdufaDays = d; nextPdufa = e.date; }
         }
       });
 
       pipelineResults.push({
-        ticker: ticker,
-        drugs: drugs,
-        drug_count: scored.drug_count,
-        next_pdufa: nextPdufa,
-        concentration_score: scored.score,
-        concentration_level: scored.level,
-        concentration_flags: scored.flags,
-        revenue: scored.revenue,
-        market_cap: scored.market_cap,
-        runway: scored.runway,
-        approved_count: scored.approved_count,
+        ticker: ticker, drugs: drugs, drug_count: scored.drug_count,
+        next_pdufa: nextPdufa, concentration_score: scored.score,
+        concentration_level: scored.level, concentration_flags: scored.flags,
+        revenue: scored.revenue, market_cap: scored.market_cap,
+        runway: scored.runway, approved_count: scored.approved_count,
       });
     });
 
     PIPELINE_DATA = pipelineResults;
     console.log('[SC] Pipeline Concentration: scored ' + PIPELINE_DATA.length + ' companies');
-
   } catch (err) {
     console.warn('[SC] Pipeline data load error:', err);
   }
