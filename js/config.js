@@ -2,16 +2,13 @@ const SC_CONFIG = {
   supabaseUrl:  'https://dipagzqrvivposqjkdkx.supabase.co',
   supabaseKey:  'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU',
   stripePaymentLink: 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03',
-  stripePortalUrl: 'billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00'
-
-,
+  stripePortalUrl: 'billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00',
+  polygonApiKey: 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI',
   adminEmails: [],
   siteName: 'Submarine Catalyst',
   domain: 'submarinecatalyst.com',
 };
-
 let _supabase = null;
-
 function getSupabase() {
   if (_supabase) return _supabase;
   if (typeof supabase === 'undefined' || !supabase.createClient) {
@@ -26,7 +23,6 @@ function getSupabase() {
     return null;
   }
 }
-
 async function scGetSession() {
   const sb = getSupabase();
   if (!sb) return null;
@@ -36,7 +32,6 @@ async function scGetSession() {
     return session;
   } catch (err) { return null; }
 }
-
 async function scGetProfile(userId) {
   const sb = getSupabase();
   if (!sb || !userId) return null;
@@ -46,13 +41,11 @@ async function scGetProfile(userId) {
     return data;
   } catch (err) { return null; }
 }
-
 async function scSignOut() {
   const sb = getSupabase();
   if (sb) try { await sb.auth.signOut(); } catch (e) {}
   window.location.href = '/login.html';
 }
-
 function scCheckout(userId, email) {
   let url = SC_CONFIG.stripePaymentLink;
   const params = new URLSearchParams();
@@ -62,13 +55,11 @@ function scCheckout(userId, email) {
   if (qs) url += (url.includes('?') ? '&' : '?') + qs;
   window.location.href = url;
 }
-
 async function scRequireAuth() {
   const session = await scGetSession();
   if (!session) { window.location.replace('/login.html'); return null; }
   return session;
 }
-
 async function scPollSubscription(userId, maxAttempts = 8) {
   const sb = getSupabase();
   if (!sb) return false;
@@ -81,3 +72,4 @@ async function scPollSubscription(userId, maxAttempts = 8) {
   }
   return false;
 }
+
