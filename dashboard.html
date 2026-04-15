@@ -300,6 +300,7 @@
           <option value="poa">Sort: PoA ↓</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
+          <option value="trend30d">Sort: 30D Trend ↓</option>
         </select>
         <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Grades</option>
@@ -431,6 +432,44 @@ function gradeBadge(g) {
   return `<span class="card-grade ${cls}">${lbl}</span>`;
 }
 
+// ─── POLYGON 30D PRICE DATA ───────────────────────────────────────────────────
+var PRICE_DATA = {}; // ticker → { change30d, close, prev30d }
+
+async function fetchPriceData(tickers) {
+  if (!SC_CONFIG.polygonApiKey) {
+    console.warn('[SC] No polygonApiKey in SC_CONFIG — add it to js/config.js');
+    return;
+  }
+  var apiKey = SC_CONFIG.polygonApiKey;
+  var today = new Date();
+  var ago = new Date(today); ago.setDate(ago.getDate() - 35);
+  var fromDate = ago.toISOString().split('T')[0];
+  var toDate = today.toISOString().split('T')[0];
+
+  // Batch 5 at a time with 300ms delay to respect rate limits
+  for (var i = 0; i < tickers.length; i += 5) {
+    var batch = tickers.slice(i, i + 5);
+    await Promise.all(batch.map(function(tk) {
+      return fetch('https://api.polygon.io/v2/aggs/ticker/' + tk + '/range/1/day/' + fromDate + '/' + toDate + '?adjusted=true&sort=asc&limit=40&apiKey=' + apiKey)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data.results && data.results.length >= 2) {
+            var first = data.results[0].c;
+            var last = data.results[data.results.length - 1].c;
+            PRICE_DATA[tk] = {
+              change30d: ((last - first) / first) * 100,
+              close: last,
+              prev30d: first
+            };
+          }
+        })
+        .catch(function() { /* silent fail per ticker */ });
+    }));
+    if (i + 5 < tickers.length) await new Promise(function(r) { setTimeout(r, 300); });
+  }
+  console.log('[SC] Polygon: loaded 30D data for ' + Object.keys(PRICE_DATA).length + '/' + tickers.length + ' tickers');
+}
+
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
 function renderScanner() {
   if (SCANNER_DATA.length === 0) {
@@ -467,6 +506,7 @@ function renderScanner() {
       case 'poa':       return (b.poa || 0) - (a.poa || 0);
       case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
+      case 'trend30d':  return ((PRICE_DATA[b.ticker]||{}).change30d||0) - ((PRICE_DATA[a.ticker]||{}).change30d||0);
       default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
     }
   });
@@ -507,7 +547,7 @@ function renderScanner() {
             <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
           </div>
         </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">
+        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
           <div class="score-box">
             <div class="score-box-label">Buyout</div>
             <div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div>
@@ -519,6 +559,17 @@ function renderScanner() {
           <div class="score-box">
             <div class="score-box-label">TAM/Cap</div>
             <div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
+          </div>
+          <div class="score-box">
+            <div class="score-box-label">30D</div>
+            ${(() => {
+              var p = PRICE_DATA[d.ticker];
+              if (!p) return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>';
+              var c = p.change30d;
+              var arrow = c >= 0 ? '▲' : '▼';
+              var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red';
+              return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>';
+            })()}
           </div>
         </div>
         ${(() => {
@@ -1022,6 +1073,15 @@ function switchTab(btn, id) {
   }
 
   renderScanner();
+
+  // Fetch 30D price data from Polygon, then re-render with trend data
+  if (SCANNER_DATA.length > 0 && SC_CONFIG.polygonApiKey) {
+    var tickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
+    fetchPriceData(tickers).then(function() {
+      renderScanner(); // Re-render with 30D data filled in
+      console.log('[SC] Scanner re-rendered with 30D price trends');
+    });
+  }
 
   // Load recently approved companies for buyout scanner
   try {
