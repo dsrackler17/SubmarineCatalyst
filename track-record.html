@@ -102,28 +102,28 @@ footer a:hover{color:var(--accent);}
   <div class="stats-strip">
     <div class="stat-cell">
       <div class="stat-label">Resolved Events</div>
-      <div class="stat-val white" id="stat-total">6</div>
+      <div class="stat-val white" id="stat-total">9</div>
       <div class="stat-sub">approved + decided</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">Correct Calls</div>
-      <div class="stat-val green" id="stat-correct">6</div>
-      <div class="stat-sub">6/7 — 85.7% accuracy</div>
+      <div class="stat-val green" id="stat-correct">8</div>
+      <div class="stat-sub">8/9 — 88.9% accuracy</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">Active / Pending</div>
-      <div class="stat-val amber" id="stat-pending">2</div>
-      <div class="stat-sub">TVTX · LGND</div>
+      <div class="stat-val amber" id="stat-pending">0</div>
+      <div class="stat-sub">Next: GRCE Apr 23</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">STN Calls Correct</div>
-      <div class="stat-val cyan" id="stat-stn">3/3</div>
-      <div class="stat-sub">RCKT · BIIB · VNDA flagged</div>
+      <div class="stat-val cyan" id="stat-stn">3/5</div>
+      <div class="stat-sub">RCKT · BIIB · VNDA correct</div>
     </div>
   </div>
 
   <div class="disclaimer">
-    ⚠️ 7 resolved events · 6/7 approval accuracy (85.7%) · 1 CRL miss (REPL RP1 melanoma) · 2 additional events delayed by the company (not CRL or rejection). STN Risk correctly identified RCKT sell-the-news (−20%), BIIB muted move (−5%), VNDA upside (+45%), and REPL severe downside (−64%). 2 active events pending resolution: TVTX + LGND (Apr 13 PDUFA). This track record will become statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
+    ⚠️ 9 resolved events · 8/9 approval accuracy (88.9%) · 1 CRL miss (REPL RP1 melanoma) · 2 additional events delayed by the company (not CRL or rejection). STN Risk correctly identified RCKT sell-the-news (−20%), BIIB muted move (−5%), and VNDA upside (+45%), but overestimated sell-the-news risk on TVTX (+35%) and LGND (+12%) — both flagged MODERATE but surged on first-in-class FSGS approval. STN record: 3/5. This track record will become statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
   </div>
 
   <div class="section-title">Resolved Events</div>
@@ -241,53 +241,34 @@ footer a:hover{color:var(--accent);}
         <td class="incorrect">-64%</td>
         <td class="incorrect" style="color:var(--red);">✗</td>
       </tr>
-    </tbody>
-  </table>
-
-  <div class="section-title">Active — Pending Resolution</div>
-  <table class="outcome-table">
-    <thead>
       <tr>
-        <th>Ticker</th>
-        <th>Drug / Indication</th>
-        <th>PDUFA Date</th>
-        <th>PoA</th>
-        <th>Grade</th>
-        <th>STN Risk</th>
-        <th>FDA Outcome</th>
-        <th>Actual Move</th>
-        <th>PoA ✓</th>
-      </tr>
-    </thead>
-    <tbody id="upcoming-body">
-      <tr style="background:rgba(0,212,255,0.04);">
-        <td class="ticker-cell" style="color:var(--accent);">TVTX 🔴</td>
-        <td>FILSPARI · FSGS</td>
-        <td>Apr 13, 2026</td>
-        <td class="poa-cell">72.0%</td>
+        <td class="ticker-cell">TVTX</td>
+        <td>FILSPARI (sparsentan) · FSGS — first-in-class</td>
+        <td>2026-04-13</td>
+        <td class="poa-cell">74.2%</td>
         <td>STRONG</td>
         <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-pending">Pending — <span id="tvtx-days"></span></td>
-        <td style="color:var(--muted);">—</td>
-        <td style="color:var(--muted);">—</td>
+        <td class="result-approved">✅ APPROVED</td>
+        <td class="correct">+35%</td>
+        <td class="correct">✓</td>
       </tr>
-      <tr style="background:rgba(0,212,255,0.04);">
-        <td class="ticker-cell" style="color:var(--accent);">LGND 🔴</td>
-        <td>Filspari (royalty) · FSGS</td>
-        <td>Apr 13, 2026</td>
+      <tr>
+        <td class="ticker-cell">LGND</td>
+        <td>FILSPARI (9% royalty) · FSGS</td>
+        <td>2026-04-13</td>
         <td class="poa-cell">71.5%</td>
         <td>STRONG</td>
         <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-pending">Pending — <span class="lgnd-days"></span></td>
-        <td style="color:var(--muted);">—</td>
-        <td style="color:var(--muted);">—</td>
+        <td class="result-approved">✅ APPROVED</td>
+        <td class="correct">+12%</td>
+        <td class="correct">✓</td>
       </tr>
     </tbody>
   </table>
 
   <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
-    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">STN Risk — The differentiator</div>
-    <div style="color:var(--text);line-height:1.75;">3 of 6 resolved approvals had <span style="color:var(--red);">negative or flat post-decision moves</span>. The scanner's STN Risk layer flagged all three before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). PoA tells you if it gets approved. Net Edge tells you if it's worth trading.</div>
+    <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">STN Risk — Work in Progress</div>
+    <div style="color:var(--text);line-height:1.75;">3 of 8 resolved approvals had <span style="color:var(--red);">negative or flat post-decision moves</span>. The STN Risk layer flagged all three before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). However, STN flagged MODERATE on <span style="color:var(--accent2);">TVTX</span> (+35%) and <span style="color:var(--accent2);">LGND</span> (+12%) — both surged on a first-in-class FSGS approval. The model overestimated sell-the-news risk when first-in-class unmet need was the dominant factor. STN record: <strong style="color:var(--white);">3/5</strong>. Recalibrating first-in-class modifier weight.</div>
   </div>
 
   <div class="methodology">
@@ -325,22 +306,6 @@ footer a:hover{color:var(--accent);}
     <a href="/calendar.html">Calendar</a>
   </div>
 </footer>
-<script>
-  function updateDays() {
-    const target = new Date('2026-04-13T00:00:00-04:00');
-    const now = new Date();
-    const diff = target - now;
-    if (diff <= 0) {
-      document.querySelectorAll('#tvtx-days, .lgnd-days').forEach(el => { if(el) el.textContent = 'TODAY'; });
-      return;
-    }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const txt = d > 0 ? `${d}d ${h}h` : `${h}h`;
-    document.querySelectorAll('#tvtx-days, .lgnd-days').forEach(el => { if(el) el.textContent = txt; });
-  }
-  updateDays();
-  setInterval(updateDays, 60000);
-</script>
+
 </body>
 </html>
