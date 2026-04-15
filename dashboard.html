@@ -432,8 +432,27 @@ function gradeBadge(g) {
   return `<span class="card-grade ${cls}">${lbl}</span>`;
 }
 
-// ─── POLYGON 30D PRICE DATA ───────────────────────────────────────────────────
-var PRICE_DATA = {}; // ticker → { change30d, close, prev30d }
+// ─── POLYGON LIVE MARKET DATA ─────────────────────────────────────────────────
+var PRICE_DATA = {}; // ticker → { close, change30d, volRatio, chartSetup, todayChange }
+
+function classifyChart(change30d, volRatio, bars) {
+  // Compute consolidation: compare recent 10d range to prior 10d range
+  var consolidating = false;
+  if (bars.length >= 20) {
+    var recent = bars.slice(-10);
+    var prior = bars.slice(-20, -10);
+    var recentRange = Math.max.apply(null, recent.map(function(b){return b.h;})) - Math.min.apply(null, recent.map(function(b){return b.l;}));
+    var priorRange = Math.max.apply(null, prior.map(function(b){return b.h;})) - Math.min.apply(null, prior.map(function(b){return b.l;}));
+    if (priorRange > 0 && recentRange / priorRange < 0.65) consolidating = true;
+  }
+
+  if (change30d < -15) return { label: 'WEAK', icon: '❌', color: 'var(--red)' };
+  if (change30d < 0) return { label: 'PULLBACK', icon: '⚠️', color: 'var(--amber)' };
+  if (change30d >= 30) return { label: 'EXTENDED', icon: '🚨', color: 'var(--red)' };
+  if (change30d >= 15) return { label: 'BUILDING', icon: '📈', color: 'var(--amber)' };
+  if (consolidating) return { label: 'COILING', icon: '📡', color: 'var(--accent)' };
+  return { label: 'READY', icon: '✅', color: 'var(--accent2)' };
+}
 
 async function fetchPriceData(tickers) {
   if (!SC_CONFIG.polygonApiKey) {
@@ -446,7 +465,6 @@ async function fetchPriceData(tickers) {
   var fromDate = ago.toISOString().split('T')[0];
   var toDate = today.toISOString().split('T')[0];
 
-  // Batch 5 at a time with 300ms delay to respect rate limits
   for (var i = 0; i < tickers.length; i += 5) {
     var batch = tickers.slice(i, i + 5);
     await Promise.all(batch.map(function(tk) {
@@ -454,12 +472,30 @@ async function fetchPriceData(tickers) {
         .then(function(r) { return r.json(); })
         .then(function(data) {
           if (data.results && data.results.length >= 2) {
-            var first = data.results[0].c;
-            var last = data.results[data.results.length - 1].c;
+            var bars = data.results;
+            var first = bars[0].c;
+            var last = bars[bars.length - 1].c;
+            var prev = bars.length >= 2 ? bars[bars.length - 2].c : last;
+            var change30d = ((last - first) / first) * 100;
+            var todayChange = ((last - prev) / prev) * 100;
+
+            // Volume: avg last 5 bars vs avg prior bars
+            var recentVols = bars.slice(-5).map(function(b){return b.v;});
+            var priorVols = bars.slice(0, -5).map(function(b){return b.v;});
+            var avgRecent = recentVols.reduce(function(a,b){return a+b;},0) / recentVols.length;
+            var avgPrior = priorVols.length > 0 ? priorVols.reduce(function(a,b){return a+b;},0) / priorVols.length : avgRecent;
+            var volRatio = avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
+
+            var chart = classifyChart(change30d, volRatio, bars);
+
             PRICE_DATA[tk] = {
-              change30d: ((last - first) / first) * 100,
               close: last,
-              prev30d: first
+              change30d: change30d,
+              todayChange: todayChange,
+              volRatio: volRatio,
+              chartSetup: chart.label,
+              chartIcon: chart.icon,
+              chartColor: chart.color,
             };
           }
         })
@@ -467,7 +503,7 @@ async function fetchPriceData(tickers) {
     }));
     if (i + 5 < tickers.length) await new Promise(function(r) { setTimeout(r, 300); });
   }
-  console.log('[SC] Polygon: loaded 30D data for ' + Object.keys(PRICE_DATA).length + '/' + tickers.length + ' tickers');
+  console.log('[SC] Polygon: loaded live data for ' + Object.keys(PRICE_DATA).length + '/' + tickers.length + ' tickers');
 }
 
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
@@ -572,6 +608,24 @@ function renderScanner() {
             })()}
           </div>
         </div>
+        ${(() => {
+          // LIVE MARKET DATA BAR (Polygon)
+          var p = PRICE_DATA[d.ticker];
+          if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:flex;gap:1rem;align-items:center;"><span style="opacity:0.4;">📊 Live data loading...</span></div>';
+
+          var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)';
+          var trendColor = p.change30d >= 15 ? 'var(--accent2)' : p.change30d >= 0 ? 'var(--accent)' : p.change30d >= -15 ? 'var(--amber)' : 'var(--red)';
+          var trendArrow = p.change30d >= 0 ? '▲' : '▼';
+          var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)';
+          var todayArrow = p.todayChange >= 0 ? '▲' : '▼';
+
+          return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' +
+            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' +
+            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' +
+            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + p.volRatio + '%</span></div>' +
+            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + p.chartColor + ';font-weight:700;">' + p.chartIcon + ' ' + p.chartSetup + '</span></div>' +
+          '</div>';
+        })()}
         ${(() => {
           // Buyout timeline + acquirer context
           if (!d.buyout_score || d.buyout_score < 35) return '';
