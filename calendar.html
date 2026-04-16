@@ -208,31 +208,31 @@ var isPaid = false;
 // ── POLYGON.IO LIVE MARKET DATA ───────────────────────────────────────────────
 var POLY_KEY = (typeof SC_CONFIG !== 'undefined' && SC_CONFIG.polygonApiKey) || 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI';
 var POLY_BASE = 'https://api.polygon.io';
-var polyCache = {};      // ticker → { bars, ts }
-var polyCacheTTL = 900000; // 15 min cache
-var polyThrottle = 200;  // ms between batches — ramps up on 429
-var polyBatchSize = 5;   // concurrent requests per batch
+var polyCache = {};        // ticker → { bars, metrics, ts }
+var polyCacheTTL = 900000; // 15 min
+var polyDelay = 12500;     // ms between requests — safe for free tier (5/min)
+var polyIsPaidTier = false; // auto-detected
+var POLY_MAX_TICKERS = 60; // cap to keep load time reasonable on free tier
 
-// Load cache from sessionStorage
+// Restore cache from sessionStorage
 try {
-  var cached = sessionStorage.getItem('sc_poly_cache');
-  if (cached) {
-    var parsed = JSON.parse(cached);
-    var now = Date.now();
-    Object.keys(parsed).forEach(function(k) {
-      if (now - parsed[k].ts < polyCacheTTL) polyCache[k] = parsed[k];
+  var _pc = sessionStorage.getItem('sc_poly_v2');
+  if (_pc) {
+    var _pd = JSON.parse(_pc);
+    var _now = Date.now();
+    Object.keys(_pd).forEach(function(k) {
+      if (_now - _pd[k].ts < polyCacheTTL) polyCache[k] = _pd[k];
     });
+    console.log('[Polygon] Restored ' + Object.keys(polyCache).length + ' tickers from cache');
   }
 } catch (e) {}
 
 function polySaveCache() {
-  try { sessionStorage.setItem('sc_poly_cache', JSON.stringify(polyCache)); } catch (e) {}
+  try { sessionStorage.setItem('sc_poly_v2', JSON.stringify(polyCache)); } catch (e) {}
 }
 
-async function polyFetchBars(ticker) {
-  if (polyCache[ticker] && (Date.now() - polyCache[ticker].ts < polyCacheTTL)) {
-    return polyCache[ticker].bars;
-  }
+// Single sequential fetch with full diagnostics
+async function polyFetchOne(ticker) {
   var now = new Date();
   var to = now.toISOString().split('T')[0];
   var from = new Date(now.getTime() - 40 * 86400000).toISOString().split('T')[0];
@@ -240,20 +240,28 @@ async function polyFetchBars(ticker) {
   try {
     var res = await fetch(url);
     if (res.status === 429) {
-      // Rate limited — back off
-      polyThrottle = Math.min(polyThrottle * 2, 15000);
-      polyBatchSize = Math.max(1, Math.floor(polyBatchSize / 2));
-      console.warn('[Polygon] Rate limited, throttle now ' + polyThrottle + 'ms, batch ' + polyBatchSize);
-      return null;
+      console.warn('[Polygon] 429 rate-limited on ' + ticker + '. Backing off.');
+      return { status: 429 };
     }
-    if (!res.ok) return null;
+    if (res.status === 403) {
+      console.error('[Polygon] 403 forbidden on ' + ticker + '. API key may be invalid or endpoint not on your plan.');
+      return { status: 403 };
+    }
+    if (!res.ok) {
+      console.warn('[Polygon] HTTP ' + res.status + ' for ' + ticker);
+      return { status: res.status };
+    }
     var data = await res.json();
-    if (data.results && data.results.length >= 2) {
-      polyCache[ticker] = { bars: data.results, ts: Date.now() };
-      return data.results;
+    if (data.resultsCount === 0 || !data.results || data.results.length < 2) {
+      console.log('[Polygon] No bar data for ' + ticker + ' (resultsCount=' + (data.resultsCount || 0) + ')');
+      return { status: 200, empty: true };
     }
-  } catch (e) { console.warn('[Polygon] Error fetching ' + ticker, e); }
-  return null;
+    console.log('[Polygon] ✓ ' + ticker + ': ' + data.results.length + ' bars, latest close $' + data.results[data.results.length - 1].c.toFixed(2));
+    return { status: 200, bars: data.results };
+  } catch (e) {
+    console.error('[Polygon] Network error for ' + ticker + ':', e.message);
+    return { status: 0, error: e.message };
+  }
 }
 
 function polyComputeMetrics(bars) {
@@ -274,7 +282,7 @@ function polyComputeMetrics(bars) {
     vol = Math.sqrt(variance) * Math.sqrt(252) * 100;
   }
 
-  // Chart pattern heuristic from price action
+  // Chart pattern heuristic
   var pattern = 'NEUTRAL';
   if (bars.length >= 10) {
     var r5 = bars.slice(-5), p5 = bars.slice(-10, -5);
@@ -284,124 +292,190 @@ function polyComputeMetrics(bars) {
     var rRange = rHi - rLo, pRange = pHi - pLo;
     var avgVol10 = bars.slice(-10).reduce(function(a, b) { return a + b.v; }, 0) / 10;
     var avgVol5 = r5.reduce(function(a, b) { return a + b.v; }, 0) / 5;
-
     if (pRange > 0 && rRange < pRange * 0.55 && avgVol10 > 0 && avgVol5 < avgVol10 * 0.8) pattern = 'COILING';
     else if (change30d > 12 && avgVol10 > 0 && avgVol5 > avgVol10 * 1.2) pattern = 'EXTENDED';
     else if (change30d > 3 && latest.c > r5[0].c) pattern = 'BUILDING';
     else if (change30d < -15) pattern = 'WEAK';
   }
 
-  // Current price for market cap sanity check
-  var currentPrice = latest.c;
-  var avgVolume = bars.slice(-5).reduce(function(a, b) { return a + b.v; }, 0) / Math.min(bars.length, 5);
+  return { change30d: change30d, vol: vol, pattern: pattern, price: latest.c, avgVol: bars.slice(-5).reduce(function(a, b) { return a + b.v; }, 0) / 5 };
+}
 
-  return { change30d: change30d, vol: vol, pattern: pattern, price: currentPrice, avgVol: avgVolume };
+function polyApplyMetrics(ticker, m) {
+  ALL_EVENTS.forEach(function(e) {
+    if (e.ticker === ticker) {
+      e.price_change_30d = m.change30d;
+      e.realized_vol_30d = m.vol;
+      if (!e.chart_pattern || e.chart_pattern === '—') e.chart_pattern = m.pattern;
+      e._poly_price = m.price;
+    }
+  });
 }
 
 async function enrichWithPolygon() {
-  if (!isPaid) return; // Only enrich for paid users — free users see locked columns
+  if (!isPaid) return;
 
-  // Collect unique tickers from visible events (respect current filters)
-  var seen = {};
-  var tickers = [];
-  ALL_EVENTS.forEach(function(e) {
-    if (!seen[e.ticker] && e.ticker && e.ticker !== '—') {
-      // Prioritize events that are actually visible (have dates in range or are in current tab)
-      if (matchesTab(e, currentTab)) {
-        seen[e.ticker] = true;
-        tickers.push(e.ticker);
-      }
-    }
-  });
-  // Then add remaining tickers
-  ALL_EVENTS.forEach(function(e) {
-    if (!seen[e.ticker] && e.ticker && e.ticker !== '—') {
-      seen[e.ticker] = true;
-      tickers.push(e.ticker);
-    }
-  });
-
-  if (tickers.length === 0) return;
-
-  // Skip tickers already cached
-  var uncached = tickers.filter(function(t) {
-    return !polyCache[t] || (Date.now() - polyCache[t].ts >= polyCacheTTL);
-  });
-
-  // Apply cached data first
-  var cachedCount = 0;
-  tickers.forEach(function(ticker) {
-    if (polyCache[ticker] && polyCache[ticker].bars) {
-      var m = polyComputeMetrics(polyCache[ticker].bars);
-      if (m) {
-        ALL_EVENTS.forEach(function(e) {
-          if (e.ticker === ticker) {
-            e.price_change_30d = m.change30d;
-            e.realized_vol_30d = m.vol;
-            if (!e.chart_pattern || e.chart_pattern === '—') e.chart_pattern = m.pattern;
-            e._poly_price = m.price;
-          }
-        });
-        cachedCount++;
-      }
-    }
-  });
-  if (cachedCount > 0) renderTable();
-
-  if (uncached.length === 0) return;
-
-  // Show status
   var statusEl = document.getElementById('poly-status');
-  if (statusEl) { statusEl.style.display = 'inline'; statusEl.textContent = 'Loading live data...'; }
+  function setStatus(msg, color) {
+    if (statusEl) { statusEl.style.display = 'inline'; statusEl.textContent = msg; if (color) statusEl.style.color = color; }
+  }
 
-  var enriched = 0;
-  var failed = 0;
+  // ── Step 0: Apply any cached data immediately ──
+  var cachedCount = 0;
+  Object.keys(polyCache).forEach(function(ticker) {
+    var c = polyCache[ticker];
+    if (c && c.metrics) { polyApplyMetrics(ticker, c.metrics); cachedCount++; }
+  });
+  if (cachedCount > 0) { renderTable(); console.log('[Polygon] Applied ' + cachedCount + ' cached tickers'); }
 
-  for (var i = 0; i < uncached.length; i += polyBatchSize) {
-    var batch = uncached.slice(i, i + polyBatchSize);
-    var results = await Promise.all(batch.map(function(t) { return polyFetchBars(t); }));
+  // ── Step 1: Validate API key with a known ticker ──
+  setStatus('Validating Polygon API...', 'var(--accent)');
+  console.log('[Polygon] Testing API key with AAPL...');
+  var test = await polyFetchOne('AAPL');
 
-    batch.forEach(function(ticker, idx) {
-      var bars = results[idx];
-      if (!bars) { failed++; return; }
-      var m = polyComputeMetrics(bars);
-      if (!m) { failed++; return; }
-      ALL_EVENTS.forEach(function(e) {
-        if (e.ticker === ticker) {
-          e.price_change_30d = m.change30d;
-          e.realized_vol_30d = m.vol;
-          if (!e.chart_pattern || e.chart_pattern === '—') e.chart_pattern = m.pattern;
-          e._poly_price = m.price;
-        }
-      });
-      enriched++;
+  if (test.status === 403) {
+    setStatus('✗ Polygon API key invalid', 'var(--red)');
+    console.error('[Polygon] API key rejected. Check your key at https://polygon.io/dashboard/keys');
+    return;
+  }
+  if (test.status === 0) {
+    setStatus('✗ Polygon unreachable', 'var(--red)');
+    console.error('[Polygon] Network error — CORS or connectivity issue. Check browser console Network tab.');
+    return;
+  }
+  if (test.status === 429) {
+    setStatus('✗ Polygon rate limited — wait 60s', 'var(--amber)');
+    console.warn('[Polygon] Rate limited on first call. Retrying in 60s...');
+    await new Promise(function(r) { setTimeout(r, 61000); });
+    test = await polyFetchOne('AAPL');
+    if (test.status !== 200) {
+      setStatus('✗ Polygon still rate limited', 'var(--red)');
+      return;
+    }
+  }
+  if (test.status !== 200 || test.empty) {
+    setStatus('✗ Polygon returned no data', 'var(--red)');
+    console.error('[Polygon] AAPL returned status ' + test.status + ', empty=' + !!test.empty);
+    return;
+  }
+
+  console.log('[Polygon] ✓ API key valid. AAPL returned ' + test.bars.length + ' bars.');
+
+  // ── Step 2: Detect tier — try 3 rapid calls ──
+  setStatus('Detecting Polygon tier...', 'var(--accent)');
+  var rapidTest = await Promise.all(['REGN', 'BMY', 'GILD'].map(function(t) { return polyFetchOne(t); }));
+  var rapid429 = rapidTest.some(function(r) { return r.status === 429; });
+
+  if (!rapid429) {
+    polyIsPaidTier = true;
+    polyDelay = 250;       // 250ms between calls — fast enough for paid tier
+    POLY_MAX_TICKERS = 200;
+    console.log('[Polygon] ✓ Paid tier detected — parallel mode, 250ms delay');
+  } else {
+    polyIsPaidTier = false;
+    polyDelay = 12500;     // 12.5s = safe for 5/min
+    POLY_MAX_TICKERS = 50; // ~10 min max
+    console.log('[Polygon] Free tier detected — sequential mode, 12.5s delay, capped at ' + POLY_MAX_TICKERS + ' tickers');
+  }
+
+  // Cache the test results
+  [{ t: 'AAPL', r: test }].concat(rapidTest.map(function(r, i) { return { t: ['REGN','BMY','GILD'][i], r: r }; }))
+    .forEach(function(item) {
+      if (item.r.bars) {
+        var m = polyComputeMetrics(item.r.bars);
+        if (m) { polyCache[item.t] = { bars: item.r.bars, metrics: m, ts: Date.now() }; polyApplyMetrics(item.t, m); }
+      }
     });
+  renderTable();
 
-    // Progressive render every batch
-    renderTable();
-    if (statusEl) statusEl.textContent = '◉ Live: ' + enriched + '/' + uncached.length + (failed > 0 ? ' (' + failed + ' n/a)' : '');
+  // ── Step 3: Build priority ticker list ──
+  // Known liquid tickers first (most likely to have data), then the rest
+  var knownLiquid = ['ABBV','AMGN','AZN','BIIB','CELC','CRSP','CYTK','DAWN','DYNE','ERAS','EWTX','GSK','HALO','HIMS','INSM','JAZZ','LEGN','LNTH','MEDP','MIRM','NBIX','NTRA','NUVL','REGN','VTRS','XENE','BMY','GILD','PFE','JNJ','LLY','MRK','NVS','SNY','AUPH','CLDX','CRNX','DNLI','HRMY','LQDA','SGEN','VCEL'];
+  var seen = {};
+  var prioritized = [];
 
-    // Save cache periodically
-    if (enriched % 25 === 0) polySaveCache();
+  // Add known liquid tickers that are in our events
+  var eventTickers = {};
+  ALL_EVENTS.forEach(function(e) { eventTickers[e.ticker] = true; });
+  knownLiquid.forEach(function(t) { if (eventTickers[t] && !polyCache[t]) { seen[t] = true; prioritized.push(t); } });
 
-    if (i + polyBatchSize < uncached.length) {
-      await new Promise(function(r) { setTimeout(r, polyThrottle); });
+  // Add remaining tickers from current tab view first, then all
+  ALL_EVENTS.forEach(function(e) {
+    if (!seen[e.ticker] && e.ticker && e.ticker !== '—' && !polyCache[e.ticker] && matchesTab(e, currentTab)) {
+      seen[e.ticker] = true; prioritized.push(e.ticker);
+    }
+  });
+  ALL_EVENTS.forEach(function(e) {
+    if (!seen[e.ticker] && e.ticker && e.ticker !== '—' && !polyCache[e.ticker]) {
+      seen[e.ticker] = true; prioritized.push(e.ticker);
+    }
+  });
+
+  // Cap the list
+  prioritized = prioritized.slice(0, POLY_MAX_TICKERS);
+  if (prioritized.length === 0) { setStatus('✓ All data cached', 'var(--accent2)'); return; }
+
+  console.log('[Polygon] Fetching ' + prioritized.length + ' tickers (delay: ' + polyDelay + 'ms)...');
+
+  // ── Step 4: Sequential fetch with progressive rendering ──
+  var enriched = 0, skipped = 0, rateLimited = 0;
+
+  for (var i = 0; i < prioritized.length; i++) {
+    var ticker = prioritized[i];
+    setStatus('◉ ' + ticker + ' (' + (enriched) + '/' + prioritized.length + ')', 'var(--accent)');
+
+    var result = await polyFetchOne(ticker);
+
+    if (result.status === 429) {
+      rateLimited++;
+      // Back off hard — wait 65 seconds then continue
+      console.warn('[Polygon] Rate limited at ticker ' + (i + 1) + '/' + prioritized.length + '. Pausing 65s...');
+      setStatus('⏸ Rate limited — pausing 65s...', 'var(--amber)');
+      await new Promise(function(r) { setTimeout(r, 65000); });
+      // Retry this ticker
+      result = await polyFetchOne(ticker);
+    }
+
+    if (result.status === 403) {
+      setStatus('✗ API key rejected', 'var(--red)');
+      break;
+    }
+
+    if (result.bars) {
+      var m = polyComputeMetrics(result.bars);
+      if (m) {
+        polyCache[ticker] = { bars: result.bars, metrics: m, ts: Date.now() };
+        polyApplyMetrics(ticker, m);
+        enriched++;
+      } else {
+        skipped++;
+      }
+    } else {
+      // No data for this ticker (delisted, OTC, foreign, etc.)
+      polyCache[ticker] = { bars: null, metrics: null, ts: Date.now() }; // cache miss to avoid re-fetching
+      skipped++;
+    }
+
+    // Render every 3 tickers for performance
+    if (enriched % 3 === 0) renderTable();
+
+    // Save cache every 10 tickers
+    if (i % 10 === 0) polySaveCache();
+
+    // Delay before next request
+    if (i < prioritized.length - 1) {
+      await new Promise(function(r) { setTimeout(r, polyDelay); });
     }
   }
 
   polySaveCache();
-
-  if (statusEl) {
-    statusEl.textContent = '✓ Live data: ' + enriched + ' tickers';
-    statusEl.style.color = 'var(--accent2)';
-    setTimeout(function() {
-      statusEl.style.transition = 'opacity 1s';
-      statusEl.style.opacity = '0.4';
-    }, 5000);
-  }
-
   renderTable();
-  console.log('[Polygon] Enriched ' + enriched + '/' + uncached.length + ' tickers, ' + failed + ' unavailable');
+
+  var msg = '✓ Live: ' + enriched + ' tickers';
+  if (skipped > 0) msg += ' (' + skipped + ' n/a)';
+  if (rateLimited > 0) msg += ' [' + rateLimited + ' rate-limits]';
+  setStatus(msg, 'var(--accent2)');
+  console.log('[Polygon] Done. Enriched: ' + enriched + ', Skipped: ' + skipped + ', Rate-limited: ' + rateLimited);
 }
 
 function daysUntil(dateStr) { return Math.round((new Date(dateStr) - new Date()) / 86400000); }
@@ -510,7 +584,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>Setup</th>';
+    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>30D</th><th>Vol</th><th>Chart</th><th>Setup</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -586,6 +660,21 @@ function renderTable() {
       if (gradeVal === '—') gradeVal = 'WATCH';
       var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[gradeVal] || 'var(--amber)';
       html += '<td class="score-cell" style="color:' + gColor + '">' + gradeVal + '</td>';
+
+      // 30D momentum column (Polygon live data)
+      var p30 = Number(e.price_change_30d) || 0;
+      var p30Color = p30 > 5 ? 'var(--accent2)' : p30 > 0 ? 'var(--accent)' : p30 < -10 ? 'var(--red)' : p30 < 0 ? 'var(--amber)' : 'var(--muted)';
+      html += '<td class="score-cell" style="color:' + p30Color + ';font-size:0.62rem;">' + (p30 ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—') + '</td>';
+
+      // Realized Vol column (Polygon live data)
+      var v30 = Number(e.realized_vol_30d) || 0;
+      var v30Color = v30 >= 80 ? 'var(--red)' : v30 >= 50 ? 'var(--amber)' : v30 > 0 ? 'var(--accent)' : 'var(--muted)';
+      html += '<td class="score-cell" style="color:' + v30Color + ';font-size:0.62rem;">' + (v30 > 0 ? Math.round(v30) + '%' : '—') + '</td>';
+
+      // Chart pattern column (Polygon live data)
+      var cp = e.chart_pattern || '—';
+      var cpColor = cp === 'COILING' ? 'var(--accent2)' : cp === 'BUILDING' ? 'var(--accent)' : cp === 'EXTENDED' ? 'var(--amber)' : cp === 'WEAK' ? 'var(--red)' : cp === 'NEUTRAL' ? 'var(--text)' : 'var(--muted)';
+      html += '<td class="score-cell" style="color:' + cpColor + ';font-size:0.62rem;">' + cp + '</td>';
 
       // Signal column — behavioral pattern based on risk data
       var signal = '';
