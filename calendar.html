@@ -181,6 +181,10 @@ footer a:hover{color:var(--accent);}
       <option value="60">Next 60 Days</option>
       <option value="90">Next 90 Days</option>
     </select>
+    <label style="display:flex;align-items:center;gap:0.35rem;cursor:pointer;margin-left:0.5rem;" title="Hide tickers with no live market data or scoring data">
+      <input type="checkbox" id="filter-liveonly" onchange="applyFilters()" style="accent-color:var(--accent);cursor:pointer;">
+      <span class="filter-label" style="cursor:pointer;">Data only</span>
+    </label>
     <span id="poly-status" style="display:none;font-family:var(--mono);font-size:0.6rem;color:var(--accent);letter-spacing:0.04em;margin-left:auto;">Loading live data...</span>
   </div>
 
@@ -557,6 +561,16 @@ function matchesFilters(e) {
     if (days < 0 || days > parseInt(window_val)) return false;
   }
 
+  // "Data only" toggle — hide events with no scoring or live market data
+  var liveOnly = document.getElementById('filter-liveonly');
+  if (liveOnly && liveOnly.checked) {
+    var hasData = Number(e.poa) > 0 || Number(e.buyout_score) > 30 ||
+      (e.grade && e.grade !== 'WATCH' && e.grade !== '—') ||
+      Number(e.price_change_30d) !== 0 || Number(e.realized_vol_30d) > 0 ||
+      Number(e.tam_ratio) > 0;
+    if (!hasData) return false;
+  }
+
   return true;
 }
 
@@ -570,11 +584,42 @@ function renderTable() {
     return;
   }
 
+  // Data richness score — events with actual data float up, empty rows sink
+  function dataScore(e) {
+    var s = 0;
+    // DB scores (PDUFA, buyout)
+    if (Number(e.poa) > 0) s += 30;
+    if (e.grade === 'ELITE') s += 20;
+    else if (e.grade === 'STRONG') s += 15;
+    if (Number(e.buyout_score) > 30) s += 10;
+    if (e.sell_news_risk && e.sell_news_risk !== '—') s += 5;
+    // Polygon live data
+    if (Number(e.price_change_30d)) s += 10;
+    if (Number(e.realized_vol_30d) > 0) s += 5;
+    if (e.chart_pattern && e.chart_pattern !== '—' && e.chart_pattern !== 'NEUTRAL') s += 3;
+    // TAM
+    if (Number(e.tam_ratio) > 0) s += 3;
+    return s;
+  }
+
   filtered.sort(function(a, b) {
+    // No-date events always last
     if (a.date === '—' && b.date !== '—') return 1;
     if (a.date !== '—' && b.date === '—') return -1;
-    if (a.date === '—' && b.date === '—') return a.ticker.localeCompare(b.ticker);
-    return new Date(a.date) - new Date(b.date);
+    if (a.date === '—' && b.date === '—') {
+      var da = dataScore(a), db = dataScore(b);
+      if (da !== db) return db - da;
+      return a.ticker.localeCompare(b.ticker);
+    }
+    // Same date bucket — data-rich events first
+    var dateA = new Date(a.date), dateB = new Date(b.date);
+    if (dateA.getTime() === dateB.getTime()) {
+      var da2 = dataScore(a), db2 = dataScore(b);
+      if (da2 !== db2) return db2 - da2;
+      return a.ticker.localeCompare(b.ticker);
+    }
+    // Different dates — chronological
+    return dateA - dateB;
   });
 
   // Limit display to 200 at a time for performance
