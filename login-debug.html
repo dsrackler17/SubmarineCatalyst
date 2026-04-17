@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In (Debug) — Submarine Catalyst</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<style>
+  :root {
+    --navy: #040d1a;
+    --deep: #07152b;
+    --surface: #0b1f3a;
+    --border: #1a3a5c;
+    --accent: #00d4ff;
+    --accent2: #00ff9d;
+    --amber: #f5a623;
+    --red: #ff4444;
+    --text: #c8dff0;
+    --muted: #5a7a99;
+    --white: #eaf4ff;
+    --mono: 'Space Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--navy); color: var(--text); font-family: var(--sans); min-height: 100vh; padding: 2rem; }
+
+  .wrapper { max-width: 520px; margin: 0 auto; }
+
+  h1 {
+    font-family: var(--mono); color: var(--white); font-size: 1rem;
+    letter-spacing: 0.12em; text-transform: uppercase; margin-bottom: 0.5rem;
+  }
+  .sub { font-family: var(--mono); color: var(--muted); font-size: 0.7rem; margin-bottom: 2rem; letter-spacing: 0.05em; }
+
+  .form-card { background: var(--surface); border: 1px solid var(--border); padding: 1.5rem; margin-bottom: 1.5rem; }
+  .field { margin-bottom: 1rem; }
+  label {
+    display: block; font-family: var(--mono); font-size: 0.62rem;
+    letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem;
+  }
+  input {
+    width: 100%; background: var(--deep); border: 1px solid var(--border);
+    color: var(--white); font-family: var(--mono); font-size: 0.85rem;
+    padding: 0.75rem 1rem; outline: none;
+  }
+  input:focus { border-color: var(--accent); }
+
+  button {
+    width: 100%; font-family: var(--mono); font-size: 0.78rem;
+    letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent);
+    color: var(--navy); border: none; padding: 0.9rem; cursor: pointer; font-weight: 700;
+    margin-top: 0.5rem;
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .debug-panel {
+    background: #000; border: 1px solid var(--accent);
+    border-radius: 4px; padding: 1rem; font-family: var(--mono); font-size: 0.72rem;
+    color: var(--text); max-height: 500px; overflow-y: auto; line-height: 1.6;
+    white-space: pre-wrap; word-break: break-all;
+  }
+  .debug-panel .t { color: var(--muted); }
+  .debug-panel .ok  { color: var(--accent2); font-weight: 700; }
+  .debug-panel .bad { color: var(--red); font-weight: 700; }
+  .debug-panel .warn { color: var(--amber); }
+  .debug-panel .info { color: var(--accent); }
+
+  .debug-hdr {
+    font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--accent); margin: 1.5rem 0 0.5rem;
+  }
+</style>
+</head>
+<body>
+<div class="wrapper">
+  <h1>SUBMARINE CATALYST — LOGIN (DEBUG BUILD)</h1>
+  <p class="sub">Every step logs to the panel below. Share the full debug output with Claude if sign-in fails.</p>
+
+  <div class="form-card">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button id="submit-btn">Sign In</button>
+  </div>
+
+  <div class="debug-hdr">// DEBUG OUTPUT (also mirrored to browser console)</div>
+  <div id="debug" class="debug-panel">Initializing…</div>
+
+  <div style="margin-top:1.5rem;">
+    <button onclick="hardReset()" style="background:var(--amber);color:var(--navy);">Clear Supabase Session + Reload</button>
+  </div>
+</div>
+
+<script>
+const debug = document.getElementById('debug');
+debug.textContent = '';
+
+function log(msg, cls) {
+  const t = new Date().toISOString().slice(11, 23);
+  const line = `[${t}] ${msg}`;
+  const span = document.createElement('span');
+  if (cls) span.className = cls;
+  span.textContent = line + '\n';
+  debug.appendChild(span);
+  debug.scrollTop = debug.scrollHeight;
+  console.log(line);
+}
+
+function hardReset() {
+  try { localStorage.clear(); } catch(e) {}
+  try { sessionStorage.clear(); } catch(e) {}
+  document.cookie.split(';').forEach(c => {
+    const eq = c.indexOf('=');
+    const name = eq > -1 ? c.substr(0, eq).trim() : c.trim();
+    document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/';
+  });
+  location.reload();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 1 — verify config.js loaded
+// ═══════════════════════════════════════════════════════════════════════════
+log('Step 1: checking /js/config.js...', 'info');
+
+if (typeof SC_CONFIG === 'undefined') {
+  log('✗ SC_CONFIG is undefined — /js/config.js did not load or has a syntax error.', 'bad');
+  log('  Check: https://submarinecatalyst.com/js/config.js in a browser tab.', 'warn');
+} else {
+  log('✓ SC_CONFIG loaded', 'ok');
+  log('  supabaseUrl = ' + (SC_CONFIG.supabaseUrl || 'MISSING'), 't');
+  log('  supabaseKey = ' + (SC_CONFIG.supabaseKey ? SC_CONFIG.supabaseKey.slice(0, 24) + '…' : 'MISSING'), 't');
+}
+
+if (typeof getSupabase !== 'function') {
+  log('✗ getSupabase() helper is not defined.', 'bad');
+}
+if (typeof scGetSession !== 'function') {
+  log('✗ scGetSession() helper is not defined.', 'bad');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 2 — init supabase client
+// ═══════════════════════════════════════════════════════════════════════════
+log('', '');
+log('Step 2: initializing Supabase client...', 'info');
+
+let sb = null;
+try {
+  sb = getSupabase();
+  if (sb) {
+    log('✓ Supabase client created', 'ok');
+  } else {
+    log('✗ getSupabase() returned null', 'bad');
+  }
+} catch (e) {
+  log('✗ getSupabase() threw: ' + e.message, 'bad');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// STEP 3 — check for existing session (with a 5-second timeout so we can see
+//         if it hangs)
+// ═══════════════════════════════════════════════════════════════════════════
+log('', '');
+log('Step 3: checking for existing session (with 5s timeout)...', 'info');
+
+if (sb) {
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('TIMEOUT: getSession() took > 5s')), 5000)
+  );
+  Promise.race([sb.auth.getSession(), timeoutPromise])
+    .then(({ data, error }) => {
+      if (error) {
+        log('✗ getSession error: ' + error.message, 'bad');
+      } else if (data?.session) {
+        log('✓ Existing session found: ' + data.session.user.email, 'ok');
+        log('  User ID: ' + data.session.user.id, 't');
+        log('  Redirecting to /dashboard.html in 2s (cancel by clicking "Clear Session" below)...', 'warn');
+        setTimeout(() => { window.location.href = '/dashboard.html'; }, 2000);
+      } else {
+        log('✓ No existing session (expected — you need to sign in)', 'ok');
+      }
+    })
+    .catch(e => {
+      log('✗ ' + e.message, 'bad');
+      log('  → If getSession is hanging, the Supabase endpoint isn\'t responding.', 'warn');
+      log('  → Run https://submarinecatalyst.com/sc-diagnostic.html to narrow down.', 'warn');
+    });
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// SIGN IN HANDLER — each step logged, with 10s timeout on the actual call
+// ═══════════════════════════════════════════════════════════════════════════
+document.getElementById('submit-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('submit-btn');
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  log('', '');
+  log('══════════════════════════════════════════════════', 'info');
+  log('SIGN IN ATTEMPT', 'info');
+  log('══════════════════════════════════════════════════', 'info');
+
+  if (!email || !password) {
+    log('✗ Email or password empty — fill both fields', 'bad');
+    return;
+  }
+  log('  email: ' + email, 't');
+  log('  password: ' + password.length + ' chars', 't');
+
+  if (!sb) {
+    log('✗ No Supabase client — check Step 2 errors above', 'bad');
+    return;
+  }
+
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  // Timeout wrapper — if signInWithPassword hangs > 10s, we'll know
+  const signInPromise = sb.auth.signInWithPassword({ email, password });
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('TIMEOUT: signInWithPassword() did not respond in 10s')), 10000)
+  );
+
+  log('→ Calling auth.signInWithPassword()...', 'info');
+  const start = Date.now();
+
+  try {
+    const result = await Promise.race([signInPromise, timeoutPromise]);
+    const elapsed = Date.now() - start;
+    log('← Response received after ' + elapsed + 'ms', 'ok');
+
+    const { data, error } = result;
+    if (error) {
+      log('✗ Auth error: ' + error.message, 'bad');
+      log('  Status: ' + (error.status || 'unknown'), 't');
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+      return;
+    }
+
+    if (data?.session) {
+      log('✓ Sign in succeeded — session active', 'ok');
+      log('  User: ' + data.session.user.email, 't');
+      log('  User ID: ' + data.session.user.id, 't');
+      log('→ Redirecting to /dashboard.html in 2s (so you can see this log)...', 'warn');
+      setTimeout(() => { window.location.href = '/dashboard.html'; }, 2000);
+    } else {
+      log('✗ Auth returned no error but no session either. Unexpected.', 'bad');
+      log('  data = ' + JSON.stringify(data).slice(0, 200), 't');
+      btn.textContent = 'Sign In';
+      btn.disabled = false;
+    }
+  } catch (e) {
+    const elapsed = Date.now() - start;
+    log('✗ EXCEPTION after ' + elapsed + 'ms: ' + e.message, 'bad');
+    if (e.message.includes('TIMEOUT')) {
+      log('  → Supabase auth endpoint is not responding.', 'warn');
+      log('  → Likely Auth service stuck in restart. Wait 2 min, retry.', 'warn');
+    } else if (e.message.includes('Failed to fetch')) {
+      log('  → Network-level rejection. Possible causes:', 'warn');
+      log('     • Project paused again (check Supabase dashboard)', 'warn');
+      log('     • CORS origin not whitelisted', 'warn');
+      log('     • DNS / connectivity issue', 'warn');
+    }
+    btn.textContent = 'Sign In';
+    btn.disabled = false;
+  }
+});
+
+// Enter key on password field
+document.getElementById('password').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') document.getElementById('submit-btn').click();
+});
+</script>
+</body>
+</html>
