@@ -480,14 +480,22 @@ async function fetchLiveCap(ticker) {
 function applyLiveMarketData(eventData, live, snap) {
   if (!eventData) return;
 
-  // Resolve live market cap with priority: Polygon's pre-computed > shares × live price
+  // Resolve live market cap — prefer shares × live price (freshest) over stored market_cap.
+  // Polygon's /v3/reference/tickers market_cap is computed once daily after close, so it
+  // can match the DB's stale value; multiplying shares × intraday price gives true live cap.
   var liveCap = null;
-  if (live && typeof live.market_cap === 'number' && live.market_cap > 0) {
-    liveCap = live.market_cap;
-  } else if (live && live.shares_outstanding && snap && snap.price) {
+  var capSource = '';
+  if (live && live.shares_outstanding && snap && snap.price) {
     liveCap = live.shares_outstanding * snap.price;
-    console.log('[SC] Computed live cap from shares × price: ' + live.shares_outstanding +
-      ' × $' + snap.price + ' = $' + (liveCap / 1e6).toFixed(1) + 'M');
+    capSource = 'shares×price';
+    console.log('[SC] Live cap: ' + live.shares_outstanding + ' shares × $' + snap.price +
+      ' = $' + (liveCap / 1e6).toFixed(1) + 'M [' + capSource + ']');
+  } else if (live && typeof live.market_cap === 'number' && live.market_cap > 0) {
+    liveCap = live.market_cap;
+    capSource = 'polygon.market_cap';
+    console.log('[SC] Live cap: $' + (liveCap / 1e6).toFixed(1) + 'M [' + capSource + ' fallback — shares or price missing]');
+  } else {
+    console.log('[SC] Live cap unavailable — live=' + (live ? 'cap:' + live.market_cap + ',shares:' + live.shares_outstanding : 'null') + ' snap=' + (snap ? 'price:' + snap.price : 'null'));
   }
 
   if (liveCap && liveCap > 0) {
@@ -968,13 +976,15 @@ async function generateAISummary(d) {
   // The get-scanner-data edge function sometimes returns estimated_market_cap = null
   // or drops drug_tam_billions entirely. Fill those in directly from the table
   // so applyLiveMarketData has what it needs to re-derive TAM/Cap off live cap.
+  // Uses .limit(1) instead of .maybeSingle() for broader Supabase JS compatibility.
   if (eventData) {
     try {
       var sb2 = getSupabase();
-      var { data: uniRow } = await sb2.from('biotech_universe')
+      var uniRes = await sb2.from('biotech_universe')
         .select('estimated_market_cap, drug_tam_billions, tam_ratio, approved_drug, last_approval_date')
         .eq('ticker', ticker)
-        .maybeSingle();
+        .limit(1);
+      var uniRow = uniRes && uniRes.data && uniRes.data[0];
       if (uniRow) {
         if (!Number(eventData.estimated_market_cap) && Number(uniRow.estimated_market_cap)) {
           eventData.estimated_market_cap = Number(uniRow.estimated_market_cap);
@@ -985,6 +995,10 @@ async function generateAISummary(d) {
         if (Number(uniRow.drug_tam_billions)) {
           eventData.drug_tam_billions = Number(uniRow.drug_tam_billions);
         }
+        console.log('[SC] biotech_universe enrich: cap=$' + ((Number(eventData.estimated_market_cap)||0)/1e6).toFixed(1) +
+          'M, tam_ratio=' + (eventData.tam_ratio || 0) + ', drug_tam_billions=' + (eventData.drug_tam_billions || 0));
+      } else {
+        console.log('[SC] biotech_universe enrich: no row found for ' + ticker);
       }
     } catch (e) {
       console.warn('[SC] biotech_universe enrich failed:', e);
@@ -992,17 +1006,19 @@ async function generateAISummary(d) {
   }
 
   // ─── LIVE CAP + LIVE PRICE + LIVE TAM/CAP OVERRIDE ──────────────────────
-  // Fetches ticker details (cap) and intraday snapshot (live price) in parallel.
-  // 2s timeout so slow Polygon can't block the page — falls back to DB values.
+  // Fetches ticker details (shares+cap) and intraday snapshot (live price) in parallel.
+  // 8s timeout per-call so Polygon has time on cold first-load DNS/TLS, and one slow
+  // call doesn't take down the other — was 2s which cut off on fresh sessions.
   try {
-    var livePromise = Promise.all([
+    var capPromise = Promise.race([
       fetchLiveCap(ticker),
+      new Promise(function(r) { setTimeout(function() { r(null); }, 8000); })
+    ]);
+    var snapPromise = Promise.race([
       fetchLiveSnapshot(ticker),
+      new Promise(function(r) { setTimeout(function() { r(null); }, 8000); })
     ]);
-    var livePair = await Promise.race([
-      livePromise,
-      new Promise(function(resolve) { setTimeout(function() { resolve([null, null]); }, 2000); })
-    ]);
+    var livePair = await Promise.all([capPromise, snapPromise]);
     applyLiveMarketData(eventData, livePair[0], livePair[1]);
   } catch (err) {
     console.warn('[SC] Live cap/price override skipped:', err);
