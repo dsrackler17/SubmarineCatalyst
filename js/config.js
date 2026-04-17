@@ -4,6 +4,7 @@ const SC_CONFIG = {
   stripePaymentLink: 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03',
   stripePortalUrl: 'billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00',
   polygonApiKey: 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI',
+  finnhubApiKey: 'd7dcla9r01qggoenrpogd7dcla9r01qggoenrpp0',
   adminEmails: [],
   siteName: 'Submarine Catalyst',
   domain: 'submarinecatalyst.com',
