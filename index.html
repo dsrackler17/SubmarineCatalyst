@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://submarinecatalyst.com/">
 <meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 8/9 resolved events logged. $29.99/mo.">
+<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 6/7 resolved events logged. $29.99/mo.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 8/9 resolved events logged — 1 miss documented. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 6/7 resolved events logged — 1 miss documented. TVTX + LGND PDUFA Apr 13. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -330,7 +330,13 @@ footer a:hover { color: var(--accent); }
   <a href="#pricing" class="nav-cta">Get Access</a>
 </nav>
 
-
+<div class="urgency-bar" id="urgency-bar">
+  <span><span class="ub-pulse"></span>REPL: ❌ CRL · PoA miss (called 84%) · STN HIGH correctly flagged −19.46% downside</span>
+  <span class="ub-divider">·</span>
+  <span>TVTX + LGND PDUFA: April 13 &nbsp;<span class="countdown-inline" id="tvtx-countdown"></span></span>
+  <span class="ub-divider">·</span>
+  <a href="#proof">View full track record →</a>
+</div>
 
 <section>
   <div class="hero">
@@ -353,12 +359,16 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="terminal-body">
         <div class="t-dim">══════════════════════════════════════════════════</div>
-        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · FILSPARI for FSGS · </span><span class="t-grn">+35%</span></div>
-        <div><span class="t-dim"> Scanner PoA: 74.2% · First-in-class approval</span></div>
+        <div><span class="t-red">❌ REPL</span><span class="t-dim"> CRL · PoA called </span><span class="t-red">84%</span><span class="t-dim"> — model miss</span></div>
+        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">−19.46%</span><span class="t-dim"> downside risk</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div class="t-dim"> 📊 Track Record: 8/9 Resolved · 1 Miss Logged</div>
+        <div><span class="t-amb">⚡ LIVE →</span><span class="t-wht"> TVTX</span><span class="t-dim"> Net Edge: </span><span class="t-grn">65.4</span><span class="t-acc"> STRONG</span></div>
+        <div><span class="t-dim"> PoA: </span><span class="t-grn">77.5%</span><span class="t-dim"> | STN Risk: </span><span class="t-acc">MODERATE</span><span class="t-dim"> | PDUFA: </span><span class="t-amb">APR 13</span></div>
+        <div><span class="t-dim"> Also Apr 13: </span><span class="t-wht">LGND</span><span class="t-dim"> PoA 71.5% | </span><span id="term-countdown" class="t-acc">...</span></div>
+        <div class="t-dim">──────────────────────────────────────────────────</div>
+        <div class="t-dim"> 📊 Track Record: 6/7 Resolved · 1 Miss Logged</div>
         <div><span class="t-dim"> VNDA </span><span class="t-grn">+45%</span><span class="t-dim"> | RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️</span></div>
-        <div><span class="t-dim"> TVTX </span><span class="t-grn">+35%</span><span class="t-dim"> | REPL </span><span class="t-red">CRL -64%</span><span class="t-dim"> MISS</span></div>
+        <div><span class="t-dim"> REPL </span><span class="t-red">CRL -19%</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>
         <div class="t-dim">══════════════════════════════════════════════════</div>
@@ -371,12 +381,12 @@ footer a:hover { color: var(--accent); }
 <section id="proof" style="background:var(--navy);border-top:1px solid var(--border);padding:3rem 0;">
   <div class="section reveal" style="text-align:center;">
     <div class="section-label" style="justify-content:center;">Model Validation</div>
-    <h2 class="section-heading">8/9 resolved. One miss logged. Everything documented.</h2>
-    <p class="section-sub" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record. REPL was the only miss — called 84% approval on RP1 (melanoma), got a CRL. Most recent: TVTX FILSPARI approved for FSGS, +35%.</p>
+    <h2 class="section-heading" id="proof-headline">Loading track record…</h2>
+    <p class="section-sub" id="proof-intro" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record.</p>
 
     <div class="insight-callout" style="max-width:700px;margin:0 auto 2rem;">
       <div class="ic-label">What the model got right and wrong</div>
-      <div class="ic-body"><strong>The miss:</strong> REPL was called APPROVE at <span class="ic-neg">84% PoA</span> — FDA issued a second CRL for RP1 in advanced melanoma. Only incorrect approval call in the track record. Logged, not deleted. <strong style="color:var(--accent2);">What held up:</strong> 8 of 9 events called correctly. STN Risk flagged downside on every approval that dropped — RCKT <span class="ic-neg">−20%</span> · BIIB <span class="ic-neg">−5%</span> · FBIO flat. Most recent win: TVTX FILSPARI approved, +35%.</div>
+      <div class="ic-body" id="proof-callout-body">Loading summary from database…</div>
     </div>
 
     <table style="width:100%;max-width:700px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
@@ -388,66 +398,13 @@ footer a:hover { color: var(--accent); }
           <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">POST-DECISION MOVE</th>
         </tr>
       </thead>
-      <tbody>
-        <tr style="background:rgba(255,68,68,0.05);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">REPL <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.1em;">MISS</span></td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (84%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);font-weight:700;border:1px solid var(--border);">❌ CRL</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--red);font-weight:700;border:1px solid var(--border);">−64%</td>
-        </tr>
-        <tr style="background:var(--deep);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (78%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+45%</td>
-        </tr>
-        <tr style="background:var(--surface);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">RCKT</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (85%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--red);font-weight:700;border:1px solid var(--border);">-20%</td>
-        </tr>
-        <tr style="background:var(--deep);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">DNLI</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (82%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+8%</td>
-        </tr>
-        <tr style="background:var(--surface);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">BIIB</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (90%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--amber);font-weight:700;border:1px solid var(--border);">-5%</td>
-        </tr>
-        <tr style="background:var(--deep);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">FBIO</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (55%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--muted);font-weight:700;border:1px solid var(--border);">+3%</td>
-        </tr>
-        <tr style="background:var(--surface);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">VNDA 2</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (80%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+28%</td>
-        </tr>
-        <tr style="background:var(--deep);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">TVTX</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (74.2%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+35%</td>
-        </tr>
-        <tr style="background:var(--surface);">
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--white);font-weight:700;border:1px solid var(--border);">LGND</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">APPROVE (71.5%)</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--accent2);border:1px solid var(--border);">✅ Approved</td>
-          <td style="padding:0.55rem;text-align:center;font-family:var(--mono);font-size:0.72rem;color:var(--accent2);font-weight:700;border:1px solid var(--border);">+12%</td>
-        </tr>
+      <tbody id="proof-tbody">
+        <tr><td colspan="4" style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">Loading from database…</td></tr>
       </tbody>
     </table>
 
     <div style="max-width:700px;margin:1.25rem auto 0;text-align:left;">
-      <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">8/9 on resolved events — 8 correct approval calls, 1 CRL miss (REPL RP1 melanoma, called 84% PoA). Every outcome logged including the miss. Most recent: TVTX FILSPARI approved for FSGS, first-in-class, +35%. Subscribers see full scoring breakdowns and real-time classifications.</p>
+      <p id="proof-summary" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">Loading summary…</p>
       <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative research classifications derived from public data. Not investment advice. Past classification accuracy does not guarantee future results.</p>
     </div>
 
@@ -455,6 +412,187 @@ footer a:hover { color: var(--accent); }
       <a href="#pricing" style="display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.65rem 2rem;text-decoration:none;font-weight:700;">Access the Scanner →</a>
     </div>
   </div>
+
+  <script>
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROOF SECTION — LIVE TRACK RECORD LOADER
+  // Fetches from track_record table and renders condensed proof table.
+  // ═══════════════════════════════════════════════════════════════════════════
+  (async function loadProof() {
+    const $ = (id) => document.getElementById(id);
+
+    // Resolve Supabase client — prefer shared helper, fall back to inline
+    let sb;
+    try {
+      if (typeof getSupabase === 'function') {
+        sb = getSupabase();
+      } else if (typeof supabase !== 'undefined' && typeof SC_CONFIG !== 'undefined') {
+        sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseKey);
+      } else {
+        sb = supabase.createClient(
+          'https://dipagzqrvivposqjkdkx.supabase.co',
+          'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
+        );
+      }
+    } catch (e) {
+      console.error('[SC proof] init failed:', e);
+      return;
+    }
+
+    const { data: rows, error } = await sb
+      .from('track_record')
+      .select('ticker, drug, pdufa_date, scanner_poa, scanner_grade, scanner_call, scanner_stn_risk, actual_result, return_pct, call_correct')
+      .order('pdufa_date', { ascending: true });
+
+    if (error || !rows) {
+      console.error('[SC proof] fetch failed:', error);
+      $('proof-tbody').innerHTML =
+        '<tr><td colspan="4" style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">Unable to load track record.</td></tr>';
+      return;
+    }
+
+    // Split resolved (APPROVED/CRL, excluding DELAYED) from pending
+    const RESOLVED = ['APPROVED', 'CRL', 'WITHDRAWN'];
+    const scored  = rows.filter(r => RESOLVED.includes(String(r.actual_result || '').toUpperCase()));
+    const pending = rows.filter(r => {
+      const res = String(r.actual_result || '').toUpperCase();
+      return !RESOLVED.includes(res) && res !== 'DELAYED';
+    });
+    const misses  = scored.filter(r => r.call_correct === false);
+    const correct = scored.filter(r => r.call_correct === true);
+    const accuracy = scored.length > 0 ? ((correct.length / scored.length) * 100).toFixed(1) : '0';
+
+    // ─── Headline + intro ──────────────────────────────────────────────────
+    const missText = misses.length > 0
+      ? ` ${misses.length === 1 ? 'One miss' : misses.length + ' misses'} logged.`
+      : '';
+    $('proof-headline').textContent =
+      `${correct.length}/${scored.length} resolved.${missText} Everything documented.`;
+
+    const pendingText = pending.length > 0
+      ? ` ${pending.length} pending.`
+      : '';
+    $('proof-intro').textContent =
+      `Every classification logged before the event resolved. Wins and losses both on the record.${pendingText}`;
+
+    // ─── Callout: highlight the miss(es) + best win + STN flags that fired ─
+    let calloutHTML = '';
+    if (misses.length > 0) {
+      const m = misses[misses.length - 1]; // most recent miss
+      const mvDisplay = m.return_pct !== null ? `<span class="ic-neg">${m.return_pct > 0 ? '+' : ''}${m.return_pct}%</span>` : '';
+      const stnNote = m.scanner_stn_risk && ['HIGH','ELEVATED'].includes(String(m.scanner_stn_risk).toUpperCase())
+        ? ` The STN Risk layer flagged <strong>${m.scanner_stn_risk}</strong> before the decision — the risk layer was right even when the probability layer was wrong.`
+        : '';
+      calloutHTML +=
+        `<strong>The miss:</strong> ${m.ticker} was called ${m.scanner_call || 'APPROVE'} at ` +
+        `<span class="ic-neg">${m.scanner_poa}% PoA</span> — FDA issued a ${m.actual_result}. ` +
+        `${misses.length === 1 ? 'Only' : 'Most recent'} incorrect call in the track record. Logged, not deleted.${stnNote} `;
+    }
+
+    // STN flags that correctly warned of flat/negative moves
+    const stnCorrectFlags = scored.filter(r => {
+      const stn = String(r.scanner_stn_risk || '').toUpperCase();
+      const mv = Number(r.return_pct);
+      if (Number.isNaN(mv)) return false;
+      if (stn === 'HIGH' || stn === 'ELEVATED') return mv <= 10;
+      return false;
+    });
+
+    if (stnCorrectFlags.length > 0) {
+      const flagsHTML = stnCorrectFlags.slice(0, 3).map(r => {
+        const sign = r.return_pct >= 0 ? '+' : '';
+        return `${r.ticker} <span class="ic-neg">${sign}${r.return_pct}%</span>`;
+      }).join(' · ');
+      calloutHTML +=
+        `<strong style="color:var(--accent2);">What held up:</strong> ${correct.length} of ${scored.length} events called correctly. ` +
+        `STN Risk flagged downside in advance on: ${flagsHTML}.`;
+    } else if (!calloutHTML) {
+      calloutHTML = `<strong style="color:var(--accent2);">Track record:</strong> ${correct.length} of ${scored.length} events called correctly (${accuracy}%).`;
+    }
+    $('proof-callout-body').innerHTML = calloutHTML;
+
+    // ─── Build condensed table rows ────────────────────────────────────────
+    // Show: all misses first (red highlight), then all correct approvals, then pending
+    const ordered = [
+      ...misses,
+      ...scored.filter(r => r.call_correct === true),
+      ...pending,
+    ];
+
+    const rowHTML = ordered.map((r, i) => {
+      const isMiss = r.call_correct === false;
+      const isPending = !RESOLVED.includes(String(r.actual_result || '').toUpperCase());
+      const zebra = i % 2 === 0 ? 'var(--deep)' : 'var(--surface)';
+      const bg = isMiss ? 'rgba(255,68,68,0.05)' : isPending ? 'rgba(0,212,255,0.04)' : zebra;
+
+      // Ticker cell
+      const tickerColor = isMiss ? 'var(--red)' : isPending ? 'var(--accent)' : 'var(--white)';
+      const missTag = isMiss
+        ? ' <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.1em;">MISS</span>'
+        : '';
+      const pendingTag = isPending ? ' 🔴' : '';
+
+      // Scanner call cell
+      const callText = r.scanner_call || 'WATCH';
+      const callColor = callText === 'APPROVE' ? 'var(--accent2)' : callText === 'WATCH' ? 'var(--amber)' : 'var(--muted)';
+      const poaDisplay = r.scanner_poa !== null ? `${r.scanner_poa}%` : '—';
+
+      // Result cell
+      let resultHTML;
+      const result = String(r.actual_result || '').toUpperCase();
+      if (result === 'APPROVED')      resultHTML = `<span style="color:var(--accent2);">✅ Approved</span>`;
+      else if (result === 'CRL')      resultHTML = `<span style="color:var(--red);font-weight:700;">❌ CRL</span>`;
+      else if (result === 'WITHDRAWN')resultHTML = `<span style="color:var(--red);">↩ Withdrawn</span>`;
+      else                             resultHTML = `<span style="color:var(--accent);">Pending ${formatShortDate(r.pdufa_date)}</span>`;
+
+      // Move cell
+      let moveHTML;
+      if (isPending || r.return_pct === null || r.return_pct === undefined) {
+        moveHTML = `<span style="color:var(--muted);">—</span>`;
+      } else {
+        const mv = Number(r.return_pct);
+        const sign = mv >= 0 ? '+' : '';
+        const color = mv > 5 ? 'var(--accent2)' : mv < -5 ? 'var(--red)' : 'var(--muted)';
+        const weight = Math.abs(mv) > 5 ? '700' : '400';
+        moveHTML = `<span style="color:${color};font-weight:${weight};">${sign}${mv}%</span>`;
+      }
+
+      const cellBase = 'padding:0.55rem;text-align:center;font-family:var(--mono);border:1px solid var(--border);';
+      return `<tr style="background:${bg};">` +
+        `<td style="${cellBase}font-size:0.72rem;color:${tickerColor};font-weight:700;">${r.ticker}${missTag}${pendingTag}</td>` +
+        `<td style="${cellBase}font-size:0.65rem;color:${callColor};">${callText} (${poaDisplay})</td>` +
+        `<td style="${cellBase}font-size:0.65rem;">${resultHTML}</td>` +
+        `<td style="${cellBase}font-size:0.72rem;">${moveHTML}</td>` +
+      `</tr>`;
+    }).join('');
+
+    $('proof-tbody').innerHTML = rowHTML ||
+      '<tr><td colspan="4" style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">No events logged yet.</td></tr>';
+
+    // ─── Footer summary ────────────────────────────────────────────────────
+    const bestWin = correct
+      .filter(r => r.return_pct !== null && r.return_pct > 0)
+      .sort((a, b) => b.return_pct - a.return_pct)[0];
+    const bestWinText = bestWin
+      ? ` Most recent notable win: ${bestWin.ticker} ${bestWin.drug ? '(' + bestWin.drug.split(' · ')[0] + ')' : ''} +${bestWin.return_pct}%.`
+      : '';
+    const pendingDesc = pending.length > 0
+      ? ` ${pending.length} active event${pending.length === 1 ? '' : 's'} pending.`
+      : '';
+    $('proof-summary').innerHTML =
+      `${correct.length}/${scored.length} on resolved events — ${correct.length} correct approval call${correct.length === 1 ? '' : 's'}, ` +
+      `${misses.length} ${misses.length === 1 ? 'miss' : 'misses'}${misses.length > 0 ? ' (' + misses.map(m => m.ticker + ' ' + m.actual_result).join(', ') + ')' : ''}. ` +
+      `Every outcome logged including the ${misses.length === 1 ? 'miss' : 'misses'}.${bestWinText}${pendingDesc} ` +
+      `Subscribers see full scoring breakdowns and real-time classifications.`;
+
+  })();
+
+  function formatShortDate(dateStr) {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+  </script>
 </section>
 
 <section id="how" style="background: var(--deep); border-top: 1px solid var(--border);">
@@ -465,7 +603,7 @@ footer a:hover { color: var(--accent); }
     <div class="how-grid">
       <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
       <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
-      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and institutional positioning. Calibrated against real outcomes — RCKT (approved, −20%), VNDA (approved, +45%). STN HIGH was also flagged on REPL before the CRL — stock dropped 64% on the second rejection of RP1 for melanoma.</p></div>
+      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and institutional positioning. Calibrated against real outcomes — RCKT (approved, −20%), VNDA (approved, +45%). STN HIGH was also flagged on REPL before the CRL — stock dropped 19.46% regardless of the reason.</p></div>
       <div class="how-card"><span class="how-num">04</span><div class="how-title">Dilution Radar</div><p class="how-desc">Scans SEC EDGAR for 424B5 filings, S-3 shelf registrations, ATM offerings, and sales agent changes near PDUFA dates. Detects the capital raises that destroy post-approval gains before you buy.</p></div>
       <div class="how-card"><span class="how-num">05</span><div class="how-title">Net Edge Score</div><p class="how-desc">Combines PoA, STN Risk, Dilution Radar, cash runway, and insider activity into a single composite. One number that answers "is this a good trade" — not just "will it get approved."</p></div>
       <div class="how-card"><span class="how-num">06</span><div class="how-title">Behavioral Patterns</div><p class="how-desc">Classifies each event into five post-catalyst behaviors: Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction. Not predictions — behavioral tendencies drawn from historical data.</p></div>
@@ -489,7 +627,7 @@ footer a:hover { color: var(--accent); }
         <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
         <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
         <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/9 on resolved events — 1 miss (REPL CRL) logged. STN Risk: 3/5 — correctly flagged RCKT (-20%), BIIB (-5%), REPL (-64%), but overestimated sell-the-news risk on TVTX (+35%) and LGND (+12%). Recalibrating first-in-class modifier.</div></div><span class="signal-source">Live outcome log</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 6/7 on resolved events — first miss (REPL CRL) logged. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-19.46%).</div></div><span class="signal-source">Live outcome log</span></div>
       </div>
       <div>
         <div class="score-panel">
@@ -603,11 +741,11 @@ footer a:hover { color: var(--accent); }
         <p>I got medically separated and enrolled at Texas Tech for a BBA in IT systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker, digging through FDA history, EDGAR filings, clinical trial data, cash runway math, and still miss something that tanked the trade. So I started building a tool to do the research for me.</p>
         <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across 870+ biotech companies, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
         <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this platform from a basic PDUFA calendar.</p>
-        <p>REPL on April 10, 2026 was the first PoA miss. The model called 84% approval on RP1 (vusolimogene oderparepvec) for advanced melanoma. FDA issued a second CRL — the agency concluded the IGNYTE trial data didn't establish substantial evidence of effectiveness and couldn't isolate RP1's contribution in the combination with nivolumab. The stock dropped 64%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
+        <p>REPL on April 10, 2026 was the first PoA miss. The model called 84% approval. FDA issued a CRL. The stock dropped 19.46%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
       </div>
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
-        <div class="stat-cell"><span class="stat-val">8/9</span><span class="stat-label">Resolved Events Logged</span></div>
+        <div class="stat-cell"><span class="stat-val">6/7</span><span class="stat-label">Resolved Events Logged</span></div>
         <div class="stat-cell"><span class="stat-val">8</span><span class="stat-label">Scoring Layers</span></div>
         <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs Mapped</span></div>
       </div>
@@ -747,6 +885,24 @@ footer a:hover { color: var(--accent); }
 </footer>
 
 <script>
+  // Countdown timer to Apr 13 PDUFA
+  function updateCountdown() {
+    const target = new Date('2026-04-13T00:00:00-04:00'); // Eastern market open
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) {
+      document.querySelectorAll('#tvtx-countdown,#term-countdown').forEach(el => { if(el) el.textContent = 'PDUFA TODAY'; });
+      return;
+    }
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const txt = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
+    document.querySelectorAll('#tvtx-countdown,#term-countdown').forEach(el => { if(el) el.textContent = txt; });
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 30000);
+
   // Wrap everything so one error doesn't kill all buttons
   const authStatus  = document.getElementById('auth-status');
   const signupBtn   = document.getElementById('signup-btn');

@@ -11,7 +11,7 @@
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
- content="summary_large_image">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <meta name="twitter:site" content="@DRackler">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -102,28 +102,28 @@ footer a:hover{color:var(--accent);}
   <div class="stats-strip">
     <div class="stat-cell">
       <div class="stat-label">Resolved Events</div>
-      <div class="stat-val white" id="stat-total">9</div>
+      <div class="stat-val white" id="stat-total">—</div>
       <div class="stat-sub">approved + decided</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">Correct Calls</div>
-      <div class="stat-val green" id="stat-correct">8</div>
-      <div class="stat-sub">8/9 — 88.9% accuracy</div>
+      <div class="stat-val green" id="stat-correct">—</div>
+      <div class="stat-sub" id="stat-correct-sub">loading accuracy</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Active / Pending</div>
-      <div class="stat-val amber" id="stat-pending">0</div>
-      <div class="stat-sub">Next: GRCE Apr 23</div>
+      <div class="stat-label">Pending / Delayed</div>
+      <div class="stat-val amber" id="stat-pending">—</div>
+      <div class="stat-sub" id="stat-pending-sub">awaiting resolution</div>
     </div>
     <div class="stat-cell">
       <div class="stat-label">STN Calls Correct</div>
-      <div class="stat-val cyan" id="stat-stn">3/5</div>
-      <div class="stat-sub">RCKT · BIIB · VNDA correct</div>
+      <div class="stat-val cyan" id="stat-stn">—</div>
+      <div class="stat-sub" id="stat-stn-sub">sell-the-news layer</div>
     </div>
   </div>
 
-  <div class="disclaimer">
-    ⚠️ 9 resolved events · 8/9 approval accuracy (88.9%) · 1 CRL miss (REPL RP1 melanoma) · 2 additional events delayed by the company (not CRL or rejection). STN Risk correctly identified RCKT sell-the-news (−20%), BIIB muted move (−5%), and VNDA upside (+45%), but overestimated sell-the-news risk on TVTX (+35%) and LGND (+12%) — both flagged MODERATE but surged on first-in-class FSGS approval. STN record: 3/5. This track record will become statistically robust after 20+ completed outcomes. Every future event logged — wins and losses alike. Past performance does not guarantee future results.
+  <div class="disclaimer" id="top-disclaimer">
+    Loading track record from database…
   </div>
 
   <div class="section-title">Resolved Events</div>
@@ -141,142 +141,22 @@ footer a:hover{color:var(--accent);}
         <th>PoA ✓</th>
       </tr>
     </thead>
-    <tbody>
-      <tr>
-        <td class="ticker-cell">VNDA</td>
-        <td>Bysanti · Gastroparesis</td>
-        <td>2025-02-21</td>
-        <td class="poa-cell">78%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">+45%</td>
-        <td class="correct">✓</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">FBIO</td>
-        <td>Lymphir · CTCL</td>
-        <td>2025-08-14</td>
-        <td class="poa-cell">74%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--amber);">ELEVATED</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td style="color:var(--muted);">+3%</td>
-        <td class="correct">✓</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">VNDA</td>
-        <td>Tradipitant · Gastroparesis (2nd)</td>
-        <td>2025-12-27</td>
-        <td class="poa-cell">76%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">+28%</td>
-        <td class="correct">✓</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">AQST</td>
-        <td>Anaphylm · Anaphylaxis</td>
-        <td>2025-11-15</td>
-        <td class="poa-cell">68%</td>
-        <td>WATCH</td>
-        <td style="color:var(--muted);">—</td>
-        <td class="result-delayed">⏸ DELAYED</td>
-        <td style="color:var(--muted);">—</td>
-        <td style="color:var(--muted);">—</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">LNTH</td>
-        <td>Flurpiridaz F 18 · Myocardial Perfusion</td>
-        <td>2026-03-29</td>
-        <td class="poa-cell">77.5%</td>
-        <td>STRONG</td>
-        <td style="color:var(--muted);">—</td>
-        <td class="result-delayed">⏸ DELAYED 3mo</td>
-        <td style="color:var(--muted);">—</td>
-        <td style="color:var(--muted);">—</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">DNLI</td>
-        <td>Denali Therapeutics · Neuroscience</td>
-        <td>2026-03-25</td>
-        <td class="poa-cell">77.5%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--accent2);">LOW</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">+8%</td>
-        <td class="correct">✓</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">RCKT</td>
-        <td>Kresladi · LAD-I Gene Therapy</td>
-        <td>2026-03-28</td>
-        <td class="poa-cell">77.5%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--red);">HIGH</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td class="incorrect">-20%</td>
-        <td class="correct">✓</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">BIIB</td>
-        <td>Nusinersen (high dose) · Spinal Muscular Atrophy</td>
-        <td>2026-04-03</td>
-        <td class="poa-cell">75.0%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td class="incorrect">-5%</td>
-        <td class="correct">✓</td>
-      </tr>
-      <tr style="background:rgba(255,68,68,0.05);">
-        <td class="ticker-cell" style="color:var(--red);">REPL</td>
-        <td>RP1 (vusolimogene oderparepvec) + nivolumab · Advanced Melanoma</td>
-        <td>2026-04-10</td>
-        <td class="poa-cell">84.0%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--red);">HIGH</span></td>
-        <td class="result-crl" style="color:var(--red);">❌ CRL (2nd)</td>
-        <td class="incorrect">-64%</td>
-        <td class="incorrect" style="color:var(--red);">✗</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">TVTX</td>
-        <td>FILSPARI (sparsentan) · FSGS — first-in-class</td>
-        <td>2026-04-13</td>
-        <td class="poa-cell">74.2%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">+35%</td>
-        <td class="correct">✓</td>
-      </tr>
-      <tr>
-        <td class="ticker-cell">LGND</td>
-        <td>FILSPARI (9% royalty) · FSGS</td>
-        <td>2026-04-13</td>
-        <td class="poa-cell">71.5%</td>
-        <td>STRONG</td>
-        <td><span style="color:var(--amber);">MODERATE</span></td>
-        <td class="result-approved">✅ APPROVED</td>
-        <td class="correct">+12%</td>
-        <td class="correct">✓</td>
-      </tr>
+    <tbody id="tr-tbody">
+      <tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">Fetching track record from database…</td></tr>
     </tbody>
   </table>
 
-  <div style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;">
+  <div id="stn-callout" style="background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.15);border-left:3px solid var(--accent);padding:1.25rem 1.5rem;margin-bottom:2rem;font-family:var(--mono);font-size:0.78rem;display:none;">
     <div style="font-size:0.62rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">STN Risk — Work in Progress</div>
-    <div style="color:var(--text);line-height:1.75;">3 of 8 resolved approvals had <span style="color:var(--red);">negative or flat post-decision moves</span>. The STN Risk layer flagged all three before the date. <span style="color:var(--accent2);">RCKT</span>: HIGH STN → <span style="color:var(--red);">−20%</span>. <span style="color:var(--accent2);">BIIB</span>: MODERATE STN → <span style="color:var(--red);">−5%</span>. <span style="color:var(--accent2);">FBIO</span>: ELEVATED STN → <span style="color:var(--muted);">+3%</span> (barely moved). However, STN flagged MODERATE on <span style="color:var(--accent2);">TVTX</span> (+35%) and <span style="color:var(--accent2);">LGND</span> (+12%) — both surged on a first-in-class FSGS approval. The model overestimated sell-the-news risk when first-in-class unmet need was the dominant factor. STN record: <strong style="color:var(--white);">3/5</strong>. Recalibrating first-in-class modifier weight.</div>
+    <div id="stn-callout-body" style="color:var(--text);line-height:1.75;"></div>
   </div>
 
   <div class="methodology">
     <h3>How We Track Accuracy</h3>
     <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against our predicted PoA score and grade.</p>
     <p>A prediction is marked <strong style="color:var(--accent2)">correct</strong> if: the scanner scored PoA ≥ 65% and the drug was approved, OR the scanner scored PoA &lt; 50% and the drug received a CRL/rejection. Delayed events are not counted as wins or losses.</p>
-    <h3 style="margin-top:2rem;">Sell-The-News (STN) Risk Score — NEW</h3>
-    <p>Approval ≠ stock move. The scanner now includes a <strong style="color:var(--white)">Post-Approval Move Score</strong> that predicts whether an FDA approval will actually move the stock. This was added after observing that RCKT was approved (PoA correct) but the stock dropped 20% — a textbook sell-the-news event.</p>
+    <h3 style="margin-top:2rem;">Sell-The-News (STN) Risk Score</h3>
+    <p>Approval ≠ stock move. The scanner includes a <strong style="color:var(--white)">Post-Approval Move Score</strong> that predicts whether an FDA approval will actually move the stock. This was added after observing that RCKT was approved (PoA correct) but the stock dropped 20% — a textbook sell-the-news event.</p>
     <p>The STN Risk score evaluates:</p>
     <p style="margin-left:1rem;">
       <strong style="color:var(--accent)">• PoA priced-in factor</strong> — Higher PoA = more priced in = less upside on approval<br>
@@ -289,7 +169,7 @@ footer a:hover{color:var(--accent);}
     </p>
     <p>Risk levels: <span style="color:var(--accent2)">VERY LOW</span> → <span style="color:var(--accent2)">LOW</span> → <span style="color:var(--amber)">MODERATE</span> → <span style="color:var(--amber)">ELEVATED</span> → <span style="color:var(--red)">HIGH</span></p>
     <p>The PoA model tells you <strong style="color:var(--white)">IF</strong> it gets approved. The STN risk tells you <strong style="color:var(--white)">if that approval is worth trading</strong>.</p>
-    <p>This page will be updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
+    <p>This page is updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
   </div>
 
   <div style="text-align:center;margin:2rem 0;">
@@ -307,5 +187,189 @@ footer a:hover{color:var(--accent);}
   </div>
 </footer>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// LIVE TRACK RECORD LOADER
+// Prefers getSupabase() from /js/config.js; falls back to inline client.
+// ═══════════════════════════════════════════════════════════════════════════
+(async function loadTrackRecord() {
+
+  // --- 1. Resolve Supabase client (prefer shared helper, fallback inline) ---
+  let sb;
+  try {
+    if (typeof getSupabase === 'function') {
+      sb = getSupabase();
+    } else {
+      sb = supabase.createClient(
+        'https://dipagzqrvivposqjkdkx.supabase.co',
+        'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
+      );
+    }
+  } catch (e) {
+    console.error('[TR] Supabase init failed:', e);
+    document.getElementById('tr-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--red);">Could not initialize database connection.</td></tr>';
+    return;
+  }
+
+  // --- 2. Fetch events ---
+  let rows = [];
+  try {
+    const { data, error } = await sb
+      .from('track_record')
+      .select('*')
+      .order('pdufa_date', { ascending: true });
+
+    if (error) throw error;
+    rows = data || [];
+  } catch (e) {
+    console.error('[TR] Fetch failed:', e);
+    document.getElementById('tr-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--red);">Unable to load track record. Please retry shortly.</td></tr>';
+    return;
+  }
+
+  if (!rows.length) {
+    document.getElementById('tr-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">No events logged yet.</td></tr>';
+    document.getElementById('top-disclaimer').textContent =
+      'Track record is being populated. Check back shortly.';
+    return;
+  }
+
+  // --- 3. Aggregate stats ---
+  const resolved  = rows.filter(r => r.call_correct !== null && r.call_correct !== undefined);
+  const correct   = resolved.filter(r => r.call_correct === true);
+  const misses    = resolved.filter(r => r.call_correct === false);
+  const pending   = rows.filter(r => r.call_correct === null || r.call_correct === undefined);
+  const approvals = resolved.filter(r => String(r.actual_result || '').toUpperCase() === 'APPROVED');
+
+  // STN direction scoring for approvals
+  const stnScored = [];
+  approvals.forEach(r => {
+    const stn = String(r.scanner_stn_risk || '').toUpperCase();
+    const mv  = Number(r.return_pct);
+    if (!stn || Number.isNaN(mv)) return;
+    let correctDir = null;
+    if (stn === 'HIGH')          correctDir = mv <= 10;
+    else if (stn === 'ELEVATED') correctDir = mv <= 15;
+    else if (stn === 'MODERATE') correctDir = mv >= -10 && mv <= 25;
+    else if (stn === 'LOW' || stn === 'VERY LOW') correctDir = mv > 20;
+    if (correctDir === null) return;
+    stnScored.push({ ticker: r.ticker, stn, mv, correctDir });
+  });
+  const stnCorrect = stnScored.filter(s => s.correctDir).length;
+
+  // Set stats
+  const accuracy = resolved.length > 0 ? ((correct.length / resolved.length) * 100).toFixed(1) : '—';
+  document.getElementById('stat-total').textContent   = resolved.length;
+  document.getElementById('stat-correct').textContent = correct.length;
+  document.getElementById('stat-correct-sub').textContent =
+    resolved.length > 0 ? (correct.length + '/' + resolved.length + ' — ' + accuracy + '% accuracy') : '—';
+  document.getElementById('stat-pending').textContent = pending.length;
+  document.getElementById('stat-pending-sub').textContent =
+    pending.length > 0 ? (pending.length + ' awaiting FDA decision') : 'all resolved';
+  document.getElementById('stat-stn').textContent =
+    stnScored.length > 0 ? (stnCorrect + '/' + stnScored.length) : '—';
+  document.getElementById('stat-stn-sub').textContent =
+    stnScored.length > 0 ? (stnScored.filter(s => s.correctDir).map(s => s.ticker).slice(0, 3).join(' · ') + ' correct') : 'no approvals yet';
+
+  // --- 4. Top disclaimer (dynamic) ---
+  const missNames = misses.map(m => m.ticker + ' (' + (m.actual_result || 'MISS') + ')').join(', ');
+  const missText = misses.length > 0
+    ? (' · ' + misses.length + ' miss' + (misses.length > 1 ? 'es' : '') + ' (' + missNames + ')')
+    : '';
+  const delayedCount = rows.filter(r => String(r.actual_result || '').toUpperCase() === 'DELAYED').length;
+  const delayText = delayedCount > 0 ? (' · ' + delayedCount + ' delayed by company (not CRL)') : '';
+  document.getElementById('top-disclaimer').innerHTML =
+    '⚠️ ' + resolved.length + ' resolved event' + (resolved.length === 1 ? '' : 's') +
+    ' · ' + correct.length + '/' + resolved.length + ' approval accuracy (' + accuracy + '%)' +
+    missText + delayText +
+    '. Every future event logged — wins and losses alike. Past performance does not guarantee future results.';
+
+  // --- 5. Render table ---
+  const tbody = document.getElementById('tr-tbody');
+  tbody.innerHTML = rows.map(r => {
+    const isMiss    = r.call_correct === false;
+    const isPending = r.call_correct === null || r.call_correct === undefined;
+    const rowStyle  = isMiss ? ' style="background:rgba(255,68,68,0.05);"' : '';
+
+    // Result cell
+    const result = String(r.actual_result || '').toUpperCase();
+    let resultCell = '';
+    if (result === 'APPROVED')       resultCell = '<td class="result-approved">✅ APPROVED</td>';
+    else if (result === 'CRL')       resultCell = '<td class="result-crl" style="color:var(--red);">❌ CRL</td>';
+    else if (result === 'DELAYED')   resultCell = '<td class="result-delayed">⏸ DELAYED</td>';
+    else if (result === 'WITHDRAWN') resultCell = '<td class="result-crl" style="color:var(--red);">↩ WITHDRAWN</td>';
+    else                              resultCell = '<td class="result-pending">Pending</td>';
+
+    // Move cell
+    let moveCell;
+    const mv = Number(r.return_pct);
+    if (isPending || Number.isNaN(mv) || r.return_pct === null || r.return_pct === undefined) {
+      moveCell = '<td style="color:var(--muted);">—</td>';
+    } else {
+      const cls = mv > 0 ? 'correct' : (mv < 0 ? 'incorrect' : '');
+      const prefix = mv > 0 ? '+' : '';
+      moveCell = '<td class="' + cls + '">' + prefix + mv + '%</td>';
+    }
+
+    // PoA correct cell
+    let poaCell;
+    if (r.call_correct === true)       poaCell = '<td class="correct">✓</td>';
+    else if (r.call_correct === false) poaCell = '<td class="incorrect" style="color:var(--red);">✗</td>';
+    else                                poaCell = '<td style="color:var(--muted);">—</td>';
+
+    // STN cell color
+    const stn = String(r.scanner_stn_risk || '').toUpperCase();
+    let stnColor = 'var(--muted)';
+    if (stn === 'HIGH')           stnColor = 'var(--red)';
+    else if (stn === 'ELEVATED' || stn === 'MODERATE') stnColor = 'var(--amber)';
+    else if (stn === 'LOW' || stn === 'VERY LOW')      stnColor = 'var(--accent2)';
+    const stnCell = stn
+      ? '<td><span style="color:' + stnColor + ';">' + stn + '</span></td>'
+      : '<td style="color:var(--muted);">—</td>';
+
+    const tickerColor = isMiss ? ' style="color:var(--red);"' : '';
+    const poaDisplay = (r.scanner_poa !== null && r.scanner_poa !== undefined)
+      ? (Number(r.scanner_poa).toFixed(r.scanner_poa % 1 === 0 ? 0 : 1) + '%')
+      : '—';
+
+    return '<tr' + rowStyle + '>' +
+      '<td class="ticker-cell"' + tickerColor + '>' + (r.ticker || '') + '</td>' +
+      '<td>' + (r.drug || '') + '</td>' +
+      '<td>' + (r.pdufa_date || '') + '</td>' +
+      '<td class="poa-cell">' + poaDisplay + '</td>' +
+      '<td>' + (r.scanner_grade || '—') + '</td>' +
+      stnCell +
+      resultCell +
+      moveCell +
+      poaCell +
+    '</tr>';
+  }).join('');
+
+  // --- 6. STN callout (only if we have enough data) ---
+  if (stnScored.length >= 2) {
+    const calloutEl = document.getElementById('stn-callout');
+    const bodyEl    = document.getElementById('stn-callout-body');
+    const recentApprovals = approvals.slice(-3).reverse();
+    const highlights = recentApprovals.map(r => {
+      const mv = Number(r.return_pct);
+      const stn = String(r.scanner_stn_risk || '').toUpperCase();
+      const color = mv < 0 ? 'var(--red)' : (mv < 10 ? 'var(--muted)' : 'var(--accent2)');
+      const prefix = mv > 0 ? '+' : '';
+      return '<span style="color:var(--accent2);">' + r.ticker + '</span>: ' +
+             stn + ' STN → <span style="color:' + color + ';">' + prefix + mv + '%</span>';
+    }).join('. ');
+    bodyEl.innerHTML =
+      stnCorrect + ' of ' + stnScored.length + ' STN calls directionally correct across resolved approvals. ' +
+      highlights + '. STN record: <strong style="color:var(--white);">' + stnCorrect + '/' + stnScored.length + '</strong>.';
+    calloutEl.style.display = 'block';
+  }
+
+})();
+</script>
 </body>
 </html>
