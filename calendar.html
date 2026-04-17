@@ -212,7 +212,7 @@ var isPaid = false;
 // ── POLYGON.IO LIVE MARKET DATA ───────────────────────────────────────────────
 var POLY_KEY = (typeof SC_CONFIG !== 'undefined' && SC_CONFIG.polygonApiKey) || 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI';
 var POLY_BASE = 'https://api.polygon.io';
-var polyCache = {};        // ticker → { bars, metrics, ts }
+var polyCache = {};        // ticker → { bars, metrics, cap, ts }
 var polyCacheTTL = 900000; // 15 min
 var polyDelay = 12500;     // ms between requests — safe for free tier (5/min)
 var polyIsPaidTier = false; // auto-detected
@@ -220,7 +220,7 @@ var POLY_MAX_TICKERS = 60; // cap to keep load time reasonable on free tier
 
 // Restore cache from sessionStorage
 try {
-  var _pc = sessionStorage.getItem('sc_poly_v2');
+  var _pc = sessionStorage.getItem('sc_poly_v3');  // v3 — schema includes cap
   if (_pc) {
     var _pd = JSON.parse(_pc);
     var _now = Date.now();
@@ -232,10 +232,59 @@ try {
 } catch (e) {}
 
 function polySaveCache() {
-  try { sessionStorage.setItem('sc_poly_v2', JSON.stringify(polyCache)); } catch (e) {}
+  try { sessionStorage.setItem('sc_poly_v3', JSON.stringify(polyCache)); } catch (e) {}
 }
 
-// Single sequential fetch with full diagnostics
+// ─── BULK SNAPSHOT — fast live prices for many tickers in ONE call ──────────
+// /v2/snapshot/locale/us/markets/stocks/tickers?tickers=A,B,C returns live
+// intraday prices for up to ~250 tickers in a single request. One HTTP call
+// instead of N per-ticker aggs calls for today's price. Runs first so users
+// see live prices immediately; per-ticker aggs + cap backfill after.
+async function polyBulkSnapshot(tickers) {
+  if (!tickers || tickers.length === 0) return {};
+  var result = {};
+  for (var i = 0; i < tickers.length; i += 250) {
+    var chunk = tickers.slice(i, i + 250);
+    var url = POLY_BASE + '/v2/snapshot/locale/us/markets/stocks/tickers?tickers=' + chunk.join(',') + '&apiKey=' + POLY_KEY;
+    try {
+      var res = await fetch(url);
+      if (!res.ok) { console.warn('[Polygon] Bulk snapshot HTTP ' + res.status); continue; }
+      var data = await res.json();
+      var rows = (data && (data.tickers || data.results)) || [];
+      rows.forEach(function(t) {
+        if (!t || !t.ticker) return;
+        var price = (t.lastTrade && t.lastTrade.p) || (t.day && t.day.c) || (t.prevDay && t.prevDay.c) || 0;
+        if (!(price > 0)) return;
+        result[t.ticker] = {
+          price: price,
+          todayChange: typeof t.todaysChangePerc === 'number' ? t.todaysChangePerc : 0,
+          prevClose: (t.prevDay && t.prevDay.c) || 0,
+        };
+      });
+    } catch (err) {
+      console.warn('[Polygon] Bulk snapshot failed:', err);
+    }
+  }
+  console.log('[Polygon] Bulk snapshot: live prices for ' + Object.keys(result).length + '/' + tickers.length + ' tickers');
+  return result;
+}
+
+// Apply bulk snapshot data onto ALL_EVENTS as an immediate live-price overlay.
+// Sets price_change_today, _live_price, and lets renderTable show fresh prices
+// before the per-ticker aggs enrichment completes.
+function polyApplyBulkSnapshot(snap) {
+  var applied = 0;
+  ALL_EVENTS.forEach(function(e) {
+    if (snap[e.ticker]) {
+      e._live_price = snap[e.ticker].price;
+      e.price_change_today = snap[e.ticker].todayChange;
+      applied++;
+    }
+  });
+  return applied;
+}
+
+// Bars fetch (existing) — returns {status, bars, empty}
 async function polyFetchOne(ticker) {
   var now = new Date();
   var to = now.toISOString().split('T')[0];
@@ -266,6 +315,21 @@ async function polyFetchOne(ticker) {
     console.error('[Polygon] Network error for ' + ticker + ':', e.message);
     return { status: 0, error: e.message };
   }
+}
+
+// Live market cap fetch — returns number (full USD) or null.
+// Polygon /v3/reference/tickers/{ticker} returns market_cap computed from
+// latest close × weighted shares outstanding. Same units as
+// estimated_market_cap in DB (e.g. 69500000 for $69.5M GRCE).
+async function polyFetchCap(ticker) {
+  var url = POLY_BASE + '/v3/reference/tickers/' + encodeURIComponent(ticker) + '?apiKey=' + POLY_KEY;
+  try {
+    var res = await fetch(url);
+    if (!res.ok) return null;
+    var data = await res.json();
+    var cap = data && data.results ? data.results.market_cap : null;
+    return (typeof cap === 'number' && cap > 0) ? cap : null;
+  } catch (e) { return null; }
 }
 
 function polyComputeMetrics(bars) {
@@ -305,13 +369,27 @@ function polyComputeMetrics(bars) {
   return { change30d: change30d, vol: vol, pattern: pattern, price: latest.c, avgVol: bars.slice(-5).reduce(function(a, b) { return a + b.v; }, 0) / 5 };
 }
 
-function polyApplyMetrics(ticker, m) {
+// Apply bar-derived metrics AND live market cap (with TAM derivation).
+// TAM (absolute $) is static per indication — only cap denominator moves.
+// So: staticTAM = oldTamRatio × oldCap, newTamRatio = staticTAM / liveCap.
+function polyApplyMetrics(ticker, m, liveCap) {
   ALL_EVENTS.forEach(function(e) {
     if (e.ticker === ticker) {
-      e.price_change_30d = m.change30d;
-      e.realized_vol_30d = m.vol;
-      if (!e.chart_pattern || e.chart_pattern === '—') e.chart_pattern = m.pattern;
-      e._poly_price = m.price;
+      if (m) {
+        e.price_change_30d = m.change30d;
+        e.realized_vol_30d = m.vol;
+        if (!e.chart_pattern || e.chart_pattern === '—') e.chart_pattern = m.pattern;
+        e._poly_price = m.price;
+      }
+      if (liveCap && liveCap > 0) {
+        var oldCap = Number(e.estimated_market_cap) || 0;
+        var oldTam = Number(e.tam_ratio) || 0;
+        var staticTamDollars = (oldCap > 0 && oldTam > 0) ? oldTam * oldCap : 0;
+        e.estimated_market_cap = liveCap;
+        if (staticTamDollars > 0) {
+          e.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
+        }
+      }
     }
   });
 }
@@ -328,14 +406,33 @@ async function enrichWithPolygon() {
   var cachedCount = 0;
   Object.keys(polyCache).forEach(function(ticker) {
     var c = polyCache[ticker];
-    if (c && c.metrics) { polyApplyMetrics(ticker, c.metrics); cachedCount++; }
+    if (c && (c.metrics || c.cap)) { polyApplyMetrics(ticker, c.metrics, c.cap); cachedCount++; }
   });
   if (cachedCount > 0) { renderTable(); console.log('[Polygon] Applied ' + cachedCount + ' cached tickers'); }
+
+  // ── Step 0.5: Bulk snapshot for instant live intraday prices ──
+  // One call for ALL tickers at once — massively faster than per-ticker.
+  setStatus('◉ Bulk snapshot...', 'var(--accent)');
+  var allTickers = [];
+  var ticker_seen = {};
+  ALL_EVENTS.forEach(function(e) {
+    if (e.ticker && e.ticker !== '—' && !ticker_seen[e.ticker]) {
+      ticker_seen[e.ticker] = true;
+      allTickers.push(e.ticker);
+    }
+  });
+  if (allTickers.length > 0) {
+    var snap = await polyBulkSnapshot(allTickers);
+    var snapApplied = polyApplyBulkSnapshot(snap);
+    if (snapApplied > 0) { renderTable(); console.log('[Polygon] Bulk snapshot applied to ' + snapApplied + ' events'); }
+  }
 
   // ── Step 1: Validate API key with a known ticker ──
   setStatus('Validating Polygon API...', 'var(--accent)');
   console.log('[Polygon] Testing API key with AAPL...');
-  var test = await polyFetchOne('AAPL');
+  var testPair = await Promise.all([polyFetchOne('AAPL'), polyFetchCap('AAPL')]);
+  var test = testPair[0];
+  var testCap = testPair[1];
 
   if (test.status === 403) {
     setStatus('✗ Polygon API key invalid', 'var(--red)');
@@ -351,7 +448,8 @@ async function enrichWithPolygon() {
     setStatus('✗ Polygon rate limited — wait 60s', 'var(--amber)');
     console.warn('[Polygon] Rate limited on first call. Retrying in 60s...');
     await new Promise(function(r) { setTimeout(r, 61000); });
-    test = await polyFetchOne('AAPL');
+    testPair = await Promise.all([polyFetchOne('AAPL'), polyFetchCap('AAPL')]);
+    test = testPair[0]; testCap = testPair[1];
     if (test.status !== 200) {
       setStatus('✗ Polygon still rate limited', 'var(--red)');
       return;
@@ -363,12 +461,16 @@ async function enrichWithPolygon() {
     return;
   }
 
-  console.log('[Polygon] ✓ API key valid. AAPL returned ' + test.bars.length + ' bars.');
+  console.log('[Polygon] ✓ API key valid. AAPL returned ' + test.bars.length + ' bars, cap=' + (testCap || 'n/a'));
 
-  // ── Step 2: Detect tier — try 3 rapid calls ──
+  // ── Step 2: Detect tier — try 3 rapid bar-fetches ──
   setStatus('Detecting Polygon tier...', 'var(--accent)');
-  var rapidTest = await Promise.all(['REGN', 'BMY', 'GILD'].map(function(t) { return polyFetchOne(t); }));
-  var rapid429 = rapidTest.some(function(r) { return r.status === 429; });
+  var rapidTest = await Promise.all(['REGN', 'BMY', 'GILD'].map(function(t) {
+    return Promise.all([polyFetchOne(t), polyFetchCap(t)]).then(function(pair) {
+      return { ticker: t, result: pair[0], cap: pair[1] };
+    });
+  }));
+  var rapid429 = rapidTest.some(function(r) { return r.result.status === 429; });
 
   if (!rapid429) {
     polyIsPaidTier = true;
@@ -382,28 +484,28 @@ async function enrichWithPolygon() {
     console.log('[Polygon] Free tier detected — sequential mode, 12.5s delay, capped at ' + POLY_MAX_TICKERS + ' tickers');
   }
 
-  // Cache the test results
-  [{ t: 'AAPL', r: test }].concat(rapidTest.map(function(r, i) { return { t: ['REGN','BMY','GILD'][i], r: r }; }))
-    .forEach(function(item) {
-      if (item.r.bars) {
-        var m = polyComputeMetrics(item.r.bars);
-        if (m) { polyCache[item.t] = { bars: item.r.bars, metrics: m, ts: Date.now() }; polyApplyMetrics(item.t, m); }
-      }
-    });
+  // Cache the test results (both bars AND cap)
+  var testPool = [{ t: 'AAPL', r: test, c: testCap }].concat(rapidTest.map(function(r) {
+    return { t: r.ticker, r: r.result, c: r.cap };
+  }));
+  testPool.forEach(function(item) {
+    var m = item.r.bars ? polyComputeMetrics(item.r.bars) : null;
+    if (m || item.c) {
+      polyCache[item.t] = { bars: item.r.bars || null, metrics: m, cap: item.c || null, ts: Date.now() };
+      polyApplyMetrics(item.t, m, item.c);
+    }
+  });
   renderTable();
 
   // ── Step 3: Build priority ticker list ──
-  // Known liquid tickers first (most likely to have data), then the rest
   var knownLiquid = ['ABBV','AMGN','AZN','BIIB','CELC','CRSP','CYTK','DAWN','DYNE','ERAS','EWTX','GSK','HALO','HIMS','INSM','JAZZ','LEGN','LNTH','MEDP','MIRM','NBIX','NTRA','NUVL','REGN','VTRS','XENE','BMY','GILD','PFE','JNJ','LLY','MRK','NVS','SNY','AUPH','CLDX','CRNX','DNLI','HRMY','LQDA','SGEN','VCEL'];
   var seen = {};
   var prioritized = [];
 
-  // Add known liquid tickers that are in our events
   var eventTickers = {};
   ALL_EVENTS.forEach(function(e) { eventTickers[e.ticker] = true; });
   knownLiquid.forEach(function(t) { if (eventTickers[t] && !polyCache[t]) { seen[t] = true; prioritized.push(t); } });
 
-  // Add remaining tickers from current tab view first, then all
   ALL_EVENTS.forEach(function(e) {
     if (!seen[e.ticker] && e.ticker && e.ticker !== '—' && !polyCache[e.ticker] && matchesTab(e, currentTab)) {
       seen[e.ticker] = true; prioritized.push(e.ticker);
@@ -415,29 +517,32 @@ async function enrichWithPolygon() {
     }
   });
 
-  // Cap the list
   prioritized = prioritized.slice(0, POLY_MAX_TICKERS);
   if (prioritized.length === 0) { setStatus('✓ All data cached', 'var(--accent2)'); return; }
 
-  console.log('[Polygon] Fetching ' + prioritized.length + ' tickers (delay: ' + polyDelay + 'ms)...');
+  console.log('[Polygon] Fetching ' + prioritized.length + ' tickers (bars + cap, delay: ' + polyDelay + 'ms)...');
 
   // ── Step 4: Sequential fetch with progressive rendering ──
-  var enriched = 0, skipped = 0, rateLimited = 0;
+  var enriched = 0, skipped = 0, rateLimited = 0, capsApplied = 0;
 
   for (var i = 0; i < prioritized.length; i++) {
     var ticker = prioritized[i];
-    setStatus('◉ ' + ticker + ' (' + (enriched) + '/' + prioritized.length + ')', 'var(--accent)');
+    setStatus('◉ ' + ticker + ' (' + enriched + '/' + prioritized.length + ')', 'var(--accent)');
 
-    var result = await polyFetchOne(ticker);
+    // Fetch bars AND cap in parallel for this ticker
+    var pair = await Promise.all([polyFetchOne(ticker), polyFetchCap(ticker)]);
+    var result = pair[0];
+    var liveCap = pair[1];
 
     if (result.status === 429) {
       rateLimited++;
-      // Back off hard — wait 65 seconds then continue
       console.warn('[Polygon] Rate limited at ticker ' + (i + 1) + '/' + prioritized.length + '. Pausing 65s...');
       setStatus('⏸ Rate limited — pausing 65s...', 'var(--amber)');
       await new Promise(function(r) { setTimeout(r, 65000); });
       // Retry this ticker
-      result = await polyFetchOne(ticker);
+      pair = await Promise.all([polyFetchOne(ticker), polyFetchCap(ticker)]);
+      result = pair[0];
+      liveCap = pair[1];
     }
 
     if (result.status === 403) {
@@ -445,28 +550,22 @@ async function enrichWithPolygon() {
       break;
     }
 
-    if (result.bars) {
-      var m = polyComputeMetrics(result.bars);
-      if (m) {
-        polyCache[ticker] = { bars: result.bars, metrics: m, ts: Date.now() };
-        polyApplyMetrics(ticker, m);
-        enriched++;
-      } else {
-        skipped++;
-      }
+    var m = result.bars ? polyComputeMetrics(result.bars) : null;
+
+    if (m || liveCap) {
+      polyCache[ticker] = { bars: result.bars || null, metrics: m, cap: liveCap || null, ts: Date.now() };
+      polyApplyMetrics(ticker, m, liveCap);
+      if (m) enriched++;
+      if (liveCap) capsApplied++;
     } else {
       // No data for this ticker (delisted, OTC, foreign, etc.)
-      polyCache[ticker] = { bars: null, metrics: null, ts: Date.now() }; // cache miss to avoid re-fetching
+      polyCache[ticker] = { bars: null, metrics: null, cap: null, ts: Date.now() };
       skipped++;
     }
 
-    // Render every 3 tickers for performance
     if (enriched % 3 === 0) renderTable();
-
-    // Save cache every 10 tickers
     if (i % 10 === 0) polySaveCache();
 
-    // Delay before next request
     if (i < prioritized.length - 1) {
       await new Promise(function(r) { setTimeout(r, polyDelay); });
     }
@@ -475,11 +574,11 @@ async function enrichWithPolygon() {
   polySaveCache();
   renderTable();
 
-  var msg = '✓ Live: ' + enriched + ' tickers';
+  var msg = '✓ Live: ' + enriched + ' bars, ' + capsApplied + ' caps';
   if (skipped > 0) msg += ' (' + skipped + ' n/a)';
   if (rateLimited > 0) msg += ' [' + rateLimited + ' rate-limits]';
   setStatus(msg, 'var(--accent2)');
-  console.log('[Polygon] Done. Enriched: ' + enriched + ', Skipped: ' + skipped + ', Rate-limited: ' + rateLimited);
+  console.log('[Polygon] Done. Enriched bars: ' + enriched + ', Live caps: ' + capsApplied + ', Skipped: ' + skipped + ', Rate-limited: ' + rateLimited);
 }
 
 function daysUntil(dateStr) { return Math.round((new Date(dateStr) - new Date()) / 86400000); }
@@ -519,11 +618,9 @@ function classifyEvent(e) {
   if (e.dilution_risk === 'HIGH' || e.dilution_risk === 'EXTREME') tags.push('dilution');
   if (e.atm_active || e.shelf_active) tags.push('dilution');
   var flags = (e.flags || []).join(' ').toLowerCase();
-  // CMC-only CRL recovery setups
   if (flags.includes('cmc') || flags.includes('manufacturing') || t.includes('resubmission') || t.includes('post-crl') || t.includes('class 2 resubmission') || t.includes('class 1 resubmission')) tags.push('cmc');
   if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') tags.push('buyout');
   if (flags.includes('first-in-class') || flags.includes('first in class') || flags.includes('prv') || flags.includes('acquisition') || e.partnership_detected) tags.push('buyout');
-  // Only default to PDUFA if type explicitly says so
   if (tags.length === 0) {
     if (e.type === 'COMPANY' || e._source === 'universe' || e._source === 'earnings') {
       // No default category for companies — they just show in All Companies
@@ -531,7 +628,6 @@ function classifyEvent(e) {
       tags.push('pdufa');
     }
   }
-  // Every entry shows in All Companies tab
   tags.push('company');
   return tags;
 }
@@ -561,7 +657,6 @@ function matchesFilters(e) {
     if (days < 0 || days > parseInt(window_val)) return false;
   }
 
-  // "Data only" toggle — hide events with no scoring or live market data
   var liveOnly = document.getElementById('filter-liveonly');
   if (liveOnly && liveOnly.checked) {
     var hasData = Number(e.poa) > 0 || Number(e.buyout_score) > 30 ||
@@ -584,26 +679,21 @@ function renderTable() {
     return;
   }
 
-  // Data richness score — events with actual data float up, empty rows sink
   function dataScore(e) {
     var s = 0;
-    // DB scores (PDUFA, buyout)
     if (Number(e.poa) > 0) s += 30;
     if (e.grade === 'ELITE') s += 20;
     else if (e.grade === 'STRONG') s += 15;
     if (Number(e.buyout_score) > 30) s += 10;
     if (e.sell_news_risk && e.sell_news_risk !== '—') s += 5;
-    // Polygon live data
     if (Number(e.price_change_30d)) s += 10;
     if (Number(e.realized_vol_30d) > 0) s += 5;
     if (e.chart_pattern && e.chart_pattern !== '—' && e.chart_pattern !== 'NEUTRAL') s += 3;
-    // TAM
     if (Number(e.tam_ratio) > 0) s += 3;
     return s;
   }
 
   filtered.sort(function(a, b) {
-    // No-date events always last
     if (a.date === '—' && b.date !== '—') return 1;
     if (a.date !== '—' && b.date === '—') return -1;
     if (a.date === '—' && b.date === '—') {
@@ -611,18 +701,15 @@ function renderTable() {
       if (da !== db) return db - da;
       return a.ticker.localeCompare(b.ticker);
     }
-    // Same date bucket — data-rich events first
     var dateA = new Date(a.date), dateB = new Date(b.date);
     if (dateA.getTime() === dateB.getTime()) {
       var da2 = dataScore(a), db2 = dataScore(b);
       if (da2 !== db2) return db2 - da2;
       return a.ticker.localeCompare(b.ticker);
     }
-    // Different dates — chronological
     return dateA - dateB;
   });
 
-  // Limit display to 200 at a time for performance
   var displayList = filtered.slice(0, 200);
   var overflow = filtered.length > 200;
 
@@ -638,17 +725,14 @@ function renderTable() {
     var days = e.date !== '—' ? daysUntil(e.date) : null;
     var link = '/catalyst-detail.html?ticker=' + e.ticker;
 
-    // Clean company name - truncate to 25 chars
     var compName = (e.company_name || e.ticker).substring(0, 28);
 
-    // Clean catalyst description based on source
     var catalyst = '—';
     if (e._source === 'earnings') {
       catalyst = e.drug || 'Quarterly Earnings';
     } else if (e._source === 'universe') {
       catalyst = 'Pipeline & Catalyst Analysis';
     } else if (e._source === 'pdufa') {
-      // Extract just drug name from raw text
       var rawDrug = e.drug || e.indication || '';
       if (rawDrug.length > 50) {
         var parts = rawDrug.split('—');
@@ -657,7 +741,6 @@ function renderTable() {
         else if (rawDrug.indexOf(' for ') > 0) rawDrug = rawDrug.substring(0, rawDrug.indexOf(' for ') + 20);
       }
       catalyst = rawDrug.substring(0, 40);
-      // Add TAM ratio badge
       var tr = Number(e.tam_ratio) || 0;
       if (tr >= 10) catalyst += ' <span style="font-size:0.52rem;color:var(--accent2);font-weight:700;">TAM ' + tr + 'x 🚀</span>';
       else if (tr >= 3) catalyst += ' <span style="font-size:0.52rem;color:var(--accent);font-weight:700;">TAM ' + tr + 'x</span>';
@@ -666,9 +749,19 @@ function renderTable() {
       catalyst = (e.drug || e.notes || 'Catalyst Event').substring(0, 50);
     }
 
-    // Market cap color
+    // Market cap — prefer live dollar value when available, else fall back to tier label
     var capColor = {'LARGE':'var(--amber)','MID':'var(--accent)','SMALL':'var(--accent2)'}[e.market_cap_tier] || 'var(--muted)';
     var capLabel = {'LARGE':'LRG','MID':'MID','SMALL':'SM'}[e.market_cap_tier] || '—';
+    var liveCap = Number(e.estimated_market_cap) || 0;
+    var capDisplay = capLabel;
+    if (liveCap > 0) {
+      if (liveCap >= 1e9) capDisplay = '$' + (liveCap / 1e9).toFixed(1) + 'B';
+      else if (liveCap >= 1e6) capDisplay = '$' + (liveCap / 1e6).toFixed(0) + 'M';
+      // Re-color by actual live cap
+      if (liveCap >= 10e9) capColor = 'var(--amber)';
+      else if (liveCap >= 2e9) capColor = 'var(--accent)';
+      else capColor = 'var(--accent2)';
+    }
 
     html += '<tr onclick="window.location.href=\'' + link + '\'">';
     html += '<td class="ticker-cell">' + e.ticker + (days !== null && days >= 0 ? daysPill(days) : '') + '</td>';
@@ -676,24 +769,21 @@ function renderTable() {
     html += '<td>' + eventBadge(e.type) + '</td>';
     html += '<td style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + catalyst.replace(/"/g,'') + '">' + catalyst + '</td>';
     html += '<td style="font-family:var(--mono);font-size:0.68rem;">' + (e.date !== '—' ? e.date : '<span style="color:var(--muted)">—</span>') + '</td>';
-    html += '<td style="font-family:var(--mono);font-size:0.62rem;color:' + capColor + ';font-weight:700;">' + capLabel + '</td>';
+    html += '<td style="font-family:var(--mono);font-size:0.62rem;color:' + capColor + ';font-weight:700;">' + capDisplay + '</td>';
 
     if (isPaid) {
-      // TAM Ratio column
       var tamRatio = Number(e.tam_ratio) || 0;
       var tamColor = tamRatio >= 10 ? 'var(--accent2)' : tamRatio >= 3 ? 'var(--accent)' : tamRatio >= 1 ? 'var(--amber)' : 'var(--muted)';
       var tamDisplay = tamRatio > 0 ? tamRatio.toFixed(1) + 'x' : '—';
       html += '<td class="score-cell" style="color:' + tamColor + ';font-weight:700;">' + tamDisplay + '</td>';
 
       if (e._source === 'pdufa' || e._source === 'catalyst') {
-        // PDUFA/catalyst — show PoA + STN
         var poaVal = Number(e.poa) || 0;
         var poaColor = poaVal >= 75 ? 'var(--accent2)' : poaVal >= 60 ? 'var(--accent)' : poaVal > 0 ? 'var(--amber)' : 'var(--muted)';
         html += '<td class="score-cell" style="color:' + poaColor + '">' + (poaVal > 0 ? poaVal.toFixed(0) + '%' : '—') + '</td>';
         var stnVal = e.sell_news_risk || '—';
         html += '<td class="score-cell" style="color:' + riskColor(stnVal) + ';font-size:0.62rem;">' + stnVal + '</td>';
       } else {
-        // Universe/earnings — show buyout data or dashes
         var bScore = Number(e.buyout_score) || 0;
         var bRisk = e.buyout_risk || '—';
         var bColor = {'HIGH':'var(--accent2)','MODERATE':'var(--accent)','LOW':'var(--amber)'}[bRisk] || 'var(--muted)';
@@ -706,22 +796,18 @@ function renderTable() {
       var gColor = {'ELITE':'var(--accent)','STRONG':'var(--accent2)','WATCH':'var(--amber)','WEAK':'var(--red)'}[gradeVal] || 'var(--amber)';
       html += '<td class="score-cell" style="color:' + gColor + '">' + gradeVal + '</td>';
 
-      // 30D momentum column (Polygon live data)
       var p30 = Number(e.price_change_30d) || 0;
       var p30Color = p30 > 5 ? 'var(--accent2)' : p30 > 0 ? 'var(--accent)' : p30 < -10 ? 'var(--red)' : p30 < 0 ? 'var(--amber)' : 'var(--muted)';
       html += '<td class="score-cell" style="color:' + p30Color + ';font-size:0.62rem;">' + (p30 ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—') + '</td>';
 
-      // Realized Vol column (Polygon live data)
       var v30 = Number(e.realized_vol_30d) || 0;
       var v30Color = v30 >= 80 ? 'var(--red)' : v30 >= 50 ? 'var(--amber)' : v30 > 0 ? 'var(--accent)' : 'var(--muted)';
       html += '<td class="score-cell" style="color:' + v30Color + ';font-size:0.62rem;">' + (v30 > 0 ? Math.round(v30) + '%' : '—') + '</td>';
 
-      // Chart pattern column (Polygon live data)
       var cp = e.chart_pattern || '—';
       var cpColor = cp === 'COILING' ? 'var(--accent2)' : cp === 'BUILDING' ? 'var(--accent)' : cp === 'EXTENDED' ? 'var(--amber)' : cp === 'WEAK' ? 'var(--red)' : cp === 'NEUTRAL' ? 'var(--text)' : 'var(--muted)';
       html += '<td class="score-cell" style="color:' + cpColor + ';font-size:0.62rem;">' + cp + '</td>';
 
-      // Signal column — behavioral pattern based on risk data
       var signal = '';
       if (e._source === 'pdufa' || e._source === 'catalyst') {
         if (e.sell_news_risk === 'HIGH') signal = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 STN HIGH</span>';
@@ -786,12 +872,10 @@ function updateCounts() {
     var navCta = document.getElementById('nav-cta');
     if (navCta) { navCta.textContent = 'Dashboard →'; navCta.href = '/dashboard.html'; }
 
-    // Check paid status
     var profile = await scGetProfile(session.user.id);
     isPaid = profile && profile.is_paid === true;
   }
 
-  // Fetch events — paid users get full data from edge function, free users get basic calendar
   if (isPaid && session) {
     try {
       var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
@@ -800,13 +884,12 @@ function updateCounts() {
       var result = await res.json();
       if (result.events) {
         ALL_EVENTS = result.events.map(function(e) {
-          // Determine source type based on data
           if (e.poa > 0 || (e.type && e.type.toUpperCase().includes('PDUFA'))) {
             e._source = 'pdufa';
           } else if (e.event_type === 'CLINICAL' || e.event_type === 'EARNINGS' || e.event_type === 'CONFERENCE') {
             e._source = 'catalyst';
           } else {
-            e._source = 'pdufa'; // default for edge function data
+            e._source = 'pdufa';
           }
           e._tags = classifyEvent(e);
           return e;
@@ -818,10 +901,10 @@ function updateCounts() {
   }
 
   // Fallback: load basic calendar data from Supabase directly
+  // NOW ALSO PULLS estimated_market_cap + tam_ratio so live cap override works
   if (ALL_EVENTS.length === 0) {
-    // Load PDUFA events
     var { data: pdufaEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type')
+      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, estimated_market_cap, tam_ratio')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 
@@ -830,6 +913,8 @@ function updateCounts() {
         e.poa = Number(e.poa) || 0;
         e.score = Number(e.score) || 0;
         e.net_edge_score = Number(e.net_edge_score) || Number(e.score) || 0;
+        e.estimated_market_cap = Number(e.estimated_market_cap) || 0;
+        e.tam_ratio = Number(e.tam_ratio) || 0;
         e._tags = classifyEvent(e);
         e._source = 'pdufa';
         if (!isPaid) {
@@ -865,6 +950,7 @@ function updateCounts() {
           net_edge_score: 0, atm_active: false, shelf_active: false,
           partnership_detected: false, buyout_score: 0, buyout_risk: '—',
           company_name: e.company_name || '', market_cap_tier: e.market_cap_tier || 'UNKNOWN',
+          estimated_market_cap: 0, tam_ratio: 0,
           _source: 'catalyst',
         };
         entry._tags = classifyEvent(entry);
@@ -878,12 +964,11 @@ function updateCounts() {
   // ── ALWAYS LOAD: Full biotech universe ─────────────────────────────
   try {
     var { data: universe } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, sic_description, exchange, category')
+      .select('ticker, company_name, market_cap_tier, sic_description, exchange, category, estimated_market_cap, tam_ratio, buyout_score, buyout_risk')
       .eq('active', true)
       .order('ticker', { ascending: true });
 
     if (universe && universe.length > 0) {
-      // Enrich existing events with company data
       var uniMap = {};
       universe.forEach(function(c) { uniMap[c.ticker] = c; });
       ALL_EVENTS.forEach(function(e) {
@@ -892,10 +977,16 @@ function updateCounts() {
           if (!e.market_cap_tier || e.market_cap_tier === 'UNKNOWN') e.market_cap_tier = uniMap[e.ticker].market_cap_tier || 'UNKNOWN';
           if (!e.sic_description) e.sic_description = uniMap[e.ticker].sic_description || '';
           if (!e.exchange) e.exchange = uniMap[e.ticker].exchange || '';
+          // Fill in cap/TAM from universe if event didn't have them
+          if (!Number(e.estimated_market_cap) && Number(uniMap[e.ticker].estimated_market_cap)) {
+            e.estimated_market_cap = Number(uniMap[e.ticker].estimated_market_cap);
+          }
+          if (!Number(e.tam_ratio) && Number(uniMap[e.ticker].tam_ratio)) {
+            e.tam_ratio = Number(uniMap[e.ticker].tam_ratio);
+          }
         }
       });
 
-      // Grade company by cap tier
       function gradeCompany(cap) {
         if (cap === 'SMALL') return 'WATCH';
         if (cap === 'MID') return 'WATCH';
@@ -903,17 +994,18 @@ function updateCounts() {
         return 'WEAK';
       }
 
-      // Add companies that don't have events yet
       var existing = {};
       ALL_EVENTS.forEach(function(e) { existing[e.ticker] = true; });
 
       var uniEntries = universe.filter(function(c) {
         return !existing[c.ticker];
       }).map(function(c) {
-        var bRisk = 'UNLIKELY';
-        var bScore = 15;
-        if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
-        else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
+        var bRisk = c.buyout_risk || 'UNLIKELY';
+        var bScore = Number(c.buyout_score) || 15;
+        if (!c.buyout_risk) {
+          if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
+          else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
+        }
 
         var capLabel = c.market_cap_tier || 'UNKNOWN';
         var desc = c.sic_description || c.category || '';
@@ -937,6 +1029,8 @@ function updateCounts() {
           market_cap_tier: capLabel,
           sic_description: desc,
           exchange: c.exchange || '',
+          estimated_market_cap: Number(c.estimated_market_cap) || 0,
+          tam_ratio: Number(c.tam_ratio) || 0,
           _source: 'universe',
         };
         entry._tags = classifyEvent(entry);
@@ -944,7 +1038,6 @@ function updateCounts() {
       });
       ALL_EVENTS = ALL_EVENTS.concat(uniEntries);
 
-      // Generate earnings entries for all universe companies
       function estimateNextEarnings(ticker) {
         var now = new Date();
         var year = now.getFullYear();
@@ -976,12 +1069,13 @@ function updateCounts() {
           buyout_score: 0, buyout_risk: '—', buyout_flags: [],
           company_name: c.company_name || c.ticker,
           market_cap_tier: c.market_cap_tier || 'UNKNOWN',
+          estimated_market_cap: Number(c.estimated_market_cap) || 0,
+          tam_ratio: Number(c.tam_ratio) || 0,
           _tags: ['earnings', 'company'], _source: 'earnings',
         };
       });
       ALL_EVENTS = ALL_EVENTS.concat(earningsEntries);
 
-      // Re-classify all events
       ALL_EVENTS.forEach(function(e) { e._tags = classifyEvent(e); });
 
       console.log('[SC] Loaded ' + uniEntries.length + ' universe companies (total: ' + ALL_EVENTS.length + ')');
@@ -991,15 +1085,8 @@ function updateCounts() {
   updateCounts();
   renderTable();
 
-  // ── Enrich with live Polygon market data (paid users only) ──
   if (isPaid) {
-    // Small delay to let table render first, then start fetching live data
     setTimeout(function() { enrichWithPolygon(); }, 500);
-  }
-
-  if (!isPaid) {
-    // Show gate after slight delay
-    // Don't block — let them see dates, just lock scores
   }
 })();
 </script>
