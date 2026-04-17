@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://submarinecatalyst.com/">
 <meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 6/7 resolved events logged. $29.99/mo.">
+<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 8/9 live PDUFA calls correct · 102-event retrospective backtest. $29.99/mo.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 6/7 resolved events logged — 1 miss documented. TVTX + LGND PDUFA Apr 13. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 8/9 live PDUFA calls correct + 102-event retrospective backtest with calibration curve. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -232,24 +232,24 @@ footer a:hover { color: var(--accent); }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; font-size: 0.9rem; color: var(--muted); font-weight: 300; line-height: 1.8; padding: 0 0 0 0; }
 .faq-item.open .faq-a { max-height: 300px; padding: 0 0 1.25rem 0; }
 .urgency-bar {
-  background: rgba(245,166,35,0.1);
-  border-bottom: 1px solid rgba(245,166,35,0.3);
+  background: rgba(0,255,157,0.08);
+  border-bottom: 1px solid rgba(0,255,157,0.25);
   padding: 0.55rem 3rem;
   display: flex; align-items: center; justify-content: center; gap: 1.5rem;
   font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em;
-  color: var(--amber);
+  color: var(--accent2);
   flex-wrap: wrap;
   position: relative; z-index: 99;
 }
 .urgency-bar .ub-pulse {
   display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-  background: var(--amber); margin-right: 0.4rem;
+  background: var(--accent2); margin-right: 0.4rem;
   animation: pulse 1.4s ease-in-out infinite;
 }
 @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
-.urgency-bar a { color: var(--amber); text-decoration: underline; text-underline-offset: 3px; }
-.urgency-bar .ub-divider { color: rgba(245,166,35,0.3); }
-.countdown-inline { font-family: var(--mono); font-size: 0.68rem; color: var(--accent); letter-spacing: 0.06em; }
+.urgency-bar a { color: var(--accent2); text-decoration: underline; text-underline-offset: 3px; }
+.urgency-bar .ub-divider { color: rgba(0,255,157,0.3); }
+.urgency-bar strong { color: var(--white); font-weight: 700; }
 .insight-callout {
   background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.15);
   border-left: 3px solid var(--accent);
@@ -331,11 +331,11 @@ footer a:hover { color: var(--accent); }
 </nav>
 
 <div class="urgency-bar" id="urgency-bar">
-  <span><span class="ub-pulse"></span>REPL: ❌ CRL · PoA miss (called 84%) · STN HIGH correctly flagged −19.46% downside</span>
+  <span><span class="ub-pulse"></span>Apr 13 resolved: TVTX <strong>+33.29%</strong> · LGND <strong>+14%</strong> · both APPROVE calls correct · live record <strong>8/9</strong></span>
   <span class="ub-divider">·</span>
-  <span>TVTX + LGND PDUFA: April 13 &nbsp;<span class="countdown-inline" id="tvtx-countdown"></span></span>
+  <span>102-event retrospective backtest now published with calibration curve</span>
   <span class="ub-divider">·</span>
-  <a href="#proof">View full track record →</a>
+  <a href="/track-record.html">View full track record →</a>
 </div>
 
 <section>
@@ -359,16 +359,17 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="terminal-body">
         <div class="t-dim">══════════════════════════════════════════════════</div>
-        <div><span class="t-red">❌ REPL</span><span class="t-dim"> CRL · PoA called </span><span class="t-red">84%</span><span class="t-dim"> — model miss</span></div>
-        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">−19.46%</span><span class="t-dim"> downside risk</span></div>
+        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · PoA called </span><span class="t-grn">72%</span><span class="t-dim"> · move </span><span class="t-grn">+33.29%</span></div>
+        <div><span class="t-grn">✅ LGND</span><span class="t-dim"> APPROVED · PoA called </span><span class="t-grn">71.5%</span><span class="t-dim"> · move </span><span class="t-grn">+14%</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-amb">⚡ LIVE →</span><span class="t-wht"> TVTX</span><span class="t-dim"> Net Edge: </span><span class="t-grn">65.4</span><span class="t-acc"> STRONG</span></div>
-        <div><span class="t-dim"> PoA: </span><span class="t-grn">77.5%</span><span class="t-dim"> | STN Risk: </span><span class="t-acc">MODERATE</span><span class="t-dim"> | PDUFA: </span><span class="t-amb">APR 13</span></div>
-        <div><span class="t-dim"> Also Apr 13: </span><span class="t-wht">LGND</span><span class="t-dim"> PoA 71.5% | </span><span id="term-countdown" class="t-acc">...</span></div>
+        <div><span class="t-red">❌ REPL</span><span class="t-dim"> 2nd CRL · PoA called </span><span class="t-red">84%</span><span class="t-dim"> — model miss</span></div>
+        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">−64%</span><span class="t-dim"> downside risk</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div class="t-dim"> 📊 Track Record: 6/7 Resolved · 1 Miss Logged</div>
+        <div class="t-dim"> 📊 Live: 8/9 Resolved · 1 Miss Logged (REPL)</div>
         <div><span class="t-dim"> VNDA </span><span class="t-grn">+45%</span><span class="t-dim"> | RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️</span></div>
-        <div><span class="t-dim"> REPL </span><span class="t-red">CRL -19%</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span></div>
+        <div><span class="t-dim"> TVTX </span><span class="t-grn">+33.29%</span><span class="t-dim"> | LGND </span><span class="t-grn">+14%</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span></div>
+        <div class="t-dim">──────────────────────────────────────────────────</div>
+        <div><span class="t-dim"> 🧪 Backtest: </span><span class="t-acc">102 events</span><span class="t-dim"> · Feb 2024 → Mar 2026 · PoA calibration</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>
         <div class="t-dim">══════════════════════════════════════════════════</div>
@@ -467,13 +468,13 @@ footer a:hover { color: var(--accent); }
       ? ` ${misses.length === 1 ? 'One miss' : misses.length + ' misses'} logged.`
       : '';
     $('proof-headline').textContent =
-      `${correct.length}/${scored.length} resolved.${missText} Everything documented.`;
+      `${correct.length}/${scored.length} live resolved.${missText} Plus 102 events backtested.`;
 
     const pendingText = pending.length > 0
       ? ` ${pending.length} pending.`
       : '';
-    $('proof-intro').textContent =
-      `Every classification logged before the event resolved. Wins and losses both on the record.${pendingText}`;
+    $('proof-intro').innerHTML =
+      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> scores the same PoA engine against every FDA NME decision from Feb 2024 onward.`;
 
     // ─── Callout: highlight the miss(es) + best win + STN flags that fired ─
     let calloutHTML = '';
@@ -481,12 +482,12 @@ footer a:hover { color: var(--accent); }
       const m = misses[misses.length - 1]; // most recent miss
       const mvDisplay = m.return_pct !== null ? `<span class="ic-neg">${m.return_pct > 0 ? '+' : ''}${m.return_pct}%</span>` : '';
       const stnNote = m.scanner_stn_risk && ['HIGH','ELEVATED'].includes(String(m.scanner_stn_risk).toUpperCase())
-        ? ` The STN Risk layer flagged <strong>${m.scanner_stn_risk}</strong> before the decision — the risk layer was right even when the probability layer was wrong.`
+        ? ` The STN Risk layer flagged <strong>${m.scanner_stn_risk}</strong> before the decision — the risk layer was right even when the probability layer was wrong. Stock dropped ${mvDisplay}.`
         : '';
       calloutHTML +=
         `<strong>The miss:</strong> ${m.ticker} was called ${m.scanner_call || 'APPROVE'} at ` +
         `<span class="ic-neg">${m.scanner_poa}% PoA</span> — FDA issued a ${m.actual_result}. ` +
-        `${misses.length === 1 ? 'Only' : 'Most recent'} incorrect call in the track record. Logged, not deleted.${stnNote} `;
+        `${misses.length === 1 ? 'Only' : 'Most recent'} incorrect call in the live track record. Logged, not deleted.${stnNote} `;
     }
 
     // STN flags that correctly warned of flat/negative moves
@@ -580,9 +581,10 @@ footer a:hover { color: var(--accent); }
       ? ` ${pending.length} active event${pending.length === 1 ? '' : 's'} pending.`
       : '';
     $('proof-summary').innerHTML =
-      `${correct.length}/${scored.length} on resolved events — ${correct.length} correct approval call${correct.length === 1 ? '' : 's'}, ` +
+      `${correct.length}/${scored.length} on live resolved events — ${correct.length} correct approval call${correct.length === 1 ? '' : 's'}, ` +
       `${misses.length} ${misses.length === 1 ? 'miss' : 'misses'}${misses.length > 0 ? ' (' + misses.map(m => m.ticker + ' ' + m.actual_result).join(', ') + ')' : ''}. ` +
       `Every outcome logged including the ${misses.length === 1 ? 'miss' : 'misses'}.${bestWinText}${pendingDesc} ` +
+      `Plus <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> with full PoA calibration curve. ` +
       `Subscribers see full scoring breakdowns and real-time classifications.`;
 
   })();
@@ -603,7 +605,7 @@ footer a:hover { color: var(--accent); }
     <div class="how-grid">
       <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
       <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
-      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and institutional positioning. Calibrated against real outcomes — RCKT (approved, −20%), VNDA (approved, +45%). STN HIGH was also flagged on REPL before the CRL — stock dropped 19.46% regardless of the reason.</p></div>
+      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and institutional positioning. Calibrated against real outcomes — RCKT (approved, −20%), VNDA (approved, +45%), TVTX (approved, +33.29%). STN HIGH was also flagged on REPL before the 2nd CRL — stock dropped 64% regardless of the reason.</p></div>
       <div class="how-card"><span class="how-num">04</span><div class="how-title">Dilution Radar</div><p class="how-desc">Scans SEC EDGAR for 424B5 filings, S-3 shelf registrations, ATM offerings, and sales agent changes near PDUFA dates. Detects the capital raises that destroy post-approval gains before you buy.</p></div>
       <div class="how-card"><span class="how-num">05</span><div class="how-title">Net Edge Score</div><p class="how-desc">Combines PoA, STN Risk, Dilution Radar, cash runway, and insider activity into a single composite. One number that answers "is this a good trade" — not just "will it get approved."</p></div>
       <div class="how-card"><span class="how-num">06</span><div class="how-title">Behavioral Patterns</div><p class="how-desc">Classifies each event into five post-catalyst behaviors: Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction. Not predictions — behavioral tendencies drawn from historical data.</p></div>
@@ -627,7 +629,7 @@ footer a:hover { color: var(--accent); }
         <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
         <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
         <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 6/7 on resolved events — first miss (REPL CRL) logged. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-19.46%).</div></div><span class="signal-source">Live outcome log</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/9 on live resolved events — only miss (REPL 2nd CRL) logged. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-64%). Plus 102-event retrospective backtest with calibration curve.</div></div><span class="signal-source">Live log + backtest</span></div>
       </div>
       <div>
         <div class="score-panel">
@@ -741,12 +743,12 @@ footer a:hover { color: var(--accent); }
         <p>I got medically separated and enrolled at Texas Tech for a BBA in IT systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker, digging through FDA history, EDGAR filings, clinical trial data, cash runway math, and still miss something that tanked the trade. So I started building a tool to do the research for me.</p>
         <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across 870+ biotech companies, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
         <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this platform from a basic PDUFA calendar.</p>
-        <p>REPL on April 10, 2026 was the first PoA miss. The model called 84% approval. FDA issued a CRL. The stock dropped 19.46%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
+        <p>REPL on April 10, 2026 was the only PoA miss in the live record. The model called 84% approval. FDA issued a 2nd CRL. The stock dropped 64%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
       </div>
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
-        <div class="stat-cell"><span class="stat-val">6/7</span><span class="stat-label">Resolved Events Logged</span></div>
-        <div class="stat-cell"><span class="stat-val">8</span><span class="stat-label">Scoring Layers</span></div>
+        <div class="stat-cell"><span class="stat-val">8/9</span><span class="stat-label">Live Events Logged</span></div>
+        <div class="stat-cell"><span class="stat-val">102</span><span class="stat-label">Events Backtested</span></div>
         <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs Mapped</span></div>
       </div>
     </div>
@@ -781,7 +783,7 @@ footer a:hover { color: var(--accent); }
           <span>How accurate is the PoA (Probability of Approval) score?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable. The self-calibrating weight system improves accuracy as actual outcomes are logged.</div>
+        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. Live record: 8/9 pre-decision calls correct. A separate 102-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with a full per-bucket calibration curve. The scoring functions are byte-for-byte identical to production, with a synced-block comment preventing divergence. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable.</div>
       </div>
 
       <div class="faq-item">
@@ -885,24 +887,6 @@ footer a:hover { color: var(--accent); }
 </footer>
 
 <script>
-  // Countdown timer to Apr 13 PDUFA
-  function updateCountdown() {
-    const target = new Date('2026-04-13T00:00:00-04:00'); // Eastern market open
-    const now = new Date();
-    const diff = target - now;
-    if (diff <= 0) {
-      document.querySelectorAll('#tvtx-countdown,#term-countdown').forEach(el => { if(el) el.textContent = 'PDUFA TODAY'; });
-      return;
-    }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const txt = d > 0 ? `${d}d ${h}h ${m}m` : `${h}h ${m}m`;
-    document.querySelectorAll('#tvtx-countdown,#term-countdown').forEach(el => { if(el) el.textContent = txt; });
-  }
-  updateCountdown();
-  setInterval(updateCountdown, 30000);
-
   // Wrap everything so one error doesn't kill all buttons
   const authStatus  = document.getElementById('auth-status');
   const signupBtn   = document.getElementById('signup-btn');

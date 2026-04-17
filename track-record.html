@@ -7,7 +7,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Record — Submarine Catalyst</title>
-<meta name="description" content="Historical PDUFA prediction outcomes from Submarine Catalyst's scoring engine. Every call documented with predicted PoA vs actual FDA decision.">
+<meta name="description" content="Live PDUFA prediction outcomes + 102-event retrospective backtest. Every call documented with predicted PoA vs actual FDA decision, plus calibration curve over 25 months of FDA history.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -35,7 +35,7 @@ main{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:3rem 2rem;}
 .page-eyebrow{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:0.75rem;display:flex;align-items:center;gap:0.75rem;}
 .page-eyebrow::before{content:'';display:block;width:1.5rem;height:1px;background:var(--accent);}
 .page-title{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.5rem;}
-.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:600px;line-height:1.7;}
+.page-sub{font-size:0.95rem;color:var(--muted);font-weight:300;margin-bottom:3rem;max-width:640px;line-height:1.7;}
 
 .stats-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:3rem;}
 .stat-cell{background:var(--surface);padding:1.5rem;text-align:center;}
@@ -50,7 +50,7 @@ main{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:3rem 2rem;}
 .section-title{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
 
 .outcome-table{width:100%;border-collapse:collapse;margin-bottom:3rem;}
-.outcome-table th{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0.75rem 1rem;border-bottom:2px solid var(--border);white-space:nowrap;}
+.outcome-table th{font-family:var(--mono);font-size:0.62rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0.75rem 1rem;border-bottom:2px solid var(--border);white-space:nowrap;background:var(--surface);position:sticky;top:0;z-index:1;}
 .outcome-table td{font-family:var(--mono);font-size:0.78rem;padding:0.85rem 1rem;border-bottom:1px solid rgba(26,58,92,0.4);color:var(--text);vertical-align:top;}
 .outcome-table tr:hover{background:rgba(0,212,255,0.03);}
 
@@ -68,14 +68,58 @@ main{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:3rem 2rem;}
 .methodology::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
 .methodology h3{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--accent);margin-bottom:1rem;}
 .methodology p{font-size:0.9rem;color:var(--muted);font-weight:300;line-height:1.85;margin-bottom:0.75rem;}
+.methodology code{font-family:var(--mono);background:rgba(0,212,255,0.08);color:var(--accent);padding:1px 5px;border-radius:2px;font-size:0.82rem;}
 
 .disclaimer{background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;margin-bottom:2rem;}
+.methodology-note{background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-left:3px solid var(--accent);padding:1rem 1.25rem 1.05rem;font-family:var(--mono);font-size:0.72rem;color:var(--text);line-height:1.75;letter-spacing:0.02em;margin-bottom:2rem;}
+.methodology-note strong{color:var(--accent);letter-spacing:0.1em;font-size:0.62rem;text-transform:uppercase;display:block;margin-bottom:0.5rem;}
+.methodology-note code{font-family:var(--mono);background:rgba(0,212,255,0.08);color:var(--accent);padding:1px 4px;border-radius:2px;font-size:0.7rem;}
+
+/* ===== BACKTEST SECTION ===== */
+.backtest-divider{border:none;border-top:2px solid var(--border);margin:4rem 0 3rem;position:relative;}
+.backtest-divider::after{content:'RETROSPECTIVE';position:absolute;top:-0.7rem;left:50%;transform:translateX(-50%);background:var(--navy);padding:0 1.5rem;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.25em;color:var(--accent);}
+
+.calib-row{display:grid;grid-template-columns:90px 80px 1fr 120px 85px;gap:1rem;align-items:center;padding:0.85rem 0;border-bottom:1px solid rgba(26,58,92,0.4);font-family:var(--mono);font-size:0.75rem;}
+.calib-bucket{color:var(--white);font-weight:700;letter-spacing:0.08em;}
+.calib-n{color:var(--muted);font-size:0.7rem;}
+.calib-bar-track{position:relative;height:22px;background:var(--deep);border:1px solid var(--border);border-radius:2px;overflow:visible;}
+.calib-bar{height:100%;transition:width 0.6s ease-out;border-radius:1px;}
+.calib-expected-marker{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--white);opacity:0.5;}
+.calib-expected-marker::after{content:'ideal';position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:0.5rem;color:var(--white);opacity:0.6;white-space:nowrap;letter-spacing:0.15em;font-weight:700;}
+.calib-actual{color:var(--accent2);font-weight:700;text-align:right;}
+.calib-gap{color:var(--muted);font-size:0.7rem;text-align:right;}
+.calib-gap.good{color:var(--accent2);}
+.calib-gap.warn{color:var(--amber);}
+.calib-gap.bad{color:var(--red);}
+
+.bt-filters{display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;}
+.bt-select,.bt-search{font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 0.75rem;letter-spacing:0.05em;}
+.bt-select:focus,.bt-search:focus{outline:none;border-color:var(--accent);}
+.bt-search{flex:1;min-width:180px;max-width:280px;}
+.bt-filter-count{font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-left:auto;letter-spacing:0.08em;}
+
+.bt-table-wrap{max-height:560px;overflow-y:auto;border:1px solid var(--border);margin-bottom:3rem;}
+.bt-table-wrap::-webkit-scrollbar{width:8px;}
+.bt-table-wrap::-webkit-scrollbar-track{background:var(--deep);}
+.bt-table-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.bt-table-wrap::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+.bt-table{margin-bottom:0;}
+.bt-ticker{color:var(--white);font-weight:700;letter-spacing:0.05em;}
+.bt-ticker.private{color:var(--muted);font-weight:400;}
 
 footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
 footer a{color:var(--muted);text-decoration:none;}
 footer a:hover{color:var(--accent);}
 
-@media(max-width:768px){nav{padding:1rem 1.25rem;}.nav-links{display:none;}.stats-strip{grid-template-columns:1fr 1fr;}.outcome-table{font-size:0.7rem;display:block;overflow-x:auto;}main{padding:2rem 1.25rem;}}
+@media(max-width:768px){
+  nav{padding:1rem 1.25rem;}
+  .nav-links{display:none;}
+  .stats-strip{grid-template-columns:1fr 1fr;}
+  .outcome-table{font-size:0.7rem;display:block;overflow-x:auto;}
+  .calib-row{grid-template-columns:60px 1fr 80px;gap:0.5rem;font-size:0.68rem;}
+  .calib-n,.calib-gap{display:none;}
+  main{padding:2rem 1.25rem;}
+}
 </style>
 </head>
 <body>
@@ -97,7 +141,7 @@ footer a:hover{color:var(--accent);}
 <main>
   <div class="page-eyebrow">Performance</div>
   <h1 class="page-title">Track Record</h1>
-  <p class="page-sub">Every PDUFA prediction documented against the actual FDA outcome. No cherry-picking. Wins and losses both logged.</p>
+  <p class="page-sub">Two layers of evidence. Every live PDUFA prediction documented against the actual FDA outcome — no cherry-picking, wins and losses both logged. A 102-event retrospective backtest running the same PoA engine against 25 months of FDA history.</p>
 
   <div class="stats-strip">
     <div class="stat-cell">
@@ -126,7 +170,7 @@ footer a:hover{color:var(--accent);}
     Loading track record from database…
   </div>
 
-  <div class="section-title">Resolved Events</div>
+  <div class="section-title">Live Track Record — Pre-Decision Calls</div>
   <table class="outcome-table">
     <thead>
       <tr>
@@ -151,6 +195,95 @@ footer a:hover{color:var(--accent);}
     <div id="stn-callout-body" style="color:var(--text);line-height:1.75;"></div>
   </div>
 
+  <!-- ═════════════════════════════════════════════════════════════════════
+       BACKTEST SECTION — 102-event retrospective (Feb 2024 → Mar 2026)
+       ═════════════════════════════════════════════════════════════════════ -->
+  <hr class="backtest-divider">
+
+  <div class="page-eyebrow" style="margin-top:0.5rem;">Retrospective Validation</div>
+  <h2 class="page-title" style="font-size:1.7rem;">102-Event Backtest</h2>
+  <p class="page-sub">Every NME approval and CRL the FDA issued between February 2024 and March 2026. Rescored retroactively using the same PoA engine that runs on live events today. Built as a calibration test — not a curve-fit.</p>
+
+  <div class="methodology-note">
+    <strong>Methodology</strong>
+    PoA layer only. STN / dilution / convexity layers are <em>not</em> backtested — their inputs (30-day run-up, shelf registration status, cash runway, proximity) require point-in-time data unavailable for 2024 events. Those three layers stay validated by the live scorecard above. The scoring functions (<code>classifyIndication</code>, <code>getPathwayRate</code>, <code>parseAdcomMultiplier</code>) are byte-for-byte identical to the production <code>score-events</code> engine. Source: FDA CDER NME 2024 + 2025 lists and Drugs@FDA CRL database.
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="stat-label">Total Events</div>
+      <div class="stat-val white" id="bt-total">—</div>
+      <div class="stat-sub" id="bt-window">Feb 2024 → Mar 2026</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Calls Made</div>
+      <div class="stat-val cyan" id="bt-calls">—</div>
+      <div class="stat-sub" id="bt-calls-sub">APPROVE or CRL</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Binary Accuracy</div>
+      <div class="stat-val green" id="bt-accuracy">—</div>
+      <div class="stat-sub" id="bt-accuracy-sub">on calls made</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">WATCH Rate</div>
+      <div class="stat-val amber" id="bt-watch">—</div>
+      <div class="stat-sub">no directional call</div>
+    </div>
+  </div>
+
+  <div class="section-title">PoA Calibration</div>
+  <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.75;letter-spacing:0.03em;">
+    For each PoA bucket, the share of drugs that actually approved. A calibrated model matches: events scored 80–89% PoA should approve ~85% of the time. The vertical tick marks the bucket midpoint; the bar shows actual approval rate observed.
+  </p>
+  <div id="bt-calibration" style="margin-bottom:3rem;">
+    <div style="text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Loading calibration data…</div>
+  </div>
+
+  <div class="section-title">All 102 Scored Events</div>
+  <div class="bt-filters">
+    <select id="bt-f-outcome" class="bt-select">
+      <option value="">All outcomes</option>
+      <option value="APPROVED">Approved only</option>
+      <option value="CRL">CRL only</option>
+    </select>
+    <select id="bt-f-call" class="bt-select">
+      <option value="">All calls</option>
+      <option value="APPROVE">Called APPROVE</option>
+      <option value="CRL">Called CRL</option>
+      <option value="WATCH">Called WATCH</option>
+    </select>
+    <select id="bt-f-tradeable" class="bt-select">
+      <option value="">All events</option>
+      <option value="tradeable">Tradeable only (US / ADR)</option>
+    </select>
+    <input type="text" id="bt-f-search" class="bt-search" placeholder="Search ticker, drug, indication…" />
+    <span class="bt-filter-count" id="bt-count">— rows</span>
+  </div>
+
+  <div class="bt-table-wrap">
+    <table class="outcome-table bt-table" id="bt-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Ticker</th>
+          <th>Drug</th>
+          <th>Indication Area</th>
+          <th>Type</th>
+          <th>PoA</th>
+          <th>Call</th>
+          <th>Outcome</th>
+          <th>✓</th>
+        </tr>
+      </thead>
+      <tbody id="bt-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">Loading 102 events…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════════ -->
+
   <div class="methodology">
     <h3>How We Track Accuracy</h3>
     <p>Every PDUFA event scored by Submarine Catalyst is logged before the FDA decision date. After the decision, the actual outcome (Approved, CRL, Delayed, Withdrawn) is recorded against our predicted PoA score and grade.</p>
@@ -169,7 +302,11 @@ footer a:hover{color:var(--accent);}
     </p>
     <p>Risk levels: <span style="color:var(--accent2)">VERY LOW</span> → <span style="color:var(--accent2)">LOW</span> → <span style="color:var(--amber)">MODERATE</span> → <span style="color:var(--amber)">ELEVATED</span> → <span style="color:var(--red)">HIGH</span></p>
     <p>The PoA model tells you <strong style="color:var(--white)">IF</strong> it gets approved. The STN risk tells you <strong style="color:var(--white)">if that approval is worth trading</strong>.</p>
-    <p>This page is updated within 24 hours of every PDUFA resolution. No exceptions. No deletions.</p>
+
+    <h3 style="margin-top:2rem;">The Backtest — Why It Exists</h3>
+    <p>A short live track record is a short live track record, and sophisticated biotech investors know it. The retrospective backtest runs the same PoA engine against every FDA NME decision from February 2024 forward — a fixed, auditable universe of 102 events pulled from the FDA CDER NME lists and the Drugs@FDA CRL database.</p>
+    <p>The scoring code is the same code that runs in production: the three core functions (<code>classifyIndication</code>, <code>getPathwayRate</code>, <code>parseAdcomMultiplier</code>) are duplicated byte-for-byte from the live <code>score-events</code> edge function, with a synced-block comment preventing silent divergence. The backtest can only validate what production actually uses.</p>
+    <p>This page is updated within 24 hours of every live PDUFA resolution. The backtest is re-run any time production PoA logic changes. No exceptions. No deletions.</p>
   </div>
 
   <div style="text-align:center;margin:2rem 0;">
@@ -191,30 +328,37 @@ footer a:hover{color:var(--accent);}
 <script src="/js/config.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
-// LIVE TRACK RECORD LOADER
-// Prefers getSupabase() from /js/config.js; falls back to inline client.
+// PAGE LOADER — live track record + 102-event backtest (parallel fetches)
+// Both pull from same Supabase client. Independent failures.
 // ═══════════════════════════════════════════════════════════════════════════
-(async function loadTrackRecord() {
 
-  // --- 1. Resolve Supabase client (prefer shared helper, fallback inline) ---
-  let sb;
-  try {
-    if (typeof getSupabase === 'function') {
-      sb = getSupabase();
-    } else {
-      sb = supabase.createClient(
-        'https://dipagzqrvivposqjkdkx.supabase.co',
-        'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
-      );
-    }
-  } catch (e) {
-    console.error('[TR] Supabase init failed:', e);
-    document.getElementById('tr-tbody').innerHTML =
-      '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--red);">Could not initialize database connection.</td></tr>';
-    return;
+// --- 1. Resolve Supabase client once (shared across both loaders) ---
+let sb;
+try {
+  if (typeof getSupabase === 'function') {
+    sb = getSupabase();
+  } else {
+    sb = supabase.createClient(
+      'https://dipagzqrvivposqjkdkx.supabase.co',
+      'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
+    );
   }
+} catch (e) {
+  console.error('[Init] Supabase init failed:', e);
+  document.getElementById('tr-tbody').innerHTML =
+    '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--red);">Could not initialize database connection.</td></tr>';
+}
 
-  // --- 2. Fetch events ---
+// --- 2. Kick off both loaders in parallel ---
+if (sb) {
+  loadTrackRecord().catch(e => console.error('[TR] fatal', e));
+  loadBacktest().catch(e => console.error('[BT] fatal', e));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LIVE TRACK RECORD LOADER  (preserved logic from original page)
+// ═══════════════════════════════════════════════════════════════════════════
+async function loadTrackRecord() {
   let rows = [];
   try {
     const { data, error } = await sb
@@ -239,7 +383,7 @@ footer a:hover{color:var(--accent);}
     return;
   }
 
-  // --- 3. Aggregate stats ---
+  // --- Aggregate stats ---
   const resolved  = rows.filter(r => r.call_correct !== null && r.call_correct !== undefined);
   const correct   = resolved.filter(r => r.call_correct === true);
   const misses    = resolved.filter(r => r.call_correct === false);
@@ -276,7 +420,7 @@ footer a:hover{color:var(--accent);}
   document.getElementById('stat-stn-sub').textContent =
     stnScored.length > 0 ? (stnScored.filter(s => s.correctDir).map(s => s.ticker).slice(0, 3).join(' · ') + ' correct') : 'no approvals yet';
 
-  // --- 4. Top disclaimer (dynamic) ---
+  // --- Top disclaimer (dynamic, mentions both layers) ---
   const missNames = misses.map(m => m.ticker + ' (' + (m.actual_result || 'MISS') + ')').join(', ');
   const missText = misses.length > 0
     ? (' · ' + misses.length + ' miss' + (misses.length > 1 ? 'es' : '') + ' (' + missNames + ')')
@@ -284,19 +428,18 @@ footer a:hover{color:var(--accent);}
   const delayedCount = rows.filter(r => String(r.actual_result || '').toUpperCase() === 'DELAYED').length;
   const delayText = delayedCount > 0 ? (' · ' + delayedCount + ' delayed by company (not CRL)') : '';
   document.getElementById('top-disclaimer').innerHTML =
-    '⚠️ ' + resolved.length + ' resolved event' + (resolved.length === 1 ? '' : 's') +
-    ' · ' + correct.length + '/' + resolved.length + ' approval accuracy (' + accuracy + '%)' +
+    '⚠️ LIVE: ' + resolved.length + ' resolved event' + (resolved.length === 1 ? '' : 's') +
+    ' · ' + correct.length + '/' + resolved.length + ' accuracy (' + accuracy + '%)' +
     missText + delayText +
-    '. Every future event logged — wins and losses alike. Past performance does not guarantee future results.';
+    '. Plus 102-event retrospective backtest below. Every future event logged — wins and losses alike. Past performance does not guarantee future results.';
 
-  // --- 5. Render table ---
+  // --- Render live table ---
   const tbody = document.getElementById('tr-tbody');
   tbody.innerHTML = rows.map(r => {
     const isMiss    = r.call_correct === false;
     const isPending = r.call_correct === null || r.call_correct === undefined;
     const rowStyle  = isMiss ? ' style="background:rgba(255,68,68,0.05);"' : '';
 
-    // Result cell
     const result = String(r.actual_result || '').toUpperCase();
     let resultCell = '';
     if (result === 'APPROVED')       resultCell = '<td class="result-approved">✅ APPROVED</td>';
@@ -305,7 +448,6 @@ footer a:hover{color:var(--accent);}
     else if (result === 'WITHDRAWN') resultCell = '<td class="result-crl" style="color:var(--red);">↩ WITHDRAWN</td>';
     else                              resultCell = '<td class="result-pending">Pending</td>';
 
-    // Move cell
     let moveCell;
     const mv = Number(r.return_pct);
     if (isPending || Number.isNaN(mv) || r.return_pct === null || r.return_pct === undefined) {
@@ -316,13 +458,11 @@ footer a:hover{color:var(--accent);}
       moveCell = '<td class="' + cls + '">' + prefix + mv + '%</td>';
     }
 
-    // PoA correct cell
     let poaCell;
     if (r.call_correct === true)       poaCell = '<td class="correct">✓</td>';
     else if (r.call_correct === false) poaCell = '<td class="incorrect" style="color:var(--red);">✗</td>';
     else                                poaCell = '<td style="color:var(--muted);">—</td>';
 
-    // STN cell color
     const stn = String(r.scanner_stn_risk || '').toUpperCase();
     let stnColor = 'var(--muted)';
     if (stn === 'HIGH')           stnColor = 'var(--red)';
@@ -350,7 +490,7 @@ footer a:hover{color:var(--accent);}
     '</tr>';
   }).join('');
 
-  // --- 6. STN callout (only if we have enough data) ---
+  // --- STN callout ---
   if (stnScored.length >= 2) {
     const calloutEl = document.getElementById('stn-callout');
     const bodyEl    = document.getElementById('stn-callout-body');
@@ -368,8 +508,189 @@ footer a:hover{color:var(--accent);}
       highlights + '. STN record: <strong style="color:var(--white);">' + stnCorrect + '/' + stnScored.length + '</strong>.';
     calloutEl.style.display = 'block';
   }
+}
 
-})();
+// ═══════════════════════════════════════════════════════════════════════════
+// BACKTEST LOADER — 102-event retrospective
+// Pulls from v_backtest_summary, v_backtest_calibration, v_backtest_public_rows
+// ═══════════════════════════════════════════════════════════════════════════
+let BT_ROWS = [];
+
+async function loadBacktest() {
+  let summary = null, calib = [], rows = [];
+  try {
+    const [summaryRes, calibRes, rowsRes] = await Promise.all([
+      sb.from('v_backtest_summary').select('*').maybeSingle(),
+      sb.from('v_backtest_calibration').select('*').order('bucket_order'),
+      sb.from('v_backtest_public_rows').select('*')
+    ]);
+    if (summaryRes.error && summaryRes.error.code !== 'PGRST116') throw summaryRes.error;
+    if (calibRes.error) throw calibRes.error;
+    if (rowsRes.error) throw rowsRes.error;
+    summary = summaryRes.data;
+    calib   = calibRes.data || [];
+    rows    = rowsRes.data  || [];
+  } catch (e) {
+    console.error('[BT] load failed:', e);
+    document.getElementById('bt-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--red);">Backtest data unavailable. Run score-backtest to populate.</td></tr>';
+    document.getElementById('bt-calibration').innerHTML =
+      '<div style="text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Calibration unavailable — scorer has not run yet.</div>';
+    return;
+  }
+
+  if (!rows.length) {
+    document.getElementById('bt-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">No backtest rows yet — deploy score-backtest and invoke it to populate.</td></tr>';
+    return;
+  }
+
+  BT_ROWS = rows;
+
+  // --- Top stats strip ---
+  if (summary) {
+    document.getElementById('bt-total').textContent    = summary.total_events ?? '—';
+    document.getElementById('bt-calls').textContent    = summary.total_calls_made ?? '—';
+    const accPct = summary.binary_accuracy_pct;
+    document.getElementById('bt-accuracy').textContent = (accPct !== null && accPct !== undefined) ? (accPct + '%') : '—';
+    document.getElementById('bt-accuracy-sub').textContent =
+      (summary.calls_correct !== undefined && summary.total_calls_made)
+        ? (summary.calls_correct + '/' + summary.total_calls_made + ' calls')
+        : 'on calls made';
+    document.getElementById('bt-calls-sub').textContent =
+      (summary.approvals_called !== undefined)
+        ? (summary.approvals_called + ' APPROVE · ' + (summary.crls_called ?? 0) + ' CRL')
+        : 'APPROVE or CRL';
+
+    const watchN  = Number(summary.total_watch || 0);
+    const totalN  = Number(summary.total_events || 0);
+    const watchPct = totalN > 0 ? Math.round((watchN / totalN) * 100) : 0;
+    document.getElementById('bt-watch').textContent = watchPct + '%';
+
+    if (summary.window_start && summary.window_end) {
+      const startFmt = new Date(summary.window_start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      const endFmt   = new Date(summary.window_end).toLocaleDateString('en-US',   { month: 'short', year: 'numeric' });
+      document.getElementById('bt-window').textContent = startFmt + ' → ' + endFmt;
+    }
+  }
+
+  // --- Calibration curve ---
+  const midpoints = { '90-100': 95, '80-89': 85, '70-79': 75, '50-69': 60, '30-49': 40, '<30': 20 };
+  const calibEl = document.getElementById('bt-calibration');
+  if (!calib.length) {
+    calibEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:0.78rem;">No calibration buckets populated yet.</div>';
+  } else {
+    calibEl.innerHTML = calib.map(b => {
+      const n = Number(b.n || 0);
+      const approved = Number(b.approved_count || 0);
+      const approvalRate = n > 0 ? (100 * approved / n) : 0;
+      const expectedMid = midpoints[b.bucket] ?? 50;
+      const gap = approvalRate - expectedMid;
+      const gapAbs = Math.abs(gap);
+      const gapSign = gap > 0 ? '+' : (gap < 0 ? '−' : '±');
+      const gapCls = gapAbs < 10 ? 'good' : gapAbs < 20 ? 'warn' : 'bad';
+      const barColor = gapAbs < 10 ? 'var(--accent2)' : gapAbs < 20 ? 'var(--amber)' : 'var(--red)';
+      const expectedPct = Math.min(100, Math.max(0, expectedMid));
+
+      return (
+        '<div class="calib-row">' +
+          '<div class="calib-bucket">' + b.bucket + '%</div>' +
+          '<div class="calib-n">n = ' + n + '</div>' +
+          '<div class="calib-bar-track">' +
+            '<div class="calib-bar" style="width:' + approvalRate.toFixed(1) + '%;background:' + barColor + ';"></div>' +
+            '<div class="calib-expected-marker" style="left:' + expectedPct + '%;"></div>' +
+          '</div>' +
+          '<div class="calib-actual">' + approvalRate.toFixed(1) + '% approved</div>' +
+          '<div class="calib-gap ' + gapCls + '">' + gapSign + gapAbs.toFixed(1) + ' vs ideal</div>' +
+        '</div>'
+      );
+    }).join('');
+  }
+
+  // --- Render table + wire filters ---
+  renderBacktestTable();
+  document.getElementById('bt-f-outcome').addEventListener('change', renderBacktestTable);
+  document.getElementById('bt-f-call').addEventListener('change', renderBacktestTable);
+  document.getElementById('bt-f-tradeable').addEventListener('change', renderBacktestTable);
+  document.getElementById('bt-f-search').addEventListener('input', renderBacktestTable);
+}
+
+function renderBacktestTable() {
+  const fOutcome   = document.getElementById('bt-f-outcome').value;
+  const fCall      = document.getElementById('bt-f-call').value;
+  const fTradeable = document.getElementById('bt-f-tradeable').value;
+  const fSearch    = document.getElementById('bt-f-search').value.trim().toLowerCase();
+
+  const filtered = BT_ROWS.filter(r => {
+    if (fOutcome && r.outcome !== fOutcome) return false;
+    if (fCall && r.scanner_call !== fCall) return false;
+    if (fTradeable === 'tradeable') {
+      const t = String(r.ticker || '').toUpperCase();
+      if (t === 'PRIVATE' || t === 'CHINA' || t === 'UNKNOWN') return false;
+    }
+    if (fSearch) {
+      const hay = (
+        (r.ticker || '') + ' ' +
+        (r.drug_name || '') + ' ' +
+        (r.indication || '')
+      ).toLowerCase();
+      if (!hay.includes(fSearch)) return false;
+    }
+    return true;
+  });
+
+  document.getElementById('bt-count').textContent =
+    filtered.length + ' of ' + BT_ROWS.length + ' rows';
+
+  const tbody = document.getElementById('bt-tbody');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">No events match your filters.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = filtered.map(r => {
+    const isMiss = r.poa_correct === false;
+    const rowStyle = isMiss ? ' style="background:rgba(255,68,68,0.05);"' : '';
+
+    const outcome = String(r.outcome || '').toUpperCase();
+    const outcomeCell = outcome === 'APPROVED'
+      ? '<td class="result-approved">✅ APPROVED</td>'
+      : outcome === 'CRL'
+      ? '<td class="result-crl">❌ CRL</td>'
+      : '<td class="result-pending">—</td>';
+
+    const call = String(r.scanner_call || '').toUpperCase();
+    const callColor = call === 'APPROVE' ? 'var(--accent2)' : call === 'CRL' ? 'var(--red)' : 'var(--muted)';
+    const callCell = '<td><span style="color:' + callColor + ';font-weight:700;">' + (call || '—') + '</span></td>';
+
+    let corrCell;
+    if (r.poa_correct === true)       corrCell = '<td class="correct">✓</td>';
+    else if (r.poa_correct === false) corrCell = '<td class="incorrect">✗</td>';
+    else                              corrCell = '<td style="color:var(--muted);">—</td>';
+
+    const tickerUpper = String(r.ticker || '').toUpperCase();
+    const tickerClass = ['PRIVATE','CHINA','UNKNOWN'].includes(tickerUpper)
+      ? 'bt-ticker private' : 'bt-ticker';
+
+    const poaDisplay = (r.scanner_poa !== null && r.scanner_poa !== undefined)
+      ? Number(r.scanner_poa).toFixed(1) + '%' : '—';
+
+    const drugDisplay = (r.drug_name || '').replace(/^\(CRL\)\s*/, '');
+    const indDisplay = (r.indication || '').length > 48
+      ? (r.indication.substring(0, 45) + '…') : (r.indication || '');
+    const typeDisplay = (r.application_type || '').toUpperCase();
+
+    return '<tr' + rowStyle + '>' +
+      '<td>' + (r.decision_date || '') + '</td>' +
+      '<td class="' + tickerClass + '">' + tickerUpper + '</td>' +
+      '<td title="' + (r.drug_name || '').replace(/"/g,'&quot;') + '">' + drugDisplay + '</td>' +
+      '<td title="' + (r.indication || '').replace(/"/g,'&quot;') + '">' + indDisplay + '</td>' +
+      '<td style="color:var(--muted);">' + typeDisplay + '</td>' +
+      '<td class="poa-cell">' + poaDisplay + '</td>' +
+      callCell + outcomeCell + corrCell +
+    '</tr>';
+  }).join('');
+}
 </script>
 </body>
 </html>
