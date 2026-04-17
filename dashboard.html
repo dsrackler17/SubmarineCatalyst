@@ -227,6 +227,9 @@
       <button class="sidebar-item" onclick="switchTab(this,'buyout')">
         <span class="sidebar-icon">🏷️</span> Buyout Scanner
       </button>
+      <button class="sidebar-item" onclick="switchTab(this,'pr-scanner')">
+        <span class="sidebar-icon">📰</span> PR Scanner
+      </button>
       <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'">
         <span class="sidebar-icon">🔄</span> CRL Recovery
       </button>
@@ -344,6 +347,44 @@
       <div id="buyout-count" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:0.75rem;"></div>
     </div>
 
+    <div class="tab-panel" id="tab-pr-scanner">
+      <div class="section-header">
+        <h2 class="section-title">PR Release Scanner</h2>
+        <span class="section-meta" id="pr-timestamp">—</span>
+      </div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
+        Linguistic sentiment analysis on biotech press releases. Scores management language for bullish/bearish tells, hedging, and specificity. "Trend toward significance," Friday afternoon dumps, and low-specificity language flagged automatically.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
+        <select id="pr-signal-filter" onchange="renderPRScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Signals</option>
+          <option value="STRONGLY_BULLISH">🚀 Strongly Bullish</option>
+          <option value="BULLISH">⚡ Bullish</option>
+          <option value="NEUTRAL">🟡 Neutral</option>
+          <option value="BEARISH">⚠️ Bearish</option>
+          <option value="STRONGLY_BEARISH">🚨 Strongly Bearish</option>
+        </select>
+        <select id="pr-category-filter" onchange="renderPRScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Categories</option>
+          <option value="CLINICAL_TRIAL">Clinical Trial</option>
+          <option value="FDA_ACTION">FDA Action</option>
+          <option value="PARTNERSHIP">Partnership</option>
+          <option value="FINANCING">Financing</option>
+          <option value="EARNINGS">Earnings</option>
+        </select>
+        <select id="pr-days-filter" onchange="loadPRData()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="3">Last 3 days</option>
+          <option value="7" selected>Last 7 days</option>
+          <option value="14">Last 14 days</option>
+          <option value="30">Last 30 days</option>
+        </select>
+        <input type="text" id="pr-search" placeholder="Search ticker..." oninput="renderPRScanner()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
+        <button onclick="loadPRData()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--accent);padding:0.4rem 0.85rem;cursor:pointer;letter-spacing:0.06em;">↻ Refresh</button>
+        <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);" id="pr-count"></span>
+      </div>
+      <div class="scanner-grid" id="pr-scanner-grid"></div>
+    </div>
+
     <div class="tab-panel" id="tab-calendar-tab">
       <div class="section-header">
         <h2 class="section-title">Full Calendar</h2>
@@ -409,7 +450,6 @@
   </div>
 </footer>
 
-<!-- Single supabase script tag — CDN, loaded once here at the bottom -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/config.js"></script>
 <script>
@@ -433,10 +473,9 @@ function gradeBadge(g) {
 }
 
 // ─── POLYGON LIVE MARKET DATA ─────────────────────────────────────────────────
-var PRICE_DATA = {}; // ticker → { close, change30d, volRatio, chartSetup, todayChange }
+var PRICE_DATA = {};
 
 function classifyChart(change30d, volRatio, bars) {
-  // Compute consolidation: compare recent 10d range to prior 10d range
   var consolidating = false;
   if (bars.length >= 20) {
     var recent = bars.slice(-10);
@@ -445,7 +484,6 @@ function classifyChart(change30d, volRatio, bars) {
     var priorRange = Math.max.apply(null, prior.map(function(b){return b.h;})) - Math.min.apply(null, prior.map(function(b){return b.l;}));
     if (priorRange > 0 && recentRange / priorRange < 0.65) consolidating = true;
   }
-
   if (change30d < -15) return { label: 'WEAK', icon: '❌', color: 'var(--red)' };
   if (change30d < 0) return { label: 'PULLBACK', icon: '⚠️', color: 'var(--amber)' };
   if (change30d >= 30) return { label: 'EXTENDED', icon: '🚨', color: 'var(--red)' };
@@ -456,7 +494,7 @@ function classifyChart(change30d, volRatio, bars) {
 
 async function fetchPriceData(tickers) {
   if (!SC_CONFIG.polygonApiKey) {
-    console.warn('[SC] No polygonApiKey in SC_CONFIG — add it to js/config.js');
+    console.warn('[SC] No polygonApiKey in SC_CONFIG');
     return;
   }
   var apiKey = SC_CONFIG.polygonApiKey;
@@ -464,7 +502,6 @@ async function fetchPriceData(tickers) {
   var ago = new Date(today); ago.setDate(ago.getDate() - 35);
   var fromDate = ago.toISOString().split('T')[0];
   var toDate = today.toISOString().split('T')[0];
-
   for (var i = 0; i < tickers.length; i += 5) {
     var batch = tickers.slice(i, i + 5);
     await Promise.all(batch.map(function(tk) {
@@ -478,28 +515,19 @@ async function fetchPriceData(tickers) {
             var prev = bars.length >= 2 ? bars[bars.length - 2].c : last;
             var change30d = ((last - first) / first) * 100;
             var todayChange = ((last - prev) / prev) * 100;
-
-            // Volume: avg last 5 bars vs avg prior bars
             var recentVols = bars.slice(-5).map(function(b){return b.v;});
             var priorVols = bars.slice(0, -5).map(function(b){return b.v;});
             var avgRecent = recentVols.reduce(function(a,b){return a+b;},0) / recentVols.length;
             var avgPrior = priorVols.length > 0 ? priorVols.reduce(function(a,b){return a+b;},0) / priorVols.length : avgRecent;
             var volRatio = avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
-
             var chart = classifyChart(change30d, volRatio, bars);
-
             PRICE_DATA[tk] = {
-              close: last,
-              change30d: change30d,
-              todayChange: todayChange,
-              volRatio: volRatio,
-              chartSetup: chart.label,
-              chartIcon: chart.icon,
-              chartColor: chart.color,
+              close: last, change30d: change30d, todayChange: todayChange,
+              volRatio: volRatio, chartSetup: chart.label, chartIcon: chart.icon, chartColor: chart.color,
             };
           }
         })
-        .catch(function() { /* silent fail per ticker */ });
+        .catch(function() {});
     }));
     if (i + 5 < tickers.length) await new Promise(function(r) { setTimeout(r, 300); });
   }
@@ -515,13 +543,10 @@ function renderScanner() {
       </div>`;
     return;
   }
-
   const sortBy = (document.getElementById('scanner-sort')?.value) || 'score';
   const gradeFilter = (document.getElementById('scanner-grade')?.value) || 'all';
   const timeframe = parseInt((document.getElementById('scanner-timeframe')?.value) || '0');
   const search = ((document.getElementById('scanner-search')?.value) || '').toUpperCase();
-
-  // Filter
   let filtered = SCANNER_DATA.filter(d => {
     if (search && !d.ticker.toUpperCase().includes(search)) return false;
     if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
@@ -533,8 +558,6 @@ function renderScanner() {
     }
     return true;
   });
-
-  // Sort
   const sorted = [...filtered].sort((a, b) => {
     switch (sortBy) {
       case 'date_asc':  return daysUntil(a.date) - daysUntil(b.date);
@@ -546,8 +569,6 @@ function renderScanner() {
       default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
     }
   });
-
-  // Count display
   const countEl = document.getElementById('scanner-count');
   if (countEl) countEl.textContent = sorted.length + ' of ' + SCANNER_DATA.length + ' events';
   document.getElementById('scanner-grid').innerHTML = sorted.map((d,i) => {
@@ -566,144 +587,23 @@ function renderScanner() {
         <div class="card-drug">${d.drug}</div>
         <div class="card-indication">${d.indication}</div>
         <div class="card-scores">
-          <div class="score-box">
-            <div class="score-box-label">PoA</div>
-            <div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">STN Risk</div>
-            <div class="score-box-val ${d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? 'green' : 'amber'}">${d.sell_news_risk || 'MOD'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">Dilution</div>
-            <div class="score-box-val ${d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL' ? 'green' : 'white'}">${d.dilution_risk || '—'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">Net Edge</div>
-            <div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div>
-          </div>
+          <div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div></div>
+          <div class="score-box"><div class="score-box-label">STN Risk</div><div class="score-box-val ${d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? 'green' : 'amber'}">${d.sell_news_risk || 'MOD'}</div></div>
+          <div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ${d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL' ? 'green' : 'white'}">${d.dilution_risk || '—'}</div></div>
+          <div class="score-box"><div class="score-box-label">Net Edge</div><div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div></div>
         </div>
         <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
-          <div class="score-box">
-            <div class="score-box-label">Buyout</div>
-            <div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">Acquirer</div>
-            <div class="score-box-val white" style="font-size:0.65rem;">${d.acquirer_urgency_top || '—'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">TAM/Cap</div>
-            <div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div>
-          </div>
-          <div class="score-box">
-            <div class="score-box-label">30D</div>
-            ${(() => {
-              var p = PRICE_DATA[d.ticker];
-              if (!p) return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>';
-              var c = p.change30d;
-              var arrow = c >= 0 ? '▲' : '▼';
-              var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red';
-              return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>';
-            })()}
-          </div>
+          <div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div></div>
+          <div class="score-box"><div class="score-box-label">Acquirer</div><div class="score-box-val white" style="font-size:0.65rem;">${d.acquirer_urgency_top || '—'}</div></div>
+          <div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div></div>
+          <div class="score-box"><div class="score-box-label">30D</div>${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>'; var c = p.change30d; var arrow = c >= 0 ? '▲' : '▼'; var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red'; return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>'; })()}</div>
         </div>
-        ${(() => {
-          // LIVE MARKET DATA BAR (Polygon)
-          var p = PRICE_DATA[d.ticker];
-          if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:flex;gap:1rem;align-items:center;"><span style="opacity:0.4;">📊 Live data loading...</span></div>';
-
-          var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)';
-          var trendColor = p.change30d >= 15 ? 'var(--accent2)' : p.change30d >= 0 ? 'var(--accent)' : p.change30d >= -15 ? 'var(--amber)' : 'var(--red)';
-          var trendArrow = p.change30d >= 0 ? '▲' : '▼';
-          var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)';
-          var todayArrow = p.todayChange >= 0 ? '▲' : '▼';
-
-          return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' +
-            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' +
-            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' +
-            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + p.volRatio + '%</span></div>' +
-            '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + p.chartColor + ';font-weight:700;">' + p.chartIcon + ' ' + p.chartSetup + '</span></div>' +
-          '</div>';
-        })()}
-        ${(() => {
-          // Buyout timeline + acquirer context
-          if (!d.buyout_score || d.buyout_score < 35) return '';
-          var tl = d.buyout_timeline || '';
-          var buyer = d.acquirer_urgency_top || '';
-          var partner = d.has_partnership && d.partner_name ? d.partner_name : '';
-          var tlColor = d.buyout_score >= 75 ? 'var(--accent2)' : d.buyout_score >= 55 ? 'var(--accent)' : 'var(--amber)';
-          var lines = [];
-          if (tl) lines.push(tl);
-          if (partner) lines.push('🤝 Existing partner: ' + partner + ' — acquirer already knows the asset');
-          else if (buyer && buyer !== '—' && buyer !== 'None' && buyer !== 'Uncertain') lines.push('🎯 Most likely buyer: ' + buyer);
-          if (d.buyout_score >= 70) lines.push('💰 At 60% premium: $' + (((d.estimated_market_cap || 0) * 1.6) / 1e9).toFixed(1) + 'B takeout');
-          if (!lines.length) return '';
-          return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid ' + tlColor + ';line-height:1.7;color:var(--text);">' + lines.join('<br>') + '</div>';
-        })()}
-        ${(() => {
-          // Enrichment bar: partnership + revenue + approval status
-          var parts = [];
-          if (d.has_partnership && d.partner_name) parts.push('🤝 ' + d.partner_name);
-          if (d.revenue_M >= 1000) parts.push('💰 $' + (d.revenue_M / 1000).toFixed(1) + 'B rev');
-          else if (d.revenue_M >= 50) parts.push('💰 $' + Math.round(d.revenue_M) + 'M rev');
-          else if (d.revenue_M > 0) parts.push('📊 $' + Math.round(d.revenue_M) + 'M rev');
-          if (d.months_since_approval && d.months_since_approval <= 12) parts.push('🆕 Approved ' + d.months_since_approval + 'mo ago');
-          else if (d.months_since_approval && d.months_since_approval <= 24) parts.push('✅ ' + d.months_since_approval + 'mo since approval');
-          else if (d.months_since_approval && d.months_since_approval > 24) parts.push('📊 Established ' + d.months_since_approval + 'mo');
-          if (d.institutional_pct >= 70) parts.push('🏛️ Inst. ' + Math.round(d.institutional_pct) + '%');
-          if (d.cmc_risk && d.cmc_risk !== 'UNKNOWN' && d.cmc_risk !== 'LOW') parts.push((d.cmc_risk === 'HIGH' ? '🚨' : '⚠️') + ' CMC: ' + d.cmc_risk);
-          if (d.buyout_probability_pct && d.buyout_probability_pct >= 20) parts.push('🎯 ' + d.buyout_probability_pct + '% buyout prob');
-          if (parts.length > 0) {
-            return '<div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.4rem;display:flex;flex-wrap:wrap;gap:0.5rem;">' + parts.map(function(p){return '<span style="background:rgba(0,212,255,0.05);padding:0.15rem 0.4rem;border:1px solid rgba(0,212,255,0.1);">' + p + '</span>'}).join('') + '</div>';
-          }
-          return '';
-        })()}
-        ${(() => {
-          // Latest news headline
-          var news = d.news_items || [];
-          if (news.length > 0) {
-            var n = news[0];
-            var sig = n.signal || '📰';
-            var hl = (n.headline || '').slice(0, 90);
-            var dt = n.date || '';
-            var typeColor = n.type === 'M&A' ? 'var(--accent2)' : n.type === 'CATALYST' ? 'var(--accent)' : n.type === 'RISK' ? 'var(--amber)' : 'var(--muted)';
-            return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.4rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + typeColor + ';line-height:1.5;color:var(--text);">' + sig + ' ' + hl + (hl.length >= 90 ? '…' : '') + '<span style="color:var(--muted);margin-left:0.5rem;">' + dt + '</span></div>';
-          }
-          return '';
-        })()}
-        ${(() => {
-          // Dilution Radar: visual warning when cash runway conflicts with PDUFA timing
-          var rm = d.runway_months ? Math.round(d.runway_months) : null;
-          var daysOut = Math.round((new Date(d.date) - new Date()) / 86400000);
-          if (rm !== null && rm < 6 && daysOut > 0) {
-            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:var(--red);line-height:1.5;">⚠️ DILUTION RADAR: ' + rm + '-month cash runway with PDUFA ' + daysOut + ' days out. Capital raise risk is elevated near approval.</div>';
-          } else if (rm !== null && rm < 12 && daysOut > 60) {
-            return '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.15);color:var(--amber);line-height:1.5;">📊 RUNWAY NOTE: ' + rm + '-month cash runway. Monitor for SEC filings as PDUFA approaches.</div>';
-          }
-          return '';
-        })()}
+        ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + p.volRatio + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + p.chartColor + ';font-weight:700;">' + p.chartIcon + ' ' + p.chartSetup + '</span></div>' + '</div>'; })()}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
-        <div class="card-flags">
-          ${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market')).map(f=>`<div class="card-flag">${f}</div>`).join('')}
-        </div>
-        ${(() => {
-          var cmcf = d.cmc_flags || [];
-          var risk = d.cmc_risk || 'UNKNOWN';
-          if (!cmcf.length && risk === 'UNKNOWN') return '';
-          var bgColor = risk === 'HIGH' ? 'rgba(255,68,68,0.06)' : risk === 'ELEVATED' ? 'rgba(245,166,35,0.06)' : risk === 'MODERATE' ? 'rgba(0,212,255,0.03)' : 'rgba(0,255,157,0.03)';
-          var borderCol = risk === 'HIGH' ? 'var(--red)' : risk === 'ELEVATED' ? 'var(--amber)' : risk === 'MODERATE' ? 'var(--accent)' : 'var(--accent2)';
-          var riskLabel = risk === 'HIGH' ? '🚨 HIGH' : risk === 'ELEVATED' ? '⚠️ ELEVATED' : risk === 'MODERATE' ? '📊 MODERATE' : '✅ LOW';
-          return '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.4rem 0.5rem;background:' + bgColor + ';border-left:2px solid ' + borderCol + ';line-height:1.6;color:var(--text);">' +
-            '<strong style="color:' + borderCol + ';">SUPPLY CHAIN [' + riskLabel + ']:</strong><br>' +
-            cmcf.slice(0, 2).join('<br>') + '</div>';
-        })()}
-        <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">
-          View deep dive →
-        </div>
+        <div class="card-flags">${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market')).map(f=>`<div class="card-flag">${f}</div>`).join('')}</div>
+        <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
       </div>`;
   }).join('');
-
   const elite    = SCANNER_DATA.filter(d => d.score >= 72).length;
   const within30 = SCANNER_DATA.filter(d => daysUntil(d.date) <= 30).length;
   const avgPoa   = SCANNER_DATA.length > 0 ? (SCANNER_DATA.reduce((s,d) => s + (d.poa || 0), 0) / SCANNER_DATA.length).toFixed(1) : '0';
@@ -711,253 +611,76 @@ function renderScanner() {
   document.getElementById('stat-30d').textContent   = within30;
   document.getElementById('stat-poa').textContent   = avgPoa + '%';
   document.getElementById('stat-scan').textContent  = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  document.getElementById('scan-timestamp').textContent =
-    'Last updated: ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('scan-timestamp').textContent = 'Last updated: ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
-// ─── TABS ─────────────────────────────────────────────────────────────────────
+// ─── BUYOUT SCANNER ──────────────────────────────────────────────────────────
 function renderBuyoutGrid() {
   var search = (document.getElementById('buyout-search').value || '').toUpperCase();
   var riskFilter = document.getElementById('buyout-filter').value;
   var catFilter = document.getElementById('buyout-catalyst').value;
-
-  // Combine PDUFA events + recently approved companies, dedupe
-  var all = [];
-  var seen = {};
-
-  // PDUFA events first (have real buyout scores from scorer)
+  var all = [], seen = {};
   SCANNER_DATA.forEach(function(d) {
     if (!seen[d.ticker]) {
       seen[d.ticker] = true;
       all.push({
-        ticker: d.ticker,
-        company_name: d.company_name || d.drug || d.ticker,
-        market_cap_tier: d.market_cap_tier || 'SMALL',
-        market_cap: Number(d.estimated_market_cap || d.market_cap) || 0,
-        buyout_score: Number(d.buyout_score) || 0,
-        buyout_risk: d.buyout_risk || 'LOW',
-        buyout_flags: d.buyout_flags || [],
-        buyout_acquirers: d.buyout_acquirers || [],
-        buyout_premium: Number(d.buyout_premium) || 0,
-        buyout_areas: d.buyout_areas || [],
-        buyout_timeline: d.buyout_timeline || '',
-        buyout_timeline_months: d.buyout_timeline_months || null,
-        tam_ratio: Number(d.tam_ratio) || 0,
-        partnership_detected: d.has_partnership || d.partnership_detected || false,
-        partner_name: d.partner_name || '',
+        ticker: d.ticker, company_name: d.company_name || d.drug || d.ticker,
+        market_cap: Number(d.estimated_market_cap) || 0,
+        buyout_score: Number(d.buyout_score) || 0, buyout_risk: d.buyout_risk || 'LOW',
+        buyout_flags: d.buyout_flags || [], tam_ratio: Number(d.tam_ratio) || 0,
+        partnership_detected: d.has_partnership || false, partner_name: d.partner_name || '',
         acquirer_urgency_top: d.acquirer_urgency_top || '',
-        revenue_m: Number(d.revenue_M || d.revenue_m) || 0,
-        months_since_approval: d.months_since_approval || null,
-        institutional_pct: Number(d.institutional_pct) || 0,
-        news_items: d.news_items || [],
-        has_orphan: d.has_orphan || false,
-        has_breakthrough: d.has_breakthrough || false,
-        pdufa_date: d.date || '',
-        poa: Number(d.poa) || 0,
-        grade: d.grade || 'WATCH',
-        has_pdufa: true,
-        approved_drug: d.approved_drug || '',
-        approval_date: d.approval_date || '',
-        source: 'pdufa',
+        revenue_m: Number(d.revenue_M) || 0, buyout_timeline: d.buyout_timeline || '',
+        has_pdufa: true, pdufa_date: d.date || '', poa: Number(d.poa) || 0, grade: d.grade || 'WATCH',
       });
     }
   });
-
-  // Recently approved companies from universe (loaded into BUYOUT_DATA)
   if (window.BUYOUT_DATA) {
     window.BUYOUT_DATA.forEach(function(c) {
       if (!seen[c.ticker]) {
         seen[c.ticker] = true;
         all.push({
-          ticker: c.ticker,
-          company_name: c.company_name || c.ticker,
-          market_cap_tier: c.market_cap_tier || 'SMALL',
+          ticker: c.ticker, company_name: c.company_name || c.ticker,
           market_cap: Number(c.estimated_market_cap) || 0,
-          buyout_score: Number(c.buyout_score) || 0,
-          buyout_risk: c.buyout_risk || 'LOW',
-          buyout_flags: c.buyout_flags || [],
-          buyout_acquirers: c.buyout_acquirers || [],
-          buyout_premium: Number(c.buyout_premium) || 0,
-          buyout_areas: c.buyout_areas || [],
-          buyout_timeline: c.buyout_timeline || '',
-          buyout_timeline_months: c.buyout_timeline_months || null,
-          tam_ratio: Number(c.tam_ratio) || 0,
-          partnership_detected: c.has_partnership || false,
-          partner_name: c.partner_name || '',
+          buyout_score: Number(c.buyout_score) || 0, buyout_risk: c.buyout_risk || 'LOW',
+          buyout_flags: c.buyout_flags || [], tam_ratio: Number(c.tam_ratio) || 0,
+          partnership_detected: c.has_partnership || false, partner_name: c.partner_name || '',
           acquirer_urgency_top: c.acquirer_urgency_top || '',
-          revenue_m: Number(c.revenue_m) || 0,
-          months_since_approval: c.months_since_approval || null,
-          institutional_pct: Number(c.institutional_pct) || 0,
-          news_items: c.news_items || [],
-          pdufa_date: '',
-          poa: 0,
-          grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
-          has_pdufa: false,
-          approved_drug: c.approved_drug || '',
-          approval_date: c.last_approval_date || '',
-          source: 'approved',
+          revenue_m: Number(c.revenue_m) || 0, buyout_timeline: c.buyout_timeline || '',
+          pdufa_date: '', poa: 0, grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
+          has_pdufa: false, approved_drug: c.approved_drug || '',
         });
-      } else {
-        var existing = all.find(function(a) { return a.ticker === c.ticker; });
-        if (existing) {
-          if (c.approved_drug) existing.approved_drug = c.approved_drug;
-          if (c.last_approval_date) existing.approval_date = c.last_approval_date;
-          if (!existing.tam_ratio && c.tam_ratio) existing.tam_ratio = Number(c.tam_ratio);
-          if (!existing.market_cap && c.estimated_market_cap) existing.market_cap = Number(c.estimated_market_cap);
-          if (c.buyout_score > existing.buyout_score) { existing.buyout_score = c.buyout_score; existing.buyout_risk = c.buyout_risk; }
-          if (c.buyout_timeline) existing.buyout_timeline = c.buyout_timeline;
-          if (c.acquirer_urgency_top) existing.acquirer_urgency_top = c.acquirer_urgency_top;
-          if (c.has_partnership) { existing.partnership_detected = true; existing.partner_name = c.partner_name || ''; }
-          if (c.revenue_m) existing.revenue_m = Number(c.revenue_m);
-          if (c.months_since_approval) existing.months_since_approval = c.months_since_approval;
-          if (c.news_items && c.news_items.length) existing.news_items = c.news_items;
-          if (c.buyout_flags && c.buyout_flags.length) existing.buyout_flags = c.buyout_flags;
-        }
       }
     });
   }
-
-  // Filter
   var filtered = all.filter(function(d) {
-    if (search && !d.ticker.includes(search) && !(d.company_name || '').toUpperCase().includes(search)) return false;
+    if (search && !d.ticker.includes(search)) return false;
     if (riskFilter === 'HIGH' && d.buyout_risk !== 'HIGH') return false;
     if (riskFilter === 'MODERATE' && d.buyout_risk !== 'HIGH' && d.buyout_risk !== 'MODERATE') return false;
-    if (catFilter === 'approved' && !d.approved_drug) return false;
-    if (catFilter === 'pdufa' && !d.has_pdufa) return false;
-    if (catFilter === 'both' && !d.approved_drug && !d.has_pdufa) return false;
     return d.buyout_score > 0;
   });
-
-  // Sort by buyout score descending
   filtered.sort(function(a, b) { return (b.buyout_score || 0) - (a.buyout_score || 0); });
-
   var display = filtered.slice(0, 50);
-
   if (display.length === 0) {
     document.getElementById('buyout-grid').innerHTML = '<div style="padding:2rem;text-align:center;font-family:var(--mono);font-size:0.75rem;color:var(--muted);grid-column:1/-1;">No companies match filters.</div>';
     document.getElementById('buyout-count').textContent = '';
     return;
   }
-
   document.getElementById('buyout-grid').innerHTML = display.map(function(d) {
-    var days = d.pdufa_date ? Math.round((new Date(d.pdufa_date) - new Date()) / 86400000) : null;
-    var daysLabel = days !== null && days >= 0 ? days + 'd' : '';
+    var mcap = d.market_cap >= 1e9 ? '$' + (d.market_cap / 1e9).toFixed(1) + 'B' : d.market_cap >= 1e6 ? '$' + (d.market_cap / 1e6).toFixed(0) + 'M' : '—';
     var scoreColor = d.buyout_score >= 70 ? 'green' : d.buyout_score >= 50 ? 'cyan' : d.buyout_score >= 30 ? 'amber' : 'white';
     var riskColor = d.buyout_risk === 'HIGH' ? 'grade-elite' : d.buyout_risk === 'ELEVATED' ? 'grade-strong' : d.buyout_risk === 'MODERATE' ? 'grade-watch' : 'grade-weak';
-    var borderColor = d.buyout_score >= 70 ? 'var(--accent2)' : d.buyout_score >= 50 ? 'var(--accent)' : d.buyout_score >= 30 ? 'var(--amber)' : 'var(--border)';
-
-    // Market cap display
-    var mcap = '';
-    if (d.market_cap >= 1e9) mcap = '$' + (d.market_cap / 1e9).toFixed(1) + 'B';
-    else if (d.market_cap >= 1e6) mcap = '$' + (d.market_cap / 1e6).toFixed(0) + 'M';
-
-    // Implied takeout at 60% premium
-    var takeout = d.market_cap >= 1e8 ? '$' + (d.market_cap * 1.6 / 1e9).toFixed(1) + 'B' : '';
-
-    // Buyer + timeline
-    var buyer = d.acquirer_urgency_top || '';
-    var timeline = d.buyout_timeline || '';
-    var partner = d.partnership_detected && d.partner_name ? d.partner_name : '';
-
-    // Revenue
-    var rev = d.revenue_m || d.revenue_M || 0;
-
-    // Approval age
-    var approvalAge = '';
-    if (d.months_since_approval && d.months_since_approval <= 12) approvalAge = '🆕 ' + d.months_since_approval + 'mo since approval';
-    else if (d.months_since_approval && d.months_since_approval <= 24) approvalAge = '✅ ' + d.months_since_approval + 'mo since approval';
-    else if (d.months_since_approval && d.months_since_approval > 24) approvalAge = '📊 ' + d.months_since_approval + 'mo on market';
-
-    // News
-    var news = d.news_items || [];
-    var latestNews = news.length > 0 ? news[0] : null;
-
-    // Buyout flags (max 4)
-    var flags = (d.buyout_flags || []).slice(0, 4);
-
-    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;border-left:3px solid ' + borderColor + ';">' +
-
-      // Header: ticker + risk badge
-      '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.5rem;">' +
-        '<div>' +
-          '<div class="card-ticker">' + d.ticker + (daysLabel ? ' <span class="card-days">' + daysLabel + '</span>' : '') + '</div>' +
-          '<div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px;">' + (d.company_name || '') + '</div>' +
-        '</div>' +
-        '<span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span>' +
-      '</div>' +
-
-      // Score row: Buyout | Acquirer | TAM/Cap
-      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;">' +
-        '<div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Buyer</div><div class="score-box-val white" style="font-size:0.62rem;">' + (buyer || '—') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ' + ((d.tam_ratio||0) >= 5 ? 'green' : (d.tam_ratio||0) >= 1 ? 'cyan' : 'white') + '">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div>' +
-      '</div>' +
-
-      // Cap + Revenue + Timeline row
-      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;margin-top:-1px;">' +
-        '<div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + (mcap || '—') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Revenue</div><div class="score-box-val ' + (rev >= 100 ? 'green' : rev >= 20 ? 'cyan' : 'white') + '" style="font-size:0.7rem;">' + (rev >= 1000 ? '$' + (rev/1000).toFixed(1) + 'B' : rev > 0 ? '$' + Math.round(rev) + 'M' : '—') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Takeout</div><div class="score-box-val cyan" style="font-size:0.7rem;">' + (takeout || '—') + '</div></div>' +
-      '</div>' +
-
-      // Acquirer thesis box (the key insight)
-      (function() {
-        if (d.buyout_score < 30) return '';
-        var lines = [];
-        if (timeline) lines.push(timeline);
-        if (partner) lines.push('🤝 <strong>Existing partner: ' + partner + '</strong> — acquirer already knows the asset, data, and market');
-        else if (buyer && buyer !== '—' && buyer !== 'None' && buyer !== 'Uncertain') lines.push('🎯 <strong>Most likely acquirer: ' + buyer + '</strong>');
-
-        // Why would they buy?
-        if (d.buyout_score >= 70 && partner) lines.push('💡 Partnership → acquisition is the path of least resistance. No due diligence needed.');
-        else if (d.buyout_score >= 70 && rev >= 100) lines.push('💡 $' + (rev >= 1000 ? (rev/1000).toFixed(1) + 'B' : Math.round(rev) + 'M') + ' revenue proves commercial viability — acquirer buys a revenue stream, not a bet.');
-        else if (d.buyout_score >= 70) lines.push('💡 De-risked asset in a therapeutic area with active Big Pharma demand.');
-        else if (d.buyout_score >= 55 && rev >= 50) lines.push('💡 Commercial traction reduces acquirer risk. Revenue covers integration cost.');
-        else if (d.buyout_score >= 55) lines.push('💡 Approved asset in acquirer-demand area. Cap size makes deal digestible.');
-        else if (d.buyout_score >= 40) lines.push('💡 Watchlist — asset quality present but deal catalysts not yet strong enough.');
-
-        if (!lines.length) return '';
-        var borderCol = d.buyout_score >= 70 ? 'var(--accent2)' : d.buyout_score >= 55 ? 'var(--accent)' : 'var(--amber)';
-        return '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid ' + borderCol + ';line-height:1.8;color:var(--text);">' + lines.join('<br>') + '</div>';
-      })() +
-
-      // Approval status
-      (d.approved_drug ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent2);margin-top:0.4rem;">✅ ' + d.approved_drug + (approvalAge ? ' · ' + approvalAge : '') + '</div>' : '') +
-      (d.poa > 0 ? '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--accent);margin-top:0.3rem;">PoA: ' + d.poa.toFixed(0) + '% · ' + d.grade + (d.pdufa_date ? ' · PDUFA: ' + d.pdufa_date : '') + '</div>' : '') +
-
-      // Enrichment tags
-      (function() {
-        var tags = [];
-        if (d.institutional_pct >= 60) tags.push('🏛️ Inst. ' + Math.round(d.institutional_pct) + '%');
-        if (d.has_orphan) tags.push('🏥 Orphan');
-        if (d.has_breakthrough) tags.push('⚡ Breakthrough');
-        if (!tags.length) return '';
-        return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-top:0.3rem;display:flex;gap:0.5rem;flex-wrap:wrap;">' +
-          tags.map(function(t) { return '<span style="background:rgba(0,212,255,0.05);padding:0.1rem 0.35rem;border:1px solid rgba(0,212,255,0.1);">' + t + '</span>'; }).join('') +
-        '</div>';
-      })() +
-
-      // Buyout flags
-      (flags.length > 0 ? '<div style="margin-top:0.4rem;display:flex;flex-direction:column;gap:0.15rem;">' +
-        flags.map(function(f) {
-          var color = (typeof f === 'string' && (f.includes('🎯') || f.includes('▲') || f.includes('✅'))) ? 'var(--accent2)' : 'var(--amber)';
-          return '<div style="font-family:var(--mono);font-size:0.55rem;color:' + color + ';line-height:1.4;">' + f + '</div>';
-        }).join('') +
-      '</div>' : '') +
-
-      // Latest news
-      (latestNews ? '<div style="font-family:var(--mono);font-size:0.55rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' +
-        (latestNews.type === 'M&A' ? 'var(--accent2)' : latestNews.type === 'CATALYST' ? 'var(--accent)' : latestNews.type === 'RISK' ? 'var(--amber)' : 'var(--muted)') +
-        ';color:var(--text);line-height:1.4;">' + (latestNews.signal || '📰') + ' ' + (latestNews.headline || '').slice(0, 85) + (latestNews.headline && latestNews.headline.length > 85 ? '…' : '') +
-        '<span style="color:var(--muted);margin-left:0.4rem;">' + (latestNews.date || '') + '</span></div>' : '') +
-
+    return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;">' +
+      '<div class="card-top"><div><div class="card-ticker">' + d.ticker + '</div><div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);">' + (d.company_name || '') + '</div></div><span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span></div>' +
+      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;"><div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div><div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + mcap + '</div></div><div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val cyan">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div></div>' +
+      (d.buyout_timeline ? '<div style="font-family:var(--mono);font-size:0.6rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid var(--accent2);color:var(--text);">' + d.buyout_timeline + '</div>' : '') +
       '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
     '</div>';
   }).join('');
-
   document.getElementById('buyout-count').textContent = display.length + ' of ' + filtered.length + ' companies shown';
 }
 
+// ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(btn, id) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -969,36 +692,26 @@ function switchTab(btn, id) {
 // ─── AUTH GUARD + INIT ────────────────────────────────────────────────────────
 (async () => {
   const session = await scRequireAuth();
-  if (!session) return; // scRequireAuth redirects to login
-
-  const sb   = getSupabase();
+  if (!session) return;
+  const sb = getSupabase();
   const user = session.user;
-
   document.getElementById('nav-user').innerHTML =
     '<span style="color:var(--muted);font-size:0.62rem;">' + user.email + '</span>';
-
   document.getElementById('signout-btn').addEventListener('click', async (e) => {
     e.preventDefault();
     await scSignOut();
   });
-
   const fromStripe = document.referrer.includes('stripe.com') ||
                      document.referrer.includes('buy.stripe.com') ||
                      new URLSearchParams(location.search).get('welcome') === '1';
-
   let profile = await scGetProfile(user.id);
-
   if (fromStripe && !profile?.is_paid) {
     document.getElementById('verifying-banner').style.display = 'flex';
     const nowPaid = await scPollSubscription(user.id);
     document.getElementById('verifying-banner').style.display = 'none';
-    if (nowPaid) {
-      profile = await scGetProfile(user.id);
-    }
+    if (nowPaid) profile = await scGetProfile(user.id);
   }
-
   const isPaid = profile?.is_paid === true;
-
   document.getElementById('acct-email').textContent = user.email;
   const statusEl = document.getElementById('acct-status-text');
   if (isPaid) {
@@ -1010,35 +723,22 @@ function switchTab(btn, id) {
     const dot = document.querySelector('.status-dot');
     if (dot) dot.style.background = 'var(--amber)';
   }
-
   const createdAt = new Date(profile?.created_at || user.created_at);
-  document.getElementById('acct-since').textContent =
-    createdAt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-
+  document.getElementById('acct-since').textContent = createdAt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const nextBilling = new Date(createdAt);
   const today = new Date();
   nextBilling.setMonth(nextBilling.getMonth() + 1);
   while (nextBilling < today) nextBilling.setMonth(nextBilling.getMonth() + 1);
-  document.getElementById('acct-next').textContent =
-    nextBilling.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-
+  document.getElementById('acct-next').textContent = nextBilling.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const portalBtn = document.getElementById('billing-portal-btn');
   if (SC_CONFIG.stripePortalUrl) {
     portalBtn.href   = SC_CONFIG.stripePortalUrl;
     portalBtn.target = '_blank';
     portalBtn.rel    = 'noopener';
-  } else {
-    portalBtn.addEventListener('click', e => {
-      e.preventDefault();
-      alert('Billing portal not configured yet.\nIn Stripe Dashboard → Settings → Billing → Customer portal → Activate\nThen set stripePortalUrl in js/config.js.');
-    });
   }
-
   if (fromStripe && isPaid && !sessionStorage.getItem('dismissed_welcome')) {
     document.getElementById('welcome-banner').style.display = 'block';
   }
-
-  // ── PAYWALL GATE: Unpaid users see subscribe prompt instead of scanner ──
   if (!isPaid) {
     document.getElementById('scanner-grid').innerHTML = [
       '<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;">',
@@ -1049,76 +749,35 @@ function switchTab(btn, id) {
       '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime</p>',
       '</div>',
     ].join('\n');
-    document.getElementById('stat-elite').textContent = '—';
-    document.getElementById('stat-30d').textContent = '—';
-    document.getElementById('stat-poa').textContent = '—';
-    document.getElementById('stat-scan').textContent = '—';
     return;
   }
-
-  // Fetch live scanner data from SERVER-SIDE gated endpoint
   try {
-    const session = await scGetSession();
+    const session2 = await scGetSession();
     const res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
-      headers: {
-        'Authorization': 'Bearer ' + (session?.access_token || ''),
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Authorization': 'Bearer ' + (session2?.access_token || ''), 'Content-Type': 'application/json' },
     });
-
     const result = await res.json();
-
-    if (result.error === 'subscription_required') {
-      // Unpaid user — paywall already shown above
-      console.log('[SC] Unpaid user — scanner data blocked server-side');
-    } else if (result.events && result.events.length > 0) {
+    if (result.events && result.events.length > 0) {
       SCANNER_DATA = result.events.map(function(e) {
         return {
-          ticker: e.ticker,
-          drug: e.drug || '',
-          indication: e.indication || 'Unknown',
-          type: e.type || 'PDUFA',
-          date: e.date,
-          grade: e.grade || 'WATCH',
-          poa: Number(e.poa) || 0,
-          convexity: Number(e.score) * 0.6 || 0,
-          score: Number(e.score) || 0,
-          flags: e.flags || [],
-          sell_news_risk: e.sell_news_risk || 'MODERATE',
-          move_score: Number(e.move_score) || 0,
-          expected_move: e.expected_move || '',
+          ticker: e.ticker, drug: e.drug || '', indication: e.indication || 'Unknown',
+          type: e.type || 'PDUFA', date: e.date, grade: e.grade || 'WATCH',
+          poa: Number(e.poa) || 0, score: Number(e.score) || 0,
+          flags: e.flags || [], sell_news_risk: e.sell_news_risk || 'MODERATE',
+          move_score: Number(e.move_score) || 0, expected_move: e.expected_move || '',
           net_edge_score: Number(e.net_edge_score) || Number(e.score) || 0,
-          dilution_risk: e.dilution_risk || 'UNKNOWN',
-          dilution_score: Number(e.dilution_score) || 0,
-          dilution_flags: e.dilution_flags || [],
-          runway_months: e.runway_months,
+          dilution_risk: e.dilution_risk || 'UNKNOWN', dilution_score: Number(e.dilution_score) || 0,
+          dilution_flags: e.dilution_flags || [], runway_months: e.runway_months,
           insider_signal: e.insider_signal || 'NEUTRAL',
-          shelf_active: e.shelf_active || false,
-          atm_active: e.atm_active || false,
-          buyout_score: Number(e.buyout_score) || 0,
-          buyout_risk: e.buyout_risk || 'LOW',
-          buyout_flags: e.buyout_flags || [],
-          buyout_acquirers: e.buyout_acquirers || [],
-          buyout_premium: Number(e.buyout_premium) || 0,
-          buyout_areas: e.buyout_areas || [],
-          buyout_components: e.buyout_components || {},
-          tam_ratio: Number(e.tam_ratio) || 0,
-          tam_label: e.tam_label || '',
-          // v3.1 enrichment
-          news_items: e.news_items || [],
-          has_partnership: e.has_partnership || false,
-          partner_name: e.partner_name || '',
+          shelf_active: e.shelf_active || false, atm_active: e.atm_active || false,
+          buyout_score: Number(e.buyout_score) || 0, buyout_risk: e.buyout_risk || 'LOW',
+          buyout_flags: e.buyout_flags || [], tam_ratio: Number(e.tam_ratio) || 0,
+          has_partnership: e.has_partnership || false, partner_name: e.partner_name || '',
           acquirer_urgency_top: e.acquirer_urgency_top || '',
-          months_since_approval: e.months_since_approval || null,
           revenue_M: Number(e.revenue_m || e.revenue_M) || 0,
-          institutional_pct: Number(e.institutional_pct) || 0,
-          has_approved_drug: e.has_approved_drug || false,
           buyout_timeline: e.buyout_timeline || '',
-          buyout_timeline_months: e.buyout_timeline_months || null,
           estimated_market_cap: Number(e.estimated_market_cap) || 0,
-          cmc_risk: e.cmc_risk || 'UNKNOWN',
-          cmc_flags: e.cmc_flags || [],
-          buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
+          cmc_risk: e.cmc_risk || 'UNKNOWN', cmc_flags: e.cmc_flags || [],
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
@@ -1126,39 +785,25 @@ function switchTab(btn, id) {
   } catch (e) {
     console.warn('[SC] Failed to fetch live data:', e);
   }
-
   renderScanner();
-
-  // Fetch 30D price data from Polygon, then re-render with trend data
   if (SCANNER_DATA.length > 0 && SC_CONFIG.polygonApiKey) {
     var tickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
     fetchPriceData(tickers).then(function() {
-      renderScanner(); // Re-render with 30D data filled in
+      renderScanner();
       console.log('[SC] Scanner re-rendered with 30D price trends');
     });
   }
-
-  // Load recently approved companies for buyout scanner
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, approved_indication, buyout_score, buyout_risk, buyout_flags, buyout_timeline, buyout_timeline_months, drug_tam_billions, tam_ratio, estimated_market_cap, news_items, has_partnership, partner_name, acquirer_urgency_top, months_since_approval, revenue_m, institutional_pct')
-      .eq('is_acquired', false)
-      .gt('buyout_score', 0)
-      .order('buyout_score', { ascending: false });
-
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, buyout_score, buyout_risk, buyout_flags, buyout_timeline, drug_tam_billions, tam_ratio, estimated_market_cap, has_partnership, partner_name, acquirer_urgency_top, revenue_m')
+      .eq('is_acquired', false).gt('buyout_score', 0).order('buyout_score', { ascending: false });
     if (approvedCompanies && approvedCompanies.length > 0) {
-      // Compute TAM/Cap ratios from live data
       approvedCompanies.forEach(function(c) {
         var tam = Number(c.drug_tam_billions) || 0;
         var mcap = Number(c.estimated_market_cap) || 0;
-        if (tam > 0 && mcap > 0) {
-          c.tam_ratio = Math.round((tam * 1e9 / mcap) * 10) / 10;
-        } else {
-          c.tam_ratio = 0;
-        }
+        c.tam_ratio = (tam > 0 && mcap > 0) ? Math.round((tam * 1e9 / mcap) * 10) / 10 : 0;
       });
       window.BUYOUT_DATA = approvedCompanies;
-      console.log('[SC] Loaded ' + approvedCompanies.length + ' recently approved companies for buyout scanner');
     } else {
       window.BUYOUT_DATA = [];
     }
@@ -1166,11 +811,389 @@ function switchTab(btn, id) {
     console.warn('[SC] Failed to load approved companies:', err);
     window.BUYOUT_DATA = [];
   }
-
   renderBuyoutGrid();
 })();
+</script>
 
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// PR SCANNER — Submarine Catalyst (inline analyzer + Finnhub + renderer)
+// ═══════════════════════════════════════════════════════════════════════════
 
+var PR_STRONG_BULLISH = [
+  { re: /\bmet\s+(?:the\s+|its\s+|all\s+|both\s+)?primary\s+(?:endpoint|objective)/i, w: 18, t: "✅ Met primary endpoint" },
+  { re: /\bachieved\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: 18, t: "✅ Achieved primary endpoint" },
+  { re: /\bstatistically\s+significant.*?p\s*[<=]\s*0?\.0\d/i, w: 15, t: "✅ Statistically significant with p-value disclosed" },
+  { re: /\bp\s*[<=]\s*0?\.00\d/i, w: 12, t: "✅ p < 0.01 (highly significant)" },
+  { re: /\bhazard\s+ratio\s+(?:of\s+)?0?\.[0-5]\d?\b/i, w: 14, t: "✅ Hazard ratio ≤ 0.5 (strong survival benefit)" },
+  { re: /\bgranted\s+(?:fda\s+)?(?:full\s+|accelerated\s+|traditional\s+)?approval/i, w: 25, t: "✅ FDA approval granted" },
+  { re: /\bfda\s+approve[ds]?\b/i, w: 22, t: "✅ FDA approved" },
+  { re: /\breceived\s+(?:fda\s+)?approval/i, w: 22, t: "✅ Received FDA approval" },
+  { re: /\bbreakthrough\s+therapy\s+designation\b/i, w: 10, t: "⚡ Breakthrough Therapy Designation" },
+  { re: /\b(?:complete\s+response|cr)\s+rate\s+(?:of\s+)?[5-9]\d%/i, w: 12, t: "✅ CR rate ≥50%" },
+  { re: /\bobjective\s+response\s+rate\s+(?:of\s+)?[4-9]\d%/i, w: 10, t: "✅ ORR ≥40%" },
+  { re: /\bsuperior(?:ity)?\s+(?:to|over|versus|vs\.?)\s+\w+/i, w: 12, t: "✅ Demonstrated superiority" },
+  { re: /\bpdufa\s+(?:target\s+)?(?:action\s+)?date.*?(?:on\s+track|on\s+schedule|maintained)/i, w: 8, t: "✅ PDUFA date on track" },
+  { re: /\bno\s+new\s+safety\s+(?:signals|concerns|findings)/i, w: 6, t: "✅ No new safety signals" },
+  { re: /\bconsistent\s+with\s+(?:the\s+)?(?:known|established)\s+safety\s+profile/i, w: 5, t: "✅ Safety profile as expected" },
+  { re: /\bpriority\s+review\s+(?:granted|voucher|designation)/i, w: 7, t: "✅ Priority Review granted" },
+  { re: /\baccelerated\s+approval\s+(?:granted|pathway)/i, w: 9, t: "✅ Accelerated approval pathway" },
+  { re: /\bfirst[- ]in[- ]class\b/i, w: 5, t: "✅ First-in-class asset" }
+];
+
+var PR_STRONG_BEARISH = [
+  { re: /\bdid\s+not\s+meet\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: -25, t: "🚨 Did NOT meet primary endpoint" },
+  { re: /\bfail(?:ed|ure)\s+to\s+(?:meet|achieve|reach)\s+(?:the\s+)?primary/i, w: -25, t: "🚨 Failed to meet primary endpoint" },
+  { re: /\bmissed\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: -25, t: "🚨 Missed primary endpoint" },
+  { re: /\bcomplete\s+response\s+letter\b/i, w: -22, t: "🚨 Complete Response Letter (CRL)" },
+  { re: /\bfda\s+issued\s+(?:a\s+)?(?:complete\s+response|crl)/i, w: -25, t: "🚨 FDA issued CRL" },
+  { re: /\brejected\s+(?:the\s+)?(?:nda|bla|application)/i, w: -25, t: "🚨 Application rejected" },
+  { re: /\bclinical\s+hold\b/i, w: -20, t: "🚨 Clinical hold imposed" },
+  { re: /\bsuspend(?:ed|ing)?\s+(?:the\s+)?(?:trial|study|enrollment|program)/i, w: -18, t: "🚨 Trial/program suspended" },
+  { re: /\bdiscontinu(?:ed|ing)\s+(?:the\s+)?(?:trial|study|development|program)/i, w: -20, t: "🚨 Program discontinued" },
+  { re: /\btrend\s+toward(?:s)?\s+(?:statistical\s+)?significance/i, w: -18, t: "🚨 'Trend toward significance' = MISSED" },
+  { re: /\bdid\s+not\s+reach\s+statistical\s+significance/i, w: -22, t: "🚨 Did not reach statistical significance" },
+  { re: /\bnumerical(?:ly)?\s+(?:improved|better|favorable|higher|lower|greater)/i, w: -12, t: "⚠️ 'Numerical improvement' (not significant)" },
+  { re: /\bp\s*=\s*0?\.(?:0[6-9]|[1-9]\d*)\b/i, w: -14, t: "⚠️ p-value > 0.05" },
+  { re: /\b(?:pre-specified\s+)?subgroup\s+analysis\b/i, w: -8, t: "⚠️ Subgroup analysis (primary likely missed)" },
+  { re: /\bsupportive\s+(?:evidence|of\s+efficacy)/i, w: -8, t: "⚠️ 'Supportive evidence' (grasping at secondary)" },
+  { re: /\bmixed\s+results\b/i, w: -12, t: "⚠️ 'Mixed results'" },
+  { re: /\bpdufa\s+(?:target\s+)?(?:action\s+)?date.*?(?:extended|delayed|pushed)/i, w: -15, t: "🚨 PDUFA date extended/delayed" },
+  { re: /\bwithdraw(?:n|ing|al)\s+(?:the\s+)?(?:nda|bla|application)/i, w: -22, t: "🚨 Withdrew application" },
+  { re: /\brefus(?:al|ed)\s+to\s+file\b/i, w: -20, t: "🚨 Refusal to File (RTF)" }
+];
+
+var PR_MODERATE_BULLISH = [
+  { re: /\borphan\s+drug\s+designation\b/i, w: 4, t: "🏥 Orphan Drug Designation" },
+  { re: /\bfast\s+track\s+designation\b/i, w: 4, t: "⚡ Fast Track Designation" },
+  { re: /\brare\s+pediatric\s+disease\s+designation\b/i, w: 5, t: "🎫 RPDD (PRV eligible)" },
+  { re: /\bpriority\s+review\s+voucher\b/i, w: 5, t: "🎫 Priority Review Voucher" },
+  { re: /\bpartnership\s+with\s+(?:pfizer|merck|novartis|roche|astrazeneca|bristol|sanofi|lilly|abbvie|gilead|amgen|biogen|regeneron|takeda)/i, w: 8, t: "🤝 Big Pharma partnership" },
+  { re: /\blicensing\s+agreement\b/i, w: 5, t: "📝 Licensing agreement" },
+  { re: /\bupfront\s+payment\s+of\s+\$[1-9]\d{2,}/i, w: 7, t: "💰 Upfront payment ≥$100M" },
+  { re: /\boverall\s+survival\s+(?:benefit|improvement|advantage)/i, w: 8, t: "✅ OS benefit demonstrated" },
+  { re: /\bprogression[- ]free\s+survival\s+(?:benefit|improvement)/i, w: 6, t: "✅ PFS benefit demonstrated" },
+  { re: /\bpositive\s+(?:topline|primary)\s+(?:data|results)/i, w: 10, t: "✅ Positive topline data" },
+  { re: /\b(?:well[- ])?tolerated\b/i, w: 3, t: "✅ Well-tolerated" }
+];
+
+var PR_MODERATE_BEARISH = [
+  { re: /\bcontinue[sd]?\s+to\s+(?:evaluate|assess|analyze|review)/i, w: -5, t: "⚠️ 'Continues to evaluate' (no clear path)" },
+  { re: /\badditional\s+analyses\s+(?:are\s+)?(?:ongoing|underway|planned)/i, w: -6, t: "⚠️ 'Additional analyses ongoing'" },
+  { re: /\bstrategic\s+(?:review|alternatives|evaluation)/i, w: -10, t: "🚨 'Strategic review'" },
+  { re: /\bexplor(?:e|ing)\s+strategic\s+(?:alternatives|options)/i, w: -12, t: "🚨 Exploring strategic alternatives" },
+  { re: /\brestructur(?:e|ing)\b/i, w: -8, t: "⚠️ Restructuring" },
+  { re: /\breduc(?:e|ing|tion)\s+(?:in\s+)?(?:workforce|headcount|staff)/i, w: -10, t: "🚨 Workforce reduction" },
+  { re: /\blaid?\s+off\b/i, w: -10, t: "🚨 Layoffs announced" },
+  { re: /\bextend(?:ed|ing)?\s+(?:the\s+)?(?:review\s+)?(?:period|timeline|date)/i, w: -6, t: "⚠️ Timeline extended" },
+  { re: /\binformation\s+request\s+(?:from\s+)?(?:the\s+)?fda/i, w: -6, t: "⚠️ FDA information request" },
+  { re: /\bmajor\s+amendment\b/i, w: -8, t: "⚠️ Major amendment (PDUFA ext trigger)" }
+];
+
+var PR_HEDGING = ['believe','believes','believed','expect','expects','expected','anticipate','anticipates','anticipated','hope','hopes','may','might','could','potential','potentially','intend','intends','plan to','plans to','well-positioned','well positioned','remain committed','remains committed','look forward to','looking forward to','encourag','promising','meaningful','opportunity','opportunities'];
+
+var PR_SPEC_RE = [
+  /\bp\s*[<=]\s*0?\.\d+/gi, /\bhazard\s+ratio\s+(?:of\s+)?0?\.\d+/gi,
+  /\bci\s*(?:of\s+)?\[?\d+\.\d+[-–]\d+\.\d+\]?/gi, /\b\d{1,3}(?:\.\d{1,2})?%/g,
+  /\bn\s*=\s*\d+/gi, /\b\d+\s*(?:mg|kg|mcg|ng|ml|iu)(?:\/\w+)?\b/gi,
+  /\b\d+\.?\d*\s*(?:month|week|year|day)s?\b/gi, /\$\d+(?:,\d{3})*(?:\.\d+)?\s*(?:million|billion|m|b)?\b/gi
+];
+
+function prClassifyCategory(text) {
+  if (/\bfda\b.*?(?:approv|reject|crl|complete\s+response|pdufa|advisory|refus|accept|priority|breakthrough|fast\s+track)/i.test(text)) return 'FDA_ACTION';
+  if (/\b(?:pdufa|gdufa)\s+(?:date|action)/i.test(text) || /\badvisory\s+committee/i.test(text)) return 'FDA_ACTION';
+  if (/\b(?:nda|bla|snda|sbla)\s+(?:submitt|accept|approv|reject)/i.test(text)) return 'FDA_ACTION';
+  if (/\bphase\s+(?:1|2|3|i{1,3})\b/i.test(text) || /\b(?:clinical\s+)?trial\s+(?:results|data|topline)/i.test(text)) return 'CLINICAL_TRIAL';
+  if (/\bprimary\s+(?:endpoint|objective)/i.test(text) || /\btopline\s+(?:data|results)/i.test(text)) return 'CLINICAL_TRIAL';
+  if (/\binterim\s+(?:analysis|data|results)/i.test(text)) return 'CLINICAL_TRIAL';
+  if (/\bpublic\s+offering\b/i.test(text) || /\bprivate\s+placement\b/i.test(text)) return 'FINANCING';
+  if (/\bat-the-market\s+offering|\batm\s+(?:facility|program)/i.test(text)) return 'FINANCING';
+  if (/\b(?:s-3|424b5|prospectus\s+supplement)/i.test(text)) return 'FINANCING';
+  if (/\b(?:strategic\s+)?(?:collaboration|partnership|licensing\s+agreement)/i.test(text)) return 'PARTNERSHIP';
+  if (/\bmerger\b|\bacquisition\b|\bto\s+be\s+acquired\b/i.test(text)) return 'PARTNERSHIP';
+  if (/\b(?:first|second|third|fourth|q[1-4])\s+quarter\b/i.test(text) || /\bfinancial\s+results\b/i.test(text)) return 'EARNINGS';
+  if (/\b(?:appoint|name[ds]?)\s+(?:as\s+)?(?:chief|new)\s+\w+\s+officer/i.test(text)) return 'PERSONNEL';
+  if (/\bresign(?:ed|ation)\b/i.test(text)) return 'PERSONNEL';
+  return 'OTHER';
+}
+
+function prClassifyType(text) {
+  var t = text.toLowerCase();
+  if (/\b(?:fda\s+)?approv(?:ed|al)\b/.test(t) && /\bnda|bla|drug/.test(t)) return 'approval';
+  if (/\bcomplete\s+response\s+letter|\bcrl\b/.test(t)) return 'crl';
+  if (/\btopline\s+(?:data|results)/.test(t)) return 'topline';
+  if (/\binterim\s+(?:analysis|data|results)/.test(t)) return 'interim';
+  if (/\badvisory\s+committee/.test(t)) return 'adcom';
+  if (/\bpublic\s+offering|\batm|\b424b5\b/.test(t)) return 'financing';
+  if (/\bpdufa\s+(?:date|action)/.test(t)) return 'pdufa_update';
+  if (/\b(?:partnership|collaboration|licensing)/.test(t)) return 'partnership';
+  if (/\bacquisition|\bto\s+be\s+acquired\b|\bmerger/.test(t)) return 'ma';
+  if (/\bquarterly|\bfinancial\s+results/.test(t)) return 'earnings';
+  return 'other';
+}
+
+function prTimingFlag(publishedAt) {
+  if (!publishedAt) return null;
+  var d = new Date(publishedAt);
+  if (isNaN(d.getTime())) return null;
+  var etHour = (d.getUTCHours() - 4 + 24) % 24;
+  var etDay = d.getUTCDay();
+  if (etDay === 5 && etHour >= 15) return 'FRIDAY_AFTERNOON';
+  if (etDay === 0 || etDay === 6) return 'HOLIDAY_DUMP';
+  if (etHour >= 16 || etHour < 7) return 'AFTER_HOURS';
+  return null;
+}
+
+function prSpecificity(text, wordCount) {
+  if (wordCount < 50) return 50;
+  var matches = 0;
+  for (var i = 0; i < PR_SPEC_RE.length; i++) {
+    var found = text.match(PR_SPEC_RE[i]);
+    if (found) matches += found.length;
+  }
+  var per100 = (matches / wordCount) * 100;
+  return Math.round(Math.min(100, Math.max(0, per100 * 25)) * 10) / 10;
+}
+
+function prHedgingCount(text) {
+  var lower = text.toLowerCase();
+  var count = 0;
+  for (var i = 0; i < PR_HEDGING.length; i++) {
+    var re = new RegExp('\\b' + PR_HEDGING[i].replace(/\s+/g, '\\s+') + '\\b', 'gi');
+    var m = lower.match(re);
+    if (m) count += m.length;
+  }
+  return count;
+}
+
+function prExtractExcerpt(text, matched) {
+  if (!text) return '';
+  var sentences = text.split(/(?<=[.!?])\s+/).filter(function(s) { return s.length > 20 && s.length < 400; });
+  if (sentences.length === 0) return text.substring(0, 200);
+  var best = sentences[0], bestW = 0;
+  for (var i = 0; i < sentences.length; i++) {
+    var sw = 0;
+    for (var j = 0; j < matched.length; j++) if (matched[j].re.test(sentences[i])) sw += Math.abs(matched[j].w);
+    if (sw > bestW) { bestW = sw; best = sentences[i]; }
+  }
+  return best.trim().substring(0, 320);
+}
+
+function prApprovalSignal(score, signal, category, prType, bullCount, bearCount) {
+  if (prType === 'approval') return "✅ Approval already announced.";
+  if (prType === 'crl') return "🚨 CRL issued — approval delayed, resubmission cycle begins.";
+  if (prType === 'ma') return "🎯 M&A event — acquisition implies approval probability resolved.";
+  if (category === 'CLINICAL_TRIAL') {
+    if (signal === 'STRONGLY_BULLISH') return "🚀 Strong positive trial signal — raises FDA approval probability.";
+    if (signal === 'BULLISH') return "⚡ Positive trial signal — supports approval probability.";
+    if (signal === 'BEARISH') return "⚠️ Weak trial signal — management hedging. Re-examine PoA.";
+    if (signal === 'STRONGLY_BEARISH') return "🚨 Negative trial signal — primary miss. Reduce PoA substantially.";
+  }
+  if (category === 'FDA_ACTION') {
+    if (signal === 'STRONGLY_BULLISH') return "🚀 FDA positive action — approval or favorable step.";
+    if (signal === 'BULLISH') return "⚡ Favorable FDA signal.";
+    if (signal === 'BEARISH') return "⚠️ FDA friction.";
+    if (signal === 'STRONGLY_BEARISH') return "🚨 Adverse FDA action — CRL, rejection, or PDUFA extension.";
+  }
+  if (category === 'FINANCING') return "💰 Financing event — check Dilution Radar for impact.";
+  if (signal === 'STRONGLY_BULLISH') return "🚀 Strongly bullish (" + bullCount + " tells).";
+  if (signal === 'BULLISH') return "⚡ Net bullish — " + bullCount + " positive vs " + bearCount + " hedges.";
+  if (signal === 'STRONGLY_BEARISH') return "🚨 Strongly bearish (" + bearCount + " tells).";
+  if (signal === 'BEARISH') return "⚠️ Net bearish — " + bearCount + " negative vs " + bullCount + " positives.";
+  return "🟡 Mixed or neutral.";
+}
+
+function analyzePR(headline, summary, publishedAt) {
+  var fullText = (headline || '') + '\n\n' + (summary || '');
+  if (!fullText.trim()) return null;
+  var wordCount = fullText.split(/\s+/).filter(Boolean).length;
+  var score = 50;
+  var bullishTells = [], bearishTells = [], matched = [];
+  function apply(patterns) {
+    for (var i = 0; i < patterns.length; i++) {
+      if (patterns[i].re.test(fullText)) {
+        score += patterns[i].w;
+        if (patterns[i].w > 0) bullishTells.push(patterns[i].t); else bearishTells.push(patterns[i].t);
+        matched.push(patterns[i]);
+      }
+    }
+  }
+  apply(PR_STRONG_BULLISH); apply(PR_STRONG_BEARISH); apply(PR_MODERATE_BULLISH); apply(PR_MODERATE_BEARISH);
+  var hedging = prHedgingCount(fullText);
+  var hedgePenalty = Math.min(12, Math.floor(hedging / 3));
+  score -= hedgePenalty;
+  if (hedging >= 8) bearishTells.push("⚠️ Heavy hedging (" + hedging + " instances)");
+  var spec = prSpecificity(fullText, wordCount);
+  if (spec >= 60) score += 4;
+  else if (spec < 15 && wordCount > 150) { score -= 6; bearishTells.push("⚠️ Low specificity — vague language"); }
+  var timing = prTimingFlag(publishedAt);
+  if (timing === 'FRIDAY_AFTERNOON') { score -= 8; bearishTells.push("🚨 Friday afternoon dump"); }
+  else if (timing === 'AFTER_HOURS' || timing === 'HOLIDAY_DUMP') { score -= 3; bearishTells.push("⚠️ After-hours/weekend release"); }
+  score = Math.max(0, Math.min(100, score));
+  var signal;
+  if (score >= 75) signal = 'STRONGLY_BULLISH';
+  else if (score >= 60) signal = 'BULLISH';
+  else if (score >= 40) signal = 'NEUTRAL';
+  else if (score >= 25) signal = 'BEARISH';
+  else signal = 'STRONGLY_BEARISH';
+  var confidence;
+  var totalTells = bullishTells.length + bearishTells.length;
+  if (wordCount < 80 || totalTells === 0) confidence = 'LOW';
+  else if (totalTells >= 4 && spec >= 40) confidence = 'HIGH';
+  else confidence = 'MODERATE';
+  var category = prClassifyCategory(fullText);
+  var prType = prClassifyType(fullText);
+  return {
+    sentiment_score: Math.round(score * 10) / 10, signal: signal,
+    category: category, pr_type: prType,
+    bullish_tells: bullishTells, bearish_tells: bearishTells,
+    hedging_count: hedging, specificity_score: spec,
+    timing_flag: timing,
+    approval_signal: prApprovalSignal(score, signal, category, prType, bullishTells.length, bearishTells.length),
+    confidence: confidence,
+    key_excerpt: prExtractExcerpt(summary || headline, matched),
+    word_count: wordCount
+  };
+}
+
+async function fetchFinnhubNews(ticker, daysBack) {
+  if (!SC_CONFIG.finnhubApiKey) { console.warn('[PR] No finnhubApiKey in SC_CONFIG'); return []; }
+  var to = new Date().toISOString().split('T')[0];
+  var from = new Date(Date.now() - daysBack * 86400000).toISOString().split('T')[0];
+  var url = 'https://finnhub.io/api/v1/company-news?symbol=' + ticker + '&from=' + from + '&to=' + to + '&token=' + SC_CONFIG.finnhubApiKey;
+  try {
+    var res = await fetch(url);
+    if (!res.ok) return [];
+    var data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (e) { return []; }
+}
+
+var PR_DATA = [];
+var PR_LOADING = false;
+
+async function loadPRData() {
+  if (PR_LOADING) return;
+  PR_LOADING = true;
+  var grid = document.getElementById('pr-scanner-grid');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;text-transform:uppercase;">Fetching press releases...</div></div>';
+  var daysBack = parseInt(document.getElementById('pr-days-filter').value || '7');
+  var tickers = (SCANNER_DATA || []).map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
+  if (tickers.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No tickers in scanner yet. Load the PDUFA Scanner tab first.</div>';
+    PR_LOADING = false;
+    return;
+  }
+  tickers = tickers.slice(0, 40);
+  var allPRs = [];
+  for (var i = 0; i < tickers.length; i += 5) {
+    var batch = tickers.slice(i, i + 5);
+    var results = await Promise.all(batch.map(function(tk) {
+      return fetchFinnhubNews(tk, daysBack).then(function(news) {
+        return news.map(function(n) {
+          var analysis = analyzePR(n.headline, n.summary, new Date(n.datetime * 1000).toISOString());
+          if (!analysis || !n.headline || n.headline.length < 20) return null;
+          return {
+            ticker: tk, headline: n.headline, summary: n.summary, url: n.url, source: n.source,
+            published_at: new Date(n.datetime * 1000).toISOString(),
+            sentiment_score: analysis.sentiment_score, signal: analysis.signal,
+            category: analysis.category, pr_type: analysis.pr_type,
+            bullish_tells: analysis.bullish_tells, bearish_tells: analysis.bearish_tells,
+            hedging_count: analysis.hedging_count, specificity_score: analysis.specificity_score,
+            timing_flag: analysis.timing_flag, approval_signal: analysis.approval_signal,
+            confidence: analysis.confidence, key_excerpt: analysis.key_excerpt
+          };
+        }).filter(Boolean);
+      });
+    }));
+    results.forEach(function(arr) { allPRs = allPRs.concat(arr); });
+    if (i + 5 < tickers.length) await new Promise(function(r) { setTimeout(r, 1200); });
+  }
+  var seen = {};
+  PR_DATA = allPRs.filter(function(p) {
+    var key = p.ticker + '|' + p.headline.substring(0, 60);
+    if (seen[key]) return false;
+    seen[key] = true;
+    return true;
+  });
+  PR_DATA.sort(function(a, b) { return new Date(b.published_at) - new Date(a.published_at); });
+  console.log('[PR] Loaded ' + PR_DATA.length + ' releases across ' + tickers.length + ' tickers');
+  document.getElementById('pr-timestamp').textContent = 'Last updated: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  PR_LOADING = false;
+  renderPRScanner();
+}
+
+function prSignalGrade(s) { return {'STRONGLY_BULLISH':'elite','BULLISH':'strong','NEUTRAL':'watch','BEARISH':'watch','STRONGLY_BEARISH':'weak'}[s] || 'weak'; }
+function prSignalBadge(s) {
+  var m = {'STRONGLY_BULLISH':['grade-elite','🚀 BULLISH'],'BULLISH':['grade-strong','⚡ BULLISH'],'NEUTRAL':['grade-watch','🟡 NEUTRAL'],'BEARISH':['grade-watch','⚠️ BEARISH'],'STRONGLY_BEARISH':['grade-weak','🚨 BEARISH']};
+  var p = m[s] || ['grade-weak', s];
+  return '<span class="card-grade ' + p[0] + '">' + p[1] + '</span>';
+}
+function prAgo(d) {
+  if (!d) return '';
+  var dt = new Date(d), h = Math.round((Date.now() - dt.getTime()) / 3600000);
+  if (h < 1) return 'just now';
+  if (h < 24) return h + 'h ago';
+  var days = Math.round(h / 24);
+  if (days < 30) return days + 'd ago';
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function renderPRScanner() {
+  var grid = document.getElementById('pr-scanner-grid');
+  if (!PR_DATA || PR_DATA.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No press releases found. Try increasing the date range or click Refresh.</div>';
+    return;
+  }
+  var sigFilter = document.getElementById('pr-signal-filter').value || 'all';
+  var catFilter = document.getElementById('pr-category-filter').value || 'all';
+  var search = (document.getElementById('pr-search').value || '').toUpperCase();
+  var filtered = PR_DATA.filter(function(r) {
+    if (sigFilter !== 'all' && r.signal !== sigFilter) return false;
+    if (catFilter !== 'all' && r.category !== catFilter) return false;
+    if (search && !r.ticker.toUpperCase().includes(search)) return false;
+    return true;
+  });
+  document.getElementById('pr-count').textContent = filtered.length + ' of ' + PR_DATA.length + ' releases';
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No PRs match filters</div>';
+    return;
+  }
+  grid.innerHTML = filtered.map(function(r, i) {
+    var tells = [].concat((r.bullish_tells || []).slice(0, 3)).concat((r.bearish_tells || []).slice(0, 3));
+    var sc = r.sentiment_score >= 75 ? 'green' : r.sentiment_score >= 60 ? 'cyan' : r.sentiment_score >= 40 ? 'amber' : 'red';
+    var spc = r.specificity_score >= 50 ? 'green' : r.specificity_score >= 25 ? 'cyan' : 'amber';
+    var cc = r.confidence === 'HIGH' ? 'green' : r.confidence === 'LOW' ? 'amber' : 'cyan';
+    var icon = {'CLINICAL_TRIAL':'🧪','FDA_ACTION':'📋','PARTNERSHIP':'🤝','FINANCING':'💰','EARNINGS':'📊','PERSONNEL':'👤','OTHER':'📰'}[r.category] || '📰';
+    var host = 'source';
+    try { host = (new URL(r.url || 'https://x.y/')).hostname.replace('www.', ''); } catch(e) {}
+    return '<div class="scanner-card ' + prSignalGrade(r.signal) + '" style="animation-delay:' + (i * 0.03) + 's;cursor:pointer;" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + r.ticker + '\'">' +
+      '<div class="card-top"><div><div class="card-ticker">' + r.ticker + ' <span style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);letter-spacing:0.05em;margin-left:0.4rem;">' + prAgo(r.published_at) + '</span></div><div class="card-date">' + icon + ' ' + (r.category || 'OTHER').replace('_',' ') + ' · ' + (r.pr_type || 'other') + '</div></div>' + prSignalBadge(r.signal) + '</div>' +
+      '<div class="card-drug" style="font-weight:500;line-height:1.4;">' + (r.headline || '').substring(0, 140) + ((r.headline || '').length > 140 ? '…' : '') + '</div>' +
+      '<div class="card-indication" style="margin-top:0.3rem;margin-bottom:0.6rem;"><a href="' + (r.url || '#') + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--muted);text-decoration:none;">↗ ' + host + '</a></div>' +
+      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;">' +
+        '<div class="score-box"><div class="score-box-label">Sentiment</div><div class="score-box-val ' + sc + '">' + (r.sentiment_score || 0).toFixed(0) + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Specificity</div><div class="score-box-val ' + spc + '">' + (r.specificity_score || 0).toFixed(0) + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Confidence</div><div class="score-box-val ' + cc + '" style="font-size:0.68rem;">' + (r.confidence || 'MOD') + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Hedging</div><div class="score-box-val ' + ((r.hedging_count || 0) >= 8 ? 'amber' : 'white') + '">' + (r.hedging_count || 0) + '</div></div>' +
+      '</div>' +
+      (r.approval_signal ? '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (r.signal && r.signal.indexOf('BULLISH') >= 0 ? 'var(--accent2)' : r.signal && r.signal.indexOf('BEARISH') >= 0 ? 'var(--red)' : 'var(--amber)') + ';line-height:1.6;color:var(--text);">' + r.approval_signal + '</div>' : '') +
+      (tells.length ? '<div class="card-flags" style="margin-top:0.5rem;">' + tells.map(function(t) { return '<div class="card-flag">' + t + '</div>'; }).join('') + '</div>' : '') +
+      (r.timing_flag ? '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);color:var(--amber);">⏰ ' + r.timing_flag.replace('_',' ') + '</div>' : '') +
+      (r.key_excerpt ? '<div style="font-family:var(--serif);font-size:0.78rem;font-style:italic;margin-top:0.6rem;padding:0.6rem 0.75rem;background:var(--deep);border-left:2px solid var(--accent);color:var(--text);line-height:1.5;">"' + r.key_excerpt.substring(0, 280) + (r.key_excerpt.length > 280 ? '…' : '') + '"</div>' : '') +
+      '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View ' + r.ticker + ' deep dive →</div>' +
+    '</div>';
+  }).join('');
+}
+
+(function() {
+  var loaded = false;
+  var originalSwitch = window.switchTab;
+  window.switchTab = function(btn, id) {
+    originalSwitch(btn, id);
+    if (id === 'pr-scanner' && !loaded) { loaded = true; loadPRData(); }
+  };
+})();
 </script>
 </body>
 </html>
