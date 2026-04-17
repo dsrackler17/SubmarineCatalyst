@@ -1,960 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Submarine Catalyst — Access Terminal</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-JTYLL5DC4Y"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-JTYLL5DC4Y');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In — Submarine Catalyst</title>
+<meta name="description" content="Sign in to your Submarine Catalyst account. Access PDUFA scanner, biotech catalyst scores, and AI research tools.">
+<meta name="twitter:site" content="@DRackler">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/js/config.js"></script>
+<style>
+  :root {
+    --navy:    #040d1a;
+    --deep:    #07152b;
+    --surface: #0b1f3a;
+    --panel:   #0f2647;
+    --border:  #1a3a5c;
+    --accent:  #00d4ff;
+    --accent2: #00ff9d;
+    --amber:   #f5a623;
+    --red:     #ff4444;
+    --text:    #c8dff0;
+    --muted:   #5a7a99;
+    --white:   #eaf4ff;
+    --mono:    'Space Mono', monospace;
+    --serif:   'DM Serif Display', serif;
+    --sans:    'DM Sans', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.4;
+    pointer-events: none;
+    z-index: 0;
+  }
+  nav, main, footer { position: relative; z-index: 1; }
 
-    :root {
-      --bg-deep: #0a0c10;
-      --bg-card: #0f1218;
-      --bg-input: #141820;
-      --border: #1e2430;
-      --border-focus: #3b82f6;
-      --text-primary: #e2e8f0;
-      --text-muted: #64748b;
-      --text-dim: #475569;
-      --accent: #3b82f6;
-      --accent-hover: #2563eb;
-      --accent-glow: rgba(59, 130, 246, 0.15);
-      --green: #22c55e;
-      --green-dim: rgba(34, 197, 94, 0.12);
-      --red: #ef4444;
-      --red-dim: rgba(239, 68, 68, 0.1);
-      --yellow: #eab308;
-      --mono: 'JetBrains Mono', monospace;
-      --sans: 'IBM Plex Sans', sans-serif;
-    }
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 3rem;
+    border-bottom: 1px solid var(--border);
+    background: rgba(4,13,26,0.85);
+    backdrop-filter: blur(12px);
+  }
+  .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
+  .sonar-icon { width: 32px; height: 32px; }
+  .sonar-icon svg { width: 100%; height: 100%; }
+  .nav-wordmark { font-family: var(--mono); font-size: 0.85rem; font-weight: 700; color: var(--white); letter-spacing: 0.12em; text-transform: uppercase; }
+  .nav-wordmark span { color: var(--accent); }
+  .nav-right { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted); }
+  .nav-right a { color: var(--accent); text-decoration: none; }
+  .nav-right a:hover { text-decoration: underline; }
 
-    body {
-      font-family: var(--sans);
-      background: var(--bg-deep);
-      color: var(--text-primary);
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-      overflow: hidden;
-    }
+  main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; }
 
-    /* Subtle grid background */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
-      background-size: 60px 60px;
-      pointer-events: none;
-    }
+  .auth-container { width: 100%; max-width: 420px; animation: fadeUp 0.6s ease both; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* Scan line effect */
-    body::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 0, 0, 0.03) 2px,
-        rgba(0, 0, 0, 0.03) 4px
-      );
-      pointer-events: none;
-    }
+  .auth-eyebrow { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
+  .auth-eyebrow::before { content: ''; display: block; width: 1.5rem; height: 1px; background: var(--accent); }
+  .auth-heading { font-family: var(--serif); font-size: 2.2rem; color: var(--white); margin-bottom: 0.4rem; line-height: 1.15; }
+  .auth-sub { font-size: 0.9rem; color: var(--muted); font-weight: 300; margin-bottom: 2.5rem; }
 
-    .login-container {
-      width: 100%;
-      max-width: 420px;
-      padding: 20px;
-      position: relative;
-      z-index: 1;
-    }
+  .auth-card { background: var(--surface); border: 1px solid var(--border); padding: 2rem; position: relative; overflow: hidden; }
+  .auth-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
 
-    /* Brand header */
-    .brand {
-      text-align: center;
-      margin-bottom: 32px;
-    }
+  .form-group { margin-bottom: 1.25rem; }
+  .form-label { display: block; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+  .form-input { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--white); font-family: var(--mono); font-size: 0.85rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .form-input::placeholder { color: var(--muted); }
+  .form-input:focus { border-color: var(--accent); }
 
-    .brand-icon {
-      width: 48px;
-      height: 48px;
-      margin: 0 auto 16px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-card);
-      font-size: 22px;
-    }
+  .form-footer { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .form-forgot { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+  .form-forgot:hover { color: var(--accent); }
 
-    .brand h1 {
-      font-family: var(--mono);
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
-      color: var(--text-primary);
-      margin-bottom: 6px;
-    }
+  .btn-submit { display: block; width: 100%; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.9rem; cursor: pointer; font-weight: 700; transition: opacity 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
+  .btn-submit:hover { opacity: 0.85; }
 
-    .brand p {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-family: var(--mono);
-    }
+  .auth-divider { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
+  .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .auth-divider span { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
 
-    /* Card */
-    .auth-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-    }
+  .auth-switch { text-align: center; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--muted); }
+  .auth-switch a { color: var(--accent); text-decoration: none; }
+  .auth-switch a:hover { text-decoration: underline; }
 
-    /* Tabs */
-    .tab-bar {
-      display: flex;
-      border-bottom: 1px solid var(--border);
-    }
+  .error-box { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .error-box.visible { display: block; }
 
-    .tab-btn {
-      flex: 1;
-      padding: 14px 0;
-      background: none;
-      border: none;
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--text-dim);
-      cursor: pointer;
-      position: relative;
-      transition: color 0.2s;
-    }
+  footer { border-top: 1px solid var(--border); padding: 1.25rem 3rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  .footer-links { display: flex; gap: 1.5rem; }
 
-    .tab-btn:hover { color: var(--text-muted); }
-
-    .tab-btn.active {
-      color: var(--text-primary);
-    }
-
-    .tab-btn.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 20%;
-      right: 20%;
-      height: 2px;
-      background: var(--accent);
-      border-radius: 2px 2px 0 0;
-    }
-
-    /* Form */
-    .form-body {
-      padding: 28px 24px;
-    }
-
-    .form-panel {
-      display: none;
-    }
-
-    .form-panel.active {
-      display: block;
-      animation: fadeIn 0.2s ease;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .field {
-      margin-bottom: 18px;
-    }
-
-    .field label {
-      display: block;
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 500;
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.8px;
-      margin-bottom: 6px;
-    }
-
-    .field input {
-      width: 100%;
-      padding: 11px 14px;
-      background: var(--bg-input);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-primary);
-      font-family: var(--mono);
-      font-size: 14px;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-
-    .field input:focus {
-      border-color: var(--border-focus);
-      box-shadow: 0 0 0 3px var(--accent-glow);
-    }
-
-    .field input::placeholder {
-      color: var(--text-dim);
-      font-size: 13px;
-    }
-
-    .btn-primary {
-      width: 100%;
-      padding: 12px 0;
-      background: var(--accent);
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.3px;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.1s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-primary:active { transform: scale(0.98); }
-
-    .btn-primary:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .btn-primary .spinner {
-      display: none;
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255,255,255,0.3);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      margin: 0 auto;
-    }
-
-    .btn-primary.loading .btn-text { display: none; }
-    .btn-primary.loading .spinner { display: block; }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* Messages */
-    .msg {
-      padding: 10px 14px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-bottom: 16px;
-      display: none;
-      font-family: var(--mono);
-      line-height: 1.5;
-    }
-
-    .msg.error {
-      display: block;
-      background: var(--red-dim);
-      border: 1px solid rgba(239, 68, 68, 0.2);
-      color: var(--red);
-    }
-
-    .msg.success {
-      display: block;
-      background: var(--green-dim);
-      border: 1px solid rgba(34, 197, 94, 0.2);
-      color: var(--green);
-    }
-
-    .msg.info {
-      display: block;
-      background: var(--accent-glow);
-      border: 1px solid rgba(59, 130, 246, 0.2);
-      color: var(--accent);
-    }
-
-    /* Links */
-    .form-footer {
-      text-align: center;
-      margin-top: 16px;
-    }
-
-    .form-footer a,
-    .form-footer button {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-family: var(--mono);
-      font-size: 12px;
-      cursor: pointer;
-      text-decoration: none;
-    }
-
-    .form-footer a:hover,
-    .form-footer button:hover {
-      text-decoration: underline;
-    }
-
-    /* Success / polling state */
-    .success-state {
-      text-align: center;
-      padding: 40px 24px;
-      display: none;
-    }
-
-    .success-state.active {
-      display: block;
-    }
-
-    .success-state .check-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 50%;
-      background: var(--green-dim);
-      border: 1.5px solid rgba(34, 197, 94, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 24px;
-    }
-
-    .success-state h2 {
-      font-family: var(--mono);
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .success-state p {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-family: var(--mono);
-      line-height: 1.6;
-    }
-
-    .poll-dots {
-      display: inline-flex;
-      gap: 4px;
-      margin-top: 16px;
-    }
-
-    .poll-dots span {
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
-      opacity: 0.3;
-      animation: pulse 1.2s ease-in-out infinite;
-    }
-
-    .poll-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .poll-dots span:nth-child(3) { animation-delay: 0.4s; }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 0.3; }
-      50% { opacity: 1; }
-    }
-
-    /* Unpaid state — shown when user logs in but hasn't subscribed */
-    .unpaid-state {
-      text-align: center;
-      padding: 32px 24px;
-      display: none;
-    }
-
-    .unpaid-state.active { display: block; }
-
-    .unpaid-state h2 {
-      font-family: var(--mono);
-      font-size: 15px;
-      font-weight: 600;
-      margin-bottom: 8px;
-    }
-
-    .unpaid-state p {
-      font-size: 13px;
-      color: var(--text-muted);
-      font-family: var(--mono);
-      margin-bottom: 20px;
-      line-height: 1.6;
-    }
-
-    .price-tag {
-      font-family: var(--mono);
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--text-primary);
-      margin-bottom: 4px;
-    }
-
-    .price-tag span {
-      font-size: 14px;
-      font-weight: 400;
-      color: var(--text-muted);
-    }
-
-    .btn-subscribe {
-      width: 100%;
-      padding: 12px 0;
-      background: var(--green);
-      border: none;
-      border-radius: 8px;
-      color: #fff;
-      font-family: var(--mono);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-      margin-top: 20px;
-    }
-
-    .btn-subscribe:hover { background: #16a34a; }
-
-    .btn-secondary {
-      width: 100%;
-      padding: 10px 0;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text-muted);
-      font-family: var(--mono);
-      font-size: 12px;
-      cursor: pointer;
-      margin-top: 10px;
-      transition: border-color 0.2s;
-    }
-
-    .btn-secondary:hover { border-color: var(--text-muted); }
-
-    /* Reset password panel */
-    .reset-panel {
-      display: none;
-      padding: 28px 24px;
-    }
-
-    .reset-panel.active { display: block; }
-
-    .back-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      color: var(--text-muted);
-      font-family: var(--mono);
-      font-size: 12px;
-      cursor: pointer;
-      background: none;
-      border: none;
-      margin-bottom: 20px;
-    }
-
-    .back-link:hover { color: var(--text-primary); }
-
-    /* Responsive */
-    @media (max-width: 480px) {
-      .login-container { padding: 16px; }
-      .form-body { padding: 24px 18px; }
-    }
-  </style>
+  @media (max-width: 640px) {
+    nav { padding: 1rem 1.25rem; }
+    footer { padding: 1rem 1.25rem; flex-direction: column; gap: 0.75rem; text-align: center; }
+  }
+</style>
 </head>
 <body>
 
-<div class="login-container">
-
-  <!-- Brand -->
-  <div class="brand">
-    <div class="brand-icon">⚡</div>
-    <h1>SUBMARINE CATALYST</h1>
-    <p>PDUFA Intelligence Terminal</p>
-  </div>
-
-  <!-- Auth Card -->
-  <div class="auth-card">
-
-    <!-- Tabs -->
-    <div class="tab-bar" id="tabBar">
-      <button class="tab-btn active" data-tab="signin">Sign In</button>
-      <button class="tab-btn" data-tab="signup">Create Account</button>
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="sonar-icon">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Submarine Catalyst sonar icon">
+        <circle cx="16" cy="16" r="15" stroke="#1a3a5c" stroke-width="1"/>
+        <circle cx="16" cy="16" r="10" stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="5"  stroke="#1a3a5c" stroke-width="0.75"/>
+        <circle cx="16" cy="16" r="2"  fill="#00d4ff"/>
+        <line x1="16" y1="16" x2="24" y2="4" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="24" cy="4" r="1.5" fill="#00ff9d">
+          <animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3">
+          <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/>
+        </path>
+      </svg>
     </div>
+    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  </a>
+  <span class="nav-right">No account? <a href="/signup.html">Create one →</a></span>
+</nav>
 
-    <!-- Sign In -->
-    <div class="form-panel active" id="panel-signin">
-      <div class="form-body">
-        <div id="msg-signin" class="msg"></div>
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="signin-email" placeholder="you@example.com" autocomplete="email">
+<main>
+  <div class="auth-container">
+    <div class="auth-eyebrow">Secure Access</div>
+    <h1 class="auth-heading">Sign in to<br>your account.</h1>
+    <p class="auth-sub">Access your PDUFA scanner, watchlist, and alerts.</p>
+
+    <div class="auth-card">
+      <div class="error-box" id="error-box">Invalid email or password. Please try again.</div>
+
+      <form id="login-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email">Email Address</label>
+          <input class="form-input" type="email" id="email" name="email"
+                 placeholder="you@example.com" autocomplete="email" required />
         </div>
-        <div class="field">
-          <label>Password</label>
-          <input type="password" id="signin-pass" placeholder="••••••••" autocomplete="current-password">
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input class="form-input" type="password" id="password" name="password"
+                 placeholder="••••••••" autocomplete="current-password" required />
         </div>
-        <button class="btn-primary" id="btn-signin">
-          <span class="btn-text">AUTHENTICATE</span>
-          <div class="spinner"></div>
-        </button>
         <div class="form-footer">
-          <button id="show-reset">Forgot password?</button>
+          <span></span>
+          <a href="/forgot-password.html" class="form-forgot">Forgot password?</a>
         </div>
-      </div>
-    </div>
+        <button type="submit" class="btn-submit" id="submit-btn">Sign In</button>
+      </form>
 
-    <!-- Sign Up -->
-    <div class="form-panel" id="panel-signup">
-      <div class="form-body">
-        <div id="msg-signup" class="msg"></div>
-        <div class="field">
-          <label>Email</label>
-          <input type="email" id="signup-email" placeholder="you@example.com" autocomplete="email">
-        </div>
-        <div class="field">
-          <label>Password</label>
-          <input type="password" id="signup-pass" placeholder="Min 8 characters" autocomplete="new-password">
-        </div>
-        <div class="field">
-          <label>Confirm Password</label>
-          <input type="password" id="signup-pass2" placeholder="Confirm password" autocomplete="new-password">
-        </div>
-        <button class="btn-primary" id="btn-signup">
-          <span class="btn-text">CREATE ACCOUNT → SUBSCRIBE</span>
-          <div class="spinner"></div>
-        </button>
-        <div class="form-footer" style="margin-top: 12px;">
-          <p style="font-size: 11px; color: var(--text-dim); font-family: var(--mono);">
-            Account creation → Stripe checkout → instant access
-          </p>
-        </div>
-      </div>
+      <div class="auth-divider"><span>or</span></div>
+      <div class="auth-switch">Don't have an account? <a href="/signup.html">Subscribe now →</a></div>
     </div>
-
-    <!-- Password Reset -->
-    <div class="reset-panel" id="panel-reset">
-      <button class="back-link" id="back-to-signin">← Back to sign in</button>
-      <div id="msg-reset" class="msg"></div>
-      <div class="field">
-        <label>Email</label>
-        <input type="email" id="reset-email" placeholder="you@example.com">
-      </div>
-      <button class="btn-primary" id="btn-reset">
-        <span class="btn-text">SEND RESET LINK</span>
-        <div class="spinner"></div>
-      </button>
-    </div>
-
-    <!-- Unpaid State (logged in but no subscription) -->
-    <div class="unpaid-state" id="panel-unpaid">
-      <h2>Subscription Required</h2>
-      <p>Your account is active but you don't have an active subscription yet.</p>
-      <div class="price-tag">$29.99 <span>/ month</span></div>
-      <button class="btn-subscribe" id="btn-subscribe">ACTIVATE SUBSCRIPTION</button>
-      <button class="btn-secondary" id="btn-signout-unpaid">Sign out</button>
-    </div>
-
-    <!-- Polling / Success State -->
-    <div class="success-state" id="panel-success">
-      <div class="check-icon">✓</div>
-      <h2 id="success-title">Activating your account...</h2>
-      <p id="success-msg">Confirming payment with Stripe. This takes a few seconds.</p>
-      <div class="poll-dots" id="poll-dots">
-        <span></span><span></span><span></span>
-      </div>
-    </div>
-
   </div>
-</div>
+</main>
 
-<!-- Supabase SDK -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
-<!-- Your SC Config (loaded from your repo) -->
-<!-- If sc-config.js is a separate file, uncomment this and remove the inline block below:
-<script src="/js/sc-config.js"></script>
--->
+<footer>
+  <a href="/" style="font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</a>
+  <div class="footer-links">
+    <a href="/privacy.html">Privacy</a>
+    <a href="/terms.html">Terms</a>
+  </div>
+</footer>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// INLINE CONFIG — replace with <script src="/js/sc-config.js"> in production
-// ═══════════════════════════════════════════════════════════════════════════
-const SC_CONFIG = {
-  supabaseUrl:  'https://dipagzqrvivposqjkdkx.supabase.co',
-  supabaseKey:  'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU',
-  stripePaymentLink: 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03',
-  stripePortalUrl: 'https://billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00',
-  siteName: 'Submarine Catalyst',
-  domain: 'submarinecatalyst.com',
-  scannerUrl: '/scanner.html',          // Where paid users land
-  successParam: 'checkout_success',     // URL param after Stripe redirect
-};
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SUPABASE INIT
-// ═══════════════════════════════════════════════════════════════════════════
-let _sb = null;
-function getSB() {
-  if (_sb) return _sb;
-  _sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseKey);
-  return _sb;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// DOM REFS
-// ═══════════════════════════════════════════════════════════════════════════
-const $ = (sel) => document.querySelector(sel);
-const tabBar      = $('#tabBar');
-const panelSignin = $('#panel-signin');
-const panelSignup = $('#panel-signup');
-const panelReset  = $('#panel-reset');
-const panelUnpaid = $('#panel-unpaid');
-const panelSuccess= $('#panel-success');
-
-// ═══════════════════════════════════════════════════════════════════════════
-// TAB SWITCHING
-// ═══════════════════════════════════════════════════════════════════════════
-function showPanel(name) {
-  // Hide all panels
-  [panelSignin, panelSignup, panelReset, panelUnpaid, panelSuccess].forEach(p => {
-    p.classList.remove('active');
-    if (p.classList.contains('form-panel')) p.style.display = 'none';
+  // Redirect if already logged in
+  scGetSession().then(session => {
+    if (session) window.location.href = '/dashboard.html';
   });
 
-  // Show/hide tab bar
-  tabBar.style.display = (name === 'unpaid' || name === 'success' || name === 'reset') ? 'none' : 'flex';
+  document.getElementById('login-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const btn      = document.getElementById('submit-btn');
+    const errorBox = document.getElementById('error-box');
+    const email    = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
 
-  // Activate target
-  const target = $(`#panel-${name}`);
-  if (target) {
-    if (target.classList.contains('form-panel')) target.style.display = 'block';
-    target.classList.add('active');
-  }
+    errorBox.classList.remove('visible');
+    btn.textContent   = 'Signing in...';
+    btn.style.opacity = '0.7';
+    btn.disabled      = true;
 
-  // Update tab buttons
-  tabBar.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.tab === name);
-  });
-}
-
-tabBar.addEventListener('click', (e) => {
-  const btn = e.target.closest('.tab-btn');
-  if (btn) showPanel(btn.dataset.tab);
-});
-
-$('#show-reset').addEventListener('click', () => showPanel('reset'));
-$('#back-to-signin').addEventListener('click', () => showPanel('signin'));
-
-// ═══════════════════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════════════════
-function showMsg(id, text, type) {
-  const el = $(`#${id}`);
-  el.className = `msg ${type}`;
-  el.textContent = text;
-  el.style.display = 'block';
-}
-
-function clearMsg(id) {
-  const el = $(`#${id}`);
-  el.style.display = 'none';
-}
-
-function setLoading(btnId, loading) {
-  const btn = $(`#${btnId}`);
-  btn.classList.toggle('loading', loading);
-  btn.disabled = loading;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SIGN IN
-// ═══════════════════════════════════════════════════════════════════════════
-$('#btn-signin').addEventListener('click', async () => {
-  const email = $('#signin-email').value.trim();
-  const pass  = $('#signin-pass').value;
-  clearMsg('msg-signin');
-
-  if (!email || !pass) {
-    showMsg('msg-signin', 'Email and password required.', 'error');
-    return;
-  }
-
-  setLoading('btn-signin', true);
-
-  try {
-    const { data, error } = await getSB().auth.signInWithPassword({ email, password: pass });
-
-    if (error) {
-      showMsg('msg-signin', error.message, 'error');
-      setLoading('btn-signin', false);
+    const sb = getSupabase();
+    if (!sb) {
+      errorBox.textContent = 'Service unavailable. Please try again in a moment.';
+      errorBox.classList.add('visible');
+      btn.textContent = 'Sign In'; btn.style.opacity = '1'; btn.disabled = false;
       return;
     }
-
-    // Check paid status
-    const userId = data.session.user.id;
-    const { data: profile } = await getSB()
-      .from('profiles')
-      .select('is_paid, subscription_status')
-      .eq('id', userId)
-      .single();
-
-    if (profile?.is_paid) {
-      // Paid user → scanner
-      window.location.href = SC_CONFIG.scannerUrl;
-    } else {
-      // Not paid → show subscribe panel
-      showPanel('unpaid');
-      window._currentUser = data.session.user;
-    }
-
-  } catch (err) {
-    showMsg('msg-signin', 'Something went wrong. Try again.', 'error');
-  }
-
-  setLoading('btn-signin', false);
-});
-
-// Enter key on password field
-$('#signin-pass').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') $('#btn-signin').click();
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SIGN UP → STRIPE
-// ═══════════════════════════════════════════════════════════════════════════
-$('#btn-signup').addEventListener('click', async () => {
-  const email = $('#signup-email').value.trim();
-  const pass  = $('#signup-pass').value;
-  const pass2 = $('#signup-pass2').value;
-  clearMsg('msg-signup');
-
-  if (!email || !pass) {
-    showMsg('msg-signup', 'All fields required.', 'error');
-    return;
-  }
-  if (pass.length < 8) {
-    showMsg('msg-signup', 'Password must be at least 8 characters.', 'error');
-    return;
-  }
-  if (pass !== pass2) {
-    showMsg('msg-signup', 'Passwords do not match.', 'error');
-    return;
-  }
-
-  setLoading('btn-signup', true);
-
-  try {
-    const { data, error } = await getSB().auth.signUp({
-      email,
-      password: pass,
-      options: {
-        // Skip email confirmation for immediate checkout flow
-        // (email gets verified implicitly via Stripe receipt)
-        data: { source: 'direct_signup' }
-      }
-    });
-
-    if (error) {
-      showMsg('msg-signup', error.message, 'error');
-      setLoading('btn-signup', false);
-      return;
-    }
-
-    // Redirect to Stripe Checkout with user ID + email prefilled
-    const userId = data.user?.id || '';
-    let url = SC_CONFIG.stripePaymentLink;
-    const params = new URLSearchParams();
-    if (userId) params.set('client_reference_id', userId);
-    params.set('prefilled_email', email);
-    const qs = params.toString();
-    if (qs) url += (url.includes('?') ? '&' : '?') + qs;
-
-    window.location.href = url;
-
-  } catch (err) {
-    showMsg('msg-signup', 'Account creation failed. Try again.', 'error');
-    setLoading('btn-signup', false);
-  }
-});
-
-// Enter key on confirm password
-$('#signup-pass2').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') $('#btn-signup').click();
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// SUBSCRIBE (for existing unpaid users)
-// ═══════════════════════════════════════════════════════════════════════════
-$('#btn-subscribe').addEventListener('click', () => {
-  const user = window._currentUser;
-  let url = SC_CONFIG.stripePaymentLink;
-  const params = new URLSearchParams();
-  if (user?.id) params.set('client_reference_id', user.id);
-  if (user?.email) params.set('prefilled_email', user.email);
-  const qs = params.toString();
-  if (qs) url += (url.includes('?') ? '&' : '?') + qs;
-  window.location.href = url;
-});
-
-$('#btn-signout-unpaid').addEventListener('click', async () => {
-  await getSB().auth.signOut();
-  showPanel('signin');
-  tabBar.style.display = 'flex';
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// PASSWORD RESET
-// ═══════════════════════════════════════════════════════════════════════════
-$('#btn-reset').addEventListener('click', async () => {
-  const email = $('#reset-email').value.trim();
-  clearMsg('msg-reset');
-
-  if (!email) {
-    showMsg('msg-reset', 'Enter your email address.', 'error');
-    return;
-  }
-
-  setLoading('btn-reset', true);
-
-  try {
-    const { error } = await getSB().auth.resetPasswordForEmail(email, {
-      redirectTo: `https://${SC_CONFIG.domain}/login.html`
-    });
-
-    if (error) {
-      showMsg('msg-reset', error.message, 'error');
-    } else {
-      showMsg('msg-reset', 'Reset link sent. Check your inbox.', 'success');
-    }
-  } catch (err) {
-    showMsg('msg-reset', 'Failed to send reset link.', 'error');
-  }
-
-  setLoading('btn-reset', false);
-});
-
-// ═══════════════════════════════════════════════════════════════════════════
-// STRIPE RETURN → POLL FOR SUBSCRIPTION ACTIVATION
-// ═══════════════════════════════════════════════════════════════════════════
-async function handleStripeReturn() {
-  const params = new URLSearchParams(window.location.search);
-  const isCheckoutReturn = params.has(SC_CONFIG.successParam) || params.has('success');
-
-  if (!isCheckoutReturn) return false;
-
-  // Show polling state
-  showPanel('success');
-
-  // Clean URL
-  window.history.replaceState({}, '', '/login.html');
-
-  // Try to get session (user may already be logged in from signup)
-  const { data: { session } } = await getSB().auth.getSession();
-
-  if (!session) {
-    // User wasn't persisted — show sign-in with success message
-    $('#success-title').textContent = 'Payment received!';
-    $('#success-msg').textContent = 'Sign in with the email you used at checkout to access the terminal.';
-    $('#poll-dots').style.display = 'none';
-
-    setTimeout(() => {
-      showPanel('signin');
-      showMsg('msg-signin', 'Payment confirmed. Sign in to access the scanner.', 'success');
-    }, 3000);
-
-    return true;
-  }
-
-  // Poll Supabase for is_paid (webhook should fire within seconds)
-  const userId = session.user.id;
-  const maxAttempts = 12;
-
-  for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, 2500));
 
     try {
-      const { data } = await getSB()
-        .from('profiles')
-        .select('is_paid')
-        .eq('id', userId)
-        .single();
-
-      if (data?.is_paid) {
-        // SUCCESS — redirect to scanner
-        $('#success-title').textContent = 'Access granted.';
-        $('#success-msg').textContent = 'Redirecting to the terminal...';
-        $('#poll-dots').style.display = 'none';
-
-        setTimeout(() => {
-          window.location.href = SC_CONFIG.scannerUrl;
-        }, 1200);
-
-        return true;
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) {
+        errorBox.textContent = error.message || 'Invalid email or password. Please try again.';
+        errorBox.classList.add('visible');
+        btn.textContent = 'Sign In'; btn.style.opacity = '1'; btn.disabled = false;
+      } else {
+        window.location.href = '/dashboard.html';
       }
-    } catch (e) {
-      console.log('[SC Login] Poll attempt', i + 1, 'error:', e);
+    } catch (err) {
+      errorBox.textContent = 'Connection error. Please check your internet and try again.';
+      errorBox.classList.add('visible');
+      btn.textContent = 'Sign In'; btn.style.opacity = '1'; btn.disabled = false;
     }
-  }
-
-  // Polling timed out — webhook might be delayed
-  $('#success-title').textContent = 'Payment received';
-  $('#success-msg').innerHTML =
-    'Your subscription is being processed. If you\'re not redirected in a minute, ' +
-    'try signing in. If the issue persists, email <strong>support@submarinecatalyst.com</strong> ' +
-    'with your payment confirmation.';
-  $('#poll-dots').style.display = 'none';
-
-  return true;
-}
-
-// ═══════════════════════════════════════════════════════════════════════════
-// ON PAGE LOAD — Check session, handle redirects
-// ═══════════════════════════════════════════════════════════════════════════
-(async function init() {
-
-  // 1. Handle Stripe return first
-  const wasStripeReturn = await handleStripeReturn();
-  if (wasStripeReturn) return;
-
-  // 2. Check for existing session
-  try {
-    const { data: { session } } = await getSB().auth.getSession();
-
-    if (session) {
-      // Already logged in — check if paid
-      const { data: profile } = await getSB()
-        .from('profiles')
-        .select('is_paid')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profile?.is_paid) {
-        // Already paid → go to scanner
-        window.location.href = SC_CONFIG.scannerUrl;
-        return;
-      }
-
-      // Logged in but not paid
-      window._currentUser = session.user;
-      showPanel('unpaid');
-    }
-
-  } catch (e) {
-    console.log('[SC Login] Session check:', e);
-  }
-
-})();
+  });
 </script>
-
 </body>
 </html>
