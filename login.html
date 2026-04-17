@@ -33,47 +33,10 @@
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { scroll-behavior: smooth; }
-  body {
-    background: var(--navy);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    opacity: 0.4;
-    pointer-events: none;
-    z-index: 0;
-  }
+  body { background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
   nav, main, footer { position: relative; z-index: 1; }
-
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.25rem 3rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(4,13,26,0.85);
-    backdrop-filter: blur(12px);
-  }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 3rem; border-bottom: 1px solid var(--border); background: rgba(4,13,26,0.85); backdrop-filter: blur(12px); }
   .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
   .sonar-icon { width: 32px; height: 32px; }
   .sonar-icon svg { width: 100%; height: 100%; }
@@ -82,49 +45,40 @@
   .nav-right { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; color: var(--muted); }
   .nav-right a { color: var(--accent); text-decoration: none; }
   .nav-right a:hover { text-decoration: underline; }
-
   main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; }
-
   .auth-container { width: 100%; max-width: 420px; animation: fadeUp 0.6s ease both; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-
   .auth-eyebrow { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
   .auth-eyebrow::before { content: ''; display: block; width: 1.5rem; height: 1px; background: var(--accent); }
   .auth-heading { font-family: var(--serif); font-size: 2.2rem; color: var(--white); margin-bottom: 0.4rem; line-height: 1.15; }
   .auth-sub { font-size: 0.9rem; color: var(--muted); font-weight: 300; margin-bottom: 2.5rem; }
-
   .auth-card { background: var(--surface); border: 1px solid var(--border); padding: 2rem; position: relative; overflow: hidden; }
   .auth-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-
   .form-group { margin-bottom: 1.25rem; }
   .form-label { display: block; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
   .form-input { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--white); font-family: var(--mono); font-size: 0.85rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
   .form-input::placeholder { color: var(--muted); }
   .form-input:focus { border-color: var(--accent); }
-
   .form-footer { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
   .form-forgot { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: none; transition: color 0.2s; }
   .form-forgot:hover { color: var(--accent); }
-
   .btn-submit { display: block; width: 100%; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.9rem; cursor: pointer; font-weight: 700; transition: opacity 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
   .btn-submit:hover { opacity: 0.85; }
-
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
   .auth-divider { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
   .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
   .auth-divider span { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
-
   .auth-switch { text-align: center; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--muted); }
   .auth-switch a { color: var(--accent); text-decoration: none; }
   .auth-switch a:hover { text-decoration: underline; }
-
   .error-box { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
   .error-box.visible { display: block; }
-
+  .info-box { background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .info-box.visible { display: block; }
   footer { border-top: 1px solid var(--border); padding: 1.25rem 3rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); }
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--accent); }
   .footer-links { display: flex; gap: 1.5rem; }
-
   @media (max-width: 640px) {
     nav { padding: 1rem 1.25rem; }
     footer { padding: 1rem 1.25rem; flex-direction: column; gap: 0.75rem; text-align: center; }
@@ -162,7 +116,8 @@
     <p class="auth-sub">Access your PDUFA scanner, watchlist, and alerts.</p>
 
     <div class="auth-card">
-      <div class="error-box" id="error-box">Invalid email or password. Please try again.</div>
+      <div class="error-box" id="error-box"></div>
+      <div class="info-box"  id="info-box"></div>
 
       <form id="login-form" novalidate>
         <div class="form-group">
@@ -197,44 +152,120 @@
 </footer>
 
 <script>
-  // Redirect if already logged in
-  scGetSession().then(session => {
-    if (session) window.location.href = '/dashboard.html';
-  });
+  const errorBox  = document.getElementById('error-box');
+  const infoBox   = document.getElementById('info-box');
+  const submitBtn = document.getElementById('submit-btn');
+
+  function showError(msg) {
+    errorBox.textContent = msg;
+    errorBox.classList.add('visible');
+    infoBox.classList.remove('visible');
+  }
+  function showInfo(msg) {
+    infoBox.textContent = msg;
+    infoBox.classList.add('visible');
+    errorBox.classList.remove('visible');
+  }
+  function resetBtn() {
+    submitBtn.textContent = 'Sign In';
+    submitBtn.disabled = false;
+    submitBtn.style.opacity = '1';
+  }
+
+  // Poll for session to be persisted before redirecting. This is the real
+  // fix: signInWithPassword can resolve before localStorage is written, and
+  // if we navigate to /dashboard.html too fast, its auth guard sees no
+  // session and bounces back here — which manifests as the Sign In button
+  // appearing to hang on "Signing in...". We poll getSession() every 100ms
+  // up to 3 seconds, only navigating once the session is readable.
+  async function waitForSessionAndRedirect(sb, destination) {
+    for (let i = 0; i < 30; i++) {
+      try {
+        const { data } = await sb.auth.getSession();
+        if (data?.session?.access_token) {
+          window.location.href = destination;
+          return true;
+        }
+      } catch (e) { /* keep polling */ }
+      await new Promise(r => setTimeout(r, 100));
+    }
+    return false;
+  }
+
+  // If already signed in, skip straight to dashboard
+  if (typeof scGetSession === 'function') {
+    scGetSession()
+      .then(session => {
+        if (session) {
+          showInfo('Already signed in — redirecting to dashboard…');
+          window.location.href = '/dashboard.html';
+        }
+      })
+      .catch(err => console.warn('[SC Login] session check error:', err));
+  }
 
   document.getElementById('login-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const btn      = document.getElementById('submit-btn');
-    const errorBox = document.getElementById('error-box');
+    errorBox.classList.remove('visible');
+    infoBox.classList.remove('visible');
+
     const email    = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
 
-    errorBox.classList.remove('visible');
-    btn.textContent   = 'Signing in...';
-    btn.style.opacity = '0.7';
-    btn.disabled      = true;
-
-    const sb = getSupabase();
-    if (!sb) {
-      errorBox.textContent = 'Service unavailable. Please try again in a moment.';
-      errorBox.classList.add('visible');
-      btn.textContent = 'Sign In'; btn.style.opacity = '1'; btn.disabled = false;
+    if (!email || !password) {
+      showError('Email and password required.');
       return;
     }
 
+    submitBtn.textContent  = 'Signing in...';
+    submitBtn.disabled     = true;
+    submitBtn.style.opacity = '0.7';
+
+    const sb = (typeof getSupabase === 'function') ? getSupabase() : null;
+    if (!sb) {
+      showError('Service unavailable. Please refresh the page and try again.');
+      resetBtn();
+      return;
+    }
+
+    // 15s timeout so the button never hangs forever silently
+    const timeout = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('timeout')), 15000)
+    );
+
     try {
-      const { error } = await sb.auth.signInWithPassword({ email, password });
+      const result = await Promise.race([
+        sb.auth.signInWithPassword({ email, password }),
+        timeout,
+      ]);
+      const { data, error } = result;
+
       if (error) {
-        errorBox.textContent = error.message || 'Invalid email or password. Please try again.';
-        errorBox.classList.add('visible');
-        btn.textContent = 'Sign In'; btn.style.opacity = '1'; btn.disabled = false;
-      } else {
-        window.location.href = '/dashboard.html';
+        showError(error.message || 'Invalid email or password.');
+        resetBtn();
+        return;
+      }
+      if (!data?.session) {
+        showError('Sign-in succeeded but no session returned. Please try again.');
+        resetBtn();
+        return;
+      }
+
+      submitBtn.textContent = 'Loading dashboard...';
+      const ok = await waitForSessionAndRedirect(sb, '/dashboard.html');
+      if (!ok) {
+        showError('Signed in, but session did not persist to this browser. Try clearing cookies, disabling any browser extension blocking cookies, or switching browsers.');
+        resetBtn();
       }
     } catch (err) {
-      errorBox.textContent = 'Connection error. Please check your internet and try again.';
-      errorBox.classList.add('visible');
-      btn.textContent = 'Sign In'; btn.style.opacity = '1'; btn.disabled = false;
+      if (err.message === 'timeout') {
+        showError('Authentication timed out after 15 seconds. Supabase may still be warming up from a restore — wait 60 seconds and try again.');
+      } else if (err.message === 'Failed to fetch') {
+        showError('Cannot reach the authentication server. Your Supabase project may be paused — check the dashboard.');
+      } else {
+        showError('Connection error: ' + err.message);
+      }
+      resetBtn();
     }
   });
 </script>
