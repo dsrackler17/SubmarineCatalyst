@@ -247,9 +247,9 @@ footer a:hover { color:var(--accent); }
     </div>
   </div>
 
-  <div class="stat-strip" style="grid-template-columns:repeat(4,1fr);">
+  <div class="stat-strip">
     <div class="stat-cell">
-      <div class="stat-label">PoA Range</div>
+      <div class="stat-label">PoA Score</div>
       <div class="stat-val" id="stat-poa">—</div>
     </div>
     <div class="stat-cell">
@@ -261,26 +261,12 @@ footer a:hover { color:var(--accent); }
       <div class="stat-val" id="stat-dilution">—</div>
     </div>
     <div class="stat-cell">
-      <div class="stat-label">Net Edge</div>
+      <div class="stat-label">Net Edge Score</div>
       <div class="stat-val white" id="stat-final">—</div>
     </div>
-  </div>
-  <div class="stat-strip" style="grid-template-columns:repeat(4,1fr);margin-top:-1px;margin-bottom:2rem;">
     <div class="stat-cell">
-      <div class="stat-label">30D</div>
-      <div class="stat-val" id="stat-30d">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">Vol (30D)</div>
-      <div class="stat-val" id="stat-vol">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">Buyout</div>
-      <div class="stat-val" id="stat-buyout">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">TAM/Cap</div>
-      <div class="stat-val" id="stat-tam">—</div>
+      <div class="stat-label">Application</div>
+      <div class="stat-val amber" id="stat-type">—</div>
     </div>
   </div>
 
@@ -425,6 +411,120 @@ function gradeBadgeHTML(grade) {
   return '<span class="grade-pill ' + cls + '">' + lbl + '</span>';
 }
 
+// ─── LIVE INTRADAY PRICE FROM POLYGON SNAPSHOT ───────────────────────────────
+// /v2/snapshot/locale/us/markets/stocks/tickers/{ticker} returns the most recent
+// trade price during market hours (real-time on paid tier, 15-min delayed on free).
+// Use this to override stale DB current_price so the catalyst page ticks live.
+async function fetchLiveSnapshot(ticker) {
+  if (!SC_CONFIG.polygonApiKey) return null;
+  try {
+    var url = 'https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/' +
+      encodeURIComponent(ticker) + '?apiKey=' + SC_CONFIG.polygonApiKey;
+    var res = await fetch(url);
+    if (!res.ok) return null;
+    var data = await res.json();
+    var t = data && data.ticker;
+    if (!t) return null;
+    var price = (t.lastTrade && t.lastTrade.p) || (t.day && t.day.c) ||
+                (t.prevDay && t.prevDay.c) || null;
+    return {
+      price: (typeof price === 'number' && price > 0) ? price : null,
+      todayChangePerc: typeof t.todaysChangePerc === 'number' ? t.todaysChangePerc : null,
+      prevClose: (t.prevDay && t.prevDay.c) || null,
+    };
+  } catch (err) {
+    console.warn('[SC] Snapshot fetch failed for ' + ticker, err);
+    return null;
+  }
+}
+
+// ─── LIVE MARKET CAP FROM POLYGON ────────────────────────────────────────────
+// Polygon /v3/reference/tickers/{ticker} returns market_cap in full USD
+// (e.g. 69500000 for $69.5M), computed as latest close × shares outstanding.
+// Updated daily after market close — fresher than whatever is in the DB.
+async function fetchLiveCap(ticker) {
+  if (!SC_CONFIG.polygonApiKey) {
+    console.warn('[SC] No polygonApiKey in SC_CONFIG — skipping live cap');
+    return null;
+  }
+  try {
+    const url = 'https://api.polygon.io/v3/reference/tickers/' +
+      encodeURIComponent(ticker) + '?apiKey=' + SC_CONFIG.polygonApiKey;
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.warn('[SC] Polygon ticker details ' + res.status + ' for ' + ticker);
+      return null;
+    }
+    const data = await res.json();
+    const cap = data && data.results ? data.results.market_cap : null;
+    const shares = data && data.results
+      ? (data.results.weighted_shares_outstanding || data.results.share_class_shares_outstanding)
+      : null;
+    return {
+      market_cap: (typeof cap === 'number' && cap > 0) ? cap : null,
+      shares_outstanding: shares || null,
+    };
+  } catch (err) {
+    console.warn('[SC] Polygon live cap fetch failed for ' + ticker, err);
+    return null;
+  }
+}
+
+// Apply live cap + derive live TAM/Cap on an eventData object in-place.
+// TAM (absolute $) is static per indication — only the cap denominator moves.
+// Two derivation paths (fallback chain):
+//   1. staticTAM = oldTamRatio × oldCap (preferred; works when DB cap is present)
+//   2. staticTAM = drug_tam_billions × 1e9 (fallback when edge function dropped cap)
+// Also applies live intraday price from snapshot if provided — overrides
+// the stored current_price (which is EOD at best, often stale by days).
+function applyLiveMarketData(eventData, live, snap) {
+  if (!eventData) return;
+
+  // Resolve live market cap with priority: Polygon's pre-computed > shares × live price
+  var liveCap = null;
+  if (live && typeof live.market_cap === 'number' && live.market_cap > 0) {
+    liveCap = live.market_cap;
+  } else if (live && live.shares_outstanding && snap && snap.price) {
+    liveCap = live.shares_outstanding * snap.price;
+    console.log('[SC] Computed live cap from shares × price: ' + live.shares_outstanding +
+      ' × $' + snap.price + ' = $' + (liveCap / 1e6).toFixed(1) + 'M');
+  }
+
+  if (liveCap && liveCap > 0) {
+    var oldCap = Number(eventData.estimated_market_cap) || 0;
+    var oldTamRatio = Number(eventData.tam_ratio) || 0;
+
+    // Path 1: derive from old cap × ratio
+    var staticTamDollars = (oldCap > 0 && oldTamRatio > 0) ? oldTamRatio * oldCap : 0;
+
+    // Path 2: fall back to drug_tam_billions (more reliable — doesn't need cap)
+    if (staticTamDollars === 0) {
+      var tamBil = Number(eventData.drug_tam_billions) ||
+                   Number(eventData.drug_tam_estimate) || 0;
+      if (tamBil > 0) staticTamDollars = tamBil * 1e9;
+    }
+
+    eventData.estimated_market_cap = liveCap;
+    if (staticTamDollars > 0) {
+      eventData.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
+    }
+    console.log('[SC] Live cap applied: $' + (liveCap / 1e6).toFixed(1) +
+      'M (was $' + (oldCap / 1e6).toFixed(1) + 'M) · TAM/Cap ' +
+      (eventData.tam_ratio || '—') + 'x' +
+      (staticTamDollars === 0 ? ' [no TAM source]' : ''));
+  }
+  if (snap && snap.price) {
+    var oldPrice = Number(eventData.current_price) || 0;
+    eventData.current_price = snap.price;
+    if (snap.todayChangePerc !== null && typeof snap.todayChangePerc === 'number') {
+      eventData.today_change_pct = snap.todayChangePerc;
+    }
+    console.log('[SC] Live price applied: $' + snap.price.toFixed(2) +
+      (oldPrice > 0 ? ' (was $' + oldPrice.toFixed(2) + ')' : '') +
+      (typeof snap.todayChangePerc === 'number' ? ' · today ' + (snap.todayChangePerc >= 0 ? '+' : '') + snap.todayChangePerc.toFixed(2) + '%' : ''));
+  }
+}
+
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
 function populatePage(d, isPaid) {
   document.title = d.ticker + ' — Catalyst Deep Dive — Submarine Catalyst';
@@ -438,7 +538,7 @@ function populatePage(d, isPaid) {
   document.getElementById('countdown-days').textContent = days >= 0 ? days : 'Resolved';
   document.getElementById('countdown-date').textContent = d.date;
 
-  document.getElementById('stat-poa').textContent = d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%';
+  document.getElementById('stat-poa').textContent       = (d.poa || 0).toFixed(1) + '%';
   var stnRisk = d.sell_news_risk || 'MODERATE';
   var stnEl = document.getElementById('stat-stn');
   stnEl.textContent = stnRisk;
@@ -448,140 +548,31 @@ function populatePage(d, isPaid) {
   dilEl.textContent = dilRisk;
   dilEl.style.color = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)','UNKNOWN':'var(--muted)'}[dilRisk] || 'var(--muted)';
   document.getElementById('stat-final').textContent     = (d.net_edge_score || d.score || 0).toFixed(1);
+  document.getElementById('stat-type').textContent      = d.type || 'PDUFA';
 
-  // Row 2: 30D, Vol, Buyout, TAM
-  var p30val = Number(d.price_change_30d) || 0;
-  var stat30d = document.getElementById('stat-30d');
-  stat30d.textContent = p30val ? (p30val > 0 ? '+' : '') + p30val.toFixed(1) + '%' : '—';
-  stat30d.style.color = p30val > 0 ? 'var(--accent2)' : p30val < 0 ? 'var(--red)' : 'var(--muted)';
-
-  var volVal = Number(d.realized_vol_30d) || 0;
-  var statVol = document.getElementById('stat-vol');
-  statVol.textContent = volVal > 0 ? Math.round(volVal) + '%' : '—';
-  statVol.style.color = volVal >= 80 ? 'var(--red)' : volVal >= 50 ? 'var(--amber)' : volVal > 0 ? 'var(--accent)' : 'var(--muted)';
-
-  var bScoreVal = Number(d.buyout_score) || 0;
-  var statBuyout = document.getElementById('stat-buyout');
-  statBuyout.textContent = bScoreVal > 0 ? bScoreVal : '—';
-  statBuyout.style.color = bScoreVal >= 70 ? 'var(--accent2)' : bScoreVal >= 50 ? 'var(--accent)' : bScoreVal >= 30 ? 'var(--amber)' : 'var(--muted)';
-
-  var tamVal = Number(d.tam_ratio) || 0;
-  var statTam = document.getElementById('stat-tam');
-  statTam.textContent = tamVal > 0 ? tamVal + 'x' : '—';
-  statTam.style.color = tamVal >= 5 ? 'var(--accent2)' : tamVal >= 1 ? 'var(--accent)' : 'var(--muted)';
-
-  // ─── SECTION BUILDER ─────────────────────────────────────────────────────
-  function metricSection(title, rows) {
-    var html = '<div style="margin-bottom:1.25rem;">';
-    html += '<div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;padding-bottom:0.3rem;border-bottom:1px solid var(--border);">' + title + '</div>';
-    rows.forEach(function(r) {
-      if (!r) return;
-      var label = r[0], val = r[1], color = r[2] || '';
-      var style = color ? 'color:' + color + ';font-weight:700;' : '';
-      html += '<div class="metric-row"><span class="metric-label">' + label + '</span><span class="metric-val" style="' + style + '">' + val + '</span></div>';
-    });
-    html += '</div>';
-    return html;
-  }
-
-  // Color helpers
-  var stnColor = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[d.sell_news_risk] || '';
-  var dilColor = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)'}[d.dilution_risk] || '';
-  var gradeColor = {'ELITE':'var(--accent2)','STRONG':'var(--accent)','WATCH':'var(--amber)','WEAK':'var(--red)'}[d.grade] || '';
-  var p30 = Number(d.price_change_30d) || 0;
-  var p7 = Number(d.price_change_7d) || 0;
-  var v30 = Number(d.realized_vol_30d) || 0;
-  var v10 = Number(d.realized_vol_10d) || 0;
-  var rsi = Number(d.rsi_14d) || 0;
-  var si = Number(d.short_interest) || 0;
-  var rev = Number(d.revenue_m) || 0;
-  var mcap = Number(d.estimated_market_cap || d.market_cap) || 0;
-  var rw = Number(d.runway_months) || 0;
-  var bScore = Number(d.buyout_score) || 0;
-  var bProb = Number(d.buyout_probability_pct) || 0;
-  var dailyMove = v30 > 0 ? (v30 / Math.sqrt(252)) : 0;
-  var impliedMove = (dailyMove * 2).toFixed(1);
-  var mcapDisplay = mcap >= 1e9 ? '$' + (mcap/1e9).toFixed(1) + 'B' : mcap >= 1e6 ? '$' + Math.round(mcap/1e6) + 'M' : '—';
-  var takeout = mcap >= 1e8 ? '$' + (mcap * 1.6 / 1e9).toFixed(1) + 'B' : '—';
-
-  document.getElementById('key-metrics').innerHTML =
-
-    metricSection('Core Scoring', [
-      ['Grade', d.grade || 'WATCH', gradeColor],
-      ['PoA Range', d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%', 'var(--accent2)'],
-      ['Confidence', d.data_confidence || '—'],
-      ['STN Risk', d.sell_news_risk || 'MODERATE', stnColor],
-      ['Dilution Risk', d.dilution_risk || 'UNKNOWN', dilColor],
-      ['Net Edge', (d.net_edge_score || d.score || 0).toFixed(1) + ' / 100'],
-      ['PDUFA Date', d.date],
-      ['Days Out', days >= 0 ? days + 'd' : 'Resolved'],
-      ['Application', d.type || 'PDUFA'],
-      ['Indication', d.indication || 'Unknown'],
-    ]) +
-
-    metricSection('Live Market Data (Polygon)', [
-      ['Current Price', d.current_price ? '$' + Number(d.current_price).toFixed(2) : '—'],
-      ['30D Momentum', p30 ? (p30 > 0 ? '+' : '') + p30.toFixed(1) + '%' : '—', p30 > 0 ? 'var(--accent2)' : p30 < 0 ? 'var(--red)' : ''],
-      ['7D Momentum', p7 ? (p7 > 0 ? '+' : '') + p7.toFixed(1) + '%' : '—', p7 > 0 ? 'var(--accent2)' : p7 < 0 ? 'var(--red)' : ''],
-      ['Chart Pattern', d.chart_pattern || '—', d.chart_pattern === 'COILING' ? 'var(--accent2)' : d.chart_pattern === 'EXTENDED' ? 'var(--amber)' : d.chart_pattern === 'WEAK' ? 'var(--red)' : ''],
-      ['Realized Vol (30D)', v30 ? Math.round(v30) + '%' : '—', v30 >= 80 ? 'var(--red)' : v30 >= 50 ? 'var(--amber)' : ''],
-      ['Realized Vol (10D)', v10 ? Math.round(v10) + '%' : '—', v10 > v30 * 1.3 ? 'var(--amber)' : ''],
-      ['Implied Event Move', v30 > 0 ? '±' + impliedMove + '%' : '—', v30 >= 60 ? 'var(--amber)' : ''],
-      ['RSI-14', rsi > 0 ? rsi.toFixed(0) : '—', rsi >= 70 ? 'var(--red)' : rsi <= 30 ? 'var(--accent2)' : ''],
-      ['Short Interest', si > 0 ? si.toFixed(1) + '%' : '—', si >= 20 ? 'var(--red)' : si >= 10 ? 'var(--amber)' : ''],
-    ]) +
-
-    metricSection('Financial Profile', [
-      ['Market Cap', mcapDisplay],
-      ['Revenue', rev > 0 ? '$' + Math.round(rev) + 'M' : 'Pre-revenue', rev >= 100 ? 'var(--accent2)' : ''],
-      ['Cash Runway', rev >= 50 ? 'CF+ (revenue-stage)' : rw > 0 ? Math.round(rw) + ' months' : '—', rev >= 50 ? 'var(--accent2)' : rw <= 12 && rw > 0 ? 'var(--red)' : ''],
-      ['Takeout Price (60% premium)', takeout],
-      d.months_since_approval ? ['Months Since Approval', d.months_since_approval + 'mo'] : null,
-    ]) +
-
-    metricSection('Dilution Intelligence', [
-      ['Dilution Risk', d.dilution_risk || '—', dilColor],
-      ['Dilution Detail', d.dilution_detail || 'No signals detected'],
-      ['Shelf Active', d.shelf_active ? '⚠️ YES' : '✅ No', d.shelf_active ? 'var(--amber)' : 'var(--accent2)'],
-      ['ATM Active', d.atm_active ? '🚨 YES' : '✅ No', d.atm_active ? 'var(--red)' : 'var(--accent2)'],
-      ['PIPE Risk', d.pipe_risk || '—', d.pipe_risk === 'HIGH' ? 'var(--red)' : d.pipe_risk === 'MODERATE' ? 'var(--amber)' : ''],
-      ['Capital Raise Signal', d.capital_raise_signal || '—', d.capital_raise_signal === 'HEAVY_DILUTION' ? 'var(--red)' : d.capital_raise_signal === 'RECENT_RAISE' ? 'var(--amber)' : ''],
-      d.last_raise_date ? ['Last Raise', d.last_raise_date + (d.last_raise_amount ? ' ($' + Math.round(d.last_raise_amount) + 'M)' : '')] : null,
-      ['Insider Signal', d.insider_signal || 'NEUTRAL', d.insider_signal === 'BULLISH' ? 'var(--accent2)' : d.insider_signal === 'BEARISH' ? 'var(--red)' : ''],
-    ]) +
-
-    metricSection('Buyout Analysis', [
-      ['Buyout Score', bScore > 0 ? bScore + ' / 100' : '—', bScore >= 70 ? 'var(--accent2)' : bScore >= 50 ? 'var(--accent)' : ''],
-      ['Buyout Risk', d.buyout_risk || '—', d.buyout_risk === 'HIGH' ? 'var(--accent2)' : d.buyout_risk === 'MODERATE' ? 'var(--accent)' : ''],
-      ['Most Likely Acquirer', d.acquirer_urgency_top || '—'],
-      ['Buyout Timeline', d.buyout_timeline || '—'],
-      d.has_partnership && d.partner_name ? ['Partner', '🤝 ' + d.partner_name, 'var(--accent2)'] : null,
-      bProb > 0 ? ['Buyout Probability', bProb + '%'] : null,
-      ['Drug TAM', d.tam_label || '—'],
-      ['TAM / Cap', d.tam_ratio ? d.tam_ratio + 'x' : '—', d.tam_ratio >= 5 ? 'var(--accent2)' : d.tam_ratio >= 1 ? 'var(--accent)' : ''],
-    ]) +
-
-    // CMC / Supply Chain
-    (function() {
-      var cmcRisk = d.cmc_risk || 'UNKNOWN';
-      var cmcFlags = d.cmc_flags || [];
-      if (cmcRisk === 'UNKNOWN' && cmcFlags.length === 0) return '';
-      var cmcColor = cmcRisk === 'HIGH' ? 'var(--red)' : cmcRisk === 'ELEVATED' ? 'var(--amber)' : cmcRisk === 'MODERATE' ? 'var(--accent)' : 'var(--accent2)';
-      return metricSection('Supply Chain / CMC', [
-        ['CMC Risk', cmcRisk, cmcColor],
-      ].concat(cmcFlags.slice(0, 3).map(function(f) { return ['', f]; })));
-    })() +
-
-    // News
-    (function() {
-      var news = d.news_items || [];
-      if (news.length === 0) return '';
-      return metricSection('Latest News', news.slice(0, 3).map(function(n) {
-        var sig = n.signal || '📰';
-        var typeColor = n.type === 'M&A' ? 'var(--accent2)' : n.type === 'CATALYST' ? 'var(--accent)' : n.type === 'RISK' ? 'var(--amber)' : '';
-        return [n.date || '', sig + ' ' + (n.headline || '').slice(0, 80), typeColor];
-      }));
-    })();
+  document.getElementById('key-metrics').innerHTML = [
+    ['PDUFA Date',    d.date],
+    ['Days Out',      days >= 0 ? days + 'd' : 'Resolved'],
+    ['Application',   d.type || 'PDUFA'],
+    ['Indication',    d.indication || 'Unknown'],
+    ['Grade',         d.grade || 'WATCH'],
+    ['PoA',           (d.poa || 0).toFixed(1) + '%'],
+    ['STN Risk',      d.sell_news_risk || 'MODERATE'],
+    ['Move Score',    (d.move_score || 0) + '/100'],
+    ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
+    ['Dilution Score', (d.dilution_score || 0) + '/100'],
+    ['Runway',        d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown'],
+    ['Insider Signal', d.insider_signal || 'NEUTRAL'],
+    ['Shelf Active',  d.shelf_active ? 'YES' : 'No'],
+    ['ATM Active',    d.atm_active ? 'YES' : 'No'],
+    ['Buyout Score',  (d.buyout_score || 0) + '/100'],
+    ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
+    ['Drug TAM',      d.tam_label || 'Unknown'],
+    ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—'],
+    ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
+  ].map(function(pair) {
+    return '<div class="metric-row"><span class="metric-label">' + pair[0] + '</span><span class="metric-val">' + pair[1] + '</span></div>';
+  }).join('');
 
   // Show risk flags
   var flags = d.flags || [];
@@ -591,45 +582,6 @@ function populatePage(d, isPaid) {
     }).join('');
   } else {
     document.getElementById('risk-flags').innerHTML = '<div class="flag-item" style="color:var(--muted)">No specific risk flags detected</div>';
-  }
-
-  // Vol Edge Analysis — prominent display
-  var v30 = Number(d.realized_vol_30d) || 0;
-  var v10 = Number(d.realized_vol_10d) || 0;
-  var stn = d.sell_news_risk || '';
-  var volEdgeHTML = '';
-  if (v30 > 0) {
-    var dailyMove = v30 / Math.sqrt(252);
-    var impliedMove = (dailyMove * 2).toFixed(1);
-    var edgeBorder = 'var(--border)'; var edgeBg = 'var(--surface)'; var edgeIcon = '📊'; var edgeHeadline = ''; var edgeDetail = '';
-
-    if (stn === 'HIGH' && v30 >= 60) {
-      edgeBorder = 'var(--red)'; edgeBg = 'rgba(255,68,68,0.06)'; edgeIcon = '🔻';
-      edgeHeadline = 'VOL EDGE: HIGH STN + ' + Math.round(v30) + '% Realized Vol';
-      edgeDetail = 'Market pricing ±' + impliedMove + '% move — but STN Risk says direction is likely DOWN on approval. Historical pattern: REPL (−63%), RCKT (−20%), BIIB (−5%) all had HIGH STN and dropped. Selling IV or avoiding longs may have edge.';
-    } else if ((stn === 'LOW' || stn === 'VERY LOW') && v30 >= 50) {
-      edgeBorder = 'var(--accent2)'; edgeBg = 'rgba(0,255,157,0.04)'; edgeIcon = '📈';
-      edgeHeadline = 'VOL EDGE: LOW STN + ' + Math.round(v30) + '% Realized Vol';
-      edgeDetail = 'Market pricing ±' + impliedMove + '% move — STN Risk says the move is likely UP. Approval not fully priced in. Buying calls or going long into event may have edge. VNDA (+45%) fit this pattern.';
-    } else if (v10 > v30 * 1.3 && v10 > 40) {
-      edgeBorder = 'var(--amber)'; edgeBg = 'rgba(245,166,35,0.04)'; edgeIcon = '⚡';
-      edgeHeadline = 'VOL SPIKE: 10D ' + Math.round(v10) + '% vs 30D ' + Math.round(v30) + '%';
-      edgeDetail = 'Near-term vol spiking — market actively positioning for this catalyst. Implied ±' + impliedMove + '% event move. Smart money is getting set.';
-    } else {
-      edgeHeadline = 'Realized Vol: ' + Math.round(v30) + '% → Implied ±' + impliedMove + '% Event Move';
-      edgeDetail = 'Vol is calculated from 30 days of daily candle data (annualized). Higher vol means larger expected event move in either direction. Combined with STN Risk (' + stn + ') to determine likely direction.';
-    }
-
-    volEdgeHTML = '<div style="background:' + edgeBg + ';border:1px solid ' + edgeBorder + ';border-left:3px solid ' + edgeBorder + ';padding:1rem;margin:1.5rem 0;">' +
-      '<div style="font-family:var(--mono);font-size:0.72rem;color:' + edgeBorder + ';font-weight:700;margin-bottom:0.4rem;">' + edgeIcon + ' ' + edgeHeadline + '</div>' +
-      '<div style="font-family:var(--sans);font-size:0.82rem;color:var(--text);line-height:1.7;">' + edgeDetail + '</div>' +
-      '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.5rem;">30D Vol: ' + Math.round(v30) + '% | 10D Vol: ' + (v10 > 0 ? Math.round(v10) + '%' : '—') + ' | STN: ' + stn + ' | Implied Event Move: ±' + impliedMove + '%</div>' +
-    '</div>';
-  }
-  // Insert vol edge after risk flags
-  var flagsEl = document.getElementById('risk-flags');
-  if (volEdgeHTML && flagsEl) {
-    flagsEl.insertAdjacentHTML('afterend', volEdgeHTML);
   }
 
   // Sources
@@ -720,70 +672,59 @@ async function generateAISummary(d) {
     var prompt;
 
     if (d.type === 'COMPANY' || d.date === '—') {
-      // General biotech company deep dive with full live data
-      var v30c = Number(d.realized_vol_30d) || 0;
-      var revc = Number(d.revenue_m) || 0;
-      var mcapc = Number(d.estimated_market_cap) || 0;
-      var mcapStrc = mcapc >= 1e9 ? '$' + (mcapc/1e9).toFixed(1) + 'B' : mcapc >= 1e6 ? '$' + Math.round(mcapc/1e6) + 'M' : 'unknown';
-
-      prompt = 'Provide a comprehensive biotech intelligence deep dive on ' + d.ticker + ' (' + (d.company_name || d.ticker) + '). Use the full live data below. Provide THREE clearly separated sections using these exact headers:\n\n' +
+      // General biotech company deep dive (no PDUFA event)
+      prompt = 'Provide a comprehensive biotech intelligence deep dive on ' + d.ticker + ' (' + (d.company_name || d.ticker) + '). Provide THREE clearly separated sections using these exact headers:\n\n' +
         '**COMPANY OVERVIEW & PIPELINE**\n' +
-        'Market cap: ' + mcapStrc + '. Revenue: ' + (revc > 0 ? '$' + Math.round(revc) + 'M' : 'pre-revenue') + '. Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '.\n' +
-        'LIVE DATA: 30D momentum: ' + (d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : 'unknown') + '. Chart: ' + (d.chart_pattern || 'unknown') + '. Vol (30D): ' + (v30c ? Math.round(v30c) + '%' : 'unknown') + '. RSI: ' + (d.rsi_14d || 'unknown') + '. Short interest: ' + (d.short_interest ? Number(d.short_interest).toFixed(1) + '%' : 'unknown') + '.\n' +
-        'Dilution: ' + (d.dilution_risk || 'UNKNOWN') + '. Detail: ' + (d.dilution_detail || 'none') + '. Runway: ' + (revc >= 50 ? 'CF+' : d.runway_months ? Math.round(d.runway_months) + 'mo' : 'unknown') + '. Insider: ' + (d.insider_signal || 'NEUTRAL') + '.\n' +
-        'Cover: What does this company do? What drugs are in their pipeline? What stage? What therapeutic areas? Do they have approved products? What is their competitive position? Reference the live momentum and vol data — is the stock building, coiling, or weak heading into catalysts?\n\n' +
+        'Market cap tier: ' + (d.market_cap_tier || 'UNKNOWN') + '.\n' +
+        'Cover: What does this company do? What drugs/therapies are in their pipeline? What stage are they (preclinical, Phase 1/2/3, commercial)? What therapeutic areas do they focus on? Do they have any approved products generating revenue? What is their competitive position?\n\n' +
         '**CATALYST ANALYSIS & BUYOUT POTENTIAL**\n' +
-        'Buyout score: ' + (d.buyout_score || 0) + '/100. Risk: ' + (d.buyout_risk || 'UNLIKELY') + '. Acquirer: ' + (d.acquirer_urgency_top || 'none') + '. Timeline: ' + (d.buyout_timeline || 'none') + '. Partner: ' + (d.partner_name || 'none') + '. TAM/Cap: ' + (d.tam_ratio || 'unknown') + 'x. Probability: ' + (d.buyout_probability_pct || 0) + '%.\n' +
-        (d.months_since_approval ? 'Approved drug: ' + (d.drug || 'yes') + '. Months since approval: ' + d.months_since_approval + '.\n' : '') +
         'Analyze:\n' +
-        '1. What are the next major catalysts? (data readouts, PDUFA dates, conferences, earnings)\n' +
-        '2. Buyout potential: Given the scanner data, is this an acquisition target? Which Big Pharma has the therapeutic gap and patent cliff urgency?\n' +
-        '3. Behavioral pattern: Based on vol (' + (v30c ? Math.round(v30c) + '%' : 'unknown') + '), momentum (' + (d.price_change_30d ? Number(d.price_change_30d).toFixed(1) + '%' : 'unknown') + '), and chart pattern (' + (d.chart_pattern || 'unknown') + '), what setup is forming?\n' +
-        '4. Competitive landscape and unmet need.\n\n' +
+        '1. What are the next major catalysts for this company? (upcoming data readouts, PDUFA dates, conference presentations, earnings)\n' +
+        '2. Buyout potential: Is this company an acquisition target? What factors make it attractive or unattractive to larger pharma? Is their drug first-in-class? Do they have commercial infrastructure or would an acquirer need to build it?\n' +
+        '3. Post-catalyst behavioral pattern: Based on the company profile, which pattern is most likely after their next catalyst — Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction?\n' +
+        '4. Competitive landscape: Who are the main competitors? Is the market crowded or is there significant unmet need?\n' +
+        '5. Insider and institutional activity: Any notable buying/selling patterns?\n\n' +
         '**INVESTMENT SCENARIOS**\n' +
-        'Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '. Vol: ' + (v30c ? Math.round(v30c) + '%' : 'unknown') + '.\n' +
-        '1. Bull case: Key catalysts hit, no dilution, potential buyout at ' + (mcapc >= 1e8 ? '$' + (mcapc * 1.6 / 1e9).toFixed(1) + 'B' : 'premium') + '. Realistic upside.\n' +
-        '2. Base case: Mixed results, moderate pipeline progress.\n' +
-        '3. Bear case: Catalyst fails, dilution (' + (d.dilution_risk || 'UNKNOWN') + ' risk), competitive threat.\n' +
-        '4. Vol assessment: At ' + (v30c ? Math.round(v30c) + '%' : 'unknown') + ' realized vol, is the stock priced for the catalysts ahead or is there a mispricing?\n' +
-        '5. Key question: Single most important factor for the next 12 months.\n\n' +
-        'Be specific. Reference the live data provided. This is for investors evaluating whether to add this to their watchlist. End with disclaimer.';
+        'Based on the pipeline, competitive position, and catalyst timeline:\n' +
+        '1. Bull case: Everything goes right — key catalysts hit, no dilution, potential buyout. What could the stock realistically do?\n' +
+        '2. Base case: Mixed results, moderate pipeline progress. Expected trajectory.\n' +
+        '3. Bear case: Key catalyst fails, dilution, competitive threat. Downside risk.\n' +
+        '4. Key question: What is the single most important factor that will determine this company\'s trajectory over the next 12 months?\n' +
+        '5. Risk factors: What could go wrong that most investors aren\'t thinking about?\n\n' +
+        'Be specific with analysis. This is for investors evaluating whether to add this company to their watchlist. End with disclaimer.';
     } else {
-      // PDUFA-specific deep dive with full live data
-      var v30 = Number(d.realized_vol_30d) || 0;
-      var implMove = v30 > 0 ? (v30 / Math.sqrt(252) * 2).toFixed(1) : '—';
-      var rev = Number(d.revenue_m) || 0;
-      var mcap = Number(d.estimated_market_cap) || 0;
-      var mcapStr = mcap >= 1e9 ? '$' + (mcap/1e9).toFixed(1) + 'B' : mcap >= 1e6 ? '$' + Math.round(mcap/1e6) + 'M' : 'unknown';
-
-      prompt = 'Analyze the ' + d.ticker + ' PDUFA setup using the full scanner data below. Provide THREE clearly separated sections using these exact headers:\n\n' +
+      // PDUFA-specific deep dive (existing prompt)
+      prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
       '**EXECUTIVE SUMMARY**\n' +
       'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '.\n' +
-      'Scanner data — PoA Range: ' + (d.poa_low && d.poa_high ? Math.round(d.poa_low) + '-' + Math.round(d.poa_high) + '%' : (d.poa || 0).toFixed(0) + '%') + ' (Confidence: ' + (d.data_confidence || 'LOW') + '). STN Risk: ' + stnRisk + '. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + '. Net Edge: ' + (d.net_edge_score || d.score || 0).toFixed(1) + '. Grade: ' + (d.grade || 'WATCH') + '.\n' +
-      'LIVE MARKET DATA: Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '. 30D momentum: ' + (d.price_change_30d ? (d.price_change_30d > 0 ? '+' : '') + Number(d.price_change_30d).toFixed(1) + '%' : 'unknown') + '. 7D momentum: ' + (d.price_change_7d ? (d.price_change_7d > 0 ? '+' : '') + Number(d.price_change_7d).toFixed(1) + '%' : 'unknown') + '. Chart pattern: ' + (d.chart_pattern || 'unknown') + '. RSI-14: ' + (d.rsi_14d || 'unknown') + '.\n' +
-      'VOLATILITY: Realized vol (30D): ' + (v30 ? Math.round(v30) + '%' : 'unknown') + '. Realized vol (10D): ' + (d.realized_vol_10d ? Math.round(d.realized_vol_10d) + '%' : 'unknown') + '. Implied event move: ±' + implMove + '%. ' +
-      (stnRisk === 'HIGH' && v30 >= 60 ? 'VOL EDGE FLAG: HIGH STN + HIGH VOL — historical pattern (REPL -63%, RCKT -20%, BIIB -5%) suggests market underpricing sell-the-news risk. ' :
-       (stnRisk === 'LOW' || stnRisk === 'VERY LOW') && v30 >= 50 ? 'VOL EDGE FLAG: LOW STN + HIGH VOL — approval likely not priced in, positive surprise potential. VNDA (+45%) fit this pattern. ' : '') + '\n' +
-      'Short interest: ' + (d.short_interest ? d.short_interest.toFixed(1) + '%' : 'unknown') + '. Market cap: ' + mcapStr + '. Revenue: ' + (rev > 0 ? '$' + Math.round(rev) + 'M' : 'pre-revenue') + '.\n' +
-      'DILUTION: ' + (d.dilution_risk || 'UNKNOWN') + '. Detail: ' + (d.dilution_detail || 'none') + '. Shelf: ' + (d.shelf_active ? 'ACTIVE' : 'No') + '. ATM: ' + (d.atm_active ? 'ACTIVE' : 'No') + '. PIPE risk: ' + (d.pipe_risk || 'unknown') + '. Capital raise signal: ' + (d.capital_raise_signal || 'unknown') + '. Runway: ' + (rev >= 50 ? 'CF+ (revenue-stage)' : d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '.\n' +
-      'BUYOUT: Score ' + (d.buyout_score || 0) + '/100. Risk: ' + (d.buyout_risk || 'UNLIKELY') + '. Acquirer: ' + (d.acquirer_urgency_top || 'none') + '. Timeline: ' + (d.buyout_timeline || 'none') + '. Partner: ' + (d.partner_name || 'none') + '. Probability: ' + (d.buyout_probability_pct || 0) + '%. TAM/Cap: ' + (d.tam_ratio || 'unknown') + 'x.\n' +
-      'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Months since approval: ' + (d.months_since_approval || 'N/A') + '.\n' +
+      'Scanner data — PoA: ' + (d.poa || 0).toFixed(1) + '%. STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
+      'Runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '. ' +
+      'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Net insider buys (90d): ' + (d.insider_net_buys || 0) + '. ' +
+      'Shelf active: ' + (d.shelf_active ? 'YES' : 'No') + '. ATM active: ' + (d.atm_active ? 'YES' : 'No') + '. ' +
+      'Partnership detected: ' + (d.partnership_detected ? 'YES' : 'No') + '. ' +
+      'Drug TAM: ' + (d.tam_label || 'Unknown') + '. TAM/Cap ratio: ' + (d.tam_ratio || 'Unknown') + 'x. ' +
+      'Net Edge Score: ' + (d.net_edge_score || d.score || 0).toFixed(1) + '/100. Grade: ' + (d.grade || 'WATCH') + '.\n' +
       'Risk flags: ' + (d.flags || []).join(', ') + '.\n' +
-      'Write 2-3 paragraphs covering: (1) regulatory pathway assessment with specific reference to the PoA range and confidence level, (2) volatility analysis — is the market correctly pricing this event given the STN risk and realized vol, (3) key risk factors including dilution timing and sell-the-news dynamics.\n\n' +
+      'Dilution flags: ' + (d.dilution_flags || []).join(', ') + '.\n' +
+      'Notes: ' + (d.notes || 'none') + '.\n' +
+      'Write 2-3 paragraphs covering: regulatory pathway assessment, key risk factors, sell-the-news dynamics, dilution risk assessment, and overall setup quality.\n\n' +
       '**SEC FILING & DILUTION RISK ANALYSIS**\n' +
-      'Dilution detail from scanner: ' + (d.dilution_detail || 'No signals detected') + '.\n' +
-      'Shelf: ' + (d.shelf_active ? 'ACTIVE' : 'No') + '. ATM: ' + (d.atm_active ? 'ACTIVE' : 'No') + '. PIPE risk: ' + (d.pipe_risk || 'LOW') + '.\n' +
-      'Capital raise signal: ' + (d.capital_raise_signal || 'NEUTRAL') + '. Runway: ' + (rev >= 50 ? 'CF+ revenue-stage' : d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown') + '.\n' +
-      'Analyze: (1) Is dilution timing a risk near this PDUFA? (2) Would a concurrent PIPE on approval night be likely? (3) For revenue-stage companies, is dilution even a relevant concern? (4) How does the capital raise history affect the post-approval setup?\n\n' +
-      '**PRICE TARGETS & VOL EDGE**\n' +
-      'Current price: $' + (Number(d.current_price) || 0).toFixed(2) + '. Realized vol implies ±' + implMove + '% event move. STN Risk: ' + stnRisk + '.\n' +
-      'Based on the drug\'s commercial potential, vol profile, STN risk, and dilution exposure:\n' +
-      '1. Bull case: Approval + LOW STN + no dilution. Realistic % move and price target.\n' +
-      '2. Base case: Approval as expected with STN risk of ' + stnRisk + '. Likely move factoring in realized vol.\n' +
-      '3. Bear case: CRL, or approval with immediate dilution/sell-the-news. Expected downside.\n' +
-      '4. Vol edge assessment: Is the implied ±' + implMove + '% move too high, too low, or fair given the STN classification? Should a trader be buying or selling vol into this event?\n' +
-      '5. Key question: Single most important factor for whether this PDUFA moves the stock positively.\n\n' +
-      'Be specific with numbers. Reference the live data provided. This is for researchers evaluating the risk/reward of a binary event. End with disclaimer that this is quantitative analysis, not investment advice.';
+      'For ' + d.ticker + ', analyze the following dilution risk factors:\n' +
+      '1. Has the company filed any recent 424B5 prospectus supplements, S-3 shelf registrations, or S-1 registration statements?\n' +
+      '2. Does the company have an active ATM facility? Scanner says: ' + (d.atm_active ? 'YES — ACTIVE ATM DETECTED' : 'No active ATM detected') + '\n' +
+      '3. Shelf registration status: ' + (d.shelf_active ? 'ACTIVE — company can sell shares at any time' : 'No active shelf detected') + '\n' +
+      '4. Cash runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown — check latest 10-Q') + '. Will they need to raise capital?\n' +
+      '5. Is this a "shorting the launch" setup — commercial launch costs exceeding cash position?\n' +
+      '6. Dilution score from scanner: ' + (d.dilution_score || 0) + '/100 (' + (d.dilution_risk || 'UNKNOWN') + ')\n\n' +
+      '**PRICE TARGETS & SCENARIOS**\n' +
+      'Based on the drug\'s commercial potential, indication size, competitive landscape, SEC filing signals, dilution risk profile, and current market dynamics:\n' +
+      '1. Bull case: Approval + no dilution + strong commercial signal. Realistic % move.\n' +
+      '2. Base case: Approval as expected. Likely move given STN risk of ' + stnRisk + ' and dilution risk of ' + (d.dilution_risk || 'UNKNOWN') + '.\n' +
+      '3. Bear case: CRL, or approval with immediate dilution. Expected downside.\n' +
+      '4. Analyst consensus if known.\n' +
+      '5. Key question: Single most important factor for whether this approval moves the stock.\n' +
+      '6. Setup assessment: Given the STN + dilution + TAM profile, characterize the overall setup quality — what risk factors would a systematic model flag, and what historical pattern does this most closely resemble?\n\n' +
+      'Be specific with numbers and percentages. This is for researchers evaluating the risk/reward profile of a binary event. End with disclaimer that this is quantitative analysis, not investment advice.';
     }
 
     var res = await fetch(EDGE_URL, {
@@ -901,9 +842,6 @@ async function generateAISummary(d) {
         date: e.date,
         grade: e.grade || 'WATCH',
         poa: Number(e.poa) || 0,
-        poa_low: Number(e.poa_low) || 0,
-        poa_high: Number(e.poa_high) || 0,
-        data_confidence: e.data_confidence || '',
         score: Number(e.score) || 0,
         flags: e.flags || [],
         notes: e.notes || '',
@@ -917,45 +855,27 @@ async function generateAISummary(d) {
         dilution_risk: e.dilution_risk || 'UNKNOWN',
         dilution_score: Number(e.dilution_score) || 0,
         dilution_flags: e.dilution_flags || [],
-        dilution_detail: e.dilution_detail || '',
-        capital_raise_signal: e.capital_raise_signal || '',
-        pipe_risk: e.pipe_risk || '',
         runway_months: e.runway_months,
         runway_risk: e.runway_risk || 'UNKNOWN',
         insider_signal: e.insider_signal || 'NEUTRAL',
         insider_net_buys: Number(e.insider_net_buys) || 0,
         shelf_active: e.shelf_active || false,
         atm_active: e.atm_active || false,
-        last_raise_date: e.last_raise_date || '',
-        last_raise_amount: Number(e.last_raise_amount) || 0,
         partnership_detected: e.has_partnership || e.partnership_detected || false,
-        has_partnership: e.has_partnership || e.partnership_detected || false,
         partner_name: e.partner_name || '',
         acquirer_urgency_top: e.acquirer_urgency_top || '',
         buyout_score: Number(e.buyout_score) || 0,
         buyout_risk: e.buyout_risk || 'UNLIKELY',
         buyout_flags: e.buyout_flags || [],
         buyout_timeline: e.buyout_timeline || '',
-        buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
         drug_tam_estimate: Number(e.drug_tam_estimate) || 0,
         tam_ratio: Number(e.tam_ratio) || 0,
         tam_label: e.tam_label || '',
         news_items: e.news_items || [],
         revenue_m: Number(e.revenue_m) || 0,
-        estimated_market_cap: Number(e.estimated_market_cap || e.market_cap) || 0,
+        estimated_market_cap: Number(e.estimated_market_cap) || 0,
         months_since_approval: e.months_since_approval || null,
         institutional_pct: Number(e.institutional_pct) || 0,
-        // Live Polygon data
-        price_change_30d: Number(e.price_change_30d) || 0,
-        price_change_7d: Number(e.price_change_7d) || 0,
-        chart_pattern: e.chart_pattern || '',
-        realized_vol_30d: Number(e.realized_vol_30d) || 0,
-        realized_vol_10d: Number(e.realized_vol_10d) || 0,
-        current_price: Number(e.current_price) || 0,
-        rsi_14d: Number(e.rsi_14d) || 0,
-        short_interest: Number(e.short_interest) || 0,
-        cmc_risk: e.cmc_risk || '',
-        cmc_flags: e.cmc_flags || [],
       };
       // Override isPaid from server response
       if (result.isPaid === false) isPaid = false;
@@ -964,104 +884,45 @@ async function generateAISummary(d) {
     console.warn('[SC] Failed to fetch event data:', err);
   }
 
-  // ─── ENRICH FROM BIOTECH_UNIVERSE — fills gaps when pdufa_events hasn't synced ──
-  try {
-    var sb = getSupabase();
-    var { data: liveData } = await sb.from('biotech_universe')
-      .select('price_change_30d, price_change_7d, chart_pattern, realized_vol_30d, realized_vol_10d, current_price, rsi_14d, short_interest, dilution_risk, dilution_detail, capital_raise_signal, pipe_risk, insider_signal, runway_months, revenue_m, estimated_market_cap, buyout_score, buyout_risk, buyout_timeline, acquirer_urgency_top, has_partnership, partner_name, months_since_approval, cmc_risk, cmc_flags, buyout_probability_pct, news_items')
-      .eq('ticker', ticker)
-      .single();
-
-    if (liveData && eventData) {
-      // Only fill gaps — don't overwrite existing scored data
-      if (!eventData.price_change_30d && liveData.price_change_30d) eventData.price_change_30d = Number(liveData.price_change_30d);
-      if (!eventData.price_change_7d && liveData.price_change_7d) eventData.price_change_7d = Number(liveData.price_change_7d);
-      if (!eventData.chart_pattern && liveData.chart_pattern) eventData.chart_pattern = liveData.chart_pattern;
-      if (!eventData.realized_vol_30d && liveData.realized_vol_30d) eventData.realized_vol_30d = Number(liveData.realized_vol_30d);
-      if (!eventData.realized_vol_10d && liveData.realized_vol_10d) eventData.realized_vol_10d = Number(liveData.realized_vol_10d);
-      if (!eventData.current_price && liveData.current_price) eventData.current_price = Number(liveData.current_price);
-      if (!eventData.rsi_14d && liveData.rsi_14d) eventData.rsi_14d = Number(liveData.rsi_14d);
-      if (!eventData.short_interest && liveData.short_interest) eventData.short_interest = Number(liveData.short_interest);
-      if (!eventData.dilution_detail && liveData.dilution_detail) eventData.dilution_detail = liveData.dilution_detail;
-      if (!eventData.capital_raise_signal && liveData.capital_raise_signal) eventData.capital_raise_signal = liveData.capital_raise_signal;
-      if (!eventData.pipe_risk && liveData.pipe_risk) eventData.pipe_risk = liveData.pipe_risk;
-      if (eventData.dilution_risk === 'UNKNOWN' && liveData.dilution_risk) eventData.dilution_risk = liveData.dilution_risk;
-      if (eventData.insider_signal === 'NEUTRAL' && liveData.insider_signal) eventData.insider_signal = liveData.insider_signal;
-      if (!eventData.runway_months && liveData.runway_months) eventData.runway_months = Number(liveData.runway_months);
-      if (!eventData.revenue_m && liveData.revenue_m) eventData.revenue_m = Number(liveData.revenue_m);
-      if (!eventData.estimated_market_cap && liveData.estimated_market_cap) eventData.estimated_market_cap = Number(liveData.estimated_market_cap);
-      if (!eventData.buyout_score && liveData.buyout_score) eventData.buyout_score = Number(liveData.buyout_score);
-      if (eventData.buyout_risk === 'UNLIKELY' && liveData.buyout_risk) eventData.buyout_risk = liveData.buyout_risk;
-      if (!eventData.buyout_timeline && liveData.buyout_timeline) eventData.buyout_timeline = liveData.buyout_timeline;
-      if (!eventData.acquirer_urgency_top && liveData.acquirer_urgency_top) eventData.acquirer_urgency_top = liveData.acquirer_urgency_top;
-      if (!eventData.partner_name && liveData.partner_name) { eventData.partner_name = liveData.partner_name; eventData.has_partnership = true; }
-      if (!eventData.months_since_approval && liveData.months_since_approval) eventData.months_since_approval = liveData.months_since_approval;
-      if (!eventData.cmc_risk && liveData.cmc_risk) eventData.cmc_risk = liveData.cmc_risk;
-      if ((!eventData.cmc_flags || !eventData.cmc_flags.length) && liveData.cmc_flags) eventData.cmc_flags = liveData.cmc_flags;
-      if (!eventData.buyout_probability_pct && liveData.buyout_probability_pct) eventData.buyout_probability_pct = Number(liveData.buyout_probability_pct);
-      if ((!eventData.news_items || !eventData.news_items.length) && liveData.news_items) eventData.news_items = liveData.news_items;
-      console.log('[SC] Enriched ' + ticker + ' with live data from biotech_universe');
-    }
-  } catch (err) {
-    console.warn('[SC] Universe enrichment failed:', err);
-  }
-
   if (!eventData) {
     // No PDUFA event — check if ticker exists in biotech universe
     try {
       var sb = getSupabase();
       var { data: company } = await sb.from('biotech_universe')
-        .select('ticker, company_name, market_cap_tier, price_change_30d, price_change_7d, chart_pattern, realized_vol_30d, realized_vol_10d, current_price, rsi_14d, short_interest, dilution_risk, dilution_detail, capital_raise_signal, pipe_risk, insider_signal, runway_months, revenue_m, estimated_market_cap, buyout_score, buyout_risk, buyout_timeline, acquirer_urgency_top, has_partnership, partner_name, months_since_approval, cmc_risk, cmc_flags, buyout_probability_pct, news_items, tam_ratio, approved_drug, shelf_active, atm_active')
+        .select('ticker, company_name, market_cap_tier')
         .eq('ticker', ticker)
         .single();
 
       if (company) {
         eventData = {
           ticker: company.ticker,
-          drug: company.approved_drug || '',
+          drug: '',
           indication: 'Biotech Company',
           type: 'COMPANY',
           date: '—',
-          grade: company.buyout_score >= 70 ? 'STRONG' : 'WATCH',
-          poa: 0, score: 0, flags: [], notes: '', source_url: '',
-          sell_news_risk: '—', move_score: 0, expected_move: '', move_flags: [],
+          grade: '—',
+          poa: 0,
+          score: 0,
+          flags: [],
+          notes: '',
+          source_url: '',
+          sell_news_risk: '—',
+          move_score: 0,
+          expected_move: '',
+          move_flags: [],
           net_edge_score: 0,
-          dilution_risk: company.dilution_risk || 'UNKNOWN',
-          dilution_score: 0, dilution_flags: [],
-          dilution_detail: company.dilution_detail || '',
-          capital_raise_signal: company.capital_raise_signal || '',
-          pipe_risk: company.pipe_risk || '',
-          runway_months: Number(company.runway_months) || 0,
+          dilution_risk: 'UNKNOWN',
+          dilution_score: 0,
+          dilution_flags: [],
+          runway_months: null,
           runway_risk: 'UNKNOWN',
-          insider_signal: company.insider_signal || 'NEUTRAL',
+          insider_signal: 'NEUTRAL',
           insider_net_buys: 0,
-          shelf_active: company.shelf_active || false,
-          atm_active: company.atm_active || false,
-          partnership_detected: company.has_partnership || false,
-          has_partnership: company.has_partnership || false,
-          partner_name: company.partner_name || '',
-          acquirer_urgency_top: company.acquirer_urgency_top || '',
-          buyout_score: Number(company.buyout_score) || 0,
-          buyout_risk: company.buyout_risk || 'UNLIKELY',
-          buyout_timeline: company.buyout_timeline || '',
-          buyout_probability_pct: Number(company.buyout_probability_pct) || 0,
-          tam_ratio: Number(company.tam_ratio) || 0,
-          revenue_m: Number(company.revenue_m) || 0,
-          estimated_market_cap: Number(company.estimated_market_cap) || 0,
-          months_since_approval: company.months_since_approval || null,
+          shelf_active: false,
+          atm_active: false,
+          partnership_detected: false,
           company_name: company.company_name || ticker,
           market_cap_tier: company.market_cap_tier || 'UNKNOWN',
-          price_change_30d: Number(company.price_change_30d) || 0,
-          price_change_7d: Number(company.price_change_7d) || 0,
-          chart_pattern: company.chart_pattern || '',
-          realized_vol_30d: Number(company.realized_vol_30d) || 0,
-          realized_vol_10d: Number(company.realized_vol_10d) || 0,
-          current_price: Number(company.current_price) || 0,
-          rsi_14d: Number(company.rsi_14d) || 0,
-          short_interest: Number(company.short_interest) || 0,
-          cmc_risk: company.cmc_risk || '',
-          cmc_flags: company.cmc_flags || [],
-          news_items: company.news_items || [],
         };
       }
     } catch (err) {
@@ -1101,6 +962,50 @@ async function generateAISummary(d) {
       company_name: ticker,
       market_cap_tier: 'UNKNOWN',
     };
+  }
+
+  // ─── ENRICH FROM BIOTECH_UNIVERSE ────────────────────────────────────────
+  // The get-scanner-data edge function sometimes returns estimated_market_cap = null
+  // or drops drug_tam_billions entirely. Fill those in directly from the table
+  // so applyLiveMarketData has what it needs to re-derive TAM/Cap off live cap.
+  if (eventData) {
+    try {
+      var sb2 = getSupabase();
+      var { data: uniRow } = await sb2.from('biotech_universe')
+        .select('estimated_market_cap, drug_tam_billions, tam_ratio, approved_drug, last_approval_date')
+        .eq('ticker', ticker)
+        .maybeSingle();
+      if (uniRow) {
+        if (!Number(eventData.estimated_market_cap) && Number(uniRow.estimated_market_cap)) {
+          eventData.estimated_market_cap = Number(uniRow.estimated_market_cap);
+        }
+        if (!Number(eventData.tam_ratio) && Number(uniRow.tam_ratio)) {
+          eventData.tam_ratio = Number(uniRow.tam_ratio);
+        }
+        if (Number(uniRow.drug_tam_billions)) {
+          eventData.drug_tam_billions = Number(uniRow.drug_tam_billions);
+        }
+      }
+    } catch (e) {
+      console.warn('[SC] biotech_universe enrich failed:', e);
+    }
+  }
+
+  // ─── LIVE CAP + LIVE PRICE + LIVE TAM/CAP OVERRIDE ──────────────────────
+  // Fetches ticker details (cap) and intraday snapshot (live price) in parallel.
+  // 2s timeout so slow Polygon can't block the page — falls back to DB values.
+  try {
+    var livePromise = Promise.all([
+      fetchLiveCap(ticker),
+      fetchLiveSnapshot(ticker),
+    ]);
+    var livePair = await Promise.race([
+      livePromise,
+      new Promise(function(resolve) { setTimeout(function() { resolve([null, null]); }, 2000); })
+    ]);
+    applyLiveMarketData(eventData, livePair[0], livePair[1]);
+  } catch (err) {
+    console.warn('[SC] Live cap/price override skipped:', err);
   }
 
   populatePage(eventData, isPaid);

@@ -492,6 +492,60 @@ function classifyChart(change30d, volRatio, bars) {
   return { label: 'READY', icon: '✅', color: 'var(--accent2)' };
 }
 
+// ─── BULK SNAPSHOT — fast live prices for many tickers in ONE call ──────────
+// Polygon /v2/snapshot/locale/us/markets/stocks/tickers?tickers=A,B,C returns
+// live intraday prices + today's change % for up to ~250 tickers per request.
+// One HTTP call instead of N. Runs in parallel with fetchPriceData so the UI
+// shows live prices immediately while 30D history + cap backfill.
+async function polyBulkSnapshot(tickers) {
+  if (!SC_CONFIG.polygonApiKey || !tickers || tickers.length === 0) return {};
+  var apiKey = SC_CONFIG.polygonApiKey;
+  var result = {};
+  // Chunk at 250 to stay under URL length limits
+  for (var i = 0; i < tickers.length; i += 250) {
+    var chunk = tickers.slice(i, i + 250);
+    var url = 'https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=' + chunk.join(',') + '&apiKey=' + apiKey;
+    try {
+      var res = await fetch(url);
+      if (!res.ok) { console.warn('[SC] Bulk snapshot HTTP ' + res.status); continue; }
+      var data = await res.json();
+      var rows = data && (data.tickers || data.results) || [];
+      rows.forEach(function(t) {
+        if (!t || !t.ticker) return;
+        var price = (t.lastTrade && t.lastTrade.p) || (t.day && t.day.c) || (t.prevDay && t.prevDay.c) || 0;
+        if (!(price > 0)) return;
+        result[t.ticker] = {
+          price: price,
+          todayChange: typeof t.todaysChangePerc === 'number' ? t.todaysChangePerc : 0,
+          prevClose: (t.prevDay && t.prevDay.c) || 0,
+        };
+      });
+    } catch (err) {
+      console.warn('[SC] Bulk snapshot failed:', err);
+    }
+  }
+  console.log('[SC] Bulk snapshot: live prices for ' + Object.keys(result).length + '/' + tickers.length + ' tickers');
+  return result;
+}
+
+// Merges bulk snapshot data into PRICE_DATA. Called before fetchPriceData completes
+// so users see live prices right away. fetchPriceData will add change30d/vol/chart
+// without overwriting these fields (merge semantics in fetchPriceData below).
+function applyBulkSnapshot(snap) {
+  var applied = 0;
+  Object.keys(snap).forEach(function(tk) {
+    if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
+    PRICE_DATA[tk].close = snap[tk].price;
+    PRICE_DATA[tk].todayChange = snap[tk].todayChange;
+    PRICE_DATA[tk]._fromSnapshot = true;
+    applied++;
+  });
+  return applied;
+}
+
+// Fetches both the OHLC bars AND the ticker details (for live market_cap) in parallel.
+// Polygon's /v3/reference/tickers/{ticker} returns market_cap in full USD — matches
+// how estimated_market_cap is stored and rendered app-wide.
 async function fetchPriceData(tickers) {
   if (!SC_CONFIG.polygonApiKey) {
     console.warn('[SC] No polygonApiKey in SC_CONFIG');
@@ -505,33 +559,110 @@ async function fetchPriceData(tickers) {
   for (var i = 0; i < tickers.length; i += 5) {
     var batch = tickers.slice(i, i + 5);
     await Promise.all(batch.map(function(tk) {
-      return fetch('https://api.polygon.io/v2/aggs/ticker/' + tk + '/range/1/day/' + fromDate + '/' + toDate + '?adjusted=true&sort=asc&limit=40&apiKey=' + apiKey)
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data.results && data.results.length >= 2) {
-            var bars = data.results;
-            var first = bars[0].c;
-            var last = bars[bars.length - 1].c;
-            var prev = bars.length >= 2 ? bars[bars.length - 2].c : last;
-            var change30d = ((last - first) / first) * 100;
-            var todayChange = ((last - prev) / prev) * 100;
-            var recentVols = bars.slice(-5).map(function(b){return b.v;});
-            var priorVols = bars.slice(0, -5).map(function(b){return b.v;});
-            var avgRecent = recentVols.reduce(function(a,b){return a+b;},0) / recentVols.length;
-            var avgPrior = priorVols.length > 0 ? priorVols.reduce(function(a,b){return a+b;},0) / priorVols.length : avgRecent;
-            var volRatio = avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
-            var chart = classifyChart(change30d, volRatio, bars);
-            PRICE_DATA[tk] = {
-              close: last, change30d: change30d, todayChange: todayChange,
-              volRatio: volRatio, chartSetup: chart.label, chartIcon: chart.icon, chartColor: chart.color,
-            };
+      var barsUrl = 'https://api.polygon.io/v2/aggs/ticker/' + tk + '/range/1/day/' + fromDate + '/' + toDate + '?adjusted=true&sort=asc&limit=40&apiKey=' + apiKey;
+      var detailsUrl = 'https://api.polygon.io/v3/reference/tickers/' + tk + '?apiKey=' + apiKey;
+      return Promise.all([
+        fetch(barsUrl).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
+        fetch(detailsUrl).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
+      ]).then(function(results) {
+        var data = results[0];
+        var details = results[1];
+        if (data && data.results && data.results.length >= 2) {
+          var bars = data.results;
+          var first = bars[0].c;
+          var last = bars[bars.length - 1].c;
+          var prev = bars.length >= 2 ? bars[bars.length - 2].c : last;
+          // If bulk snapshot already set a fresher intraday price, use that for change30d
+          var currentPrice = (PRICE_DATA[tk] && PRICE_DATA[tk]._fromSnapshot && PRICE_DATA[tk].close) || last;
+          var change30d = ((currentPrice - first) / first) * 100;
+          var todayChange = ((last - prev) / prev) * 100;
+          var recentVols = bars.slice(-5).map(function(b){return b.v;});
+          var priorVols = bars.slice(0, -5).map(function(b){return b.v;});
+          var avgRecent = recentVols.reduce(function(a,b){return a+b;},0) / recentVols.length;
+          var avgPrior = priorVols.length > 0 ? priorVols.reduce(function(a,b){return a+b;},0) / priorVols.length : avgRecent;
+          var volRatio = avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
+          var chart = classifyChart(change30d, volRatio, bars);
+          if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
+          // Preserve snapshot's intraday close/todayChange if present (fresher)
+          if (!PRICE_DATA[tk]._fromSnapshot) {
+            PRICE_DATA[tk].close = last;
+            PRICE_DATA[tk].todayChange = todayChange;
           }
-        })
-        .catch(function() {});
+          PRICE_DATA[tk].change30d = change30d;
+          PRICE_DATA[tk].volRatio = volRatio;
+          PRICE_DATA[tk].chartSetup = chart.label;
+          PRICE_DATA[tk].chartIcon = chart.icon;
+          PRICE_DATA[tk].chartColor = chart.color;
+        }
+        // Live market cap from Polygon ticker details (full USD).
+        // Also capture shares_outstanding so we can compute cap = shares × live_price
+        // when Polygon's stored market_cap is null or stale.
+        if (details && details.results) {
+          if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
+          if (typeof details.results.market_cap === 'number' && details.results.market_cap > 0) {
+            PRICE_DATA[tk].market_cap = details.results.market_cap;
+          }
+          var shares = details.results.weighted_shares_outstanding ||
+                       details.results.share_class_shares_outstanding;
+          if (typeof shares === 'number' && shares > 0) {
+            PRICE_DATA[tk].shares_outstanding = shares;
+          }
+        }
+      }).catch(function() {});
     }));
     if (i + 5 < tickers.length) await new Promise(function(r) { setTimeout(r, 300); });
   }
-  console.log('[SC] Polygon: loaded live data for ' + Object.keys(PRICE_DATA).length + '/' + tickers.length + ' tickers');
+  var withPrice = 0, withCap = 0;
+  Object.keys(PRICE_DATA).forEach(function(k) {
+    if (PRICE_DATA[k].close) withPrice++;
+    if (PRICE_DATA[k].market_cap) withCap++;
+  });
+  console.log('[SC] Polygon: ' + withPrice + ' tickers w/ price, ' + withCap + ' tickers w/ live cap (of ' + tickers.length + ')');
+}
+
+// ─── APPLY LIVE MARKET CAP + LIVE TAM/CAP ────────────────────────────────────
+// Overrides stale DB estimated_market_cap with Polygon live value, then re-derives
+// tam_ratio with a two-path fallback chain:
+//   Path 1: staticTAM = oldTamRatio × oldCap (works when DB cap is present)
+//   Path 2: staticTAM = drug_tam_billions × 1e9 (works when edge fn dropped cap)
+// Live cap itself has a two-tier fallback: Polygon market_cap field, else
+// shares × live intraday price. This handles tickers where Polygon's pre-computed
+// market_cap is null or stale.
+function applyLiveMarketData() {
+  function resolveLiveCap(p) {
+    if (!p) return null;
+    if (typeof p.market_cap === 'number' && p.market_cap > 0) return p.market_cap;
+    if (p.shares_outstanding && p.close > 0) return p.shares_outstanding * p.close;
+    return null;
+  }
+  function applyTo(list) {
+    if (!list) return 0;
+    var updated = 0, noTamSource = 0;
+    list.forEach(function(d) {
+      var p = PRICE_DATA[d.ticker];
+      var liveCap = resolveLiveCap(p);
+      if (!liveCap) return;
+      var oldCap = Number(d.estimated_market_cap) || 0;
+      var oldTam = Number(d.tam_ratio) || 0;
+      var staticTamDollars = (oldCap > 0 && oldTam > 0) ? oldTam * oldCap : 0;
+      if (staticTamDollars === 0) {
+        var tamBil = Number(d.drug_tam_billions) || 0;
+        if (tamBil > 0) staticTamDollars = tamBil * 1e9;
+      }
+      d.estimated_market_cap = liveCap;
+      if (staticTamDollars > 0) {
+        d.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
+      } else {
+        noTamSource++;
+      }
+      updated++;
+    });
+    return { updated: updated, noTamSource: noTamSource };
+  }
+  var sc = applyTo(SCANNER_DATA);
+  var bo = applyTo(window.BUYOUT_DATA);
+  console.log('[SC] Live cap applied: ' + sc.updated + ' scanner events (' + sc.noTamSource + ' no TAM source), ' +
+    bo.updated + ' buyout companies (' + bo.noTamSource + ' no TAM source)');
 }
 
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
@@ -785,12 +916,61 @@ function switchTab(btn, id) {
   } catch (e) {
     console.warn('[SC] Failed to fetch live data:', e);
   }
+
+  // ─── ENRICH SCANNER_DATA FROM biotech_universe ──────────────────────────
+  // The get-scanner-data edge function sometimes returns estimated_market_cap = null
+  // or omits drug_tam_billions. Fill those in from the table so the TAM derivation
+  // in applyLiveMarketData has what it needs to re-compute against live cap.
+  if (SCANNER_DATA.length > 0) {
+    try {
+      var scannerTickerList = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
+      var { data: uniRows } = await sb.from('biotech_universe')
+        .select('ticker, estimated_market_cap, drug_tam_billions, tam_ratio')
+        .in('ticker', scannerTickerList);
+      if (uniRows && uniRows.length > 0) {
+        var uniMap = {};
+        uniRows.forEach(function(r) { uniMap[r.ticker] = r; });
+        var enriched = 0;
+        SCANNER_DATA.forEach(function(d) {
+          var u = uniMap[d.ticker];
+          if (!u) return;
+          if (!Number(d.estimated_market_cap) && Number(u.estimated_market_cap)) {
+            d.estimated_market_cap = Number(u.estimated_market_cap);
+            enriched++;
+          }
+          if (!Number(d.tam_ratio) && Number(u.tam_ratio)) {
+            d.tam_ratio = Number(u.tam_ratio);
+          }
+          if (Number(u.drug_tam_billions)) {
+            d.drug_tam_billions = Number(u.drug_tam_billions);
+          }
+        });
+        console.log('[SC] Enriched ' + enriched + ' scanner events with biotech_universe cap/TAM');
+      }
+    } catch (err) {
+      console.warn('[SC] biotech_universe enrich failed:', err);
+    }
+  }
+
   renderScanner();
   if (SCANNER_DATA.length > 0 && SC_CONFIG.polygonApiKey) {
     var tickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
+
+    // Fast path: bulk snapshot for instant live prices (1 call covers all tickers)
+    polyBulkSnapshot(tickers).then(function(snap) {
+      var n = applyBulkSnapshot(snap);
+      if (n > 0) {
+        renderScanner();
+        console.log('[SC] Scanner rendered with bulk snapshot live prices (' + n + ' tickers)');
+      }
+    });
+
+    // Full path: per-ticker aggs + ticker-details for 30D history + live cap
     fetchPriceData(tickers).then(function() {
+      applyLiveMarketData();
       renderScanner();
-      console.log('[SC] Scanner re-rendered with 30D price trends');
+      renderBuyoutGrid();
+      console.log('[SC] Scanner + buyout re-rendered with live price + live market cap');
     });
   }
   try {
@@ -804,6 +984,29 @@ function switchTab(btn, id) {
         c.tam_ratio = (tam > 0 && mcap > 0) ? Math.round((tam * 1e9 / mcap) * 10) / 10 : 0;
       });
       window.BUYOUT_DATA = approvedCompanies;
+
+      // If Polygon is configured, fetch live caps for buyout-only tickers (not in scanner)
+      if (SC_CONFIG.polygonApiKey) {
+        var scannerTickers = {};
+        SCANNER_DATA.forEach(function(d) { scannerTickers[d.ticker] = true; });
+        var buyoutOnlyTickers = approvedCompanies
+          .map(function(c) { return c.ticker; })
+          .filter(function(t) { return !scannerTickers[t]; })
+          .filter(function(t, i, a) { return a.indexOf(t) === i; });
+        if (buyoutOnlyTickers.length > 0) {
+          console.log('[SC] Fetching live caps for ' + buyoutOnlyTickers.length + ' buyout-only tickers');
+          // Bulk snapshot first for instant prices
+          polyBulkSnapshot(buyoutOnlyTickers).then(function(snap) {
+            applyBulkSnapshot(snap);
+            renderBuyoutGrid();
+          });
+          // Full fetch for 30D + cap
+          fetchPriceData(buyoutOnlyTickers).then(function() {
+            applyLiveMarketData();
+            renderBuyoutGrid();
+          });
+        }
+      }
     } else {
       window.BUYOUT_DATA = [];
     }
@@ -811,6 +1014,7 @@ function switchTab(btn, id) {
     console.warn('[SC] Failed to load approved companies:', err);
     window.BUYOUT_DATA = [];
   }
+  applyLiveMarketData();
   renderBuyoutGrid();
 })();
 </script>
