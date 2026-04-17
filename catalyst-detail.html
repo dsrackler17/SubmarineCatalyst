@@ -103,6 +103,11 @@ main { max-width: 1240px; margin: 0 auto; padding: 2rem 2.5rem 5rem; }
 .countdown-date  { font-size:0.72rem; color:var(--text); margin-top:0.2rem; }
 
 .stat-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:2.5rem; animation: fadeUp 0.5s ease both 0.1s; }
+.stat-strip.live-data { grid-template-columns:repeat(6,1fr); margin-top:-2rem; margin-bottom:2.5rem; animation-delay: 0.15s; }
+.live-data-label { font-family:var(--mono); font-size:0.58rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin:0 0 0.5rem; display:flex; align-items:center; gap:0.6rem; animation: fadeUp 0.5s ease both 0.12s; }
+.live-data-label::before { content:''; display:block; width:1.25rem; height:1px; background:var(--accent2); }
+.live-data-label .live-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent2); box-shadow:0 0 6px var(--accent2); animation: livePulse 1.8s ease-in-out infinite; }
+@keyframes livePulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
 .stat-cell { background:var(--surface); padding:1.1rem 1.5rem; }
 .stat-label { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.35rem; }
 .stat-val { font-family:var(--mono); font-size:1.4rem; font-weight:700; color:var(--accent2); line-height:1; }
@@ -267,6 +272,34 @@ footer a:hover { color:var(--accent); }
     <div class="stat-cell">
       <div class="stat-label">Application</div>
       <div class="stat-val amber" id="stat-type">—</div>
+    </div>
+  </div>
+
+  <div class="live-data-label"><span class="live-dot"></span>Live Market Data · via Polygon</div>
+  <div class="stat-strip live-data">
+    <div class="stat-cell">
+      <div class="stat-label">Market Cap</div>
+      <div class="stat-val cyan" id="stat-cap">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Price</div>
+      <div class="stat-val white" id="stat-price">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Today</div>
+      <div class="stat-val" id="stat-today">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">30D Change</div>
+      <div class="stat-val" id="stat-30d">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Vol (30D)</div>
+      <div class="stat-val cyan" id="stat-vol30">—</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Vol (10D)</div>
+      <div class="stat-val cyan" id="stat-vol10">—</div>
     </div>
   </div>
 
@@ -438,6 +471,78 @@ async function fetchLiveSnapshot(ticker) {
   }
 }
 
+// ─── LIVE 30-DAY BARS FROM POLYGON AGGREGATES ────────────────────────────────
+// /v2/aggs/ticker/{T}/range/1/day/... returns daily OHLC bars. We pull ~50 calendar
+// days (to guarantee ≥30 trading days) and use them to compute 30D price change
+// and annualized realized volatility for the 30D and 10D windows.
+async function fetchLiveBars(ticker) {
+  if (!SC_CONFIG.polygonApiKey) return null;
+  try {
+    var to = new Date();
+    var from = new Date(to.getTime() - 50 * 24 * 60 * 60 * 1000);
+    var fmt = function(d) { return d.toISOString().slice(0, 10); };
+    var url = 'https://api.polygon.io/v2/aggs/ticker/' + encodeURIComponent(ticker) +
+      '/range/1/day/' + fmt(from) + '/' + fmt(to) +
+      '?adjusted=true&sort=asc&limit=50&apiKey=' + SC_CONFIG.polygonApiKey;
+    var res = await fetch(url);
+    if (!res.ok) {
+      console.warn('[SC] Polygon bars ' + res.status + ' for ' + ticker);
+      return null;
+    }
+    var data = await res.json();
+    return (data && data.results && data.results.length) ? data.results : null;
+  } catch (err) {
+    console.warn('[SC] Polygon bars fetch failed for ' + ticker, err);
+    return null;
+  }
+}
+
+// Compute 30D change + realized vol (annualized %) from daily bars.
+// Vol is stddev of daily log returns × √252 × 100 — standard realized vol formula.
+function computeLiveMetrics(bars) {
+  if (!bars || bars.length < 10) return null;
+  var n = bars.length;
+  var last = bars[n - 1];
+
+  // 30D change: last close vs close 30 trading days prior (or earliest if fewer)
+  var idx30 = Math.max(0, n - 31);
+  var ref30 = bars[idx30];
+  var change30d = (ref30 && ref30.c > 0) ? ((last.c - ref30.c) / ref30.c) * 100 : null;
+
+  // Daily log returns
+  var returns = [];
+  for (var i = 1; i < n; i++) {
+    if (bars[i].c > 0 && bars[i - 1].c > 0) {
+      returns.push(Math.log(bars[i].c / bars[i - 1].c));
+    }
+  }
+  var volOf = function(arr) {
+    if (!arr.length) return null;
+    var mean = arr.reduce(function(a, b) { return a + b; }, 0) / arr.length;
+    var variance = arr.reduce(function(a, r) { return a + (r - mean) * (r - mean); }, 0) / arr.length;
+    return Math.sqrt(variance * 252) * 100;
+  };
+
+  return {
+    change30d: change30d,
+    vol30: volOf(returns.slice(-30)),
+    vol10: volOf(returns.slice(-10)),
+    last_close: last.c,
+  };
+}
+
+// Apply computed metrics onto eventData in-place
+function applyLiveMetrics(eventData, metrics) {
+  if (!eventData || !metrics) return;
+  if (typeof metrics.change30d === 'number') eventData.live_30d_pct = metrics.change30d;
+  if (typeof metrics.vol30 === 'number')     eventData.live_vol30   = metrics.vol30;
+  if (typeof metrics.vol10 === 'number')     eventData.live_vol10   = metrics.vol10;
+  console.log('[SC] Live metrics: 30D ' +
+    (typeof metrics.change30d === 'number' ? (metrics.change30d >= 0 ? '+' : '') + metrics.change30d.toFixed(1) + '%' : '—') +
+    ' · Vol30 ' + (typeof metrics.vol30 === 'number' ? metrics.vol30.toFixed(0) + '%' : '—') +
+    ' · Vol10 ' + (typeof metrics.vol10 === 'number' ? metrics.vol10.toFixed(0) + '%' : '—'));
+}
+
 // ─── LIVE MARKET CAP FROM POLYGON ────────────────────────────────────────────
 // Polygon /v3/reference/tickers/{ticker} returns market_cap in full USD
 // (e.g. 69500000 for $69.5M), computed as latest close × shares outstanding.
@@ -557,6 +662,43 @@ function populatePage(d, isPaid) {
   dilEl.style.color = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)','UNKNOWN':'var(--muted)'}[dilRisk] || 'var(--muted)';
   document.getElementById('stat-final').textContent     = (d.net_edge_score || d.score || 0).toFixed(1);
   document.getElementById('stat-type').textContent      = d.type || 'PDUFA';
+
+  // ─── LIVE MARKET DATA STRIP (cap, price, today, 30D, vol) ────────────────
+  var fmtCap = function(c) {
+    if (!c || c <= 0) return '—';
+    return c >= 1e9 ? '$' + (c / 1e9).toFixed(2) + 'B' : '$' + (c / 1e6).toFixed(1) + 'M';
+  };
+  var colorForPct = function(p) {
+    if (typeof p !== 'number') return 'var(--muted)';
+    return p >= 0 ? 'var(--accent2)' : 'var(--red)';
+  };
+
+  var capEl = document.getElementById('stat-cap');
+  if (capEl) capEl.textContent = fmtCap(Number(d.estimated_market_cap) || 0);
+
+  var priceEl = document.getElementById('stat-price');
+  var price = Number(d.current_price) || 0;
+  if (priceEl) priceEl.textContent = price > 0 ? '$' + price.toFixed(2) : '—';
+
+  var todayEl = document.getElementById('stat-today');
+  var today = (typeof d.today_change_pct === 'number') ? d.today_change_pct : null;
+  if (todayEl) {
+    todayEl.textContent = today !== null ? (today >= 0 ? '+' : '') + today.toFixed(2) + '%' : '—';
+    todayEl.style.color = colorForPct(today);
+  }
+
+  var d30El = document.getElementById('stat-30d');
+  var d30 = (typeof d.live_30d_pct === 'number') ? d.live_30d_pct : null;
+  if (d30El) {
+    d30El.textContent = d30 !== null ? (d30 >= 0 ? '+' : '') + d30.toFixed(1) + '%' : '—';
+    d30El.style.color = colorForPct(d30);
+  }
+
+  var vol30El = document.getElementById('stat-vol30');
+  if (vol30El) vol30El.textContent = (typeof d.live_vol30 === 'number') ? d.live_vol30.toFixed(0) + '%' : '—';
+
+  var vol10El = document.getElementById('stat-vol10');
+  if (vol10El) vol10El.textContent = (typeof d.live_vol10 === 'number') ? d.live_vol10.toFixed(0) + '%' : '—';
 
   document.getElementById('key-metrics').innerHTML = [
     ['PDUFA Date',    d.date],
@@ -1005,10 +1147,10 @@ async function generateAISummary(d) {
     }
   }
 
-  // ─── LIVE CAP + LIVE PRICE + LIVE TAM/CAP OVERRIDE ──────────────────────
-  // Fetches ticker details (shares+cap) and intraday snapshot (live price) in parallel.
-  // 8s timeout per-call so Polygon has time on cold first-load DNS/TLS, and one slow
-  // call doesn't take down the other — was 2s which cut off on fresh sessions.
+  // ─── LIVE CAP + LIVE PRICE + 30D METRICS + LIVE TAM/CAP OVERRIDE ────────
+  // Fetches ticker details (shares+cap), intraday snapshot (live price), and 30D bars
+  // (for change% + realized vol) in parallel. 8s timeout per-call so Polygon has time
+  // on cold first-load and one slow endpoint doesn't take down the others.
   try {
     var capPromise = Promise.race([
       fetchLiveCap(ticker),
@@ -1018,10 +1160,15 @@ async function generateAISummary(d) {
       fetchLiveSnapshot(ticker),
       new Promise(function(r) { setTimeout(function() { r(null); }, 8000); })
     ]);
-    var livePair = await Promise.all([capPromise, snapPromise]);
-    applyLiveMarketData(eventData, livePair[0], livePair[1]);
+    var barsPromise = Promise.race([
+      fetchLiveBars(ticker),
+      new Promise(function(r) { setTimeout(function() { r(null); }, 8000); })
+    ]);
+    var trio = await Promise.all([capPromise, snapPromise, barsPromise]);
+    applyLiveMarketData(eventData, trio[0], trio[1]);
+    applyLiveMetrics(eventData, computeLiveMetrics(trio[2]));
   } catch (err) {
-    console.warn('[SC] Live cap/price override skipped:', err);
+    console.warn('[SC] Live cap/price/bars override skipped:', err);
   }
 
   populatePage(eventData, isPaid);
