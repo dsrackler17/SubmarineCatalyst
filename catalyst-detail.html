@@ -103,11 +103,6 @@ main { max-width: 1240px; margin: 0 auto; padding: 2rem 2.5rem 5rem; }
 .countdown-date  { font-size:0.72rem; color:var(--text); margin-top:0.2rem; }
 
 .stat-strip { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); margin-bottom:2.5rem; animation: fadeUp 0.5s ease both 0.1s; }
-.stat-strip.live-data { grid-template-columns:repeat(6,1fr); margin-top:-2rem; margin-bottom:2.5rem; animation-delay: 0.15s; }
-.live-data-label { font-family:var(--mono); font-size:0.58rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--muted); margin:0 0 0.5rem; display:flex; align-items:center; gap:0.6rem; animation: fadeUp 0.5s ease both 0.12s; }
-.live-data-label::before { content:''; display:block; width:1.25rem; height:1px; background:var(--accent2); }
-.live-data-label .live-dot { display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--accent2); box-shadow:0 0 6px var(--accent2); animation: livePulse 1.8s ease-in-out infinite; }
-@keyframes livePulse { 0%,100% { opacity:1; } 50% { opacity:0.35; } }
 .stat-cell { background:var(--surface); padding:1.1rem 1.5rem; }
 .stat-label { font-family:var(--mono); font-size:0.6rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.35rem; }
 .stat-val { font-family:var(--mono); font-size:1.4rem; font-weight:700; color:var(--accent2); line-height:1; }
@@ -275,34 +270,6 @@ footer a:hover { color:var(--accent); }
     </div>
   </div>
 
-  <div class="live-data-label"><span class="live-dot"></span>Live Market Data · via Polygon</div>
-  <div class="stat-strip live-data">
-    <div class="stat-cell">
-      <div class="stat-label">Market Cap</div>
-      <div class="stat-val cyan" id="stat-cap">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">Price</div>
-      <div class="stat-val white" id="stat-price">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">Today</div>
-      <div class="stat-val" id="stat-today">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">30D Change</div>
-      <div class="stat-val" id="stat-30d">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">Vol (30D)</div>
-      <div class="stat-val cyan" id="stat-vol30">—</div>
-    </div>
-    <div class="stat-cell">
-      <div class="stat-label">Vol (10D)</div>
-      <div class="stat-val cyan" id="stat-vol10">—</div>
-    </div>
-  </div>
-
   <div class="disclaimer-box">
     ⚠️ This page contains quantitative scanner output only. It is not investment advice. All trading decisions are solely yours. Trading biotech binary events involves substantial risk of loss.
   </div>
@@ -444,207 +411,31 @@ function gradeBadgeHTML(grade) {
   return '<span class="grade-pill ' + cls + '">' + lbl + '</span>';
 }
 
-// ─── LIVE INTRADAY PRICE FROM POLYGON SNAPSHOT ───────────────────────────────
-// /v2/snapshot/locale/us/markets/stocks/tickers/{ticker} returns the most recent
-// trade price during market hours (real-time on paid tier, 15-min delayed on free).
-// Use this to override stale DB current_price so the catalyst page ticks live.
-async function fetchLiveSnapshot(ticker) {
-  if (!SC_CONFIG.polygonApiKey) return null;
-  try {
-    var url = 'https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers/' +
-      encodeURIComponent(ticker) + '?apiKey=' + SC_CONFIG.polygonApiKey;
-    var res = await fetch(url);
-    if (!res.ok) return null;
-    var data = await res.json();
-    var t = data && data.ticker;
-    if (!t) return null;
-    var price = (t.lastTrade && t.lastTrade.p) || (t.day && t.day.c) ||
-                (t.prevDay && t.prevDay.c) || null;
-    return {
-      price: (typeof price === 'number' && price > 0) ? price : null,
-      todayChangePerc: typeof t.todaysChangePerc === 'number' ? t.todaysChangePerc : null,
-      prevClose: (t.prevDay && t.prevDay.c) || null,
-    };
-  } catch (err) {
-    console.warn('[SC] Snapshot fetch failed for ' + ticker, err);
-    return null;
-  }
-}
-
-// ─── LIVE 30-DAY BARS FROM POLYGON AGGREGATES ────────────────────────────────
-// /v2/aggs/ticker/{T}/range/1/day/... returns daily OHLC bars. We pull ~50 calendar
-// days (to guarantee ≥30 trading days) and use them to compute 30D price change
-// and annualized realized volatility for the 30D and 10D windows.
-async function fetchLiveBars(ticker) {
-  if (!SC_CONFIG.polygonApiKey) return null;
-  try {
-    var to = new Date();
-    var from = new Date(to.getTime() - 50 * 24 * 60 * 60 * 1000);
-    var fmt = function(d) { return d.toISOString().slice(0, 10); };
-    var url = 'https://api.polygon.io/v2/aggs/ticker/' + encodeURIComponent(ticker) +
-      '/range/1/day/' + fmt(from) + '/' + fmt(to) +
-      '?adjusted=true&sort=asc&limit=50&apiKey=' + SC_CONFIG.polygonApiKey;
-    var res = await fetch(url);
-    if (!res.ok) {
-      console.warn('[SC] Polygon bars ' + res.status + ' for ' + ticker);
-      return null;
-    }
-    var data = await res.json();
-    return (data && data.results && data.results.length) ? data.results : null;
-  } catch (err) {
-    console.warn('[SC] Polygon bars fetch failed for ' + ticker, err);
-    return null;
-  }
-}
-
-// Compute 30D change + realized vol (annualized %) from daily bars.
-// Vol is stddev of daily log returns × √252 × 100 — standard realized vol formula.
-function computeLiveMetrics(bars) {
-  if (!bars || bars.length < 10) return null;
-  var n = bars.length;
-  var last = bars[n - 1];
-
-  // 30D change: last close vs close 30 trading days prior (or earliest if fewer)
-  var idx30 = Math.max(0, n - 31);
-  var ref30 = bars[idx30];
-  var change30d = (ref30 && ref30.c > 0) ? ((last.c - ref30.c) / ref30.c) * 100 : null;
-
-  // Daily log returns
-  var returns = [];
-  for (var i = 1; i < n; i++) {
-    if (bars[i].c > 0 && bars[i - 1].c > 0) {
-      returns.push(Math.log(bars[i].c / bars[i - 1].c));
-    }
-  }
-  var volOf = function(arr) {
-    if (!arr.length) return null;
-    var mean = arr.reduce(function(a, b) { return a + b; }, 0) / arr.length;
-    var variance = arr.reduce(function(a, r) { return a + (r - mean) * (r - mean); }, 0) / arr.length;
-    return Math.sqrt(variance * 252) * 100;
-  };
-
-  return {
-    change30d: change30d,
-    vol30: volOf(returns.slice(-30)),
-    vol10: volOf(returns.slice(-10)),
-    last_close: last.c,
-  };
-}
-
-// Apply computed metrics onto eventData in-place
-function applyLiveMetrics(eventData, metrics) {
-  if (!eventData || !metrics) return;
-  if (typeof metrics.change30d === 'number') eventData.live_30d_pct = metrics.change30d;
-  if (typeof metrics.vol30 === 'number')     eventData.live_vol30   = metrics.vol30;
-  if (typeof metrics.vol10 === 'number')     eventData.live_vol10   = metrics.vol10;
-  console.log('[SC] Live metrics: 30D ' +
-    (typeof metrics.change30d === 'number' ? (metrics.change30d >= 0 ? '+' : '') + metrics.change30d.toFixed(1) + '%' : '—') +
-    ' · Vol30 ' + (typeof metrics.vol30 === 'number' ? metrics.vol30.toFixed(0) + '%' : '—') +
-    ' · Vol10 ' + (typeof metrics.vol10 === 'number' ? metrics.vol10.toFixed(0) + '%' : '—'));
-}
-
-// ─── LIVE MARKET CAP FROM POLYGON ────────────────────────────────────────────
-// Polygon /v3/reference/tickers/{ticker} returns market_cap in full USD
-// (e.g. 69500000 for $69.5M), computed as latest close × shares outstanding.
-// Updated daily after market close — fresher than whatever is in the DB.
-async function fetchLiveCap(ticker) {
-  if (!SC_CONFIG.polygonApiKey) {
-    console.warn('[SC] No polygonApiKey in SC_CONFIG — skipping live cap');
-    return null;
-  }
-  try {
-    const url = 'https://api.polygon.io/v3/reference/tickers/' +
-      encodeURIComponent(ticker) + '?apiKey=' + SC_CONFIG.polygonApiKey;
-    const res = await fetch(url);
-    if (!res.ok) {
-      console.warn('[SC] Polygon ticker details ' + res.status + ' for ' + ticker);
-      return null;
-    }
-    const data = await res.json();
-    const cap = data && data.results ? data.results.market_cap : null;
-    const shares = data && data.results
-      ? (data.results.weighted_shares_outstanding || data.results.share_class_shares_outstanding)
-      : null;
-    return {
-      market_cap: (typeof cap === 'number' && cap > 0) ? cap : null,
-      shares_outstanding: shares || null,
-    };
-  } catch (err) {
-    console.warn('[SC] Polygon live cap fetch failed for ' + ticker, err);
-    return null;
-  }
-}
-
-// Apply live cap + derive live TAM/Cap on an eventData object in-place.
-// TAM (absolute $) is static per indication — only the cap denominator moves.
-// Two derivation paths (fallback chain):
-//   1. staticTAM = oldTamRatio × oldCap (preferred; works when DB cap is present)
-//   2. staticTAM = drug_tam_billions × 1e9 (fallback when edge function dropped cap)
-// Also applies live intraday price from snapshot if provided — overrides
-// the stored current_price (which is EOD at best, often stale by days).
-function applyLiveMarketData(eventData, live, snap) {
-  if (!eventData) return;
-
-  // Resolve live market cap — prefer shares × live price (freshest) over stored market_cap.
-  // Polygon's /v3/reference/tickers market_cap is computed once daily after close, so it
-  // can match the DB's stale value; multiplying shares × intraday price gives true live cap.
-  var liveCap = null;
-  var capSource = '';
-  if (live && live.shares_outstanding && snap && snap.price) {
-    liveCap = live.shares_outstanding * snap.price;
-    capSource = 'shares×price';
-    console.log('[SC] Live cap: ' + live.shares_outstanding + ' shares × $' + snap.price +
-      ' = $' + (liveCap / 1e6).toFixed(1) + 'M [' + capSource + ']');
-  } else if (live && typeof live.market_cap === 'number' && live.market_cap > 0) {
-    liveCap = live.market_cap;
-    capSource = 'polygon.market_cap';
-    console.log('[SC] Live cap: $' + (liveCap / 1e6).toFixed(1) + 'M [' + capSource + ' fallback — shares or price missing]');
-  } else {
-    console.log('[SC] Live cap unavailable — live=' + (live ? 'cap:' + live.market_cap + ',shares:' + live.shares_outstanding : 'null') + ' snap=' + (snap ? 'price:' + snap.price : 'null'));
-  }
-
-  if (liveCap && liveCap > 0) {
-    var oldCap = Number(eventData.estimated_market_cap) || 0;
-    var oldTamRatio = Number(eventData.tam_ratio) || 0;
-
-    // Path 1: derive from old cap × ratio
-    var staticTamDollars = (oldCap > 0 && oldTamRatio > 0) ? oldTamRatio * oldCap : 0;
-
-    // Path 2: fall back to drug_tam_billions (more reliable — doesn't need cap)
-    if (staticTamDollars === 0) {
-      var tamBil = Number(eventData.drug_tam_billions) ||
-                   Number(eventData.drug_tam_estimate) || 0;
-      if (tamBil > 0) staticTamDollars = tamBil * 1e9;
-    }
-
-    eventData.estimated_market_cap = liveCap;
-    if (staticTamDollars > 0) {
-      eventData.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
-    }
-    console.log('[SC] Live cap applied: $' + (liveCap / 1e6).toFixed(1) +
-      'M (was $' + (oldCap / 1e6).toFixed(1) + 'M) · TAM/Cap ' +
-      (eventData.tam_ratio || '—') + 'x' +
-      (staticTamDollars === 0 ? ' [no TAM source]' : ''));
-  }
-  if (snap && snap.price) {
-    var oldPrice = Number(eventData.current_price) || 0;
-    eventData.current_price = snap.price;
-    if (snap.todayChangePerc !== null && typeof snap.todayChangePerc === 'number') {
-      eventData.today_change_pct = snap.todayChangePerc;
-    }
-    console.log('[SC] Live price applied: $' + snap.price.toFixed(2) +
-      (oldPrice > 0 ? ' (was $' + oldPrice.toFixed(2) + ')' : '') +
-      (typeof snap.todayChangePerc === 'number' ? ' · today ' + (snap.todayChangePerc >= 0 ? '+' : '') + snap.todayChangePerc.toFixed(2) + '%' : ''));
-  }
-}
-
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
 function populatePage(d, isPaid) {
   document.title = d.ticker + ' — Catalyst Deep Dive — Submarine Catalyst';
   document.getElementById('drug-ticker').textContent    = d.ticker;
   document.getElementById('drug-name').textContent      = d.drug || '';
-  document.getElementById('drug-indication').textContent = d.indication || '';
-  document.getElementById('header-eyebrow').textContent  = d.type + ' · PDUFA Setup';
+
+  // Royalty/licensee tickers: make it visually obvious this is a PARTNER's PDUFA
+  // that the ticker has milestone exposure to, not the ticker's own drug. Prevents
+  // readers from assuming the approval will reprice this ticker like a primary filer.
+  var isRoyaltyTicker = (d.ticker_role === 'royalty' || d.ticker_role === 'licensee');
+  var indicationEl = document.getElementById('drug-indication');
+  if (isRoyaltyTicker && d.primary_ticker) {
+    indicationEl.innerHTML =
+      (d.indication || '') +
+      ' <span style="color:var(--amber);font-weight:700;letter-spacing:0.05em;">· ' +
+      d.ticker_role.toUpperCase() + ' EXPOSURE VIA ' + d.primary_ticker + '</span>';
+  } else {
+    indicationEl.textContent = d.indication || '';
+  }
+
+  var eyebrow = (d.type || 'PDUFA') + ' · PDUFA Setup';
+  if (isRoyaltyTicker) {
+    eyebrow = (d.type || 'PDUFA') + ' · ' + d.ticker_role.toUpperCase() + ' TICKER';
+  }
+  document.getElementById('header-eyebrow').textContent = eyebrow;
   document.getElementById('grade-badge').innerHTML       = gradeBadgeHTML(d.grade);
 
   var days = daysUntil(d.date);
@@ -662,43 +453,6 @@ function populatePage(d, isPaid) {
   dilEl.style.color = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)','UNKNOWN':'var(--muted)'}[dilRisk] || 'var(--muted)';
   document.getElementById('stat-final').textContent     = (d.net_edge_score || d.score || 0).toFixed(1);
   document.getElementById('stat-type').textContent      = d.type || 'PDUFA';
-
-  // ─── LIVE MARKET DATA STRIP (cap, price, today, 30D, vol) ────────────────
-  var fmtCap = function(c) {
-    if (!c || c <= 0) return '—';
-    return c >= 1e9 ? '$' + (c / 1e9).toFixed(2) + 'B' : '$' + (c / 1e6).toFixed(1) + 'M';
-  };
-  var colorForPct = function(p) {
-    if (typeof p !== 'number') return 'var(--muted)';
-    return p >= 0 ? 'var(--accent2)' : 'var(--red)';
-  };
-
-  var capEl = document.getElementById('stat-cap');
-  if (capEl) capEl.textContent = fmtCap(Number(d.estimated_market_cap) || 0);
-
-  var priceEl = document.getElementById('stat-price');
-  var price = Number(d.current_price) || 0;
-  if (priceEl) priceEl.textContent = price > 0 ? '$' + price.toFixed(2) : '—';
-
-  var todayEl = document.getElementById('stat-today');
-  var today = (typeof d.today_change_pct === 'number') ? d.today_change_pct : null;
-  if (todayEl) {
-    todayEl.textContent = today !== null ? (today >= 0 ? '+' : '') + today.toFixed(2) + '%' : '—';
-    todayEl.style.color = colorForPct(today);
-  }
-
-  var d30El = document.getElementById('stat-30d');
-  var d30 = (typeof d.live_30d_pct === 'number') ? d.live_30d_pct : null;
-  if (d30El) {
-    d30El.textContent = d30 !== null ? (d30 >= 0 ? '+' : '') + d30.toFixed(1) + '%' : '—';
-    d30El.style.color = colorForPct(d30);
-  }
-
-  var vol30El = document.getElementById('stat-vol30');
-  if (vol30El) vol30El.textContent = (typeof d.live_vol30 === 'number') ? d.live_vol30.toFixed(0) + '%' : '—';
-
-  var vol10El = document.getElementById('stat-vol10');
-  if (vol10El) vol10El.textContent = (typeof d.live_vol10 === 'number') ? d.live_vol10.toFixed(0) + '%' : '—';
 
   document.getElementById('key-metrics').innerHTML = [
     ['PDUFA Date',    d.date],
@@ -844,9 +598,33 @@ async function generateAISummary(d) {
         'Be specific with analysis. This is for investors evaluating whether to add this company to their watchlist. End with disclaimer.';
     } else {
       // PDUFA-specific deep dive (existing prompt)
-      prompt = 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
+      // Royalty/licensee context: if this ticker is NOT the commercial owner of the
+      // drug, prepend explicit framing so the AI doesn't hallucinate the approval as
+      // the ticker's own catalyst (classic failure mode — ticker drift → AI invents a
+      // generic pipeline narrative for the listed ticker instead of analyzing the
+      // actual drug). Primary ticker is the commercial filer (SNY for TZIELD, etc.);
+      // this ticker collects milestones/royalties and has no launch economics.
+      var isRoyaltyTicker = (d.ticker_role === 'royalty' || d.ticker_role === 'licensee');
+      var roleContext = '';
+      if (isRoyaltyTicker) {
+        var commercialOwner = d.primary_ticker || d.partner_name || 'the commercial partner';
+        roleContext =
+          'IMPORTANT TICKER ROLE CONTEXT — READ FIRST:\n' +
+          d.ticker + ' is a ' + d.ticker_role.toUpperCase() + ' ticker for this catalyst. ' +
+          d.ticker + ' does NOT own or commercialize the drug. The commercial owner is ' +
+          commercialOwner + '. ' + d.ticker + '\'s economic exposure to this PDUFA is limited to ' +
+          'milestone payments and/or royalties under a license agreement. Approval does NOT ' +
+          'trigger revenue recognition, launch costs, or commercial infrastructure decisions ' +
+          'for ' + d.ticker + '. Frame the entire analysis around ' + d.ticker + '\'s ' +
+          'royalty/milestone exposure — NOT as if ' + d.ticker + ' is the filer. Do NOT invent ' +
+          'pipeline narrative or commercial strategy for ' + d.ticker + ' in this analysis; ' +
+          'stick to what is publicly disclosed about ' + d.ticker + '\'s license terms and ' +
+          'milestone ladder for this specific asset.\n\n';
+      }
+      prompt = roleContext + 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
       '**EXECUTIVE SUMMARY**\n' +
       'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '.\n' +
+      (isRoyaltyTicker ? 'Ticker role: ' + d.ticker_role.toUpperCase() + '. Commercial owner: ' + (d.primary_ticker || d.partner_name || 'unknown') + '.\n' : '') +
       'Scanner data — PoA: ' + (d.poa || 0).toFixed(1) + '%. STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
       'Runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '. ' +
       'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Net insider buys (90d): ' + (d.insider_net_buys || 0) + '. ' +
@@ -1013,6 +791,13 @@ async function generateAISummary(d) {
         atm_active: e.atm_active || false,
         partnership_detected: e.has_partnership || e.partnership_detected || false,
         partner_name: e.partner_name || '',
+        // Ticker role: 'primary' (commercial owner), 'royalty' (collects milestones),
+        // 'licensee' (holds ex-US/regional rights). Drives whether the catalyst page
+        // frames this as the ticker's own PDUFA vs a partner's PDUFA that this ticker
+        // has economic exposure to. See drug_assets table + validate_ticker_drug().
+        ticker_role: e.ticker_role || 'primary',
+        primary_ticker: e.primary_ticker || '',
+        is_primary_ticker: e.is_primary_ticker !== false,
         acquirer_urgency_top: e.acquirer_urgency_top || '',
         buyout_score: Number(e.buyout_score) || 0,
         buyout_risk: e.buyout_risk || 'UNLIKELY',
@@ -1112,63 +897,6 @@ async function generateAISummary(d) {
       company_name: ticker,
       market_cap_tier: 'UNKNOWN',
     };
-  }
-
-  // ─── ENRICH FROM BIOTECH_UNIVERSE ────────────────────────────────────────
-  // The get-scanner-data edge function sometimes returns estimated_market_cap = null
-  // or drops drug_tam_billions entirely. Fill those in directly from the table
-  // so applyLiveMarketData has what it needs to re-derive TAM/Cap off live cap.
-  // Uses .limit(1) instead of .maybeSingle() for broader Supabase JS compatibility.
-  if (eventData) {
-    try {
-      var sb2 = getSupabase();
-      var uniRes = await sb2.from('biotech_universe')
-        .select('estimated_market_cap, drug_tam_billions, tam_ratio, approved_drug, last_approval_date')
-        .eq('ticker', ticker)
-        .limit(1);
-      var uniRow = uniRes && uniRes.data && uniRes.data[0];
-      if (uniRow) {
-        if (!Number(eventData.estimated_market_cap) && Number(uniRow.estimated_market_cap)) {
-          eventData.estimated_market_cap = Number(uniRow.estimated_market_cap);
-        }
-        if (!Number(eventData.tam_ratio) && Number(uniRow.tam_ratio)) {
-          eventData.tam_ratio = Number(uniRow.tam_ratio);
-        }
-        if (Number(uniRow.drug_tam_billions)) {
-          eventData.drug_tam_billions = Number(uniRow.drug_tam_billions);
-        }
-        console.log('[SC] biotech_universe enrich: cap=$' + ((Number(eventData.estimated_market_cap)||0)/1e6).toFixed(1) +
-          'M, tam_ratio=' + (eventData.tam_ratio || 0) + ', drug_tam_billions=' + (eventData.drug_tam_billions || 0));
-      } else {
-        console.log('[SC] biotech_universe enrich: no row found for ' + ticker);
-      }
-    } catch (e) {
-      console.warn('[SC] biotech_universe enrich failed:', e);
-    }
-  }
-
-  // ─── LIVE CAP + LIVE PRICE + 30D METRICS + LIVE TAM/CAP OVERRIDE ────────
-  // Fetches ticker details (shares+cap), intraday snapshot (live price), and 30D bars
-  // (for change% + realized vol) in parallel. 8s timeout per-call so Polygon has time
-  // on cold first-load and one slow endpoint doesn't take down the others.
-  try {
-    var capPromise = Promise.race([
-      fetchLiveCap(ticker),
-      new Promise(function(r) { setTimeout(function() { r(null); }, 8000); })
-    ]);
-    var snapPromise = Promise.race([
-      fetchLiveSnapshot(ticker),
-      new Promise(function(r) { setTimeout(function() { r(null); }, 8000); })
-    ]);
-    var barsPromise = Promise.race([
-      fetchLiveBars(ticker),
-      new Promise(function(r) { setTimeout(function() { r(null); }, 8000); })
-    ]);
-    var trio = await Promise.all([capPromise, snapPromise, barsPromise]);
-    applyLiveMarketData(eventData, trio[0], trio[1]);
-    applyLiveMetrics(eventData, computeLiveMetrics(trio[2]));
-  } catch (err) {
-    console.warn('[SC] Live cap/price/bars override skipped:', err);
   }
 
   populatePage(eventData, isPaid);
