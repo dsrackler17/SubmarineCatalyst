@@ -7,7 +7,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Record — Submarine Catalyst</title>
-<meta name="description" content="Live PDUFA prediction outcomes + 102-event retrospective backtest. Every call documented with predicted PoA vs actual FDA decision, plus calibration curve over 25 months of FDA history.">
+<meta name="description" content="Live PDUFA prediction outcomes + 102-event retrospective backtest + $1M portfolio IRR simulation. Every call documented, every dollar compounded, every number auditable.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -45,6 +45,7 @@ main{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:3rem 2rem;}
 .stat-val.cyan{color:var(--accent);}
 .stat-val.white{color:var(--white);}
 .stat-val.amber{color:var(--amber);}
+.stat-val.red{color:var(--red);}
 .stat-sub{font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-top:0.3rem;}
 
 .section-title{font-family:var(--mono);font-size:0.78rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:1.5rem;padding-bottom:0.75rem;border-bottom:1px solid var(--border);}
@@ -107,6 +108,49 @@ main{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:3rem 2rem;}
 .bt-ticker{color:var(--white);font-weight:700;letter-spacing:0.05em;}
 .bt-ticker.private{color:var(--muted);font-weight:400;}
 
+/* ===== PORTFOLIO IRR SECTION ===== */
+.portfolio-divider{border:none;border-top:2px solid var(--border);margin:4rem 0 3rem;position:relative;}
+.portfolio-divider::after{content:'CAPITAL SIMULATION';position:absolute;top:-0.7rem;left:50%;transform:translateX(-50%);background:var(--navy);padding:0 1.5rem;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.25em;color:var(--accent2);}
+
+.sizing-control{display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem;flex-wrap:wrap;}
+.sizing-control-label{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);}
+.sizing-btn{font-family:var(--mono);font-size:0.72rem;letter-spacing:0.08em;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;cursor:pointer;transition:all 0.2s;}
+.sizing-btn:hover{border-color:var(--accent);color:var(--accent);}
+.sizing-btn.active{background:var(--accent);border-color:var(--accent);color:var(--navy);font-weight:700;}
+.sizing-note{font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-left:auto;letter-spacing:0.05em;}
+
+.irr-chart-wrap{background:var(--surface);border:1px solid var(--border);padding:1.5rem 1rem 1.25rem;margin-bottom:1.5rem;position:relative;overflow:hidden;}
+.irr-chart-wrap::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));}
+.irr-chart-title{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;padding-left:0.5rem;}
+#irr-chart{width:100%;overflow-x:auto;}
+#irr-chart svg{display:block;width:100%;height:auto;min-width:600px;}
+#irr-chart-headline{font-family:var(--mono);font-size:0.7rem;color:var(--muted);margin-top:0.5rem;padding-left:0.5rem;letter-spacing:0.03em;}
+#irr-chart-headline strong{color:var(--accent2);}
+
+.irr-secondary-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;}
+.irr-sec-item{background:var(--surface);padding:1.1rem 1rem;text-align:center;}
+.irr-sec-label{font-family:var(--mono);font-size:0.58rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.35rem;}
+.irr-sec-val{font-family:var(--mono);font-size:1rem;font-weight:700;color:var(--white);line-height:1.1;}
+.irr-sec-val.green{color:var(--accent2);}
+.irr-sec-val.red{color:var(--red);}
+.irr-sec-val.cyan{color:var(--accent);}
+
+.irr-trade-wrap{max-height:440px;overflow-y:auto;border:1px solid var(--border);margin-bottom:2rem;}
+.irr-trade-wrap::-webkit-scrollbar{width:8px;}
+.irr-trade-wrap::-webkit-scrollbar-track{background:var(--deep);}
+.irr-trade-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+.irr-trade-wrap::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+.irr-trade-table{width:100%;border-collapse:collapse;}
+.irr-trade-table th{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-align:right;padding:0.6rem 0.75rem;border-bottom:2px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:1;white-space:nowrap;}
+.irr-trade-table th:nth-child(-n+4){text-align:left;}
+.irr-trade-table td{font-family:var(--mono);font-size:0.7rem;padding:0.55rem 0.75rem;border-bottom:1px solid rgba(26,58,92,0.4);color:var(--text);text-align:right;white-space:nowrap;}
+.irr-trade-table td:nth-child(-n+4){text-align:left;}
+.irr-trade-table tr:hover{background:rgba(0,212,255,0.03);}
+.irr-trade-table .dir-long{color:var(--accent2);font-weight:700;}
+.irr-trade-table .dir-short{color:var(--red);font-weight:700;}
+.irr-trade-table .pnl-pos{color:var(--accent2);}
+.irr-trade-table .pnl-neg{color:var(--red);}
+
 footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
 footer a{color:var(--muted);text-decoration:none;}
 footer a:hover{color:var(--accent);}
@@ -119,6 +163,10 @@ footer a:hover{color:var(--accent);}
   .calib-row{grid-template-columns:60px 1fr 80px;gap:0.5rem;font-size:0.68rem;}
   .calib-n,.calib-gap{display:none;}
   main{padding:2rem 1.25rem;}
+  .irr-secondary-stats{grid-template-columns:1fr 1fr;}
+  .sizing-note{margin-left:0;width:100%;}
+  .irr-trade-table{font-size:0.62rem;}
+  .irr-trade-table th,.irr-trade-table td{padding:0.4rem 0.5rem;}
 }
 </style>
 </head>
@@ -141,7 +189,7 @@ footer a:hover{color:var(--accent);}
 <main>
   <div class="page-eyebrow">Performance</div>
   <h1 class="page-title">Track Record</h1>
-  <p class="page-sub">Two layers of evidence. Every live PDUFA prediction documented against the actual FDA outcome — no cherry-picking, wins and losses both logged. A 102-event retrospective backtest running the same PoA engine against 25 months of FDA history.</p>
+  <p class="page-sub">Three layers of evidence. Every live PDUFA classification documented against the actual FDA outcome — wins and losses both on the record. A 102-event retrospective backtest running the same PoA engine against 25 months of FDA history. And a $1M portfolio simulation that compounds each classification through time to show what a subscriber mirroring the calls would have experienced.</p>
 
   <div class="stats-strip">
     <div class="stat-cell">
@@ -282,6 +330,105 @@ footer a:hover{color:var(--accent);}
     </table>
   </div>
 
+  <!-- ═════════════════════════════════════════════════════════════════════
+       PORTFOLIO IRR SECTION — $1M compounding simulation
+       ═════════════════════════════════════════════════════════════════════ -->
+  <hr class="portfolio-divider">
+
+  <div class="page-eyebrow" style="margin-top:0.5rem;">Capital Simulation</div>
+  <h2 class="page-title" style="font-size:1.7rem;">Portfolio IRR</h2>
+  <p class="page-sub">What a subscriber mirroring the live scanner calls would have experienced. $1M starting capital, fixed-percent position sizing, compounded chronologically through every resolved classification. Non-overlapping events, no leverage — so IRR collapses cleanly to CAGR.</p>
+
+  <div class="methodology-note">
+    <strong>Methodology</strong>
+    Starting capital <code>$1,000,000</code>. Each resolved trade sized at a fixed percentage of current account equity (toggle below). Trades executed chronologically by PDUFA decision date. WATCH-list classifications (no position taken) are excluded. <code>trade_type</code> determines direction — <code>LONG</code> uses <code>return_pct</code> as-is, <code>SHORT</code> inverts it. Because PDUFA events rarely overlap at the portfolio level, the sequence compounds cleanly and IRR collapses to CAGR: <code>(ending / starting)^(1/years) − 1</code>. No leverage, no options, no overlapping positions, no intra-trade management. Fees and slippage not modeled.
+  </div>
+
+  <div class="sizing-control">
+    <span class="sizing-control-label">Position size per trade:</span>
+    <button class="sizing-btn" data-sizing="0.05">5%</button>
+    <button class="sizing-btn active" data-sizing="0.075">7.5%</button>
+    <button class="sizing-btn" data-sizing="0.10">10%</button>
+    <span class="sizing-note">% of current account equity · rebased each trade</span>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="stat-label">Starting Capital</div>
+      <div class="stat-val white">$1.00M</div>
+      <div class="stat-sub">Jan 2024 baseline</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Final Equity</div>
+      <div class="stat-val green" id="irr-final">—</div>
+      <div class="stat-sub" id="irr-total">loading</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Annualized (CAGR)</div>
+      <div class="stat-val cyan" id="irr-cagr">—</div>
+      <div class="stat-sub" id="irr-years">across window</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Max Drawdown</div>
+      <div class="stat-val red" id="irr-mdd">—</div>
+      <div class="stat-sub">peak-to-trough</div>
+    </div>
+  </div>
+
+  <div class="irr-chart-wrap">
+    <div class="irr-chart-title">Equity curve · $1M → final</div>
+    <div id="irr-chart">
+      <div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.72rem;">Loading simulation…</div>
+    </div>
+    <div id="irr-chart-headline"></div>
+  </div>
+
+  <div class="irr-secondary-stats">
+    <div class="irr-sec-item">
+      <div class="irr-sec-label">Trades Taken</div>
+      <div class="irr-sec-val" id="irr-n">—</div>
+    </div>
+    <div class="irr-sec-item">
+      <div class="irr-sec-label">Win Rate</div>
+      <div class="irr-sec-val green" id="irr-winrate">—</div>
+    </div>
+    <div class="irr-sec-item">
+      <div class="irr-sec-label">Avg Winner</div>
+      <div class="irr-sec-val green" id="irr-avgwin">—</div>
+    </div>
+    <div class="irr-sec-item">
+      <div class="irr-sec-label">Avg Loser</div>
+      <div class="irr-sec-val red" id="irr-avgloss">—</div>
+    </div>
+  </div>
+
+  <div class="section-title">Trade-by-Trade Sequence</div>
+  <div class="irr-trade-wrap">
+    <table class="irr-trade-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Ticker</th>
+          <th>Dir</th>
+          <th>Result</th>
+          <th>Return</th>
+          <th>Position</th>
+          <th>P&amp;L</th>
+          <th>Equity</th>
+        </tr>
+      </thead>
+      <tbody id="irr-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">Loading trades…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="methodology-note" style="margin-bottom:3rem;">
+    <strong>Small-N Caveat</strong>
+    Live portfolio simulation currently reflects <span id="irr-live-n">—</span> resolved trades. Statistical significance at this sample size is limited — the simulation is presented as directional evidence, not a strategy attribution. The 102-event retrospective backtest above provides the larger-sample calibration check. As the resolved count grows, this simulation becomes the primary performance artifact.
+  </div>
+
   <!-- ════════════════════════════════════════════════════════════════════ -->
 
   <div class="methodology">
@@ -328,11 +475,11 @@ footer a:hover{color:var(--accent);}
 <script src="/js/config.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
-// PAGE LOADER — live track record + 102-event backtest (parallel fetches)
-// Both pull from same Supabase client. Independent failures.
+// PAGE LOADER — live track record + 102-event backtest + portfolio IRR
+// All three loaders share one Supabase client. Independent failures.
 // ═══════════════════════════════════════════════════════════════════════════
 
-// --- 1. Resolve Supabase client once (shared across both loaders) ---
+// --- 1. Resolve Supabase client once (shared across all loaders) ---
 let sb;
 try {
   if (typeof getSupabase === 'function') {
@@ -349,10 +496,11 @@ try {
     '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--red);">Could not initialize database connection.</td></tr>';
 }
 
-// --- 2. Kick off both loaders in parallel ---
+// --- 2. Kick off all loaders in parallel ---
 if (sb) {
   loadTrackRecord().catch(e => console.error('[TR] fatal', e));
   loadBacktest().catch(e => console.error('[BT] fatal', e));
+  loadPortfolioIRR().catch(e => console.error('[IRR] fatal', e));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -420,7 +568,7 @@ async function loadTrackRecord() {
   document.getElementById('stat-stn-sub').textContent =
     stnScored.length > 0 ? (stnScored.filter(s => s.correctDir).map(s => s.ticker).slice(0, 3).join(' · ') + ' correct') : 'no approvals yet';
 
-  // --- Top disclaimer (dynamic, mentions both layers) ---
+  // --- Top disclaimer (dynamic, mentions all three layers) ---
   const missNames = misses.map(m => m.ticker + ' (' + (m.actual_result || 'MISS') + ')').join(', ');
   const missText = misses.length > 0
     ? (' · ' + misses.length + ' miss' + (misses.length > 1 ? 'es' : '') + ' (' + missNames + ')')
@@ -431,7 +579,7 @@ async function loadTrackRecord() {
     '⚠️ LIVE: ' + resolved.length + ' resolved event' + (resolved.length === 1 ? '' : 's') +
     ' · ' + correct.length + '/' + resolved.length + ' accuracy (' + accuracy + '%)' +
     missText + delayText +
-    '. Plus 102-event retrospective backtest below. Every future event logged — wins and losses alike. Past performance does not guarantee future results.';
+    '. Plus 102-event retrospective backtest and $1M portfolio simulation below. Every future event logged — wins and losses alike. Past performance does not guarantee future results.';
 
   // --- Render live table ---
   const tbody = document.getElementById('tr-tbody');
@@ -690,6 +838,314 @@ function renderBacktestTable() {
       callCell + outcomeCell + corrCell +
     '</tr>';
   }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PORTFOLIO IRR LOADER — $1M compounding simulation
+// Pulls resolved track_record rows. LONG uses return_pct as-is, SHORT inverts.
+// WATCH and null-return rows excluded. Sizing is fixed % of current equity.
+// Because PDUFA events don't overlap at the portfolio level, IRR = CAGR.
+// ═══════════════════════════════════════════════════════════════════════════
+let IRR_ROWS = [];
+const IRR_START = 1_000_000;
+
+async function loadPortfolioIRR() {
+  try {
+    const { data, error } = await sb
+      .from('track_record')
+      .select('ticker, drug, pdufa_date, trade_type, actual_result, return_pct, scanner_call, call_correct')
+      .order('pdufa_date', { ascending: true });
+    if (error) throw error;
+
+    // Filter: must have a return_pct AND a directional trade_type (not WATCH)
+    IRR_ROWS = (data || []).filter(r => {
+      const tt = String(r.trade_type || '').toUpperCase();
+      const rp = r.return_pct;
+      if (rp === null || rp === undefined || Number.isNaN(Number(rp))) return false;
+      if (tt !== 'LONG' && tt !== 'SHORT') return false;
+      return true;
+    });
+  } catch (e) {
+    console.error('[IRR] fetch failed:', e);
+    document.getElementById('irr-chart').innerHTML =
+      '<div style="text-align:center;padding:3rem 0;color:var(--red);font-family:var(--mono);font-size:0.72rem;">Unable to load simulation data.</div>';
+    return;
+  }
+
+  if (!IRR_ROWS.length) {
+    document.getElementById('irr-chart').innerHTML =
+      '<div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.72rem;">No resolved directional trades yet.</div>';
+    document.getElementById('irr-tbody').innerHTML =
+      '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">Simulation activates once trade_type + return_pct populate.</td></tr>';
+    return;
+  }
+
+  // Default render at 7.5%
+  renderIRR(0.075);
+
+  // Wire sizing toggle buttons
+  document.querySelectorAll('.sizing-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sizing-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const sizing = parseFloat(btn.dataset.sizing);
+      renderIRR(sizing);
+    });
+  });
+}
+
+function renderIRR(sizing) {
+  // Sort chronologically (defensive — already ordered by query but safe)
+  const sorted = [...IRR_ROWS].sort((a, b) =>
+    new Date(a.pdufa_date) - new Date(b.pdufa_date)
+  );
+
+  let capital = IRR_START;
+  let peak = IRR_START;
+  let maxDD = 0; // stored as negative fraction
+
+  const curve = [{ date: null, equity: IRR_START, pnl: 0, label: 'Start' }];
+  const trades = [];
+  let wins = 0, losses = 0;
+  let winReturnSum = 0, lossReturnSum = 0;
+
+  for (const r of sorted) {
+    const stockMove = Number(r.return_pct) / 100; // decimal
+    const tt = String(r.trade_type || '').toUpperCase();
+    const ret = tt === 'SHORT' ? -stockMove : stockMove;
+
+    const positionSize = capital * sizing;
+    const pnl = positionSize * ret;
+    const equityBefore = capital;
+    capital += pnl;
+
+    // Track drawdown
+    if (capital > peak) peak = capital;
+    const currentDD = (capital - peak) / peak;
+    if (currentDD < maxDD) maxDD = currentDD;
+
+    // Win/loss tracking (by P&L sign, not stock move sign)
+    if (pnl > 0) { wins++; winReturnSum += ret; }
+    else if (pnl < 0) { losses++; lossReturnSum += ret; }
+
+    curve.push({
+      date: r.pdufa_date,
+      equity: capital,
+      pnl,
+      label: r.ticker
+    });
+    trades.push({
+      date: r.pdufa_date,
+      ticker: r.ticker,
+      trade_type: tt,
+      result: String(r.actual_result || '—').toUpperCase(),
+      return_pct: Number(r.return_pct),
+      applied_return: ret,
+      position_size: positionSize,
+      pnl,
+      equity: capital,
+      equity_before: equityBefore
+    });
+  }
+
+  // Compute time window
+  const firstDate = sorted[0].pdufa_date;
+  const lastDate  = sorted[sorted.length - 1].pdufa_date;
+  const yearsRaw  = (new Date(lastDate) - new Date(firstDate)) / (365.25 * 24 * 3600 * 1000);
+  const years     = Math.max(yearsRaw, 0.1); // avoid divide-by-zero on first trade
+
+  const totalReturn = (capital / IRR_START) - 1;
+  const cagr = yearsRaw >= 0.1
+    ? Math.pow(capital / IRR_START, 1 / years) - 1
+    : totalReturn;
+
+  // Populate top stats
+  document.getElementById('irr-final').textContent = fmtMoney(capital);
+  document.getElementById('irr-total').textContent =
+    (totalReturn >= 0 ? '+' : '') + (totalReturn * 100).toFixed(1) + '% total';
+  document.getElementById('irr-cagr').textContent =
+    (cagr >= 0 ? '+' : '') + (cagr * 100).toFixed(1) + '%';
+  document.getElementById('irr-years').textContent =
+    yearsRaw >= 0.1
+      ? yearsRaw.toFixed(2) + ' yr window'
+      : 'window < 1 mo';
+  document.getElementById('irr-mdd').textContent =
+    (maxDD * 100).toFixed(1) + '%';
+
+  // Populate secondary stats
+  const nTrades = trades.length;
+  const winRate = nTrades > 0 ? (wins / nTrades) * 100 : 0;
+  const avgWin  = wins > 0 ? (winReturnSum / wins) * 100 : 0;
+  const avgLoss = losses > 0 ? (lossReturnSum / losses) * 100 : 0;
+  document.getElementById('irr-n').textContent = nTrades;
+  document.getElementById('irr-winrate').textContent = winRate.toFixed(1) + '%';
+  document.getElementById('irr-avgwin').textContent  = (avgWin >= 0 ? '+' : '') + avgWin.toFixed(1) + '%';
+  document.getElementById('irr-avgloss').textContent = (avgLoss >= 0 ? '+' : '') + avgLoss.toFixed(1) + '%';
+  document.getElementById('irr-live-n').textContent  = nTrades;
+
+  // Chart headline
+  const sizePct = (sizing * 100).toFixed(sizing * 100 % 1 === 0 ? 0 : 1);
+  document.getElementById('irr-chart-headline').innerHTML =
+    '$1.00M → <strong>' + fmtMoney(capital) + '</strong> at ' + sizePct + '% sizing · ' +
+    nTrades + ' trade' + (nTrades === 1 ? '' : 's') +
+    ' · max drawdown ' + (maxDD * 100).toFixed(1) + '%';
+
+  // Render chart + table
+  renderEquityChart(curve);
+  renderTradeTable(trades);
+}
+
+function renderEquityChart(curve) {
+  const W = 900, H = 320;
+  const PADL = 85, PADR = 50, PADT = 25, PADB = 50;
+  const innerW = W - PADL - PADR;
+  const innerH = H - PADT - PADB;
+
+  if (curve.length < 2) {
+    document.getElementById('irr-chart').innerHTML =
+      '<div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.72rem;">Need at least 2 points to draw curve.</div>';
+    return;
+  }
+
+  const equities = curve.map(c => c.equity);
+  const rawMin = Math.min(...equities);
+  const rawMax = Math.max(...equities);
+  const range  = rawMax - rawMin || 1;
+  const pad    = range * 0.08;
+  const yMin   = Math.max(0, rawMin - pad);
+  const yMax   = rawMax + pad;
+
+  const xAt = i => PADL + (i / (curve.length - 1)) * innerW;
+  const yAt = v => PADT + innerH - ((v - yMin) / (yMax - yMin)) * innerH;
+
+  // Gridlines + Y-axis labels (5 ticks)
+  let grid = '';
+  for (let i = 0; i <= 4; i++) {
+    const v = yMin + (yMax - yMin) * (i / 4);
+    const y = yAt(v);
+    grid +=
+      '<line x1="' + PADL + '" y1="' + y + '" x2="' + (W - PADR) + '" y2="' + y +
+      '" stroke="#1a3a5c" stroke-width="0.5" stroke-dasharray="2,3"/>' +
+      '<text x="' + (PADL - 8) + '" y="' + (y + 4) +
+      '" text-anchor="end" fill="#5a7a99" font-family="Space Mono, monospace" font-size="10">' +
+      fmtMoneyShort(v) + '</text>';
+  }
+
+  // $1M baseline (dashed)
+  const baselineY = yAt(IRR_START);
+  if (baselineY >= PADT && baselineY <= (H - PADB)) {
+    grid +=
+      '<line x1="' + PADL + '" y1="' + baselineY + '" x2="' + (W - PADR) + '" y2="' + baselineY +
+      '" stroke="#5a7a99" stroke-width="1" stroke-dasharray="4,4" opacity="0.6"/>' +
+      '<text x="' + (W - PADR + 4) + '" y="' + (baselineY + 3) +
+      '" fill="#5a7a99" font-family="Space Mono, monospace" font-size="9">$1.00M</text>';
+  }
+
+  // Area fill path
+  let areaPath = 'M ' + xAt(0) + ' ' + yAt(curve[0].equity);
+  for (let i = 1; i < curve.length; i++) {
+    areaPath += ' L ' + xAt(i) + ' ' + yAt(curve[i].equity);
+  }
+  areaPath += ' L ' + xAt(curve.length - 1) + ' ' + (H - PADB) +
+              ' L ' + xAt(0) + ' ' + (H - PADB) + ' Z';
+
+  // Line path
+  let linePath = 'M ' + xAt(0) + ' ' + yAt(curve[0].equity);
+  for (let i = 1; i < curve.length; i++) {
+    linePath += ' L ' + xAt(i) + ' ' + yAt(curve[i].equity);
+  }
+
+  // Points (color by P&L sign)
+  let points = '';
+  for (let i = 1; i < curve.length; i++) {
+    const c = curve[i];
+    const color = c.pnl >= 0 ? '#00ff9d' : '#ff4444';
+    const tip = c.label + ' · ' + (c.date || '') + ' · equity ' + fmtMoney(c.equity) +
+                ' · P&L ' + (c.pnl >= 0 ? '+' : '') + fmtMoney(c.pnl);
+    points +=
+      '<circle cx="' + xAt(i) + '" cy="' + yAt(c.equity) + '" r="3.5" ' +
+      'fill="' + color + '" stroke="#040d1a" stroke-width="1.5">' +
+      '<title>' + tip.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</title></circle>';
+  }
+
+  // X-axis date labels (up to 5)
+  let xLabels = '';
+  const tickCount = Math.min(5, curve.length);
+  for (let i = 0; i < tickCount; i++) {
+    const idx = Math.round(i * (curve.length - 1) / (tickCount - 1));
+    const pt = curve[idx];
+    if (!pt.date && idx !== 0) continue;
+    const label = pt.date
+      ? new Date(pt.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+      : 'Start';
+    xLabels +=
+      '<text x="' + xAt(idx) + '" y="' + (H - 14) +
+      '" text-anchor="middle" fill="#5a7a99" font-family="Space Mono, monospace" font-size="10">' +
+      label + '</text>';
+  }
+
+  const svg =
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Portfolio equity curve">' +
+      grid +
+      '<path d="' + areaPath + '" fill="rgba(0,255,157,0.10)" stroke="none"/>' +
+      '<path d="' + linePath + '" fill="none" stroke="#00d4ff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>' +
+      points +
+      xLabels +
+    '</svg>';
+
+  document.getElementById('irr-chart').innerHTML = svg;
+}
+
+function renderTradeTable(trades) {
+  const tbody = document.getElementById('irr-tbody');
+  if (!trades.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">No trades.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = trades.map((t, i) => {
+    const dirCls = t.trade_type === 'SHORT' ? 'dir-short' : 'dir-long';
+    const pnlCls = t.pnl >= 0 ? 'pnl-pos' : 'pnl-neg';
+    const retCls = t.applied_return >= 0 ? 'pnl-pos' : 'pnl-neg';
+    const retSign = t.applied_return >= 0 ? '+' : '';
+    const pnlSign = t.pnl >= 0 ? '+' : '';
+
+    let resultCell = t.result;
+    if (t.result === 'APPROVED') resultCell = '<span style="color:var(--accent2);">APPROVED</span>';
+    else if (t.result === 'CRL') resultCell = '<span style="color:var(--red);">CRL</span>';
+    else if (t.result === 'WITHDRAWN') resultCell = '<span style="color:var(--red);">WITHDRAWN</span>';
+    else resultCell = '<span style="color:var(--muted);">' + t.result + '</span>';
+
+    return '<tr>' +
+      '<td style="color:var(--muted);">' + (i + 1) + '</td>' +
+      '<td>' + t.date + '</td>' +
+      '<td style="color:var(--white);font-weight:700;">' + t.ticker + '</td>' +
+      '<td class="' + dirCls + '">' + t.trade_type + '</td>' +
+      '<td>' + resultCell + '</td>' +
+      '<td class="' + retCls + '">' + retSign + (t.applied_return * 100).toFixed(1) + '%</td>' +
+      '<td>' + fmtMoney(t.position_size) + '</td>' +
+      '<td class="' + pnlCls + '">' + pnlSign + fmtMoney(t.pnl) + '</td>' +
+      '<td style="color:var(--white);">' + fmtMoney(t.equity) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+// Money formatter — full precision for stats cells ($1.234M or $123.4K)
+function fmtMoney(v) {
+  const abs = Math.abs(v);
+  const sign = v < 0 ? '-' : '';
+  if (abs >= 1_000_000) return sign + '$' + (abs / 1_000_000).toFixed(3) + 'M';
+  if (abs >= 1_000)     return sign + '$' + (abs / 1_000).toFixed(1) + 'K';
+  return sign + '$' + abs.toFixed(0);
+}
+
+// Shorter money formatter for chart axis labels
+function fmtMoneyShort(v) {
+  const abs = Math.abs(v);
+  const sign = v < 0 ? '-' : '';
+  if (abs >= 1_000_000) return sign + '$' + (abs / 1_000_000).toFixed(2) + 'M';
+  if (abs >= 1_000)     return sign + '$' + (abs / 1_000).toFixed(0) + 'K';
+  return sign + '$' + abs.toFixed(0);
 }
 </script>
 </body>

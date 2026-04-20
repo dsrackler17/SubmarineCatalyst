@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://submarinecatalyst.com/">
 <meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 8/9 live PDUFA calls correct · 102-event retrospective backtest. $29.99/mo.">
+<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 8/9 live PDUFA calls correct · 102-event retrospective backtest · $1M portfolio simulation. $29.99/mo.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 8/9 live PDUFA calls correct + 102-event retrospective backtest with calibration curve. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 8/9 live PDUFA calls correct + 102-event retrospective backtest + $1M portfolio simulation. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -265,8 +265,34 @@ footer a:hover { color: var(--accent); }
   text-transform: uppercase; padding: 0.2rem 0.6rem; background: rgba(0,255,157,0.1);
   color: var(--accent2); border: 1px solid rgba(0,255,157,0.25); margin-left: 0.75rem; vertical-align: middle;
 }
+
+/* ===== PORTFOLIO SIMULATION SECTION (landing page teaser) ===== */
+.sim-section { background: var(--navy); border-top: 1px solid var(--border); }
+.sim-wrap { max-width: 1000px; margin: 0 auto; padding: 5rem 3rem; }
+.sim-head { text-align: center; margin-bottom: 2.5rem; }
+.sim-head .section-label { justify-content: center; }
+.sim-sub { color: var(--muted); max-width: 620px; margin: 0 auto 0; font-weight: 300; font-size: 1rem; line-height: 1.75; }
+.sim-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px; background: var(--border);
+  border: 1px solid var(--border);
+  margin: 0 auto 1.5rem;
+  max-width: 900px;
+}
+.sim-cell { background: var(--surface); padding: 1.75rem 1rem; text-align: center; }
+.sim-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+.sim-val { font-family: var(--serif); font-size: 2.2rem; line-height: 1; color: var(--white); }
+.sim-val.green { color: var(--accent2); }
+.sim-val.cyan { color: var(--accent); }
+.sim-val.red { color: var(--red); }
+.sim-val.amber { color: var(--amber); }
+.sim-sub-val { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.35rem; letter-spacing: 0.05em; }
+.sim-footer { text-align: center; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-top: 1rem; letter-spacing: 0.03em; line-height: 1.7; }
+.sim-footer a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed rgba(0,212,255,0.35); }
+.sim-footer a:hover { color: var(--accent2); border-bottom-color: var(--accent2); }
+
 @media (max-width: 1024px) { .hero { grid-template-columns: 1fr; padding: 4rem 2rem; } .how-grid { grid-template-columns: 1fr 1fr; } .how-card { border-bottom: 1px solid var(--border); } .signals-grid { grid-template-columns: 1fr; } .pricing-wrapper { grid-template-columns: 1fr; } .origin-grid { grid-template-columns: 1fr; gap: 3rem; } nav { padding: 1rem 1.5rem; } .nav-links { display: none; } }
-@media (max-width: 640px) { .how-grid { grid-template-columns: 1fr; } .origin-stats { grid-template-columns: 1fr 1fr; } .section { padding: 3.5rem 1.5rem; } }
+@media (max-width: 640px) { .how-grid { grid-template-columns: 1fr; } .origin-stats { grid-template-columns: 1fr 1fr; } .section { padding: 3.5rem 1.5rem; } .sim-wrap { padding: 3.5rem 1.5rem; } .sim-stats { grid-template-columns: 1fr 1fr; } .sim-val { font-size: 1.7rem; } }
 </style>
 <script type="application/ld+json">
 {
@@ -333,7 +359,7 @@ footer a:hover { color: var(--accent); }
 <div class="urgency-bar" id="urgency-bar">
   <span><span class="ub-pulse"></span>Apr 13 resolved: TVTX <strong>+33.29%</strong> · LGND <strong>+14%</strong> · both APPROVE calls correct · live record <strong>8/9</strong></span>
   <span class="ub-divider">·</span>
-  <span>102-event retrospective backtest now published with calibration curve</span>
+  <span>102-event retrospective backtest + $1M portfolio IRR now live</span>
   <span class="ub-divider">·</span>
   <a href="/track-record.html">View full track record →</a>
 </div>
@@ -370,6 +396,7 @@ footer a:hover { color: var(--accent); }
         <div><span class="t-dim"> TVTX </span><span class="t-grn">+33.29%</span><span class="t-dim"> | LGND </span><span class="t-grn">+14%</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div><span class="t-dim"> 🧪 Backtest: </span><span class="t-acc">102 events</span><span class="t-dim"> · Feb 2024 → Mar 2026 · PoA calibration</span></div>
+        <div><span class="t-dim"> 💰 Portfolio: </span><span class="t-grn">$1M → live IRR</span><span class="t-dim"> · 7.5% sizing · chronological</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>
         <div class="t-dim">══════════════════════════════════════════════════</div>
@@ -417,12 +444,10 @@ footer a:hover { color: var(--accent); }
   <script>
   // ═══════════════════════════════════════════════════════════════════════════
   // PROOF SECTION — LIVE TRACK RECORD LOADER
-  // Fetches from track_record table and renders condensed proof table.
   // ═══════════════════════════════════════════════════════════════════════════
   (async function loadProof() {
     const $ = (id) => document.getElementById(id);
 
-    // Resolve Supabase client — prefer shared helper, fall back to inline
     let sb;
     try {
       if (typeof getSupabase === 'function') {
@@ -452,7 +477,6 @@ footer a:hover { color: var(--accent); }
       return;
     }
 
-    // Split resolved (APPROVED/CRL, excluding DELAYED) from pending
     const RESOLVED = ['APPROVED', 'CRL', 'WITHDRAWN'];
     const scored  = rows.filter(r => RESOLVED.includes(String(r.actual_result || '').toUpperCase()));
     const pending = rows.filter(r => {
@@ -463,7 +487,6 @@ footer a:hover { color: var(--accent); }
     const correct = scored.filter(r => r.call_correct === true);
     const accuracy = scored.length > 0 ? ((correct.length / scored.length) * 100).toFixed(1) : '0';
 
-    // ─── Headline + intro ──────────────────────────────────────────────────
     const missText = misses.length > 0
       ? ` ${misses.length === 1 ? 'One miss' : misses.length + ' misses'} logged.`
       : '';
@@ -474,12 +497,11 @@ footer a:hover { color: var(--accent); }
       ? ` ${pending.length} pending.`
       : '';
     $('proof-intro').innerHTML =
-      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> scores the same PoA engine against every FDA NME decision from Feb 2024 onward.`;
+      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> scores the same PoA engine against every FDA NME decision from Feb 2024 onward. And a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">$1M portfolio IRR</a> compounded through the live trades.`;
 
-    // ─── Callout: highlight the miss(es) + best win + STN flags that fired ─
     let calloutHTML = '';
     if (misses.length > 0) {
-      const m = misses[misses.length - 1]; // most recent miss
+      const m = misses[misses.length - 1];
       const mvDisplay = m.return_pct !== null ? `<span class="ic-neg">${m.return_pct > 0 ? '+' : ''}${m.return_pct}%</span>` : '';
       const stnNote = m.scanner_stn_risk && ['HIGH','ELEVATED'].includes(String(m.scanner_stn_risk).toUpperCase())
         ? ` The STN Risk layer flagged <strong>${m.scanner_stn_risk}</strong> before the decision — the risk layer was right even when the probability layer was wrong. Stock dropped ${mvDisplay}.`
@@ -490,7 +512,6 @@ footer a:hover { color: var(--accent); }
         `${misses.length === 1 ? 'Only' : 'Most recent'} incorrect call in the live track record. Logged, not deleted.${stnNote} `;
     }
 
-    // STN flags that correctly warned of flat/negative moves
     const stnCorrectFlags = scored.filter(r => {
       const stn = String(r.scanner_stn_risk || '').toUpperCase();
       const mv = Number(r.return_pct);
@@ -512,8 +533,6 @@ footer a:hover { color: var(--accent); }
     }
     $('proof-callout-body').innerHTML = calloutHTML;
 
-    // ─── Build condensed table rows ────────────────────────────────────────
-    // Show: all misses first (red highlight), then all correct approvals, then pending
     const ordered = [
       ...misses,
       ...scored.filter(r => r.call_correct === true),
@@ -526,19 +545,16 @@ footer a:hover { color: var(--accent); }
       const zebra = i % 2 === 0 ? 'var(--deep)' : 'var(--surface)';
       const bg = isMiss ? 'rgba(255,68,68,0.05)' : isPending ? 'rgba(0,212,255,0.04)' : zebra;
 
-      // Ticker cell
       const tickerColor = isMiss ? 'var(--red)' : isPending ? 'var(--accent)' : 'var(--white)';
       const missTag = isMiss
         ? ' <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.1em;">MISS</span>'
         : '';
       const pendingTag = isPending ? ' 🔴' : '';
 
-      // Scanner call cell
       const callText = r.scanner_call || 'WATCH';
       const callColor = callText === 'APPROVE' ? 'var(--accent2)' : callText === 'WATCH' ? 'var(--amber)' : 'var(--muted)';
       const poaDisplay = r.scanner_poa !== null ? `${r.scanner_poa}%` : '—';
 
-      // Result cell
       let resultHTML;
       const result = String(r.actual_result || '').toUpperCase();
       if (result === 'APPROVED')      resultHTML = `<span style="color:var(--accent2);">✅ Approved</span>`;
@@ -546,7 +562,6 @@ footer a:hover { color: var(--accent); }
       else if (result === 'WITHDRAWN')resultHTML = `<span style="color:var(--red);">↩ Withdrawn</span>`;
       else                             resultHTML = `<span style="color:var(--accent);">Pending ${formatShortDate(r.pdufa_date)}</span>`;
 
-      // Move cell
       let moveHTML;
       if (isPending || r.return_pct === null || r.return_pct === undefined) {
         moveHTML = `<span style="color:var(--muted);">—</span>`;
@@ -570,7 +585,6 @@ footer a:hover { color: var(--accent); }
     $('proof-tbody').innerHTML = rowHTML ||
       '<tr><td colspan="4" style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">No events logged yet.</td></tr>';
 
-    // ─── Footer summary ────────────────────────────────────────────────────
     const bestWin = correct
       .filter(r => r.return_pct !== null && r.return_pct > 0)
       .sort((a, b) => b.return_pct - a.return_pct)[0];
@@ -584,7 +598,7 @@ footer a:hover { color: var(--accent); }
       `${correct.length}/${scored.length} on live resolved events — ${correct.length} correct approval call${correct.length === 1 ? '' : 's'}, ` +
       `${misses.length} ${misses.length === 1 ? 'miss' : 'misses'}${misses.length > 0 ? ' (' + misses.map(m => m.ticker + ' ' + m.actual_result).join(', ') + ')' : ''}. ` +
       `Every outcome logged including the ${misses.length === 1 ? 'miss' : 'misses'}.${bestWinText}${pendingDesc} ` +
-      `Plus <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> with full PoA calibration curve. ` +
+      `Plus <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> with full PoA calibration curve and a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">$1M portfolio IRR</a> simulation. ` +
       `Subscribers see full scoring breakdowns and real-time classifications.`;
 
   })();
@@ -594,6 +608,152 @@ footer a:hover { color: var(--accent); }
     const d = new Date(dateStr);
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
+  </script>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════════════════════
+     PORTFOLIO SIMULATION SECTION — $1M landing-page teaser
+     Pulls track_record, computes capital at 7.5% sizing, links to full page
+     ═════════════════════════════════════════════════════════════════════════ -->
+<section id="portfolio-sim" class="sim-section">
+  <div class="sim-wrap reveal">
+    <div class="sim-head">
+      <div class="section-label">Portfolio Simulation</div>
+      <h2 class="section-heading" style="margin-bottom:1rem;">$1M, compounded through every call.</h2>
+      <p class="sim-sub">What $1,000,000 would have done if sized through every resolved live call at a fixed 7.5% of equity per trade, in chronological order. LONG and SHORT directions follow the classification's <code style="font-family:var(--mono);color:var(--accent);background:rgba(0,212,255,0.08);padding:1px 4px;font-size:0.85em;">trade_type</code>. No leverage, no overlap, no fee model. Because PDUFA events don't overlap at the portfolio level, IRR collapses to CAGR.</p>
+    </div>
+
+    <div class="sim-stats">
+      <div class="sim-cell">
+        <div class="sim-label">Starting</div>
+        <div class="sim-val">$1.00M</div>
+        <div class="sim-sub-val">initial capital</div>
+      </div>
+      <div class="sim-cell">
+        <div class="sim-label">Ending Equity</div>
+        <div class="sim-val green" id="idx-final">—</div>
+        <div class="sim-sub-val" id="idx-total">calculating…</div>
+      </div>
+      <div class="sim-cell">
+        <div class="sim-label">CAGR (IRR)</div>
+        <div class="sim-val cyan" id="idx-cagr">—</div>
+        <div class="sim-sub-val" id="idx-years">annualized</div>
+      </div>
+      <div class="sim-cell">
+        <div class="sim-label">Max Drawdown</div>
+        <div class="sim-val red" id="idx-mdd">—</div>
+        <div class="sim-sub-val">peak-to-trough</div>
+      </div>
+    </div>
+
+    <div class="sim-footer">
+      <span id="idx-n">—</span> resolved trade<span id="idx-n-s">s</span> · 7.5% position sizing · WATCH-list excluded ·
+      <a href="/track-record.html#portfolio-irr">See full equity curve, trade-by-trade table, and sizing toggle →</a>
+    </div>
+  </div>
+
+  <script>
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LANDING-PAGE PORTFOLIO SIM — lightweight, read-only
+  // Computes $1M → ending equity at 7.5% sizing. Full page has sizing toggle.
+  // ═══════════════════════════════════════════════════════════════════════════
+  (async function loadSim() {
+    const $ = (id) => document.getElementById(id);
+
+    let sb;
+    try {
+      if (typeof getSupabase === 'function') {
+        sb = getSupabase();
+      } else if (typeof supabase !== 'undefined' && typeof SC_CONFIG !== 'undefined') {
+        sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseKey);
+      } else {
+        sb = supabase.createClient(
+          'https://dipagzqrvivposqjkdkx.supabase.co',
+          'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
+        );
+      }
+    } catch (e) {
+      console.error('[SC sim] init failed:', e);
+      return;
+    }
+
+    const { data: rows, error } = await sb
+      .from('track_record')
+      .select('pdufa_date, return_pct, trade_type')
+      .order('pdufa_date', { ascending: true });
+
+    if (error || !rows) {
+      console.error('[SC sim] fetch failed:', error);
+      return;
+    }
+
+    // Filter: must have return_pct AND position taken (not WATCH)
+    const trades = rows.filter(r => {
+      if (r.return_pct === null || r.return_pct === undefined) return false;
+      if (Number.isNaN(Number(r.return_pct))) return false;
+      const tt = String(r.trade_type || '').toUpperCase();
+      if (tt === 'WATCH' || tt === '') return false;
+      return true;
+    });
+
+    if (!trades.length) {
+      $('idx-final').textContent = '$1.00M';
+      $('idx-total').textContent = 'no resolved trades yet';
+      $('idx-cagr').textContent = '—';
+      $('idx-mdd').textContent = '—';
+      $('idx-n').textContent = '0';
+      return;
+    }
+
+    const START = 1_000_000;
+    const SIZING = 0.075;
+    let capital = START;
+    let peak = START;
+    let maxDD = 0;
+
+    trades.forEach(r => {
+      const tt = String(r.trade_type || '').toUpperCase();
+      const stockMove = Number(r.return_pct) / 100;
+      const ret = (tt === 'SHORT') ? -stockMove : stockMove;
+      const pnl = capital * SIZING * ret;
+      capital += pnl;
+      if (capital > peak) peak = capital;
+      const dd = (capital - peak) / peak;
+      if (dd < maxDD) maxDD = dd;
+    });
+
+    const firstDate = new Date(trades[0].pdufa_date).getTime();
+    const lastDate  = new Date(trades[trades.length - 1].pdufa_date).getTime();
+    const yearsRaw  = (lastDate - firstDate) / (365.25 * 24 * 60 * 60 * 1000);
+    const years     = Math.max(yearsRaw, 0.1);
+    const totalReturn = (capital / START) - 1;
+    const cagr = yearsRaw >= 0.1
+      ? (Math.pow(capital / START, 1 / years) - 1)
+      : totalReturn;
+
+    const fmt = (v) => {
+      const abs = Math.abs(v);
+      const sign = v < 0 ? '-' : '';
+      if (abs >= 1_000_000) return sign + '$' + (abs / 1_000_000).toFixed(2) + 'M';
+      if (abs >= 1_000)     return sign + '$' + (abs / 1_000).toFixed(0) + 'K';
+      return sign + '$' + Math.round(abs);
+    };
+
+    $('idx-final').textContent = fmt(capital);
+    const totalSign = totalReturn >= 0 ? '+' : '';
+    $('idx-total').textContent = totalSign + (totalReturn * 100).toFixed(1) + '% total';
+
+    const cagrSign = cagr >= 0 ? '+' : '';
+    $('idx-cagr').textContent = cagrSign + (cagr * 100).toFixed(1) + '%';
+    $('idx-cagr').className = 'sim-val ' + (cagr >= 0 ? 'cyan' : 'red');
+    $('idx-years').textContent = yearsRaw >= 0.1
+      ? (yearsRaw.toFixed(2) + ' yrs elapsed')
+      : 'total return shown';
+
+    $('idx-mdd').textContent = (maxDD * 100).toFixed(1) + '%';
+    $('idx-n').textContent = trades.length;
+    if (trades.length === 1) $('idx-n-s').textContent = '';
+  })();
   </script>
 </section>
 
@@ -629,7 +789,7 @@ footer a:hover { color: var(--accent); }
         <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
         <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
         <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/9 on live resolved events — only miss (REPL 2nd CRL) logged. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-64%). Plus 102-event retrospective backtest with calibration curve.</div></div><span class="signal-source">Live log + backtest</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/9 on live resolved events — only miss (REPL 2nd CRL) logged. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-64%). Plus 102-event retrospective backtest with calibration curve and $1M portfolio IRR simulation.</div></div><span class="signal-source">Live log + backtest</span></div>
       </div>
       <div>
         <div class="score-panel">
@@ -783,7 +943,7 @@ footer a:hover { color: var(--accent); }
           <span>How accurate is the PoA (Probability of Approval) score?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. Live record: 8/9 pre-decision calls correct. A separate 102-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with a full per-bucket calibration curve. The scoring functions are byte-for-byte identical to production, with a synced-block comment preventing divergence. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable.</div>
+        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. Live record: 8/9 pre-decision calls correct. A separate 102-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with a full per-bucket calibration curve. The scoring functions are byte-for-byte identical to production, with a synced-block comment preventing divergence. And a $1M portfolio IRR simulation compounds the engine's actual live calls through a fixed 7.5% position sizing rule, so you can see what the classification output would have done to real capital. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable.</div>
       </div>
 
       <div class="faq-item">
@@ -894,20 +1054,16 @@ footer a:hover { color: var(--accent); }
   const checkoutBtn = document.getElementById('checkout-btn');
   const tosCheckbox = document.getElementById('tos-agree');
 
-  // These ALWAYS work, no matter what
   signupBtn.addEventListener('click', () => { window.location.href = '/signup.html'; });
   loginBtn.addEventListener('click',  () => { window.location.href = '/login.html';  });
   tosCheckbox.addEventListener('change', () => { checkoutBtn.disabled = !tosCheckbox.checked; });
 
-  // Checkout button — works with or without Supabase
   checkoutBtn.addEventListener('click', async () => {
     if (checkoutBtn.disabled) return;
-    // If logged in and button says Dashboard, go there
     if (checkoutBtn.textContent.includes('Dashboard')) {
       window.location.href = '/dashboard.html';
       return;
     }
-    // Try to get session for Stripe prefill, but don't block on failure
     try {
       if (typeof scGetSession === 'function') {
         const session = await scGetSession();
@@ -919,11 +1075,9 @@ footer a:hover { color: var(--accent); }
     } catch (e) {
       console.warn('[SC] session check failed:', e);
     }
-    // Fallback: send to signup (which creates account then redirects to Stripe)
     window.location.href = '/signup.html';
   });
 
-  // Try to update UI with auth state (non-blocking)
   (async () => {
     try {
       if (typeof scGetSession !== 'function') return;
@@ -939,14 +1093,12 @@ footer a:hover { color: var(--accent); }
     }
   })();
 
-  // Reveal animations
   const els = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
   }, { threshold: 0.12 });
   els.forEach(el => io.observe(el));
 
-  // Email capture form (Formspree)
   const emailForm = document.getElementById('email-capture');
   if (emailForm) {
     emailForm.addEventListener('submit', async function(e) {
