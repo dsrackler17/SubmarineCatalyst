@@ -13,7 +13,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://submarinecatalyst.com/">
 <meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. 8/9 live PDUFA calls correct · 102-event retrospective backtest · $1M portfolio simulation. $29.99/mo.">
+<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. Public live track record · retrospective PoA backtest · $1M portfolio IRR simulation on real Polygon.io data. $29.99/mo.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -24,7 +24,7 @@
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
 <meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 8-layer scoring model. 8/9 live PDUFA calls correct + 102-event retrospective backtest + $1M portfolio simulation. $29.99/mo.">
+<meta name="twitter:description" content="870+ companies. 8-layer scoring model. Public live track record + retrospective PoA backtest + $1M portfolio IRR on real Polygon.io data. $29.99/mo.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -357,9 +357,9 @@ footer a:hover { color: var(--accent); }
 </nav>
 
 <div class="urgency-bar" id="urgency-bar">
-  <span><span class="ub-pulse"></span>Apr 13 resolved: TVTX <strong>+33.29%</strong> · LGND <strong>+14%</strong> · both APPROVE calls correct · live record <strong>8/9</strong></span>
+  <span><span class="ub-pulse"></span>Apr 13 resolved: TVTX <strong>+33.29%</strong> · LGND <strong>+14%</strong> · both APPROVE calls correct · live record <strong id="ub-live-count">8/9</strong></span>
   <span class="ub-divider">·</span>
-  <span>102-event retrospective backtest + $1M portfolio IRR now live</span>
+  <span><span id="ub-bt-scored">102</span>-event scored backtest + <span id="ub-bt-tradable">73</span>-event $1M IRR now live</span>
   <span class="ub-divider">·</span>
   <a href="/track-record.html">View full track record →</a>
 </div>
@@ -391,11 +391,11 @@ footer a:hover { color: var(--accent); }
         <div><span class="t-red">❌ REPL</span><span class="t-dim"> 2nd CRL · PoA called </span><span class="t-red">84%</span><span class="t-dim"> — model miss</span></div>
         <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">−64%</span><span class="t-dim"> downside risk</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div class="t-dim"> 📊 Live: 8/9 Resolved · 1 Miss Logged (REPL)</div>
+        <div class="t-dim"> 📊 Live: <span id="hero-live-count">8/9</span> Resolved · <span id="hero-miss-count">1</span> Miss Logged (<span id="hero-miss-tickers">REPL</span>)</div>
         <div><span class="t-dim"> VNDA </span><span class="t-grn">+45%</span><span class="t-dim"> | RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️</span></div>
         <div><span class="t-dim"> TVTX </span><span class="t-grn">+33.29%</span><span class="t-dim"> | LGND </span><span class="t-grn">+14%</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-dim"> 🧪 Backtest: </span><span class="t-acc">102 events</span><span class="t-dim"> · Feb 2024 → Mar 2026 · PoA calibration</span></div>
+        <div><span class="t-dim"> 🧪 Backtest: </span><span class="t-acc" id="hero-bt-scored">102</span><span class="t-dim"> scored · </span><span class="t-acc" id="hero-bt-tradable">73</span><span class="t-dim"> with real IRR data</span></div>
         <div><span class="t-dim"> 💰 Portfolio: </span><span class="t-grn">$1M → live IRR</span><span class="t-dim"> · 7.5% sizing · chronological</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>
@@ -487,17 +487,35 @@ footer a:hover { color: var(--accent); }
     const correct = scored.filter(r => r.call_correct === true);
     const accuracy = scored.length > 0 ? ((correct.length / scored.length) * 100).toFixed(1) : '0';
 
+    // Fetch backtest summary counts (scored universe + IRR-tradable subset)
+    let btScored = 102, btTradable = 73;
+    try {
+      const { data: btRows } = await sb
+        .from('v_backtest_public_rows')
+        .select('scanner_call, return_pct');
+      if (btRows && btRows.length) {
+        btScored = btRows.length;
+        btTradable = btRows.filter(r => {
+          const call = String(r.scanner_call || '').toUpperCase();
+          const hasRet = r.return_pct !== null && r.return_pct !== undefined && !Number.isNaN(Number(r.return_pct));
+          return (call === 'APPROVE' || call === 'CRL') && hasRet;
+        }).length;
+      }
+    } catch (e) {
+      console.warn('[SC proof] backtest count fetch failed, using defaults', e);
+    }
+
     const missText = misses.length > 0
       ? ` ${misses.length === 1 ? 'One miss' : misses.length + ' misses'} logged.`
       : '';
     $('proof-headline').textContent =
-      `${correct.length}/${scored.length} live resolved.${missText} Plus 102 events backtested.`;
+      `${correct.length}/${scored.length} live resolved.${missText} Plus ${btScored}-event scored backtest and ${btTradable}-event IRR simulation.`;
 
     const pendingText = pending.length > 0
       ? ` ${pending.length} pending.`
       : '';
     $('proof-intro').innerHTML =
-      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> scores the same PoA engine against every FDA NME decision from Feb 2024 onward. And a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">$1M portfolio IRR</a> compounded through the live trades.`;
+      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">${btScored}-event retrospective backtest</a> scores the same PoA engine against every FDA NME decision from Feb 2024 onward. And a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">${btTradable}-event $1M portfolio IRR</a> compounded through every event where Polygon.io has real post-decision data.`;
 
     let calloutHTML = '';
     if (misses.length > 0) {
@@ -598,7 +616,7 @@ footer a:hover { color: var(--accent); }
       `${correct.length}/${scored.length} on live resolved events — ${correct.length} correct approval call${correct.length === 1 ? '' : 's'}, ` +
       `${misses.length} ${misses.length === 1 ? 'miss' : 'misses'}${misses.length > 0 ? ' (' + misses.map(m => m.ticker + ' ' + m.actual_result).join(', ') + ')' : ''}. ` +
       `Every outcome logged including the ${misses.length === 1 ? 'miss' : 'misses'}.${bestWinText}${pendingDesc} ` +
-      `Plus <a href="/track-record.html" style="color:var(--accent);">102-event retrospective backtest</a> with full PoA calibration curve and a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">$1M portfolio IRR</a> simulation. ` +
+      `Plus <a href="/track-record.html" style="color:var(--accent);">${btScored}-event retrospective backtest</a> with full PoA calibration curve and a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">${btTradable}-event $1M portfolio IRR</a> simulation on real Polygon data. ` +
       `Subscribers see full scoring breakdowns and real-time classifications.`;
 
   })();
@@ -789,7 +807,7 @@ footer a:hover { color: var(--accent); }
         <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
         <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
         <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. 8/9 on live resolved events — only miss (REPL 2nd CRL) logged. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-64%). Plus 102-event retrospective backtest with calibration curve and $1M portfolio IRR simulation.</div></div><span class="signal-source">Live log + backtest</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. <span id="sig-live-count">8/9</span> on live resolved events — <span id="sig-miss-text">only miss (REPL 2nd CRL) logged</span>. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-64%). Plus <span id="sig-bt-scored">102</span>-event scored backtest with calibration curve and <span id="sig-bt-tradable">73</span>-event $1M IRR simulation on real Polygon data.</div></div><span class="signal-source">Live log + backtest</span></div>
       </div>
       <div>
         <div class="score-panel">
@@ -865,7 +883,7 @@ footer a:hover { color: var(--accent); }
             <li>60+ scored PDUFA events with eight independent risk classification layers</li>
             <li>Sell-The-News Risk classification — quantifies whether approval is priced in</li>
             <li>Dilution Radar — real-time EDGAR scanning for ATM, shelf, 424B5 filings</li>
-            <li>Buyout Factor Score — 12-factor acquisition likelihood model</li>
+            <li>Buyout Factor Score — 8-factor acquisition likelihood model</li>
             <li>TAM / Market Cap Ratio — drug market size vs company valuation</li>
             <li>CMC Recovery Filter — isolates manufacturing-only CRL resubmissions</li>
             <li>Net Edge Score — composite of all eight layers into one classification</li>
@@ -907,8 +925,8 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
-        <div class="stat-cell"><span class="stat-val">8/9</span><span class="stat-label">Live Events Logged</span></div>
-        <div class="stat-cell"><span class="stat-val">102</span><span class="stat-label">Events Backtested</span></div>
+        <div class="stat-cell"><span class="stat-val" id="origin-live-stat">8/9</span><span class="stat-label">Live Calls Correct</span></div>
+        <div class="stat-cell"><span class="stat-val" id="origin-bt-tradable">73</span><span class="stat-label">IRR Tradable Events</span></div>
         <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs Mapped</span></div>
       </div>
     </div>
@@ -927,7 +945,7 @@ footer a:hover { color: var(--accent); }
           <span>What exactly am I getting for $29.99/month?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Full access to the entire platform: 870+ biotech companies tracked across small-cap, mid-cap, and large-cap. Every PDUFA event scored with approval probability (PoA), Sell-The-News Risk, Dilution Radar (real-time EDGAR monitoring), Buyout Probability, TAM/Market Cap ratio, Net Edge Score, and ELITE/STRONG/WATCH/WEAK grading. AI Research Tool for deep dives with pipeline analysis, price targets, and investment scenarios on any ticker. Compare Tool for side-by-side analysis of 2-4 companies. 9-tab catalyst calendar covering PDUFA dates, earnings, buyout signals, and dilution watch. Post-catalyst behavioral patterns. Full education section. Transparent track record. Updated daily via automated pipeline. No feature gates, no data delays.</div>
+        <div class="faq-a">Full access to the entire platform: 870+ biotech companies tracked across small-cap, mid-cap, and large-cap. Every PDUFA event scored with approval probability (PoA), Sell-The-News Risk, Dilution Radar (real-time EDGAR monitoring), Buyout Probability, TAM/Market Cap ratio, Net Edge Score, and ELITE/STRONG/WATCH/WEAK grading. AI Research Tool for deep dives with pipeline analysis, price targets, and investment scenarios on any ticker. Compare Tool for side-by-side analysis of 2-4 companies. 10-tab catalyst calendar covering PDUFA dates, earnings, buyout signals, and dilution watch. Post-catalyst behavioral patterns. Full education section. Transparent track record. Updated daily via automated pipeline. No feature gates, no data delays.</div>
       </div>
 
       <div class="faq-item">
@@ -943,7 +961,7 @@ footer a:hover { color: var(--accent); }
           <span>How accurate is the PoA (Probability of Approval) score?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. Live record: 8/9 pre-decision calls correct. A separate 102-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with a full per-bucket calibration curve. The scoring functions are byte-for-byte identical to production, with a synced-block comment preventing divergence. And a $1M portfolio IRR simulation compounds the engine's actual live calls through a fixed 7.5% position sizing rule, so you can see what the classification output would have done to real capital. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable.</div>
+        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. Live record: <span id="faq-live-count">8/9</span> pre-decision calls correct. A separate <span id="faq-bt-scored">102</span>-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with a full per-bucket calibration curve. The scoring functions are byte-for-byte identical to production, with a synced-block comment preventing divergence. Of those scored events, <span id="faq-bt-tradable">73</span> have real Polygon.io post-decision price data and feed the $1M portfolio IRR simulation — placeholder tickers, non-US exchanges, and delisted names are excluded rather than modeled, so every IRR P&amp;L figure traces back to actual market activity. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable.</div>
       </div>
 
       <div class="faq-item">
@@ -1130,6 +1148,101 @@ footer a:hover { color: var(--accent); }
       }
     });
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // LIVE-COUNTS LOADER
+  // Single source of truth for every counter scattered across the page:
+  //   · live track record ratio (correct/resolved)
+  //   · miss count + miss tickers
+  //   · scored backtest universe (the full event set with PoA/outcome)
+  //   · IRR-tradable subset (events with real Polygon close-to-close data)
+  // Keeps every callout in sync so "X-event backtest" and "Y-event IRR"
+  // can never drift from actual database truth.
+  // ═══════════════════════════════════════════════════════════════════════════
+  (async function liveCountsLoader() {
+    try {
+      let sb;
+      if (typeof getSupabase === 'function') {
+        sb = getSupabase();
+      } else if (typeof supabase !== 'undefined' && typeof SC_CONFIG !== 'undefined') {
+        sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseKey);
+      } else {
+        sb = supabase.createClient(
+          'https://dipagzqrvivposqjkdkx.supabase.co',
+          'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
+        );
+      }
+
+      // ─── 1. Live track record counts ─────────────────────────────────────
+      try {
+        const { data: rows, error } = await sb
+          .from('track_record')
+          .select('ticker, actual_result, call_correct')
+          .order('pdufa_date', { ascending: true });
+
+        if (!error && rows) {
+          const RESOLVED = ['APPROVED', 'CRL', 'WITHDRAWN'];
+          const resolved = rows.filter(r => RESOLVED.includes(String(r.actual_result || '').toUpperCase()));
+          const correct  = resolved.filter(r => r.call_correct === true);
+          const misses   = resolved.filter(r => r.call_correct === false);
+          const countStr = resolved.length > 0 ? (correct.length + '/' + resolved.length) : '—';
+
+          ['ub-live-count', 'hero-live-count', 'sig-live-count', 'origin-live-stat', 'faq-live-count'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = countStr;
+          });
+
+          const heroMissCount = document.getElementById('hero-miss-count');
+          if (heroMissCount) heroMissCount.textContent = misses.length;
+
+          const heroMissTickers = document.getElementById('hero-miss-tickers');
+          if (heroMissTickers) {
+            heroMissTickers.textContent = misses.length > 0 ? misses.map(m => m.ticker).join(', ') : 'none yet';
+          }
+
+          const sigMissText = document.getElementById('sig-miss-text');
+          if (sigMissText) {
+            if (misses.length === 0) {
+              sigMissText.textContent = 'no misses logged yet';
+            } else if (misses.length === 1) {
+              const m = misses[0];
+              sigMissText.textContent = 'only miss (' + m.ticker + ' ' + String(m.actual_result || 'miss').toUpperCase() + ') logged';
+            } else {
+              sigMissText.textContent = misses.length + ' misses logged (' + misses.map(m => m.ticker).join(', ') + ')';
+            }
+          }
+        }
+      } catch (e) { console.warn('[SC live-counts] track_record:', e); }
+
+      // ─── 2. Backtest universe counts (scored + IRR-tradable) ─────────────
+      try {
+        const { data: btRows, error: btErr } = await sb
+          .from('v_backtest_public_rows')
+          .select('scanner_call, return_pct');
+
+        if (!btErr && btRows && btRows.length) {
+          const scoredCount = btRows.length;
+          const tradableCount = btRows.filter(r => {
+            const call = String(r.scanner_call || '').toUpperCase();
+            const hasRet = r.return_pct !== null && r.return_pct !== undefined && !Number.isNaN(Number(r.return_pct));
+            return (call === 'APPROVE' || call === 'CRL') && hasRet;
+          }).length;
+
+          ['ub-bt-scored', 'hero-bt-scored', 'sig-bt-scored', 'faq-bt-scored'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = scoredCount;
+          });
+
+          ['ub-bt-tradable', 'hero-bt-tradable', 'sig-bt-tradable', 'origin-bt-tradable', 'faq-bt-tradable'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.textContent = tradableCount;
+          });
+        }
+      } catch (e) { console.warn('[SC live-counts] backtest:', e); }
+    } catch (e) {
+      console.warn('[SC live-counts] fatal:', e);
+    }
+  })();
 </script>
 
 <!-- Cloudflare Web Analytics — replace token after setup at dash.cloudflare.com/web-analytics -->
