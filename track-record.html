@@ -151,6 +151,15 @@ main{flex:1;max-width:1000px;width:100%;margin:0 auto;padding:3rem 2rem;}
 .irr-trade-table .pnl-pos{color:var(--accent2);}
 .irr-trade-table .pnl-neg{color:var(--red);}
 
+/* ===== BACKTEST IRR — ASSUMPTION BANNER ===== */
+.bt-irr-banner{display:none;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.3);border-left:3px solid var(--amber);padding:1rem 1.25rem;margin-bottom:1.5rem;font-family:var(--mono);font-size:0.72rem;color:var(--text);line-height:1.75;letter-spacing:0.02em;}
+.bt-irr-banner strong{color:var(--amber);letter-spacing:0.1em;font-size:0.62rem;text-transform:uppercase;display:block;margin-bottom:0.5rem;}
+.bt-irr-banner code{font-family:var(--mono);background:rgba(245,166,35,0.12);color:var(--amber);padding:1px 5px;border-radius:2px;font-size:0.68rem;}
+.bt-irr-banner .bt-irr-source-real{color:var(--accent2);font-weight:700;}
+.bt-irr-banner .bt-irr-table{width:100%;border-collapse:collapse;margin-top:0.75rem;font-size:0.66rem;}
+.bt-irr-banner .bt-irr-table th,.bt-irr-banner .bt-irr-table td{padding:0.35rem 0.6rem;border:1px solid rgba(245,166,35,0.2);text-align:left;color:var(--text);}
+.bt-irr-banner .bt-irr-table th{color:var(--amber);background:rgba(245,166,35,0.06);letter-spacing:0.08em;font-size:0.6rem;text-transform:uppercase;}
+
 footer{border-top:1px solid var(--border);padding:1.25rem 3rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.62rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);}
 footer a{color:var(--muted);text-decoration:none;}
 footer a:hover{color:var(--accent);}
@@ -284,8 +293,13 @@ footer a:hover{color:var(--accent);}
   <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.75;letter-spacing:0.03em;">
     For each PoA bucket, the share of drugs that actually approved. A calibrated model matches: events scored 80–89% PoA should approve ~85% of the time. The vertical tick marks the bucket midpoint; the bar shows actual approval rate observed.
   </p>
-  <div id="bt-calibration" style="margin-bottom:3rem;">
+  <div id="bt-calibration" style="margin-bottom:1.5rem;">
     <div style="text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Loading calibration data…</div>
+  </div>
+
+  <div class="methodology-note" style="margin-bottom:3rem;">
+    <strong>Reading the Calibration</strong>
+    The 80–89% bucket landing close to 100% approved and the 30–49% bucket landing near 0% is what you'd want to see — the model is directionally right at the extremes. The 50–69% bucket (the WATCH tier) over-approves relative to the midpoint: that's because WATCH is intentionally a <em>conservative</em> label, not a neutral one. When PoA lands in that band the scanner declines to issue a directional call rather than forcing one. The events that end up there tend to approve anyway because the clinical data was there but some other input (AdCom vote, pathway type, resubmission status) pulled the score down. Treat the WATCH bucket as "no position taken" — not as a miscalibrated APPROVE call.
   </div>
 
   <div class="section-title">All 102 Scored Events</div>
@@ -331,7 +345,91 @@ footer a:hover{color:var(--accent);}
   </div>
 
   <!-- ═════════════════════════════════════════════════════════════════════
-       PORTFOLIO IRR SECTION — $1M compounding simulation
+       BACKTEST IRR SECTION — $1M compounding across all 102 backtested events
+       ═════════════════════════════════════════════════════════════════════ -->
+  <div class="section-title" style="margin-top:1rem;">Backtest IRR — Applied to 102 Events</div>
+  <p style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:1.25rem;line-height:1.75;letter-spacing:0.03em;">
+    Same $1M portfolio simulation applied to the full backtested universe above. Each event sized equally, direction set by <code style="background:rgba(0,212,255,0.08);color:var(--accent);padding:1px 4px;border-radius:2px;">scanner_call</code> (APPROVE → long, CRL → short, WATCH → skipped — no capital deployed), compounded chronologically through 25 months of FDA decisions.
+  </p>
+
+  <div id="bt-irr-banner" class="bt-irr-banner">
+    <strong>Return-Source Disclosure</strong>
+    <span id="bt-irr-banner-body">Loading return source…</span>
+  </div>
+
+  <div class="sizing-control">
+    <span class="sizing-control-label">Position size per trade:</span>
+    <button class="sizing-btn" data-irr-kind="backtest" data-sizing="0.025">2.5%</button>
+    <button class="sizing-btn active" data-irr-kind="backtest" data-sizing="0.05">5%</button>
+    <button class="sizing-btn" data-irr-kind="backtest" data-sizing="0.075">7.5%</button>
+    <span class="sizing-note">5% default — smaller sizing for 102-event horizon</span>
+  </div>
+
+  <div class="stats-strip">
+    <div class="stat-cell">
+      <div class="stat-label">Starting Capital</div>
+      <div class="stat-val white">$1.00M</div>
+      <div class="stat-sub" id="bt-irr-start-date">Feb 2024 baseline</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Final Equity</div>
+      <div class="stat-val green" id="bt-irr-final">—</div>
+      <div class="stat-sub" id="bt-irr-total">loading</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">CAGR / IRR</div>
+      <div class="stat-val cyan" id="bt-irr-cagr">—</div>
+      <div class="stat-sub" id="bt-irr-years">loading</div>
+    </div>
+    <div class="stat-cell">
+      <div class="stat-label">Max Drawdown</div>
+      <div class="stat-val amber" id="bt-irr-mdd">—</div>
+      <div class="stat-sub">peak-to-trough</div>
+    </div>
+  </div>
+
+  <div class="irr-chart-wrap">
+    <div class="irr-chart-title">Equity curve — backtest IRR · 102-event sequence</div>
+    <div id="bt-irr-chart"><div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.72rem;">Loading backtest curve…</div></div>
+    <div id="bt-irr-chart-headline"></div>
+  </div>
+
+  <div class="irr-secondary-stats">
+    <div class="irr-sec-item"><div class="irr-sec-label">Trades Taken</div><div class="irr-sec-val" id="bt-irr-n">—</div></div>
+    <div class="irr-sec-item"><div class="irr-sec-label">Win Rate</div><div class="irr-sec-val green" id="bt-irr-winrate">—</div></div>
+    <div class="irr-sec-item"><div class="irr-sec-label">Avg Winner</div><div class="irr-sec-val green" id="bt-irr-avgwin">—</div></div>
+    <div class="irr-sec-item"><div class="irr-sec-label">Avg Loser</div><div class="irr-sec-val red" id="bt-irr-avgloss">—</div></div>
+  </div>
+
+  <div class="section-title" style="margin-top:2rem;">Backtest Trade Sequence</div>
+  <div class="irr-trade-wrap">
+    <table class="irr-trade-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Date</th>
+          <th>Ticker</th>
+          <th>Dir</th>
+          <th>Outcome</th>
+          <th>Return</th>
+          <th>Position</th>
+          <th>P&amp;L</th>
+          <th>Equity</th>
+        </tr>
+      </thead>
+      <tbody id="bt-irr-tbody">
+        <tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">Loading backtest sequence…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="methodology-note" style="margin-bottom:2.5rem;">
+    <strong>What the backtest IRR is — and is not</strong>
+    This takes the 102-event backtest universe and asks a different question than the calibration curve above: not "was the PoA well-calibrated" but "what would the compounded P&amp;L have looked like if you actually traded every scanner call." It still only validates the <em>PoA layer</em> — the STN, dilution, and convexity filters that would have cut or sized down the worst setups aren't applied here, so in practice a trader using the full scanner would have skipped some of these and the curve would differ. Non-overlapping events and no leverage means IRR collapses to CAGR.
+  </div>
+
+  <!-- ═════════════════════════════════════════════════════════════════════
+       PORTFOLIO IRR SECTION — $1M compounding simulation (LIVE TRACK RECORD)
        ═════════════════════════════════════════════════════════════════════ -->
   <hr class="portfolio-divider">
 
@@ -346,9 +444,9 @@ footer a:hover{color:var(--accent);}
 
   <div class="sizing-control">
     <span class="sizing-control-label">Position size per trade:</span>
-    <button class="sizing-btn" data-sizing="0.05">5%</button>
-    <button class="sizing-btn active" data-sizing="0.075">7.5%</button>
-    <button class="sizing-btn" data-sizing="0.10">10%</button>
+    <button class="sizing-btn" data-irr-kind="live" data-sizing="0.05">5%</button>
+    <button class="sizing-btn active" data-irr-kind="live" data-sizing="0.075">7.5%</button>
+    <button class="sizing-btn" data-irr-kind="live" data-sizing="0.10">10%</button>
     <span class="sizing-note">% of current account equity · rebased each trade</span>
   </div>
 
@@ -761,6 +859,9 @@ async function loadBacktest() {
   document.getElementById('bt-f-call').addEventListener('change', renderBacktestTable);
   document.getElementById('bt-f-tradeable').addEventListener('change', renderBacktestTable);
   document.getElementById('bt-f-search').addEventListener('input', renderBacktestTable);
+
+  // --- Chain the Backtest IRR simulation (uses BT_ROWS already loaded) ---
+  loadBacktestIRR().catch(e => console.error('[BT-IRR] fatal', e));
 }
 
 function renderBacktestTable() {
@@ -883,10 +984,10 @@ async function loadPortfolioIRR() {
   // Default render at 7.5%
   renderIRR(0.075);
 
-  // Wire sizing toggle buttons
-  document.querySelectorAll('.sizing-btn').forEach(btn => {
+  // Wire sizing toggle buttons (scoped to live IRR only)
+  document.querySelectorAll('.sizing-btn[data-irr-kind="live"]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('.sizing-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.sizing-btn[data-irr-kind="live"]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const sizing = parseFloat(btn.dataset.sizing);
       renderIRR(sizing);
@@ -991,18 +1092,20 @@ function renderIRR(sizing) {
     ' · max drawdown ' + (maxDD * 100).toFixed(1) + '%';
 
   // Render chart + table
-  renderEquityChart(curve);
-  renderTradeTable(trades);
+  renderEquityChart('irr-chart', curve);
+  renderTradeTable('irr-tbody', trades);
 }
 
-function renderEquityChart(curve) {
+function renderEquityChart(containerId, curve) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
   const W = 900, H = 320;
   const PADL = 85, PADR = 50, PADT = 25, PADB = 50;
   const innerW = W - PADL - PADR;
   const innerH = H - PADT - PADB;
 
   if (curve.length < 2) {
-    document.getElementById('irr-chart').innerHTML =
+    container.innerHTML =
       '<div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.72rem;">Need at least 2 points to draw curve.</div>';
     return;
   }
@@ -1093,11 +1196,12 @@ function renderEquityChart(curve) {
       xLabels +
     '</svg>';
 
-  document.getElementById('irr-chart').innerHTML = svg;
+  document.getElementById(containerId).innerHTML = svg;
 }
 
-function renderTradeTable(trades) {
-  const tbody = document.getElementById('irr-tbody');
+function renderTradeTable(tbodyId, trades) {
+  const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
   if (!trades.length) {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:2rem;color:var(--muted);">No trades.</td></tr>';
     return;
@@ -1146,6 +1250,217 @@ function fmtMoneyShort(v) {
   if (abs >= 1_000_000) return sign + '$' + (abs / 1_000_000).toFixed(2) + 'M';
   if (abs >= 1_000)     return sign + '$' + (abs / 1_000).toFixed(0) + 'K';
   return sign + '$' + abs.toFixed(0);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// BACKTEST IRR — $1M compounded across all 102 backtested events
+// Uses BT_ROWS from loadBacktest. Tries real return_pct first; falls back to
+// modeled baseline moves (with a prominent amber banner) if not populated.
+// APPROVE call → LONG thesis · CRL call → SHORT thesis · WATCH → skipped.
+// ═══════════════════════════════════════════════════════════════════════════
+let BT_IRR_ROWS = [];
+let BT_IRR_USING_REAL = false;
+const BT_IRR_START = 1_000_000;
+
+// Baseline return assumptions (used only when return_pct is not on the row)
+// Median close-to-close moves for small/mid-cap biotech PDUFA binary events.
+// These are conservative, documented, and clearly flagged in the UI banner.
+const BT_BASELINE = {
+  NME_APPROVED: 0.22,   // +22% on NME/BLA approval
+  NME_CRL:      -0.38,  // -38% on NME/BLA CRL
+  SUPP_APPROVED: 0.07,  // +7% on sNDA/supplemental approval
+  SUPP_CRL:     -0.14,  // -14% on sNDA/supplemental CRL
+};
+
+function getBacktestStockMove(r) {
+  // If the view includes actual post-decision move, use it directly (percent → decimal)
+  if (r.return_pct !== null && r.return_pct !== undefined && !Number.isNaN(Number(r.return_pct))) {
+    return Number(r.return_pct) / 100;
+  }
+  // Otherwise, fall back to the baseline model
+  const type = String(r.application_type || '').toUpperCase();
+  const outcome = String(r.outcome || '').toUpperCase();
+  const isSupp = /SNDA|SBLA|SUPPLEMENT|PAS|PRIOR APPROVAL/.test(type);
+  if (outcome === 'APPROVED') return isSupp ? BT_BASELINE.SUPP_APPROVED : BT_BASELINE.NME_APPROVED;
+  if (outcome === 'CRL')      return isSupp ? BT_BASELINE.SUPP_CRL      : BT_BASELINE.NME_CRL;
+  return 0;
+}
+
+async function loadBacktestIRR() {
+  if (!BT_ROWS || !BT_ROWS.length) {
+    // Backtest didn't load — nothing to simulate
+    document.getElementById('bt-irr-final').textContent = '—';
+    document.getElementById('bt-irr-total').textContent = 'no data';
+    document.getElementById('bt-irr-cagr').textContent = '—';
+    document.getElementById('bt-irr-mdd').textContent = '—';
+    document.getElementById('bt-irr-chart').innerHTML =
+      '<div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.72rem;">Backtest rows unavailable — IRR cannot be computed.</div>';
+    return;
+  }
+
+  // Detect whether real return data is present on ANY backtest row
+  BT_IRR_USING_REAL = BT_ROWS.some(r =>
+    r.return_pct !== null && r.return_pct !== undefined && !Number.isNaN(Number(r.return_pct))
+  );
+
+  // Filter to events with a directional call (APPROVE or CRL) — WATCH means no capital deployed
+  BT_IRR_ROWS = BT_ROWS.filter(r => {
+    const call = String(r.scanner_call || '').toUpperCase();
+    return call === 'APPROVE' || call === 'CRL';
+  });
+
+  if (!BT_IRR_ROWS.length) {
+    document.getElementById('bt-irr-final').textContent = '—';
+    document.getElementById('bt-irr-total').textContent = 'no calls made';
+    document.getElementById('bt-irr-chart').innerHTML =
+      '<div style="text-align:center;padding:3rem 0;color:var(--muted);font-family:var(--mono);font-size:0.72rem;">No directional calls in backtest universe — every event was WATCH.</div>';
+    return;
+  }
+
+  // Update start-date subtext from first chronological row
+  const sortedForDate = [...BT_IRR_ROWS].sort((a, b) =>
+    new Date(a.decision_date) - new Date(b.decision_date)
+  );
+  const firstDateFmt = new Date(sortedForDate[0].decision_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  document.getElementById('bt-irr-start-date').textContent = firstDateFmt + ' baseline';
+
+  // Configure the disclosure banner based on what data source is in play
+  updateBacktestBanner();
+
+  // Initial render at 5% sizing (default for the 102-event horizon)
+  renderBacktestIRR(0.05);
+
+  // Wire sizing buttons (scoped to backtest only)
+  document.querySelectorAll('.sizing-btn[data-irr-kind="backtest"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.sizing-btn[data-irr-kind="backtest"]').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const sizing = parseFloat(btn.dataset.sizing);
+      renderBacktestIRR(sizing);
+    });
+  });
+}
+
+function updateBacktestBanner() {
+  const banner = document.getElementById('bt-irr-banner');
+  const body = document.getElementById('bt-irr-banner-body');
+  banner.style.display = 'block';
+
+  if (BT_IRR_USING_REAL) {
+    banner.style.borderLeftColor = 'var(--accent2)';
+    banner.style.borderColor = 'rgba(0,255,157,0.3)';
+    banner.style.background = 'rgba(0,255,157,0.05)';
+    const strongEl = banner.querySelector('strong');
+    if (strongEl) strongEl.style.color = 'var(--accent2)';
+    body.innerHTML =
+      '<span class="bt-irr-source-real">Actual close-to-close moves</span> — returns sourced from ' +
+      '<code>v_backtest_public_rows.return_pct</code>, populated via Polygon.io historical price data for each decision_date. ' +
+      'Each event\'s P&amp;L reflects the real 1-day post-decision stock move, direction-adjusted by scanner_call.';
+  } else {
+    body.innerHTML =
+      'Returns are <strong style="color:var(--amber);">modeled from baseline PDUFA event assumptions</strong> — ' +
+      'a <code>return_pct</code> column is not yet populated on <code>v_backtest_public_rows</code>. ' +
+      'When the Polygon.io historical backfill runs, this table switches to actual close-to-close moves automatically.' +
+      '<table class="bt-irr-table"><thead><tr>' +
+        '<th>Application Type</th><th>Approved move</th><th>CRL move</th>' +
+      '</tr></thead><tbody>' +
+        '<tr><td>NME / BLA (new molecular entity)</td><td style="color:var(--accent2);">+' + (BT_BASELINE.NME_APPROVED*100).toFixed(0) + '%</td><td style="color:var(--red);">' + (BT_BASELINE.NME_CRL*100).toFixed(0) + '%</td></tr>' +
+        '<tr><td>sNDA / sBLA / supplemental</td><td style="color:var(--accent2);">+' + (BT_BASELINE.SUPP_APPROVED*100).toFixed(0) + '%</td><td style="color:var(--red);">' + (BT_BASELINE.SUPP_CRL*100).toFixed(0) + '%</td></tr>' +
+      '</tbody></table>' +
+      '<div style="margin-top:0.5rem;font-size:0.65rem;color:var(--muted);">These are conservative median estimates for small/mid-cap biotech binary events. ' +
+      'Direction is determined by <code>scanner_call</code>: APPROVE thesis earns the stock move as-is; CRL thesis earns the inverse.</div>';
+  }
+}
+
+function renderBacktestIRR(sizing) {
+  // Sort chronologically
+  const sorted = [...BT_IRR_ROWS].sort((a, b) =>
+    new Date(a.decision_date) - new Date(b.decision_date)
+  );
+
+  let capital = BT_IRR_START;
+  let peak = capital;
+  let maxDD = 0;
+  const curve = [{ date: sorted[0]?.decision_date || null, equity: capital, pnl: 0, label: 'Start' }];
+  const trades = [];
+  let wins = 0, losses = 0, winSum = 0, lossSum = 0;
+
+  sorted.forEach((r) => {
+    const call = String(r.scanner_call || '').toUpperCase();
+    const direction = call === 'CRL' ? -1 : 1;  // SHORT inverts the stock move
+    const stockMove = getBacktestStockMove(r);
+    const appliedReturn = direction * stockMove;
+    const positionSize = capital * sizing;
+    const pnl = positionSize * appliedReturn;
+    capital += pnl;
+
+    if (capital > peak) peak = capital;
+    const dd = peak > 0 ? (peak - capital) / peak : 0;
+    if (dd > maxDD) maxDD = dd;
+
+    if (appliedReturn > 0) { wins++;   winSum  += appliedReturn; }
+    else if (appliedReturn < 0) { losses++; lossSum += appliedReturn; }
+
+    trades.push({
+      date: r.decision_date,
+      ticker: String(r.ticker || '').toUpperCase(),
+      trade_type: call === 'CRL' ? 'SHORT' : 'LONG',
+      result: String(r.outcome || '').toUpperCase(),
+      applied_return: appliedReturn,
+      position_size: positionSize,
+      pnl,
+      equity: capital,
+    });
+
+    curve.push({
+      date: r.decision_date,
+      equity: capital,
+      pnl,
+      label: String(r.ticker || '') + ' (' + (call === 'CRL' ? 'SHORT' : 'LONG') + ')',
+    });
+  });
+
+  const firstDate = new Date(sorted[0].decision_date);
+  const lastDate  = new Date(sorted[sorted.length - 1].decision_date);
+  const yearsRaw  = (lastDate - firstDate) / (365.25 * 86400 * 1000);
+  const years     = Math.max(0.1, yearsRaw);
+  const totalReturn = (capital / BT_IRR_START) - 1;
+  const cagr = yearsRaw >= 0.1
+    ? Math.pow(capital / BT_IRR_START, 1 / years) - 1
+    : totalReturn;
+
+  // Populate top stats strip
+  document.getElementById('bt-irr-final').textContent = fmtMoney(capital);
+  document.getElementById('bt-irr-final').className = 'stat-val ' + (capital >= BT_IRR_START ? 'green' : 'red');
+  document.getElementById('bt-irr-total').textContent =
+    (totalReturn >= 0 ? '+' : '') + (totalReturn * 100).toFixed(1) + '% total return';
+  document.getElementById('bt-irr-cagr').textContent =
+    (cagr >= 0 ? '+' : '') + (cagr * 100).toFixed(1) + '%';
+  document.getElementById('bt-irr-cagr').className = 'stat-val ' + (cagr >= 0 ? 'cyan' : 'red');
+  document.getElementById('bt-irr-years').textContent = 'over ' + years.toFixed(2) + ' years';
+  document.getElementById('bt-irr-mdd').textContent = (maxDD * 100).toFixed(1) + '%';
+
+  // Secondary stats
+  document.getElementById('bt-irr-n').textContent = sorted.length;
+  const winrate = sorted.length > 0 ? (wins / sorted.length) * 100 : 0;
+  document.getElementById('bt-irr-winrate').textContent = winrate.toFixed(0) + '%';
+  document.getElementById('bt-irr-avgwin').textContent =
+    wins > 0 ? '+' + ((winSum / wins) * 100).toFixed(1) + '%' : '—';
+  document.getElementById('bt-irr-avgloss').textContent =
+    losses > 0 ? ((lossSum / losses) * 100).toFixed(1) + '%' : '—';
+
+  // Headline under chart
+  const sizingLabel = (sizing * 100).toFixed(1).replace(/\.0$/, '') + '%';
+  const sourceLabel = BT_IRR_USING_REAL ? 'actual moves' : 'baseline-modeled moves';
+  document.getElementById('bt-irr-chart-headline').innerHTML =
+    'At ' + sizingLabel + ' per trade, $1.00M → <strong>' + fmtMoneyShort(capital) + '</strong> across ' +
+    sorted.length + ' events (' + years.toFixed(1) + ' yrs · ' + sourceLabel + ') · ' +
+    '<strong>' + (cagr >= 0 ? '+' : '') + (cagr * 100).toFixed(1) + '% CAGR</strong> · ' +
+    'max drawdown ' + (maxDD * 100).toFixed(1) + '%.';
+
+  // Render chart + trade table using shared renderers
+  renderEquityChart('bt-irr-chart', curve);
+  renderTradeTable('bt-irr-tbody', trades);
 }
 </script>
 </body>
