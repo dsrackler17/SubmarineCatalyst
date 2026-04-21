@@ -151,7 +151,6 @@ footer a:hover{color:var(--accent);}
     <button class="tab-btn" data-tab="conference" onclick="switchTab('conference')">Conferences <span class="tab-count" id="count-conference"></span></button>
     <button class="tab-btn" data-tab="dilution" onclick="switchTab('dilution')">Dilution Watch <span class="tab-count" id="count-dilution"></span></button>
     <button class="tab-btn" data-tab="cmc" onclick="switchTab('cmc')" title="Companies that received a Complete Response Letter (CRL) solely for Chemistry, Manufacturing, and Controls (CMC) issues — not clinical efficacy failures. CMC-only CRLs have an 88% resubmission success rate vs 58% for clinical CRLs. This filter isolates the highest-probability recovery setups in the PDUFA universe.">CMC Recovery <span class="tab-count" id="count-cmc"></span></button>
-    <button class="tab-btn" data-tab="company" onclick="switchTab('company')">All Companies <span class="tab-count" id="count-company"></span></button>
   </div>
 
   <!-- Filters -->
@@ -598,7 +597,6 @@ function eventBadge(type) {
   if (t.includes('earning')) return '<span class="event-badge badge-earnings">EARNINGS</span>';
   if (t.includes('buyout') || t.includes('acquisition') || t.includes('m&a')) return '<span class="event-badge badge-buyout">BUYOUT</span>';
   if (t.includes('conference') || t.includes('abstract') || t.includes('presentation')) return '<span class="event-badge badge-conference">CONF</span>';
-  if (t.includes('company')) return '<span class="event-badge badge-other">BIOTECH</span>';
   return '<span class="event-badge badge-pdufa">PDUFA</span>';
 }
 
@@ -621,14 +619,7 @@ function classifyEvent(e) {
   if (flags.includes('cmc') || flags.includes('manufacturing') || t.includes('resubmission') || t.includes('post-crl') || t.includes('class 2 resubmission') || t.includes('class 1 resubmission')) tags.push('cmc');
   if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') tags.push('buyout');
   if (flags.includes('first-in-class') || flags.includes('first in class') || flags.includes('prv') || flags.includes('acquisition') || e.partnership_detected) tags.push('buyout');
-  if (tags.length === 0) {
-    if (e.type === 'COMPANY' || e._source === 'universe' || e._source === 'earnings') {
-      // No default category for companies — they just show in All Companies
-    } else {
-      tags.push('pdufa');
-    }
-  }
-  tags.push('company');
+  if (tags.length === 0) tags.push('pdufa');
   return tags;
 }
 
@@ -730,8 +721,6 @@ function renderTable() {
     var catalyst = '—';
     if (e._source === 'earnings') {
       catalyst = e.drug || 'Quarterly Earnings';
-    } else if (e._source === 'universe') {
-      catalyst = 'Pipeline & Catalyst Analysis';
     } else if (e._source === 'pdufa') {
       var rawDrug = e.drug || e.indication || '';
       if (rawDrug.length > 50) {
@@ -816,8 +805,6 @@ function renderTable() {
         else if (e.sell_news_risk !== '—') signal = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 MODERATE</span>';
       } else if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') {
         signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.12);color:var(--amber);">🏷️ BUYOUT</span>';
-      } else if (e._source === 'earnings') {
-        signal = '<span class="pattern-pill" style="background:rgba(90,122,153,0.1);color:var(--muted);">📊 ER</span>';
       }
       html += '<td>' + (signal || '—') + '</td>';
     }
@@ -844,18 +831,384 @@ function switchTab(tab) {
 function applyFilters() { renderTable(); }
 
 function updateCounts() {
-  var tabs = ['all','pdufa','clinical','adcom','earnings','buyout','stn','conference','dilution','cmc','company'];
+  var tabs = ['all','pdufa','clinical','adcom','earnings','buyout','stn','conference','dilution','cmc'];
   tabs.forEach(function(tab) {
     var count = tab === 'all' ? ALL_EVENTS.length : ALL_EVENTS.filter(function(e) { return (e._tags || []).includes(tab); }).length;
     var el = document.getElementById('count-' + tab);
     if (el) el.textContent = '(' + count + ')';
   });
 
-  var now = new Date();
   document.getElementById('stat-total').textContent = ALL_EVENTS.length;
   document.getElementById('stat-30d').textContent = ALL_EVENTS.filter(function(e) { var d = daysUntil(e.date); return d >= 0 && d <= 30; }).length;
   document.getElementById('stat-elite').textContent = ALL_EVENTS.filter(function(e) { return e.grade === 'ELITE'; }).length;
   document.getElementById('stat-updated').textContent = new Date().toLocaleDateString('en-US', {month:'short', day:'numeric'});
+}
+
+// ╔══════════════════════════════════════════════════════════════════════════╗
+// ║  CATALYST SOURCE LOADERS — client-side ingestion, all cached             ║
+// ║  Pulls earnings (Finnhub), clinical readouts (ClinicalTrials.gov v2),    ║
+// ║  AdCom (Federal Register), and conferences (static JSON manifest).       ║
+// ╚══════════════════════════════════════════════════════════════════════════╝
+
+var SC_CACHE_PREFIX = 'sc_cal_v1_';
+var SC_CACHE_TTL_6H = 6 * 60 * 60 * 1000;
+var SC_CACHE_TTL_24H = 24 * 60 * 60 * 1000;
+
+function scCacheGet(key, maxAgeMs) {
+  try {
+    var raw = sessionStorage.getItem(SC_CACHE_PREFIX + key);
+    if (!raw) return null;
+    var obj = JSON.parse(raw);
+    if (Date.now() - obj.ts > maxAgeMs) return null;
+    return obj.data;
+  } catch (e) { return null; }
+}
+
+function scCacheSet(key, data) {
+  try { sessionStorage.setItem(SC_CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
+}
+
+// Normalize a company name to a short match token for sponsor matching.
+// "Moderna, Inc." -> "moderna"  |  "Vertex Pharmaceuticals" -> "vertex"
+function scNormalizeToken(name) {
+  if (!name) return '';
+  var s = name.toLowerCase().replace(/[,.()&/]/g, ' ');
+  s = s.replace(/\b(inc|incorporated|corp|corporation|ltd|limited|plc|sa|ag|nv|bv|co|company|llc|llp|holdings?|group|therapeutics|pharmaceuticals?|biosciences?|biotech|biosystems?|laboratories|labs?|sciences?|medicines?|health|medical|bio)\b/g, ' ');
+  s = s.replace(/\s+/g, ' ').trim();
+  var parts = s.split(' ').filter(function (w) { return w.length >= 3; });
+  return parts[0] || '';
+}
+
+function scMakeEvent(opts) {
+  return {
+    ticker: opts.ticker,
+    drug: opts.drug || '',
+    indication: opts.indication || '',
+    type: opts.type,
+    date: opts.date,
+    grade: opts.grade || 'WATCH',
+    poa: 0, score: Number(opts.score) || 0, net_edge_score: 0,
+    flags: opts.flags || [],
+    notes: opts.notes || opts.drug || '',
+    sell_news_risk: '—', dilution_risk: '—',
+    atm_active: false, shelf_active: false, partnership_detected: false,
+    buyout_score: 0, buyout_risk: '—', buyout_flags: [],
+    company_name: opts.company_name || opts.ticker,
+    market_cap_tier: opts.market_cap_tier || 'UNKNOWN',
+    estimated_market_cap: Number(opts.estimated_market_cap) || 0,
+    tam_ratio: Number(opts.tam_ratio) || 0,
+    _source: opts._source || 'catalyst',
+  };
+}
+
+// Append new events to ALL_EVENTS, dedupe against (ticker|date|type).
+function scAppendEvents(newEvents) {
+  if (!newEvents || newEvents.length === 0) return 0;
+  var seen = {};
+  ALL_EVENTS.forEach(function (e) { seen[e.ticker + '|' + e.date + '|' + e.type] = true; });
+  var added = 0;
+  newEvents.forEach(function (e) {
+    var key = e.ticker + '|' + e.date + '|' + e.type;
+    if (seen[key]) return;
+    seen[key] = true;
+    e._tags = classifyEvent(e);
+    ALL_EVENTS.push(e);
+    added++;
+  });
+  return added;
+}
+
+// ── LOADER: Finnhub upcoming earnings ────────────────────────────────────────
+async function loadFinnhubEarnings(universe) {
+  var cached = scCacheGet('earnings', SC_CACHE_TTL_6H);
+  if (cached) { console.log('[earnings] cache hit: ' + cached.length); return cached; }
+
+  var FINNHUB_KEY = (typeof SC_CONFIG !== 'undefined' && SC_CONFIG.finnhubApiKey) || 'd4538q1r01qsugt8erd0d4538q1r01qsugt8erdg';
+  if (!universe || universe.length === 0) return [];
+
+  var uniMap = {};
+  universe.forEach(function (u) { uniMap[u.ticker] = u; });
+
+  var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  var chunks = [];
+  for (var offset = 0; offset < 90; offset += 30) {
+    var from = new Date(today.getTime() + offset * 86400000);
+    var to = new Date(today.getTime() + Math.min(offset + 30, 90) * 86400000);
+    chunks.push({ from: from.toISOString().split('T')[0], to: to.toISOString().split('T')[0] });
+  }
+
+  var all = [];
+  for (var i = 0; i < chunks.length; i++) {
+    var url = 'https://finnhub.io/api/v1/calendar/earnings?from=' + chunks[i].from + '&to=' + chunks[i].to + '&token=' + FINNHUB_KEY;
+    try {
+      var res = await fetch(url);
+      if (!res.ok) { console.warn('[earnings] Finnhub HTTP ' + res.status); continue; }
+      var data = await res.json();
+      (data.earningsCalendar || []).forEach(function (e) { all.push(e); });
+    } catch (e) { console.warn('[earnings] fetch failed:', e); }
+    await new Promise(function (r) { setTimeout(r, 300); });
+  }
+
+  var seen = {};
+  var events = [];
+  all.forEach(function (e) {
+    if (!e.symbol || !e.date) return;
+    if (!uniMap[e.symbol]) return;
+    var key = e.symbol + '|' + e.date;
+    if (seen[key]) return;
+    seen[key] = true;
+    var u = uniMap[e.symbol];
+    var hourLabel = e.hour === 'bmo' ? 'Before Market Open' : e.hour === 'amc' ? 'After Market Close' : e.hour === 'dmh' ? 'During Market Hours' : '';
+    var fiscal = e.year && e.quarter ? 'Q' + e.quarter + ' ' + e.year : 'Quarterly';
+    var desc = fiscal + ' Earnings' + (hourLabel ? ' — ' + hourLabel : '');
+    events.push(scMakeEvent({
+      ticker: e.symbol, drug: desc, type: 'EARNINGS', date: e.date,
+      company_name: u.company_name || e.symbol,
+      market_cap_tier: u.market_cap_tier || 'UNKNOWN',
+      estimated_market_cap: u.estimated_market_cap,
+      tam_ratio: u.tam_ratio,
+      score: u.market_cap_tier === 'LARGE' ? 80 : u.market_cap_tier === 'MID' ? 60 : 40,
+      flags: [fiscal, 'CONFIDENCE:HARD_DATE'],
+      _source: 'earnings',
+    }));
+  });
+
+  scCacheSet('earnings', events);
+  return events;
+}
+
+// ── LOADER: ClinicalTrials.gov v2 Phase 2/3 readouts ─────────────────────────
+async function loadClinicalReadouts(universe) {
+  var cached = scCacheGet('clinical', SC_CACHE_TTL_6H);
+  if (cached) { console.log('[clinical] cache hit: ' + cached.length); return cached; }
+  if (!universe || universe.length === 0) return [];
+
+  var tokenIndex = {};
+  universe.forEach(function (u) {
+    var tok = scNormalizeToken(u.company_name || '');
+    if (!tok) return;
+    if (!tokenIndex[tok]) tokenIndex[tok] = [];
+    tokenIndex[tok].push(u);
+  });
+
+  var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  var minDate = new Date(today.getTime() - 14 * 86400000);
+  var maxDate = new Date(today.getTime() + 365 * 86400000);
+
+  var MAX_PAGES = 15;
+  var pageToken = null;
+  var events = [];
+  var seen = {};
+  var pagesLoaded = 0;
+  var scanned = 0;
+
+  while (pagesLoaded < MAX_PAGES) {
+    var params = new URLSearchParams({
+      'filter.overallStatus': 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED',
+      'filter.phase': 'PHASE2|PHASE3',
+      'pageSize': '1000',
+      'format': 'json',
+      'sort': 'LastUpdatePostDate:desc',
+    });
+    if (pageToken) params.set('pageToken', pageToken);
+
+    var url = 'https://clinicaltrials.gov/api/v2/studies?' + params.toString();
+    try {
+      var res = await fetch(url);
+      if (!res.ok) { console.warn('[clinical] CT.gov HTTP ' + res.status); break; }
+      var data = await res.json();
+      var studies = data.studies || [];
+      scanned += studies.length;
+
+      for (var j = 0; j < studies.length; j++) {
+        var s = studies[j];
+        try {
+          var ps = s.protocolSection || {};
+          var id = ps.identificationModule || {};
+          var status = ps.statusModule || {};
+          var sponsor = ps.sponsorCollaboratorsModule || {};
+          var design = ps.designModule || {};
+          var cond = ps.conditionsModule || {};
+
+          var nctId = id.nctId || '';
+          var phases = Array.isArray(design.phases) ? design.phases.join('/') : '';
+          var leadSponsor = (sponsor.leadSponsor && sponsor.leadSponsor.name) || '';
+          var pcdStruct = status.primaryCompletionDateStruct || {};
+          var pcd = pcdStruct.date || status.primaryCompletionDate || '';
+          var pcdType = pcdStruct.type || 'UNKNOWN';
+          var conditions = Array.isArray(cond.conditions) ? cond.conditions : [];
+
+          if (!leadSponsor || !pcd || !nctId) continue;
+          var pcdStr = pcd.length === 7 ? pcd + '-15' : pcd;
+          var pcdD = new Date(pcdStr);
+          if (isNaN(pcdD.getTime())) continue;
+          if (pcdD < minDate || pcdD > maxDate) continue;
+
+          var tok = scNormalizeToken(leadSponsor);
+          if (!tok || !tokenIndex[tok]) continue;
+          var matches = tokenIndex[tok];
+          var best = matches[0];
+          if (matches.length > 1) {
+            var sp = leadSponsor.toLowerCase();
+            best = matches.reduce(function (a, b) {
+              var aS = (a.company_name || '').toLowerCase().split(' ').filter(function (w) { return w.length > 2 && sp.indexOf(w) >= 0; }).length;
+              var bS = (b.company_name || '').toLowerCase().split(' ').filter(function (w) { return w.length > 2 && sp.indexOf(w) >= 0; }).length;
+              return bS > aS ? b : a;
+            });
+          }
+
+          var key = best.ticker + '|' + pcdStr + '|' + nctId;
+          if (seen[key]) continue;
+          seen[key] = true;
+
+          var condStr = conditions.slice(0, 2).join(', ') || 'Clinical Readout';
+          var desc = (phases || 'Phase ?') + ' readout — ' + condStr;
+          var confFlag = pcdType === 'ACTUAL' ? 'CONFIDENCE:HARD_DATE' : 'CONFIDENCE:ESTIMATED_WINDOW';
+          var rel = phases.indexOf('PHASE3') >= 0 ? 85 : phases.indexOf('PHASE2') >= 0 ? 65 : 50;
+
+          events.push(scMakeEvent({
+            ticker: best.ticker, drug: desc.substring(0, 180), type: 'CLINICAL', date: pcdStr,
+            company_name: best.company_name || best.ticker,
+            market_cap_tier: best.market_cap_tier || 'UNKNOWN',
+            estimated_market_cap: best.estimated_market_cap,
+            tam_ratio: best.tam_ratio,
+            score: rel,
+            flags: [phases, status.overallStatus || '', nctId, confFlag].filter(Boolean),
+            _source: 'catalyst',
+          }));
+        } catch (err) {}
+      }
+
+      pageToken = data.nextPageToken || null;
+      pagesLoaded++;
+      if (!pageToken) break;
+    } catch (e) { console.warn('[clinical] page error:', e); break; }
+  }
+
+  console.log('[clinical] scanned ' + scanned + ' studies across ' + pagesLoaded + ' pages, matched ' + events.length);
+  scCacheSet('clinical', events);
+  return events;
+}
+
+// ── LOADER: Federal Register AdCom meetings ──────────────────────────────────
+async function loadFederalRegisterAdcom(drugMap) {
+  var cached = scCacheGet('adcom', SC_CACHE_TTL_6H);
+  if (cached) { console.log('[adcom] cache hit: ' + cached.length); return cached; }
+
+  var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  var lookbackStart = new Date(today.getTime() - 45 * 86400000);
+
+  var params = new URLSearchParams({
+    'conditions[term]': 'Advisory Committee Meeting',
+    'conditions[agencies][]': 'food-and-drug-administration',
+    'conditions[publication_date][gte]': lookbackStart.toISOString().split('T')[0],
+    'per_page': '100',
+    'order': 'newest',
+  });
+  ['title', 'document_number', 'publication_date', 'abstract', 'html_url', 'type'].forEach(function (f) { params.append('fields[]', f); });
+
+  var url = 'https://www.federalregister.gov/api/v1/documents.json?' + params.toString();
+  var events = [];
+
+  try {
+    var res = await fetch(url);
+    if (!res.ok) { console.warn('[adcom] FR HTTP ' + res.status); scCacheSet('adcom', []); return []; }
+    var data = await res.json();
+    var docs = data.results || [];
+
+    var monthRe = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s*(\d{4})\b/i;
+    var months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+
+    var seen = {};
+    docs.forEach(function (d) {
+      if (!d.title || !/advisory committee/i.test(d.title)) return;
+      var bodyText = (d.abstract || '').substring(0, 5000);
+      var m = bodyText.match(monthRe);
+      if (!m) return;
+      var monthIdx = months.indexOf(m[1].toLowerCase());
+      if (monthIdx < 0) return;
+      var meetingDate = new Date(Date.UTC(parseInt(m[3]), monthIdx, parseInt(m[2])));
+      if (isNaN(meetingDate.getTime())) return;
+      if (meetingDate < today) return;
+      var mdStr = meetingDate.toISOString().split('T')[0];
+
+      var ticker = null;
+      var bodyLower = (d.title + ' ' + bodyText).toLowerCase();
+      if (drugMap && drugMap.forEach) {
+        drugMap.forEach(function (t, drug) {
+          if (!ticker && drug && drug.length >= 4 && bodyLower.indexOf(drug) >= 0) ticker = t;
+        });
+      }
+      if (!ticker) ticker = 'ADCOM';
+
+      var committeeMatch = d.title.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+Advisory Committee/);
+      var desc = committeeMatch ? committeeMatch[0] : d.title.substring(0, 120);
+
+      var key = ticker + '|' + mdStr + '|' + (d.document_number || desc);
+      if (seen[key]) return;
+      seen[key] = true;
+
+      events.push(scMakeEvent({
+        ticker: ticker, drug: desc, type: 'ADCOM', date: mdStr,
+        company_name: ticker === 'ADCOM' ? 'FDA Advisory Committee' : ticker,
+        market_cap_tier: 'UNKNOWN',
+        score: ticker === 'ADCOM' ? 55 : 90,
+        flags: ['CONFIDENCE:HARD_DATE', d.document_number || 'FR', 'FDA_ADCOM'],
+        notes: desc,
+        _source: 'catalyst',
+      }));
+    });
+  } catch (e) { console.warn('[adcom] fetch failed:', e); }
+
+  scCacheSet('adcom', events);
+  return events;
+}
+
+// ── LOADER: Conferences from static JSON manifest ────────────────────────────
+async function loadConferences() {
+  var cached = scCacheGet('conf', SC_CACHE_TTL_24H);
+  if (cached) { console.log('[conferences] cache hit: ' + cached.length); return cached; }
+
+  var events = [];
+  try {
+    // Bust cache once per day so manifest edits propagate without hard refresh
+    var bust = Math.floor(Date.now() / 86400000);
+    var res = await fetch('/data/biotech_conferences.json?t=' + bust);
+    if (!res.ok) { scCacheSet('conf', []); return []; }
+    var data = await res.json();
+
+    var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+
+    (data.conferences || []).forEach(function (c) {
+      if (!c.date_start || !c.name) return;
+      var d = new Date(c.date_start);
+      if (isNaN(d.getTime()) || d < today) return;
+
+      var tickers = Array.isArray(c.tickers) && c.tickers.length > 0 ? c.tickers : ['CONFERENCE'];
+      tickers.forEach(function (ticker) {
+        var isGeneric = ticker === 'CONFERENCE';
+        events.push(scMakeEvent({
+          ticker: ticker,
+          drug: c.name + (c.date_end && c.date_end !== c.date_start ? ' (' + c.date_start + ' → ' + c.date_end + ')' : ''),
+          type: 'CONFERENCE',
+          date: c.date_start,
+          company_name: isGeneric ? c.name : ticker,
+          market_cap_tier: 'UNKNOWN',
+          score: isGeneric ? 50 : 70,
+          flags: [
+            c.status === 'confirmed' ? 'CONFIDENCE:HARD_DATE' : 'CONFIDENCE:ESTIMATED_WINDOW',
+            c.category || 'MEDICAL',
+            c.location || '',
+          ].filter(Boolean),
+          notes: c.description || c.name,
+          _source: 'catalyst',
+        }));
+      });
+    });
+  } catch (e) { console.warn('[conferences] fetch failed:', e); }
+
+  scCacheSet('conf', events);
+  return events;
 }
 
 // ── INIT ──────────────────────────────────────────────────────────────────────
@@ -901,7 +1254,6 @@ function updateCounts() {
   }
 
   // Fallback: load basic calendar data from Supabase directly
-  // NOW ALSO PULLS estimated_market_cap + tam_ratio so live cap override works
   if (ALL_EVENTS.length === 0) {
     var { data: pdufaEvents } = await sb.from('pdufa_events')
       .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, estimated_market_cap, tam_ratio')
@@ -961,129 +1313,73 @@ function updateCounts() {
     }
   } catch (err) { console.warn('Catalyst events load failed:', err); }
 
-  // ── ALWAYS LOAD: Full biotech universe ─────────────────────────────
+  // ── ENRICHMENT ONLY: pull biotech_universe data onto existing events ──
+  // Fills missing company_name, market_cap_tier, sic_description, exchange,
+  // estimated_market_cap, and tam_ratio for tickers we already have events
+  // for. We do NOT add universe tickers as standalone calendar rows and we
+  // do NOT fabricate earnings dates. Real catalysts only.
   try {
     var { data: universe } = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, sic_description, exchange, category, estimated_market_cap, tam_ratio, buyout_score, buyout_risk')
-      .eq('active', true)
-      .order('ticker', { ascending: true });
+      .select('ticker, company_name, market_cap_tier, sic_description, exchange, estimated_market_cap, tam_ratio')
+      .eq('active', true);
 
     if (universe && universe.length > 0) {
       var uniMap = {};
       universe.forEach(function(c) { uniMap[c.ticker] = c; });
       ALL_EVENTS.forEach(function(e) {
-        if (uniMap[e.ticker]) {
-          if (!e.company_name || e.company_name === '') e.company_name = uniMap[e.ticker].company_name;
-          if (!e.market_cap_tier || e.market_cap_tier === 'UNKNOWN') e.market_cap_tier = uniMap[e.ticker].market_cap_tier || 'UNKNOWN';
-          if (!e.sic_description) e.sic_description = uniMap[e.ticker].sic_description || '';
-          if (!e.exchange) e.exchange = uniMap[e.ticker].exchange || '';
-          // Fill in cap/TAM from universe if event didn't have them
-          if (!Number(e.estimated_market_cap) && Number(uniMap[e.ticker].estimated_market_cap)) {
-            e.estimated_market_cap = Number(uniMap[e.ticker].estimated_market_cap);
-          }
-          if (!Number(e.tam_ratio) && Number(uniMap[e.ticker].tam_ratio)) {
-            e.tam_ratio = Number(uniMap[e.ticker].tam_ratio);
-          }
+        var u = uniMap[e.ticker];
+        if (!u) return;
+        if (!e.company_name || e.company_name === '') e.company_name = u.company_name;
+        if (!e.market_cap_tier || e.market_cap_tier === 'UNKNOWN') e.market_cap_tier = u.market_cap_tier || 'UNKNOWN';
+        if (!e.sic_description) e.sic_description = u.sic_description || '';
+        if (!e.exchange) e.exchange = u.exchange || '';
+        if (!Number(e.estimated_market_cap) && Number(u.estimated_market_cap)) {
+          e.estimated_market_cap = Number(u.estimated_market_cap);
+        }
+        if (!Number(e.tam_ratio) && Number(u.tam_ratio)) {
+          e.tam_ratio = Number(u.tam_ratio);
         }
       });
-
-      function gradeCompany(cap) {
-        if (cap === 'SMALL') return 'WATCH';
-        if (cap === 'MID') return 'WATCH';
-        if (cap === 'LARGE') return 'WATCH';
-        return 'WEAK';
-      }
-
-      var existing = {};
-      ALL_EVENTS.forEach(function(e) { existing[e.ticker] = true; });
-
-      var uniEntries = universe.filter(function(c) {
-        return !existing[c.ticker];
-      }).map(function(c) {
-        var bRisk = c.buyout_risk || 'UNLIKELY';
-        var bScore = Number(c.buyout_score) || 15;
-        if (!c.buyout_risk) {
-          if (c.market_cap_tier === 'SMALL') { bRisk = 'MODERATE'; bScore = 45; }
-          else if (c.market_cap_tier === 'MID') { bRisk = 'LOW'; bScore = 25; }
-        }
-
-        var capLabel = c.market_cap_tier || 'UNKNOWN';
-        var desc = c.sic_description || c.category || '';
-        var capGrade = gradeCompany(c.market_cap_tier);
-        if (bScore >= 40) capGrade = 'STRONG';
-
-        var entry = {
-          ticker: c.ticker,
-          drug: desc || c.company_name || '',
-          indication: desc,
-          type: 'COMPANY',
-          date: '—',
-          grade: capGrade,
-          poa: 0, score: bScore, flags: [],
-          notes: desc,
-          sell_news_risk: '—', dilution_risk: '—',
-          net_edge_score: bScore,
-          atm_active: false, shelf_active: false, partnership_detected: false,
-          buyout_score: bScore, buyout_risk: bRisk, buyout_flags: [],
-          company_name: c.company_name || c.ticker,
-          market_cap_tier: capLabel,
-          sic_description: desc,
-          exchange: c.exchange || '',
-          estimated_market_cap: Number(c.estimated_market_cap) || 0,
-          tam_ratio: Number(c.tam_ratio) || 0,
-          _source: 'universe',
-        };
-        entry._tags = classifyEvent(entry);
-        return entry;
-      });
-      ALL_EVENTS = ALL_EVENTS.concat(uniEntries);
-
-      function estimateNextEarnings(ticker) {
-        var now = new Date();
-        var year = now.getFullYear();
-        var hash = 0;
-        for (var i = 0; i < ticker.length; i++) hash = ((hash << 5) - hash) + ticker.charCodeAt(i);
-        var day = 1 + (Math.abs(hash) % 25);
-        var windows = [
-          { m: 1, label: 'Q4 Earnings' },
-          { m: 4, label: 'Q1 Earnings' },
-          { m: 7, label: 'Q2 Earnings' },
-          { m: 10, label: 'Q3 Earnings' }
-        ];
-        for (var j = 0; j < windows.length; j++) {
-          var target = new Date(year, windows[j].m, day);
-          if (target > now) return { date: target.toISOString().split('T')[0], label: windows[j].label };
-        }
-        return { date: (year + 1) + '-02-' + day.toString().padStart(2,'0'), label: 'Q4 Earnings' };
-      }
-
-      var earningsEntries = universe.map(function(c) {
-        var earn = estimateNextEarnings(c.ticker);
-        var capGrade = gradeCompany(c.market_cap_tier);
-        return {
-          ticker: c.ticker, drug: earn.label, indication: '',
-          type: 'EARNINGS', date: earn.date, grade: capGrade,
-          poa: 0, score: 0, flags: [earn.label], notes: earn.label,
-          sell_news_risk: '—', dilution_risk: '—', net_edge_score: 0,
-          atm_active: false, shelf_active: false, partnership_detected: false,
-          buyout_score: 0, buyout_risk: '—', buyout_flags: [],
-          company_name: c.company_name || c.ticker,
-          market_cap_tier: c.market_cap_tier || 'UNKNOWN',
-          estimated_market_cap: Number(c.estimated_market_cap) || 0,
-          tam_ratio: Number(c.tam_ratio) || 0,
-          _tags: ['earnings', 'company'], _source: 'earnings',
-        };
-      });
-      ALL_EVENTS = ALL_EVENTS.concat(earningsEntries);
-
+      // Reclassify in case enrichment changed tag-relevant fields
       ALL_EVENTS.forEach(function(e) { e._tags = classifyEvent(e); });
-
-      console.log('[SC] Loaded ' + uniEntries.length + ' universe companies (total: ' + ALL_EVENTS.length + ')');
+      console.log('[SC] Enriched ' + ALL_EVENTS.length + ' events from universe');
     }
-  } catch (err) { console.warn('Universe load failed:', err); }
+  } catch (err) { console.warn('Universe enrichment failed:', err); }
 
   updateCounts();
   renderTable();
+
+  // ── CLIENT-SIDE CATALYST INGESTION ──────────────────────────────────────
+  // Load drug_assets (needed for AdCom ticker matching)
+  var drugMap = new Map();
+  try {
+    var { data: drugAssets } = await sb.from('drug_assets').select('drug_name, brand_name, parent_ticker');
+    (drugAssets || []).forEach(function (d) {
+      if (d.drug_name && d.parent_ticker) drugMap.set(d.drug_name.toLowerCase(), d.parent_ticker);
+      if (d.brand_name && d.parent_ticker) drugMap.set(d.brand_name.toLowerCase(), d.parent_ticker);
+    });
+    console.log('[SC] drug_assets loaded: ' + drugMap.size + ' drug/brand names');
+  } catch (err) { console.warn('[drug_assets] load failed:', err); }
+
+  // Universe may be undefined if enrichment block errored — fall back to empty array
+  var universeForLoaders = (typeof universe !== 'undefined' && universe) ? universe : [];
+
+  // Fire all four loaders in parallel. Each renders progressively as it completes.
+  loadFinnhubEarnings(universeForLoaders)
+    .then(function (evs) { var added = scAppendEvents(evs); console.log('[earnings] added ' + added + '/' + evs.length); updateCounts(); renderTable(); })
+    .catch(function (e) { console.warn('[earnings] failed:', e); });
+
+  loadClinicalReadouts(universeForLoaders)
+    .then(function (evs) { var added = scAppendEvents(evs); console.log('[clinical] added ' + added + '/' + evs.length); updateCounts(); renderTable(); })
+    .catch(function (e) { console.warn('[clinical] failed:', e); });
+
+  loadFederalRegisterAdcom(drugMap)
+    .then(function (evs) { var added = scAppendEvents(evs); console.log('[adcom] added ' + added + '/' + evs.length); updateCounts(); renderTable(); })
+    .catch(function (e) { console.warn('[adcom] failed:', e); });
+
+  loadConferences()
+    .then(function (evs) { var added = scAppendEvents(evs); console.log('[conferences] added ' + added + '/' + evs.length); updateCounts(); renderTable(); })
+    .catch(function (e) { console.warn('[conferences] failed:', e); });
 
   if (isPaid) {
     setTimeout(function() { enrichWithPolygon(); }, 500);
