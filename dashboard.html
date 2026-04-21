@@ -9,171 +9,111 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --navy:    #040d1a;
-    --deep:    #07152b;
-    --surface: #0b1f3a;
-    --panel:   #0f2647;
-    --border:  #1a3a5c;
-    --accent:  #00d4ff;
-    --accent2: #00ff9d;
-    --amber:   #f5a623;
-    --red:     #ff4444;
-    --text:    #c8dff0;
-    --muted:   #5a7a99;
-    --white:   #eaf4ff;
-    --mono:    'Space Mono', monospace;
-    --serif:   'DM Serif Display', serif;
-    --sans:    'DM Sans', sans-serif;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--navy);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-  nav, .dash-layout, footer { position: relative; z-index: 1; }
-
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.1rem 2rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(4,13,26,0.92);
-    backdrop-filter: blur(12px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
-  .nav-logo { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
-  .sonar-icon { width: 26px; height: 26px; }
-  .sonar-icon svg { width: 100%; height: 100%; }
-  .nav-wordmark { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; color: var(--white); letter-spacing: 0.12em; text-transform: uppercase; }
-  .nav-wordmark span { color: var(--accent); }
-  .nav-center { display: flex; align-items: center; gap: 1.5rem; list-style: none; }
-  .nav-center a { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-  .nav-center a:hover, .nav-center a.active { color: var(--accent); }
-  .nav-right { display: flex; align-items: center; gap: 1rem; }
-  .nav-user { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
-  .nav-signout { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 0.3rem 0.75rem; transition: all 0.2s; }
-  .nav-signout:hover { color: var(--red); border-color: rgba(255,68,68,0.4); }
-
-  .dash-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 58px); }
-
-  .sidebar { background: var(--deep); border-right: 1px solid var(--border); padding: 1.5rem 0; position: sticky; top: 58px; height: calc(100vh - 58px); overflow-y: auto; }
-  .sidebar-section { margin-bottom: 2rem; }
-  .sidebar-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); padding: 0 1.25rem; margin-bottom: 0.5rem; display: block; }
-  .sidebar-item { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 1.25rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: none; transition: all 0.15s; cursor: pointer; border: none; background: none; width: 100%; text-align: left; }
-  .sidebar-item:hover { color: var(--white); background: rgba(0,212,255,0.04); }
-  .sidebar-item.active { color: var(--accent); background: rgba(0,212,255,0.07); border-left: 2px solid var(--accent); }
-  .sidebar-icon { font-size: 0.85rem; width: 16px; text-align: center; }
-
-  .dash-main { padding: 2rem; overflow-y: auto; }
-
-  .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
-  .section-title { font-family: var(--serif); font-size: 1.5rem; color: var(--white); }
-  .section-meta { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
-
-  .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; animation: fadeUp 0.5s ease both; }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
-  .stat-cell { background: var(--surface); padding: 1.25rem 1.5rem; }
-  .stat-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
-  .stat-val { font-family: var(--serif); font-size: 1.8rem; color: var(--white); line-height: 1; }
-  .stat-val.green  { color: var(--accent2); }
-  .stat-val.cyan   { color: var(--accent); }
-  .stat-val.amber  { color: var(--amber); }
-  .stat-sub { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; }
-
-  .scanner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
-  .scanner-card { background: var(--surface); padding: 1.5rem; transition: background 0.2s; cursor: pointer; position: relative; overflow: hidden; animation: fadeUp 0.5s ease both; }
-  .scanner-card:hover { background: rgba(11,31,58,0.95); }
-  .scanner-card::before { content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%; }
-  .scanner-card.elite::before  { background: var(--accent2); }
-  .scanner-card.strong::before { background: var(--accent); }
-  .scanner-card.watch::before  { background: var(--amber); }
-  .scanner-card.weak::before   { background: var(--muted); }
-
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
-  .card-ticker { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: 0.08em; }
-  .card-date   { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 0.15rem; }
-  .card-grade  { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.2rem 0.6rem; border: 1px solid; white-space: nowrap; }
-  .grade-elite  { color: var(--accent2);  border-color: rgba(0,255,157,0.4);  background: rgba(0,255,157,0.08); }
-  .grade-strong { color: var(--accent);   border-color: rgba(0,212,255,0.4);  background: rgba(0,212,255,0.08); }
-  .grade-watch  { color: var(--amber);    border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
-  .grade-weak   { color: var(--muted);    border-color: rgba(90,122,153,0.4); background: transparent; }
-
-  .card-drug       { font-size: 0.82rem; color: var(--text); margin-bottom: 0.2rem; font-weight: 300; }
-  .card-indication { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); margin-bottom: 1rem; letter-spacing: 0.04em; }
-
-  .card-scores { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0; border: 1px solid var(--border); margin-bottom: 0.75rem; }
-  .score-box { padding: 0.6rem 0.75rem; border-right: 1px solid var(--border); text-align: center; }
-  .score-box:last-child { border-right: none; }
-  .score-box-label { font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
-  .score-box-val   { font-family: var(--mono); font-size: 1rem; font-weight: 700; }
-  .score-box-val.green { color: var(--accent2); }
-  .score-box-val.cyan  { color: var(--accent); }
-  .score-box-val.white { color: var(--white); }
-  .score-box-val.amber { color: var(--amber); }
-  .score-box-val.red   { color: var(--red); }
-
-  .card-flags { display: flex; flex-direction: column; gap: 0.2rem; }
-  .card-flag  { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; }
-
-  .days-pill { display: inline-block; font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.06em; padding: 0.12rem 0.45rem; border: 1px solid; margin-left: 0.5rem; }
-  .days-hot   { border-color: rgba(255,68,68,0.5);    color: var(--red);    background: rgba(255,68,68,0.08); }
-  .days-warm  { border-color: rgba(245,166,35,0.5);   color: var(--amber);  background: rgba(245,166,35,0.08); }
-  .days-watch { border-color: rgba(0,212,255,0.4);    color: var(--accent); background: rgba(0,212,255,0.06); }
-  .days-far   { border-color: rgba(90,122,153,0.4);   color: var(--muted);  background: transparent; }
-
-  .account-panel { background: var(--surface); border: 1px solid var(--border); padding: 1.75rem; margin-bottom: 2rem; position: relative; overflow: hidden; }
-  .account-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-  .account-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
-  .account-field { margin-bottom: 1rem; }
-  .account-field-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
-  .account-field-val   { font-family: var(--mono); font-size: 0.82rem; color: var(--white); letter-spacing: 0.04em; }
-  .status-active { color: var(--accent2); display: flex; align-items: center; gap: 0.4rem; }
-  .status-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s ease infinite; }
-  @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
-
-  .btn-portal { display: inline-block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1.1rem; text-decoration: none; transition: all 0.2s; cursor: pointer; background: none; }
-  .btn-portal:hover { border-color: var(--accent); color: var(--accent); }
-
-  .section-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
-  .tab-btn { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0.65rem 1.25rem; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
-  .tab-btn:hover { color: var(--white); }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-  .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-
-  .verifying-banner { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.3); padding: 0.75rem 1.25rem; font-family: var(--mono); font-size: 0.72rem; color: var(--amber); letter-spacing: 0.04em; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
-  .spinner { width: 14px; height: 14px; border: 2px solid rgba(245,166,35,0.3); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  footer { border-top: 1px solid var(--border); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); position: relative; z-index: 1; }
-  footer a { color: var(--muted); text-decoration: none; }
-  footer a:hover { color: var(--accent); }
-
-  @media (max-width: 1024px) { .dash-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .stat-strip { grid-template-columns: 1fr 1fr; } .account-grid { grid-template-columns: 1fr; } }
-  @media (max-width: 640px) { .scanner-grid { grid-template-columns: 1fr; } nav { padding: 0.9rem 1.25rem; } }
+:root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;min-height:100vh}
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+nav,.dash-layout,footer{position:relative;z-index:1}
+nav{display:flex;align-items:center;justify-content:space-between;padding:1.1rem 2rem;border-bottom:1px solid var(--border);background:rgba(4,13,26,0.92);backdrop-filter:blur(12px);position:sticky;top:0;z-index:100}
+.nav-logo{display:flex;align-items:center;gap:0.65rem;text-decoration:none}
+.sonar-icon{width:26px;height:26px}.sonar-icon svg{width:100%;height:100%}
+.nav-wordmark{font-family:var(--mono);font-size:0.78rem;font-weight:700;color:var(--white);letter-spacing:0.12em;text-transform:uppercase}
+.nav-wordmark span{color:var(--accent)}
+.nav-center{display:flex;align-items:center;gap:1.5rem;list-style:none}
+.nav-center a{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;transition:color 0.2s}
+.nav-center a:hover,.nav-center a.active{color:var(--accent)}
+.nav-right{display:flex;align-items:center;gap:1rem}
+.nav-user{font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.06em}
+.nav-signout{font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;border:1px solid var(--border);padding:0.3rem 0.75rem;transition:all 0.2s}
+.nav-signout:hover{color:var(--red);border-color:rgba(255,68,68,0.4)}
+.dash-layout{display:grid;grid-template-columns:220px 1fr;min-height:calc(100vh - 58px)}
+.sidebar{background:var(--deep);border-right:1px solid var(--border);padding:1.5rem 0;position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto}
+.sidebar-section{margin-bottom:2rem}
+.sidebar-label{font-family:var(--mono);font-size:0.58rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);padding:0 1.25rem;margin-bottom:0.5rem;display:block}
+.sidebar-item{display:flex;align-items:center;gap:0.6rem;padding:0.6rem 1.25rem;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.06em;color:var(--muted);text-decoration:none;transition:all 0.15s;cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.sidebar-item:hover{color:var(--white);background:rgba(0,212,255,0.04)}
+.sidebar-item.active{color:var(--accent);background:rgba(0,212,255,0.07);border-left:2px solid var(--accent)}
+.sidebar-icon{font-size:0.85rem;width:16px;text-align:center}
+.dash-main{padding:2rem;overflow-y:auto}
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid var(--border)}
+.section-title{font-family:var(--serif);font-size:1.5rem;color:var(--white)}
+.section-meta{font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.06em}
+.stat-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem;animation:fadeUp 0.5s ease both}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.stat-cell{background:var(--surface);padding:1.25rem 1.5rem}
+.stat-label{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem}
+.stat-val{font-family:var(--serif);font-size:1.8rem;color:var(--white);line-height:1}
+.stat-val.green{color:var(--accent2)}.stat-val.cyan{color:var(--accent)}.stat-val.amber{color:var(--amber)}
+.stat-sub{font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.3rem}
+.scanner-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);margin-bottom:2rem}
+.scanner-card{background:var(--surface);padding:1.5rem;transition:background 0.2s;cursor:pointer;position:relative;overflow:hidden;animation:fadeUp 0.5s ease both}
+.scanner-card:hover{background:rgba(11,31,58,0.95)}
+.scanner-card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%}
+.scanner-card.elite::before{background:var(--accent2)}
+.scanner-card.strong::before{background:var(--accent)}
+.scanner-card.watch::before{background:var(--amber)}
+.scanner-card.weak::before{background:var(--muted)}
+.card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:0.75rem}
+.card-ticker{font-family:var(--mono);font-size:1.1rem;font-weight:700;color:var(--white);letter-spacing:0.08em}
+.card-date{font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.06em;margin-top:0.15rem}
+.card-grade{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;padding:0.2rem 0.6rem;border:1px solid;white-space:nowrap}
+.grade-elite{color:var(--accent2);border-color:rgba(0,255,157,0.4);background:rgba(0,255,157,0.08)}
+.grade-strong{color:var(--accent);border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.08)}
+.grade-watch{color:var(--amber);border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.08)}
+.grade-weak{color:var(--muted);border-color:rgba(90,122,153,0.4);background:transparent}
+.card-drug{font-size:0.82rem;color:var(--text);margin-bottom:0.2rem;font-weight:300;display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap}
+.card-drug.pending{color:var(--muted);font-style:italic}
+.card-indication{font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-bottom:1rem;letter-spacing:0.04em}
+.drug-badge{display:inline-block;font-family:var(--mono);font-size:0.52rem;letter-spacing:0.08em;padding:0.1rem 0.35rem;border:1px solid;vertical-align:middle}
+.drug-badge.high{color:var(--accent2);border-color:rgba(0,255,157,0.4);background:rgba(0,255,157,0.05)}
+.drug-badge.medium{color:var(--accent);border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.05)}
+.drug-badge.low{color:var(--amber);border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.05)}
+.drug-badge.notes{color:var(--accent);border-color:rgba(0,212,255,0.4);background:rgba(0,212,255,0.05)}
+.drug-badge.pending{color:var(--amber);border-color:rgba(245,166,35,0.4);background:rgba(245,166,35,0.05)}
+.card-scores{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0;border:1px solid var(--border);margin-bottom:0.75rem}
+.score-box{padding:0.6rem 0.75rem;border-right:1px solid var(--border);text-align:center}
+.score-box:last-child{border-right:none}
+.score-box-label{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.2rem}
+.score-box-val{font-family:var(--mono);font-size:1rem;font-weight:700}
+.score-box-val.green{color:var(--accent2)}.score-box-val.cyan{color:var(--accent)}.score-box-val.white{color:var(--white)}.score-box-val.amber{color:var(--amber)}.score-box-val.red{color:var(--red)}.score-box-val.gold{color:#ffd700}
+.card-flags{display:flex;flex-direction:column;gap:0.2rem}
+.card-flag{font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.03em}
+.card-appreciation{font-family:var(--mono);font-size:0.62rem;color:var(--text);letter-spacing:0.03em;padding:0.35rem 0.5rem;background:rgba(255,215,0,0.06);border-left:2px solid #ffd700;margin-bottom:0.2rem;line-height:1.4}
+.pending-drug-pill{font-family:var(--mono);font-size:0.62rem;color:var(--amber);letter-spacing:0.04em;padding:0.35rem 0.65rem;border:1px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.05)}
+.pending-drug-pill.hidden{display:none}
+.days-pill{display:inline-block;font-family:var(--mono);font-size:0.58rem;letter-spacing:0.06em;padding:0.12rem 0.45rem;border:1px solid;margin-left:0.5rem}
+.days-hot{border-color:rgba(255,68,68,0.5);color:var(--red);background:rgba(255,68,68,0.08)}
+.days-warm{border-color:rgba(245,166,35,0.5);color:var(--amber);background:rgba(245,166,35,0.08)}
+.days-watch{border-color:rgba(0,212,255,0.4);color:var(--accent);background:rgba(0,212,255,0.06)}
+.days-far{border-color:rgba(90,122,153,0.4);color:var(--muted);background:transparent}
+.account-panel{background:var(--surface);border:1px solid var(--border);padding:1.75rem;margin-bottom:2rem;position:relative;overflow:hidden}
+.account-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.account-grid{display:grid;grid-template-columns:1fr 1fr;gap:2rem}
+.account-field{margin-bottom:1rem}
+.account-field-label{font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem}
+.account-field-val{font-family:var(--mono);font-size:0.82rem;color:var(--white);letter-spacing:0.04em}
+.status-active{color:var(--accent2);display:flex;align-items:center;gap:0.4rem}
+.status-dot{width:6px;height:6px;background:var(--accent2);border-radius:50%;animation:pulse 2s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(0.8)}}
+.btn-portal{display:inline-block;font-family:var(--mono);font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;border:1px solid var(--border);color:var(--muted);padding:0.5rem 1.1rem;text-decoration:none;transition:all 0.2s;cursor:pointer;background:none}
+.btn-portal:hover{border-color:var(--accent);color:var(--accent)}
+.section-tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:1.5rem}
+.tab-btn{font-family:var(--mono);font-size:0.68rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);padding:0.65rem 1.25rem;border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s}
+.tab-btn:hover{color:var(--white)}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+.verifying-banner{background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.3);padding:0.75rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);letter-spacing:0.04em;display:flex;align-items:center;gap:0.75rem;margin-bottom:1.5rem}
+.spinner{width:14px;height:14px;border:2px solid rgba(245,166,35,0.3);border-top-color:var(--amber);border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{border-top:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between;font-family:var(--mono);font-size:0.6rem;letter-spacing:0.08em;color:var(--muted);background:var(--deep);position:relative;z-index:1}
+footer a{color:var(--muted);text-decoration:none}
+footer a:hover{color:var(--accent)}
+@media (max-width:1024px){.dash-layout{grid-template-columns:1fr}.sidebar{display:none}.stat-strip{grid-template-columns:1fr 1fr}.account-grid{grid-template-columns:1fr}}
+@media (max-width:640px){.scanner-grid{grid-template-columns:1fr}nav{padding:0.9rem 1.25rem}}
 </style>
 </head>
 <body>
-
 <nav>
   <a href="/" class="nav-logo">
     <div class="sonar-icon">
@@ -183,12 +123,8 @@
         <circle cx="16" cy="16" r="5"  stroke="#1a3a5c" stroke-width="0.75"/>
         <circle cx="16" cy="16" r="2"  fill="#00d4ff"/>
         <line x1="16" y1="16" x2="24" y2="4" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="24" cy="4" r="1.5" fill="#00ff9d">
-          <animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/>
-        </circle>
-        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3">
-          <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/>
-        </path>
+        <circle cx="24" cy="4" r="1.5" fill="#00ff9d"><animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/></circle>
+        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3"><animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/></path>
       </svg>
     </div>
     <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
@@ -209,92 +145,45 @@
     <span style="font-family:var(--mono);font-size:0.72rem;color:var(--accent2);letter-spacing:0.06em;">
       ✓ &nbsp;<strong style="color:var(--white);">Subscription active.</strong> &nbsp;You now have full access to all scanner output, scores, and catalyst deep dives.
     </span>
-    <button onclick="document.getElementById('welcome-banner').style.display='none';sessionStorage.setItem('dismissed_welcome','1');"
-      style="background:none;border:none;font-family:var(--mono);font-size:0.65rem;color:var(--muted);cursor:pointer;letter-spacing:0.08em;">
-      Dismiss ✕
-    </button>
+    <button onclick="document.getElementById('welcome-banner').style.display='none';sessionStorage.setItem('dismissed_welcome','1');" style="background:none;border:none;font-family:var(--mono);font-size:0.65rem;color:var(--muted);cursor:pointer;letter-spacing:0.08em;">Dismiss ✕</button>
   </div>
 </div>
 
 <div class="dash-layout">
-
   <aside class="sidebar">
     <div class="sidebar-section">
       <span class="sidebar-label">Scanners</span>
-      <button class="sidebar-item active" onclick="switchTab(this,'scanner')">
-        <span class="sidebar-icon">📡</span> PDUFA Scanner
-      </button>
-      <button class="sidebar-item" onclick="switchTab(this,'buyout')">
-        <span class="sidebar-icon">🏷️</span> Buyout Scanner
-      </button>
-      <button class="sidebar-item" onclick="switchTab(this,'pr-scanner')">
-        <span class="sidebar-icon">📰</span> PR Scanner
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'">
-        <span class="sidebar-icon">🔄</span> CRL Recovery
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/insider-conviction.html'">
-        <span class="sidebar-icon">👤</span> Insider Conviction
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/pipeline-concentration.html'">
-        <span class="sidebar-icon">🎯</span> Pipeline Risk
-      </button>
+      <button class="sidebar-item active" onclick="switchTab(this,'scanner')"><span class="sidebar-icon">📡</span> PDUFA Scanner</button>
+      <button class="sidebar-item" onclick="switchTab(this,'buyout')"><span class="sidebar-icon">🏷️</span> Buyout Scanner</button>
+      <button class="sidebar-item" onclick="switchTab(this,'pr-scanner')"><span class="sidebar-icon">📰</span> PR Scanner</button>
+      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'"><span class="sidebar-icon">🔄</span> CRL Recovery</button>
+      <button class="sidebar-item" onclick="window.location.href='/insider-conviction.html'"><span class="sidebar-icon">👤</span> Insider Conviction</button>
+      <button class="sidebar-item" onclick="window.location.href='/pipeline-concentration.html'"><span class="sidebar-icon">🎯</span> Pipeline Risk</button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
-      <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')">
-        <span class="sidebar-icon">📅</span> Calendar
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/compare.html'">
-        <span class="sidebar-icon">⚖️</span> Compare
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/research.html'">
-        <span class="sidebar-icon">🤖</span> AI Research
-      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')"><span class="sidebar-icon">📅</span> Calendar</button>
+      <button class="sidebar-item" onclick="window.location.href='/compare.html'"><span class="sidebar-icon">⚖️</span> Compare</button>
+      <button class="sidebar-item" onclick="window.location.href='/research.html'"><span class="sidebar-icon">🤖</span> AI Research</button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Account</span>
-      <button class="sidebar-item" onclick="switchTab(this,'account')">
-        <span class="sidebar-icon">⚙️</span> Account &amp; Billing
-      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'account')"><span class="sidebar-icon">⚙️</span> Account &amp; Billing</button>
     </div>
   </aside>
 
   <div class="dash-main">
-
-    <div class="verifying-banner" id="verifying-banner" style="display:none;">
-      <div class="spinner"></div>
-      Verifying your subscription — this takes a few seconds after payment...
-    </div>
+    <div class="verifying-banner" id="verifying-banner" style="display:none;"><div class="spinner"></div>Verifying your subscription — this takes a few seconds after payment...</div>
 
     <div class="stat-strip">
-      <div class="stat-cell">
-        <div class="stat-label">Elite Setups</div>
-        <div class="stat-val green" id="stat-elite">—</div>
-        <div class="stat-sub">score ≥ 72</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">≤ 30 Days Out</div>
-        <div class="stat-val cyan" id="stat-30d">—</div>
-        <div class="stat-sub">active window</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">Avg PoA</div>
-        <div class="stat-val white" id="stat-poa">—</div>
-        <div class="stat-sub">calendar average</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">Last Scan</div>
-        <div class="stat-val white" style="font-size:1.1rem;margin-top:0.25rem" id="stat-scan">—</div>
-        <div class="stat-sub">auto-updates daily</div>
-      </div>
+      <div class="stat-cell"><div class="stat-label">Elite Setups</div><div class="stat-val green" id="stat-elite">—</div><div class="stat-sub">score ≥ 72</div></div>
+      <div class="stat-cell"><div class="stat-label">≤ 30 Days Out</div><div class="stat-val cyan" id="stat-30d">—</div><div class="stat-sub">active window</div></div>
+      <div class="stat-cell"><div class="stat-label">Avg PoA</div><div class="stat-val white" id="stat-poa">—</div><div class="stat-sub">calendar average</div></div>
+      <div class="stat-cell"><div class="stat-label">Last Scan</div><div class="stat-val white" style="font-size:1.1rem;margin-top:0.25rem" id="stat-scan">—</div><div class="stat-sub">auto-updates daily</div></div>
     </div>
 
     <div class="tab-panel active" id="tab-scanner">
-      <div class="section-header">
-        <h2 class="section-title">PDUFA Scanner</h2>
-        <span class="section-meta" id="scan-timestamp">Fetching latest...</span>
-      </div>
+      <div class="section-header"><h2 class="section-title">PDUFA Scanner</h2><span class="section-meta" id="scan-timestamp">Fetching latest...</span></div>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
         <select id="scanner-sort" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="score">Sort: Net Edge ↓</option>
@@ -303,6 +192,7 @@
           <option value="poa">Sort: PoA ↓</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
+          <option value="innovation">Sort: Innovation ↓</option>
           <option value="trend30d">Sort: 30D Trend ↓</option>
         </select>
         <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -320,14 +210,13 @@
         </select>
         <input type="text" id="scanner-search" placeholder="Search ticker..." oninput="renderScanner()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
         <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);" id="scanner-count"></span>
+        <span class="pending-drug-pill hidden" id="pending-drug-count"></span>
       </div>
       <div class="scanner-grid" id="scanner-grid"></div>
     </div>
 
     <div class="tab-panel" id="tab-buyout">
-      <div class="section-header">
-        <h2 class="section-title">Buyout Scanner</h2>
-      </div>
+      <div class="section-header"><h2 class="section-title">Buyout Scanner</h2></div>
       <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&A activity.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="buyout-search" placeholder="Search ticker..." oninput="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;width:200px;">
@@ -348,13 +237,8 @@
     </div>
 
     <div class="tab-panel" id="tab-pr-scanner">
-      <div class="section-header">
-        <h2 class="section-title">PR Release Scanner</h2>
-        <span class="section-meta" id="pr-timestamp">—</span>
-      </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
-        Linguistic sentiment analysis on biotech press releases. Scores management language for bullish/bearish tells, hedging, and specificity. "Trend toward significance," Friday afternoon dumps, and low-specificity language flagged automatically.
-      </p>
+      <div class="section-header"><h2 class="section-title">PR Release Scanner</h2><span class="section-meta" id="pr-timestamp">—</span></div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">Linguistic sentiment analysis on biotech press releases. Scores management language for bullish/bearish tells, hedging, and specificity. "Trend toward significance," Friday afternoon dumps, and low-specificity language flagged automatically.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
         <select id="pr-signal-filter" onchange="renderPRScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Signals</option>
@@ -386,77 +270,44 @@
     </div>
 
     <div class="tab-panel" id="tab-calendar-tab">
-      <div class="section-header">
-        <h2 class="section-title">Full Calendar</h2>
-        <a href="/calendar.html" style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;">Open Full Calendar →</a>
-      </div>
-      <p style="font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.06em;">
-        View the full sortable PDUFA calendar with all filters on the dedicated calendar page.
-      </p>
+      <div class="section-header"><h2 class="section-title">Full Calendar</h2><a href="/calendar.html" style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;">Open Full Calendar →</a></div>
+      <p style="font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.06em;">View the full sortable PDUFA calendar with all filters on the dedicated calendar page.</p>
     </div>
 
     <div class="tab-panel" id="tab-account">
-      <div class="section-header">
-        <h2 class="section-title">Account &amp; Billing</h2>
-      </div>
+      <div class="section-header"><h2 class="section-title">Account &amp; Billing</h2></div>
       <div class="account-panel">
         <div class="account-grid">
           <div>
-            <div class="account-field">
-              <div class="account-field-label">Email</div>
-              <div class="account-field-val" id="acct-email">—</div>
-            </div>
-            <div class="account-field">
-              <div class="account-field-label">Subscription Status</div>
-              <div class="account-field-val status-active" id="acct-status">
-                <span class="status-dot"></span> <span id="acct-status-text">Checking...</span>
-              </div>
-            </div>
-            <div class="account-field">
-              <div class="account-field-label">Plan</div>
-              <div class="account-field-val">$29.99 / month</div>
-            </div>
+            <div class="account-field"><div class="account-field-label">Email</div><div class="account-field-val" id="acct-email">—</div></div>
+            <div class="account-field"><div class="account-field-label">Subscription Status</div><div class="account-field-val status-active" id="acct-status"><span class="status-dot"></span> <span id="acct-status-text">Checking...</span></div></div>
+            <div class="account-field"><div class="account-field-label">Plan</div><div class="account-field-val">$29.99 / month</div></div>
           </div>
           <div>
-            <div class="account-field">
-              <div class="account-field-label">Member Since</div>
-              <div class="account-field-val" id="acct-since">—</div>
-            </div>
-            <div class="account-field">
-              <div class="account-field-label">Next Billing Date</div>
-              <div class="account-field-val" id="acct-next">—</div>
-            </div>
-            <div class="account-field" style="margin-top:1.5rem">
-              <a href="#" class="btn-portal" id="billing-portal-btn">Manage Billing →</a>
-            </div>
+            <div class="account-field"><div class="account-field-label">Member Since</div><div class="account-field-val" id="acct-since">—</div></div>
+            <div class="account-field"><div class="account-field-label">Next Billing Date</div><div class="account-field-val" id="acct-next">—</div></div>
+            <div class="account-field" style="margin-top:1.5rem"><a href="#" class="btn-portal" id="billing-portal-btn">Manage Billing →</a></div>
           </div>
         </div>
       </div>
       <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;">
-        ⚠️ Submarine Catalyst is a quantitative scoring tool only. It is not investment advice.
-        All trading decisions are solely your own. PDUFA binary events carry substantial risk of loss.
+        ⚠️ Submarine Catalyst is a quantitative scoring tool only. It is not investment advice. All trading decisions are solely your own. PDUFA binary events carry substantial risk of loss.
       </div>
     </div>
-
   </div>
 </div>
 
 <footer>
   <span style="font-family:var(--mono);font-size:0.7rem;font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</span>
   <span>Not investment advice · Quantitative signals only · Trading involves risk of loss</span>
-  <div style="display:flex;gap:1.5rem">
-    <a href="/privacy.html">Privacy</a>
-    <a href="/terms.html">Terms</a>
-  </div>
+  <div style="display:flex;gap:1.5rem"><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></div>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/config.js"></script>
 <script>
-// ─── LIVE SCANNER DATA — fetched from Supabase ───────────────────────────────
 let SCANNER_DATA = [];
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function daysUntil(dateStr) {
   const today = new Date(); today.setHours(0,0,0,0);
   return Math.round((new Date(dateStr) - today) / 86400000);
@@ -471,8 +322,53 @@ function gradeBadge(g) {
   const [cls,lbl] = m[g]||['grade-weak',g];
   return `<span class="card-grade ${cls}">${lbl}</span>`;
 }
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
-// ─── POLYGON LIVE MARKET DATA ─────────────────────────────────────────────────
+// Drug name formatter — detects placeholders, FDA boilerplate, rescues from notes,
+// surfaces AUTO-RESOLVED:CT.GOV:<nctId>:<confidence> provenance as a badge.
+function formatDrugName(e) {
+  var drug = (e.drug || '').trim();
+  var notes = (e.notes || '').trim();
+  var flags = e.flags || [];
+  var resolveFlag = null;
+  for (var i = 0; i < flags.length; i++) {
+    var f = String(flags[i]);
+    if (f.indexOf('AUTO-RESOLVED:CT.GOV:') === 0) { resolveFlag = f; break; }
+  }
+  var parts = resolveFlag ? resolveFlag.split(':') : null;
+  var confidence = parts && parts.length >= 5 ? parts[4].toLowerCase() : null;
+
+  var isPlaceholder = !drug || /drug name needs update/i.test(drug) || /^[A-Z]{2,6}\s*[—–-]\s*drug/i.test(drug);
+  var isFDABoilerplate = /^(the\s+)?fda\s+(set|has|decision|target|accepted|assigned)/i.test(drug) ||
+                        /target action date/i.test(drug) || /pdufa date/i.test(drug) ||
+                        /forward.?looking/i.test(drug);
+
+  var rescued = null;
+  if ((isPlaceholder || isFDABoilerplate) && notes && notes.length < 120) {
+    var hasCode = /\([A-Z]{2,5}-?\d{1,6}\)/.test(notes);
+    var hasSuffix = /\b[a-z][a-z0-9]+(mab|tide|stat|vir|zumab|tinib|kinib|parib|lisib)\b/i.test(notes);
+    var looksLikeBoilerplate = /PDUFA|target action|FDA set|FDA has|Forward|application|reported that/i.test(notes);
+    if ((hasCode || hasSuffix) && !looksLikeBoilerplate) rescued = notes;
+  }
+
+  var displayText, isPlaceholderFinal = false, badge = '';
+  if (rescued) {
+    displayText = escapeHtml(rescued);
+    badge = '<span class="drug-badge notes">NOTES</span>';
+  } else if (isPlaceholder || isFDABoilerplate) {
+    displayText = 'Drug name pending verification';
+    isPlaceholderFinal = true;
+    badge = '<span class="drug-badge pending">⚠ NEEDS VERIFY</span>';
+  } else {
+    displayText = escapeHtml(drug);
+    if (confidence) badge = '<span class="drug-badge ' + confidence + '">AUTO · ' + confidence.toUpperCase() + '</span>';
+  }
+  return { text: displayText, isPlaceholder: isPlaceholderFinal, badge: badge };
+}
+
 var PRICE_DATA = {};
 
 function classifyChart(change30d, volRatio, bars) {
@@ -492,16 +388,10 @@ function classifyChart(change30d, volRatio, bars) {
   return { label: 'READY', icon: '✅', color: 'var(--accent2)' };
 }
 
-// ─── BULK SNAPSHOT — fast live prices for many tickers in ONE call ──────────
-// Polygon /v2/snapshot/locale/us/markets/stocks/tickers?tickers=A,B,C returns
-// live intraday prices + today's change % for up to ~250 tickers per request.
-// One HTTP call instead of N. Runs in parallel with fetchPriceData so the UI
-// shows live prices immediately while 30D history + cap backfill.
 async function polyBulkSnapshot(tickers) {
   if (!SC_CONFIG.polygonApiKey || !tickers || tickers.length === 0) return {};
   var apiKey = SC_CONFIG.polygonApiKey;
   var result = {};
-  // Chunk at 250 to stay under URL length limits
   for (var i = 0; i < tickers.length; i += 250) {
     var chunk = tickers.slice(i, i + 250);
     var url = 'https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=' + chunk.join(',') + '&apiKey=' + apiKey;
@@ -520,17 +410,12 @@ async function polyBulkSnapshot(tickers) {
           prevClose: (t.prevDay && t.prevDay.c) || 0,
         };
       });
-    } catch (err) {
-      console.warn('[SC] Bulk snapshot failed:', err);
-    }
+    } catch (err) { console.warn('[SC] Bulk snapshot failed:', err); }
   }
   console.log('[SC] Bulk snapshot: live prices for ' + Object.keys(result).length + '/' + tickers.length + ' tickers');
   return result;
 }
 
-// Merges bulk snapshot data into PRICE_DATA. Called before fetchPriceData completes
-// so users see live prices right away. fetchPriceData will add change30d/vol/chart
-// without overwriting these fields (merge semantics in fetchPriceData below).
 function applyBulkSnapshot(snap) {
   var applied = 0;
   Object.keys(snap).forEach(function(tk) {
@@ -543,14 +428,8 @@ function applyBulkSnapshot(snap) {
   return applied;
 }
 
-// Fetches both the OHLC bars AND the ticker details (for live market_cap) in parallel.
-// Polygon's /v3/reference/tickers/{ticker} returns market_cap in full USD — matches
-// how estimated_market_cap is stored and rendered app-wide.
 async function fetchPriceData(tickers) {
-  if (!SC_CONFIG.polygonApiKey) {
-    console.warn('[SC] No polygonApiKey in SC_CONFIG');
-    return;
-  }
+  if (!SC_CONFIG.polygonApiKey) { console.warn('[SC] No polygonApiKey in SC_CONFIG'); return; }
   var apiKey = SC_CONFIG.polygonApiKey;
   var today = new Date();
   var ago = new Date(today); ago.setDate(ago.getDate() - 35);
@@ -572,7 +451,6 @@ async function fetchPriceData(tickers) {
           var first = bars[0].c;
           var last = bars[bars.length - 1].c;
           var prev = bars.length >= 2 ? bars[bars.length - 2].c : last;
-          // If bulk snapshot already set a fresher intraday price, use that for change30d
           var currentPrice = (PRICE_DATA[tk] && PRICE_DATA[tk]._fromSnapshot && PRICE_DATA[tk].close) || last;
           var change30d = ((currentPrice - first) / first) * 100;
           var todayChange = ((last - prev) / prev) * 100;
@@ -583,7 +461,6 @@ async function fetchPriceData(tickers) {
           var volRatio = avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
           var chart = classifyChart(change30d, volRatio, bars);
           if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
-          // Preserve snapshot's intraday close/todayChange if present (fresher)
           if (!PRICE_DATA[tk]._fromSnapshot) {
             PRICE_DATA[tk].close = last;
             PRICE_DATA[tk].todayChange = todayChange;
@@ -594,40 +471,20 @@ async function fetchPriceData(tickers) {
           PRICE_DATA[tk].chartIcon = chart.icon;
           PRICE_DATA[tk].chartColor = chart.color;
         }
-        // Live market cap from Polygon ticker details (full USD).
-        // Also capture shares_outstanding so we can compute cap = shares × live_price
-        // when Polygon's stored market_cap is null or stale.
         if (details && details.results) {
           if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
           if (typeof details.results.market_cap === 'number' && details.results.market_cap > 0) {
             PRICE_DATA[tk].market_cap = details.results.market_cap;
           }
-          var shares = details.results.weighted_shares_outstanding ||
-                       details.results.share_class_shares_outstanding;
-          if (typeof shares === 'number' && shares > 0) {
-            PRICE_DATA[tk].shares_outstanding = shares;
-          }
+          var shares = details.results.weighted_shares_outstanding || details.results.share_class_shares_outstanding;
+          if (typeof shares === 'number' && shares > 0) PRICE_DATA[tk].shares_outstanding = shares;
         }
       }).catch(function() {});
     }));
     if (i + 5 < tickers.length) await new Promise(function(r) { setTimeout(r, 300); });
   }
-  var withPrice = 0, withCap = 0;
-  Object.keys(PRICE_DATA).forEach(function(k) {
-    if (PRICE_DATA[k].close) withPrice++;
-    if (PRICE_DATA[k].market_cap) withCap++;
-  });
-  console.log('[SC] Polygon: ' + withPrice + ' tickers w/ price, ' + withCap + ' tickers w/ live cap (of ' + tickers.length + ')');
 }
 
-// ─── APPLY LIVE MARKET CAP + LIVE TAM/CAP ────────────────────────────────────
-// Overrides stale DB estimated_market_cap with Polygon live value, then re-derives
-// tam_ratio with a two-path fallback chain:
-//   Path 1: staticTAM = oldTamRatio × oldCap (works when DB cap is present)
-//   Path 2: staticTAM = drug_tam_billions × 1e9 (works when edge fn dropped cap)
-// Live cap itself has a two-tier fallback: Polygon market_cap field, else
-// shares × live intraday price. This handles tickers where Polygon's pre-computed
-// market_cap is null or stale.
 function applyLiveMarketData() {
   function resolveLiveCap(p) {
     if (!p) return null;
@@ -636,8 +493,7 @@ function applyLiveMarketData() {
     return null;
   }
   function applyTo(list) {
-    if (!list) return 0;
-    var updated = 0, noTamSource = 0;
+    if (!list) return;
     list.forEach(function(d) {
       var p = PRICE_DATA[d.ticker];
       var liveCap = resolveLiveCap(p);
@@ -650,28 +506,16 @@ function applyLiveMarketData() {
         if (tamBil > 0) staticTamDollars = tamBil * 1e9;
       }
       d.estimated_market_cap = liveCap;
-      if (staticTamDollars > 0) {
-        d.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
-      } else {
-        noTamSource++;
-      }
-      updated++;
+      if (staticTamDollars > 0) d.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
     });
-    return { updated: updated, noTamSource: noTamSource };
   }
-  var sc = applyTo(SCANNER_DATA);
-  var bo = applyTo(window.BUYOUT_DATA);
-  console.log('[SC] Live cap applied: ' + sc.updated + ' scanner events (' + sc.noTamSource + ' no TAM source), ' +
-    bo.updated + ' buyout companies (' + bo.noTamSource + ' no TAM source)');
+  applyTo(SCANNER_DATA);
+  applyTo(window.BUYOUT_DATA);
 }
 
-// ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
 function renderScanner() {
   if (SCANNER_DATA.length === 0) {
-    document.getElementById('scanner-grid').innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">
-        Loading scanner data from database...
-      </div>`;
+    document.getElementById('scanner-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">Loading scanner data from database...</div>';
     return;
   }
   const sortBy = (document.getElementById('scanner-sort')?.value) || 'score';
@@ -691,19 +535,45 @@ function renderScanner() {
   });
   const sorted = [...filtered].sort((a, b) => {
     switch (sortBy) {
-      case 'date_asc':  return daysUntil(a.date) - daysUntil(b.date);
-      case 'date_desc': return daysUntil(b.date) - daysUntil(a.date);
-      case 'poa':       return (b.poa || 0) - (a.poa || 0);
-      case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
-      case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
-      case 'trend30d':  return ((PRICE_DATA[b.ticker]||{}).change30d||0) - ((PRICE_DATA[a.ticker]||{}).change30d||0);
-      default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
+      case 'date_asc':   return daysUntil(a.date) - daysUntil(b.date);
+      case 'date_desc':  return daysUntil(b.date) - daysUntil(a.date);
+      case 'poa':        return (b.poa || 0) - (a.poa || 0);
+      case 'buyout':     return (b.buyout_score || 0) - (a.buyout_score || 0);
+      case 'tam':        return (b.tam_ratio || 0) - (a.tam_ratio || 0);
+      case 'innovation': return (b.innovation_score || 0) - (a.innovation_score || 0);
+      case 'trend30d':   return ((PRICE_DATA[b.ticker]||{}).change30d||0) - ((PRICE_DATA[a.ticker]||{}).change30d||0);
+      default:           return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
     }
   });
   const countEl = document.getElementById('scanner-count');
   if (countEl) countEl.textContent = sorted.length + ' of ' + SCANNER_DATA.length + ' events';
+
+  // Pending-drug count
+  var pendingCount = SCANNER_DATA.filter(function(d) { return formatDrugName(d).isPlaceholder; }).length;
+  var pendingEl = document.getElementById('pending-drug-count');
+  if (pendingEl) {
+    if (pendingCount > 0) {
+      pendingEl.textContent = '⚠ ' + pendingCount + ' event' + (pendingCount === 1 ? '' : 's') + ' need drug name';
+      pendingEl.classList.remove('hidden');
+    } else {
+      pendingEl.classList.add('hidden');
+    }
+  }
+
   document.getElementById('scanner-grid').innerHTML = sorted.map((d,i) => {
     const days = daysUntil(d.date);
+    const dn = formatDrugName(d);
+    const innScore = Number(d.innovation_score) || 0;
+    const apprSignals = d.appreciation_signals || [];
+    const visibleFlags = (d.flags || []).filter(f => {
+      var fs = String(f);
+      if (fs.startsWith('AUTO-RESOLVED:')) return false;
+      if (fs.includes('TAM/CAP') || fs.includes('TAM/Cap') || fs.includes('Drug market')) return false;
+      return true;
+    });
+    const appreciationHTML = apprSignals.length > 0
+      ? apprSignals.map(s => '<div class="card-appreciation">' + escapeHtml(s) + '</div>').join('')
+      : '';
     return `
       <div class="scanner-card ${gradeClass(d.grade)}" style="animation-delay:${i*0.05}s"
            onclick="window.location.href='/catalyst-detail.html?ticker=${d.ticker}'"
@@ -715,41 +585,39 @@ function renderScanner() {
           </div>
           ${gradeBadge(d.grade)}
         </div>
-        <div class="card-drug">${d.drug}</div>
-        <div class="card-indication">${d.indication}</div>
+        <div class="card-drug${dn.isPlaceholder ? ' pending' : ''}">${dn.text}${dn.badge ? ' ' + dn.badge : ''}</div>
+        <div class="card-indication">${escapeHtml(d.indication || '')}</div>
         <div class="card-scores">
           <div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div></div>
           <div class="score-box"><div class="score-box-label">STN Risk</div><div class="score-box-val ${d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? 'green' : 'amber'}">${d.sell_news_risk || 'MOD'}</div></div>
           <div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ${d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL' ? 'green' : 'white'}">${d.dilution_risk || '—'}</div></div>
           <div class="score-box"><div class="score-box-label">Net Edge</div><div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div></div>
         </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
+        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr 1fr;margin-top:-1px;">
           <div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div></div>
-          <div class="score-box"><div class="score-box-label">Acquirer</div><div class="score-box-val white" style="font-size:0.65rem;">${d.acquirer_urgency_top || '—'}</div></div>
+          <div class="score-box"><div class="score-box-label">Innov.</div><div class="score-box-val ${innScore >= 20 ? 'gold' : innScore >= 12 ? 'green' : innScore >= 6 ? 'cyan' : 'white'}">${innScore > 0 ? innScore + '/25' : '—'}</div></div>
+          <div class="score-box"><div class="score-box-label">Acquirer</div><div class="score-box-val white" style="font-size:0.62rem;">${d.acquirer_urgency_top || '—'}</div></div>
           <div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div></div>
-          <div class="score-box"><div class="score-box-label">30D</div>${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>'; var c = p.change30d; var arrow = c >= 0 ? '▲' : '▼'; var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red'; return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>'; })()}</div>
+          <div class="score-box"><div class="score-box-label">30D</div>${(() => { var p = PRICE_DATA[d.ticker]; if (!p || typeof p.change30d !== 'number') return '<div class="score-box-val white" style="font-size:0.68rem;">—</div>'; var c = p.change30d; var arrow = c >= 0 ? '▲' : '▼'; var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red'; return '<div class="score-box-val ' + color + '" style="font-size:0.68rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>'; })()}</div>
         </div>
-        ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + p.volRatio + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + p.chartColor + ';font-weight:700;">' + p.chartIcon + ' ' + p.chartSetup + '</span></div>' + '</div>'; })()}
-        ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
-        <div class="card-flags">${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market')).map(f=>`<div class="card-flag">${f}</div>`).join('')}</div>
+        ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + (p.close || 0).toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange || 0).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + (p.volRatio || '—') + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + (p.chartColor || 'var(--muted)') + ';font-weight:700;">' + (p.chartIcon || '—') + ' ' + (p.chartSetup || '—') + '</span></div>' + '</div>'; })()}
+        ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + escapeHtml(d.expected_move) + '</div>' : ''}
+        ${appreciationHTML}
+        <div class="card-flags">${visibleFlags.map(f=>`<div class="card-flag">${escapeHtml(f)}</div>`).join('')}</div>
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
       </div>`;
   }).join('');
-  const elite    = SCANNER_DATA.filter(d => d.score >= 72).length;
+  const elite = SCANNER_DATA.filter(d => d.score >= 72).length;
   const within30 = SCANNER_DATA.filter(d => daysUntil(d.date) <= 30).length;
-  const avgPoa   = SCANNER_DATA.length > 0 ? (SCANNER_DATA.reduce((s,d) => s + (d.poa || 0), 0) / SCANNER_DATA.length).toFixed(1) : '0';
+  const avgPoa = SCANNER_DATA.length > 0 ? (SCANNER_DATA.reduce((s,d) => s + (d.poa || 0), 0) / SCANNER_DATA.length).toFixed(1) : '0';
   document.getElementById('stat-elite').textContent = elite;
-  document.getElementById('stat-30d').textContent   = within30;
-  document.getElementById('stat-poa').textContent   = avgPoa + '%';
-  document.getElementById('stat-scan').textContent  = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('stat-30d').textContent = within30;
+  document.getElementById('stat-poa').textContent = avgPoa + '%';
+  document.getElementById('stat-scan').textContent = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
   document.getElementById('scan-timestamp').textContent = 'Last updated: ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
-}
-
-// ─── BUYOUT SCANNER ──────────────────────────────────────────────────────────
 function renderBuyoutGrid() {
   var search = (document.getElementById('buyout-search').value || '').toUpperCase();
   var riskFilter = document.getElementById('buyout-filter').value;
-  var catFilter = document.getElementById('buyout-catalyst').value;
   var all = [], seen = {};
   SCANNER_DATA.forEach(function(d) {
     if (!seen[d.ticker]) {
@@ -802,16 +670,15 @@ function renderBuyoutGrid() {
     var scoreColor = d.buyout_score >= 70 ? 'green' : d.buyout_score >= 50 ? 'cyan' : d.buyout_score >= 30 ? 'amber' : 'white';
     var riskColor = d.buyout_risk === 'HIGH' ? 'grade-elite' : d.buyout_risk === 'ELEVATED' ? 'grade-strong' : d.buyout_risk === 'MODERATE' ? 'grade-watch' : 'grade-weak';
     return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;">' +
-      '<div class="card-top"><div><div class="card-ticker">' + d.ticker + '</div><div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);">' + (d.company_name || '') + '</div></div><span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span></div>' +
+      '<div class="card-top"><div><div class="card-ticker">' + d.ticker + '</div><div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);">' + escapeHtml(d.company_name || '') + '</div></div><span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span></div>' +
       '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;"><div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div><div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + mcap + '</div></div><div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val cyan">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div></div>' +
-      (d.buyout_timeline ? '<div style="font-family:var(--mono);font-size:0.6rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid var(--accent2);color:var(--text);">' + d.buyout_timeline + '</div>' : '') +
+      (d.buyout_timeline ? '<div style="font-family:var(--mono);font-size:0.6rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid var(--accent2);color:var(--text);">' + escapeHtml(d.buyout_timeline) + '</div>' : '') +
       '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
     '</div>';
   }).join('');
   document.getElementById('buyout-count').textContent = display.length + ' of ' + filtered.length + ' companies shown';
 }
 
-// ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(btn, id) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
@@ -820,21 +687,14 @@ function switchTab(btn, id) {
   document.getElementById('tab-' + id).classList.add('active');
 }
 
-// ─── AUTH GUARD + INIT ────────────────────────────────────────────────────────
 (async () => {
   const session = await scRequireAuth();
   if (!session) return;
   const sb = getSupabase();
   const user = session.user;
-  document.getElementById('nav-user').innerHTML =
-    '<span style="color:var(--muted);font-size:0.62rem;">' + user.email + '</span>';
-  document.getElementById('signout-btn').addEventListener('click', async (e) => {
-    e.preventDefault();
-    await scSignOut();
-  });
-  const fromStripe = document.referrer.includes('stripe.com') ||
-                     document.referrer.includes('buy.stripe.com') ||
-                     new URLSearchParams(location.search).get('welcome') === '1';
+  document.getElementById('nav-user').innerHTML = '<span style="color:var(--muted);font-size:0.62rem;">' + user.email + '</span>';
+  document.getElementById('signout-btn').addEventListener('click', async (e) => { e.preventDefault(); await scSignOut(); });
+  const fromStripe = document.referrer.includes('stripe.com') || document.referrer.includes('buy.stripe.com') || new URLSearchParams(location.search).get('welcome') === '1';
   let profile = await scGetProfile(user.id);
   if (fromStripe && !profile?.is_paid) {
     document.getElementById('verifying-banner').style.display = 'flex';
@@ -845,15 +705,8 @@ function switchTab(btn, id) {
   const isPaid = profile?.is_paid === true;
   document.getElementById('acct-email').textContent = user.email;
   const statusEl = document.getElementById('acct-status-text');
-  if (isPaid) {
-    statusEl.textContent = 'Active — Pro';
-    document.getElementById('acct-status').style.color = 'var(--accent2)';
-  } else {
-    statusEl.textContent = 'Inactive — subscription required';
-    document.getElementById('acct-status').style.color = 'var(--amber)';
-    const dot = document.querySelector('.status-dot');
-    if (dot) dot.style.background = 'var(--amber)';
-  }
+  if (isPaid) { statusEl.textContent = 'Active — Pro'; document.getElementById('acct-status').style.color = 'var(--accent2)'; }
+  else { statusEl.textContent = 'Inactive — subscription required'; document.getElementById('acct-status').style.color = 'var(--amber)'; const dot = document.querySelector('.status-dot'); if (dot) dot.style.background = 'var(--amber)'; }
   const createdAt = new Date(profile?.created_at || user.created_at);
   document.getElementById('acct-since').textContent = createdAt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const nextBilling = new Date(createdAt);
@@ -862,14 +715,9 @@ function switchTab(btn, id) {
   while (nextBilling < today) nextBilling.setMonth(nextBilling.getMonth() + 1);
   document.getElementById('acct-next').textContent = nextBilling.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
   const portalBtn = document.getElementById('billing-portal-btn');
-  if (SC_CONFIG.stripePortalUrl) {
-    portalBtn.href   = SC_CONFIG.stripePortalUrl;
-    portalBtn.target = '_blank';
-    portalBtn.rel    = 'noopener';
-  }
-  if (fromStripe && isPaid && !sessionStorage.getItem('dismissed_welcome')) {
-    document.getElementById('welcome-banner').style.display = 'block';
-  }
+  if (SC_CONFIG.stripePortalUrl) { portalBtn.href = SC_CONFIG.stripePortalUrl; portalBtn.target = '_blank'; portalBtn.rel = 'noopener'; }
+  if (fromStripe && isPaid && !sessionStorage.getItem('dismissed_welcome')) document.getElementById('welcome-banner').style.display = 'block';
+
   if (!isPaid) {
     document.getElementById('scanner-grid').innerHTML = [
       '<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;">',
@@ -882,6 +730,7 @@ function switchTab(btn, id) {
     ].join('\n');
     return;
   }
+
   try {
     const session2 = await scGetSession();
     const res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
@@ -894,7 +743,9 @@ function switchTab(btn, id) {
           ticker: e.ticker, drug: e.drug || '', indication: e.indication || 'Unknown',
           type: e.type || 'PDUFA', date: e.date, grade: e.grade || 'WATCH',
           poa: Number(e.poa) || 0, score: Number(e.score) || 0,
-          flags: e.flags || [], sell_news_risk: e.sell_news_risk || 'MODERATE',
+          flags: e.flags || [],
+          notes: e.notes || '',
+          sell_news_risk: e.sell_news_risk || 'MODERATE',
           move_score: Number(e.move_score) || 0, expected_move: e.expected_move || '',
           net_edge_score: Number(e.net_edge_score) || Number(e.score) || 0,
           dilution_risk: e.dilution_risk || 'UNKNOWN', dilution_score: Number(e.dilution_score) || 0,
@@ -909,69 +760,40 @@ function switchTab(btn, id) {
           buyout_timeline: e.buyout_timeline || '',
           estimated_market_cap: Number(e.estimated_market_cap) || 0,
           cmc_risk: e.cmc_risk || 'UNKNOWN', cmc_flags: e.cmc_flags || [],
+          // ─── Innovation & Appreciation Factor fields ──────────────────
+          innovation_score: Number(e.innovation_score) || 0,
+          innovation_factor: Number(e.innovation_factor) || 1.0,
+          innovation_flags: e.innovation_flags || [],
+          appreciation_signals: e.appreciation_signals || [],
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
     }
-  } catch (e) {
-    console.warn('[SC] Failed to fetch live data:', e);
-  }
+  } catch (e) { console.warn('[SC] Failed to fetch live data:', e); }
 
-  // ─── ENRICH SCANNER_DATA FROM biotech_universe ──────────────────────────
-  // The get-scanner-data edge function sometimes returns estimated_market_cap = null
-  // or omits drug_tam_billions. Fill those in from the table so the TAM derivation
-  // in applyLiveMarketData has what it needs to re-compute against live cap.
   if (SCANNER_DATA.length > 0) {
     try {
       var scannerTickerList = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
-      var { data: uniRows } = await sb.from('biotech_universe')
-        .select('ticker, estimated_market_cap, drug_tam_billions, tam_ratio')
-        .in('ticker', scannerTickerList);
+      var { data: uniRows } = await sb.from('biotech_universe').select('ticker, estimated_market_cap, drug_tam_billions, tam_ratio').in('ticker', scannerTickerList);
       if (uniRows && uniRows.length > 0) {
         var uniMap = {};
         uniRows.forEach(function(r) { uniMap[r.ticker] = r; });
-        var enriched = 0;
         SCANNER_DATA.forEach(function(d) {
           var u = uniMap[d.ticker];
           if (!u) return;
-          if (!Number(d.estimated_market_cap) && Number(u.estimated_market_cap)) {
-            d.estimated_market_cap = Number(u.estimated_market_cap);
-            enriched++;
-          }
-          if (!Number(d.tam_ratio) && Number(u.tam_ratio)) {
-            d.tam_ratio = Number(u.tam_ratio);
-          }
-          if (Number(u.drug_tam_billions)) {
-            d.drug_tam_billions = Number(u.drug_tam_billions);
-          }
+          if (!Number(d.estimated_market_cap) && Number(u.estimated_market_cap)) d.estimated_market_cap = Number(u.estimated_market_cap);
+          if (!Number(d.tam_ratio) && Number(u.tam_ratio)) d.tam_ratio = Number(u.tam_ratio);
+          if (Number(u.drug_tam_billions)) d.drug_tam_billions = Number(u.drug_tam_billions);
         });
-        console.log('[SC] Enriched ' + enriched + ' scanner events with biotech_universe cap/TAM');
       }
-    } catch (err) {
-      console.warn('[SC] biotech_universe enrich failed:', err);
-    }
+    } catch (err) { console.warn('[SC] biotech_universe enrich failed:', err); }
   }
 
   renderScanner();
   if (SCANNER_DATA.length > 0 && SC_CONFIG.polygonApiKey) {
     var tickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
-
-    // Fast path: bulk snapshot for instant live prices (1 call covers all tickers)
-    polyBulkSnapshot(tickers).then(function(snap) {
-      var n = applyBulkSnapshot(snap);
-      if (n > 0) {
-        renderScanner();
-        console.log('[SC] Scanner rendered with bulk snapshot live prices (' + n + ' tickers)');
-      }
-    });
-
-    // Full path: per-ticker aggs + ticker-details for 30D history + live cap
-    fetchPriceData(tickers).then(function() {
-      applyLiveMarketData();
-      renderScanner();
-      renderBuyoutGrid();
-      console.log('[SC] Scanner + buyout re-rendered with live price + live market cap');
-    });
+    polyBulkSnapshot(tickers).then(function(snap) { var n = applyBulkSnapshot(snap); if (n > 0) renderScanner(); });
+    fetchPriceData(tickers).then(function() { applyLiveMarketData(); renderScanner(); renderBuyoutGrid(); });
   }
   try {
     var { data: approvedCompanies } = await sb.from('biotech_universe')
@@ -984,46 +806,24 @@ function switchTab(btn, id) {
         c.tam_ratio = (tam > 0 && mcap > 0) ? Math.round((tam * 1e9 / mcap) * 10) / 10 : 0;
       });
       window.BUYOUT_DATA = approvedCompanies;
-
-      // If Polygon is configured, fetch live caps for buyout-only tickers (not in scanner)
       if (SC_CONFIG.polygonApiKey) {
         var scannerTickers = {};
         SCANNER_DATA.forEach(function(d) { scannerTickers[d.ticker] = true; });
-        var buyoutOnlyTickers = approvedCompanies
-          .map(function(c) { return c.ticker; })
-          .filter(function(t) { return !scannerTickers[t]; })
-          .filter(function(t, i, a) { return a.indexOf(t) === i; });
+        var buyoutOnlyTickers = approvedCompanies.map(function(c) { return c.ticker; }).filter(function(t) { return !scannerTickers[t]; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
         if (buyoutOnlyTickers.length > 0) {
-          console.log('[SC] Fetching live caps for ' + buyoutOnlyTickers.length + ' buyout-only tickers');
-          // Bulk snapshot first for instant prices
-          polyBulkSnapshot(buyoutOnlyTickers).then(function(snap) {
-            applyBulkSnapshot(snap);
-            renderBuyoutGrid();
-          });
-          // Full fetch for 30D + cap
-          fetchPriceData(buyoutOnlyTickers).then(function() {
-            applyLiveMarketData();
-            renderBuyoutGrid();
-          });
+          polyBulkSnapshot(buyoutOnlyTickers).then(function(snap) { applyBulkSnapshot(snap); renderBuyoutGrid(); });
+          fetchPriceData(buyoutOnlyTickers).then(function() { applyLiveMarketData(); renderBuyoutGrid(); });
         }
       }
-    } else {
-      window.BUYOUT_DATA = [];
-    }
-  } catch (err) {
-    console.warn('[SC] Failed to load approved companies:', err);
-    window.BUYOUT_DATA = [];
-  }
+    } else { window.BUYOUT_DATA = []; }
+  } catch (err) { console.warn('[SC] Failed to load approved companies:', err); window.BUYOUT_DATA = []; }
   applyLiveMarketData();
   renderBuyoutGrid();
 })();
 </script>
 
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// PR SCANNER — Submarine Catalyst (inline analyzer + Finnhub + renderer)
-// ═══════════════════════════════════════════════════════════════════════════
-
+// ═══ PR SCANNER — Inline analyzer + Finnhub news + renderer ══════════════════
 var PR_STRONG_BULLISH = [
   { re: /\bmet\s+(?:the\s+|its\s+|all\s+|both\s+)?primary\s+(?:endpoint|objective)/i, w: 18, t: "✅ Met primary endpoint" },
   { re: /\bachieved\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: 18, t: "✅ Achieved primary endpoint" },
@@ -1044,7 +844,6 @@ var PR_STRONG_BULLISH = [
   { re: /\baccelerated\s+approval\s+(?:granted|pathway)/i, w: 9, t: "✅ Accelerated approval pathway" },
   { re: /\bfirst[- ]in[- ]class\b/i, w: 5, t: "✅ First-in-class asset" }
 ];
-
 var PR_STRONG_BEARISH = [
   { re: /\bdid\s+not\s+meet\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: -25, t: "🚨 Did NOT meet primary endpoint" },
   { re: /\bfail(?:ed|ure)\s+to\s+(?:meet|achieve|reach)\s+(?:the\s+)?primary/i, w: -25, t: "🚨 Failed to meet primary endpoint" },
@@ -1066,7 +865,6 @@ var PR_STRONG_BEARISH = [
   { re: /\bwithdraw(?:n|ing|al)\s+(?:the\s+)?(?:nda|bla|application)/i, w: -22, t: "🚨 Withdrew application" },
   { re: /\brefus(?:al|ed)\s+to\s+file\b/i, w: -20, t: "🚨 Refusal to File (RTF)" }
 ];
-
 var PR_MODERATE_BULLISH = [
   { re: /\borphan\s+drug\s+designation\b/i, w: 4, t: "🏥 Orphan Drug Designation" },
   { re: /\bfast\s+track\s+designation\b/i, w: 4, t: "⚡ Fast Track Designation" },
@@ -1080,7 +878,6 @@ var PR_MODERATE_BULLISH = [
   { re: /\bpositive\s+(?:topline|primary)\s+(?:data|results)/i, w: 10, t: "✅ Positive topline data" },
   { re: /\b(?:well[- ])?tolerated\b/i, w: 3, t: "✅ Well-tolerated" }
 ];
-
 var PR_MODERATE_BEARISH = [
   { re: /\bcontinue[sd]?\s+to\s+(?:evaluate|assess|analyze|review)/i, w: -5, t: "⚠️ 'Continues to evaluate' (no clear path)" },
   { re: /\badditional\s+analyses\s+(?:are\s+)?(?:ongoing|underway|planned)/i, w: -6, t: "⚠️ 'Additional analyses ongoing'" },
@@ -1093,16 +890,13 @@ var PR_MODERATE_BEARISH = [
   { re: /\binformation\s+request\s+(?:from\s+)?(?:the\s+)?fda/i, w: -6, t: "⚠️ FDA information request" },
   { re: /\bmajor\s+amendment\b/i, w: -8, t: "⚠️ Major amendment (PDUFA ext trigger)" }
 ];
-
 var PR_HEDGING = ['believe','believes','believed','expect','expects','expected','anticipate','anticipates','anticipated','hope','hopes','may','might','could','potential','potentially','intend','intends','plan to','plans to','well-positioned','well positioned','remain committed','remains committed','look forward to','looking forward to','encourag','promising','meaningful','opportunity','opportunities'];
-
 var PR_SPEC_RE = [
   /\bp\s*[<=]\s*0?\.\d+/gi, /\bhazard\s+ratio\s+(?:of\s+)?0?\.\d+/gi,
   /\bci\s*(?:of\s+)?\[?\d+\.\d+[-–]\d+\.\d+\]?/gi, /\b\d{1,3}(?:\.\d{1,2})?%/g,
   /\bn\s*=\s*\d+/gi, /\b\d+\s*(?:mg|kg|mcg|ng|ml|iu)(?:\/\w+)?\b/gi,
   /\b\d+\.?\d*\s*(?:month|week|year|day)s?\b/gi, /\$\d+(?:,\d{3})*(?:\.\d+)?\s*(?:million|billion|m|b)?\b/gi
 ];
-
 function prClassifyCategory(text) {
   if (/\bfda\b.*?(?:approv|reject|crl|complete\s+response|pdufa|advisory|refus|accept|priority|breakthrough|fast\s+track)/i.test(text)) return 'FDA_ACTION';
   if (/\b(?:pdufa|gdufa)\s+(?:date|action)/i.test(text) || /\badvisory\s+committee/i.test(text)) return 'FDA_ACTION';
@@ -1120,7 +914,6 @@ function prClassifyCategory(text) {
   if (/\bresign(?:ed|ation)\b/i.test(text)) return 'PERSONNEL';
   return 'OTHER';
 }
-
 function prClassifyType(text) {
   var t = text.toLowerCase();
   if (/\b(?:fda\s+)?approv(?:ed|al)\b/.test(t) && /\bnda|bla|drug/.test(t)) return 'approval';
@@ -1135,7 +928,6 @@ function prClassifyType(text) {
   if (/\bquarterly|\bfinancial\s+results/.test(t)) return 'earnings';
   return 'other';
 }
-
 function prTimingFlag(publishedAt) {
   if (!publishedAt) return null;
   var d = new Date(publishedAt);
@@ -1147,7 +939,6 @@ function prTimingFlag(publishedAt) {
   if (etHour >= 16 || etHour < 7) return 'AFTER_HOURS';
   return null;
 }
-
 function prSpecificity(text, wordCount) {
   if (wordCount < 50) return 50;
   var matches = 0;
@@ -1158,7 +949,6 @@ function prSpecificity(text, wordCount) {
   var per100 = (matches / wordCount) * 100;
   return Math.round(Math.min(100, Math.max(0, per100 * 25)) * 10) / 10;
 }
-
 function prHedgingCount(text) {
   var lower = text.toLowerCase();
   var count = 0;
@@ -1169,7 +959,6 @@ function prHedgingCount(text) {
   }
   return count;
 }
-
 function prExtractExcerpt(text, matched) {
   if (!text) return '';
   var sentences = text.split(/(?<=[.!?])\s+/).filter(function(s) { return s.length > 20 && s.length < 400; });
@@ -1182,7 +971,6 @@ function prExtractExcerpt(text, matched) {
   }
   return best.trim().substring(0, 320);
 }
-
 function prApprovalSignal(score, signal, category, prType, bullCount, bearCount) {
   if (prType === 'approval') return "✅ Approval already announced.";
   if (prType === 'crl') return "🚨 CRL issued — approval delayed, resubmission cycle begins.";
@@ -1206,7 +994,6 @@ function prApprovalSignal(score, signal, category, prType, bullCount, bearCount)
   if (signal === 'BEARISH') return "⚠️ Net bearish — " + bearCount + " negative vs " + bullCount + " positives.";
   return "🟡 Mixed or neutral.";
 }
-
 function analyzePR(headline, summary, publishedAt) {
   var fullText = (headline || '') + '\n\n' + (summary || '');
   if (!fullText.trim()) return null;
@@ -1259,7 +1046,6 @@ function analyzePR(headline, summary, publishedAt) {
     word_count: wordCount
   };
 }
-
 async function fetchFinnhubNews(ticker, daysBack) {
   if (!SC_CONFIG.finnhubApiKey) { console.warn('[PR] No finnhubApiKey in SC_CONFIG'); return []; }
   var to = new Date().toISOString().split('T')[0];
@@ -1272,10 +1058,8 @@ async function fetchFinnhubNews(ticker, daysBack) {
     return Array.isArray(data) ? data : [];
   } catch (e) { return []; }
 }
-
 var PR_DATA = [];
 var PR_LOADING = false;
-
 async function loadPRData() {
   if (PR_LOADING) return;
   PR_LOADING = true;
@@ -1326,7 +1110,6 @@ async function loadPRData() {
   PR_LOADING = false;
   renderPRScanner();
 }
-
 function prSignalGrade(s) { return {'STRONGLY_BULLISH':'elite','BULLISH':'strong','NEUTRAL':'watch','BEARISH':'watch','STRONGLY_BEARISH':'weak'}[s] || 'weak'; }
 function prSignalBadge(s) {
   var m = {'STRONGLY_BULLISH':['grade-elite','🚀 BULLISH'],'BULLISH':['grade-strong','⚡ BULLISH'],'NEUTRAL':['grade-watch','🟡 NEUTRAL'],'BEARISH':['grade-watch','⚠️ BEARISH'],'STRONGLY_BEARISH':['grade-weak','🚨 BEARISH']};
@@ -1342,7 +1125,6 @@ function prAgo(d) {
   if (days < 30) return days + 'd ago';
   return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
-
 function renderPRScanner() {
   var grid = document.getElementById('pr-scanner-grid');
   if (!PR_DATA || PR_DATA.length === 0) {
@@ -1373,7 +1155,7 @@ function renderPRScanner() {
     try { host = (new URL(r.url || 'https://x.y/')).hostname.replace('www.', ''); } catch(e) {}
     return '<div class="scanner-card ' + prSignalGrade(r.signal) + '" style="animation-delay:' + (i * 0.03) + 's;cursor:pointer;" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + r.ticker + '\'">' +
       '<div class="card-top"><div><div class="card-ticker">' + r.ticker + ' <span style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);letter-spacing:0.05em;margin-left:0.4rem;">' + prAgo(r.published_at) + '</span></div><div class="card-date">' + icon + ' ' + (r.category || 'OTHER').replace('_',' ') + ' · ' + (r.pr_type || 'other') + '</div></div>' + prSignalBadge(r.signal) + '</div>' +
-      '<div class="card-drug" style="font-weight:500;line-height:1.4;">' + (r.headline || '').substring(0, 140) + ((r.headline || '').length > 140 ? '…' : '') + '</div>' +
+      '<div class="card-drug" style="font-weight:500;line-height:1.4;">' + escapeHtml((r.headline || '').substring(0, 140)) + ((r.headline || '').length > 140 ? '…' : '') + '</div>' +
       '<div class="card-indication" style="margin-top:0.3rem;margin-bottom:0.6rem;"><a href="' + (r.url || '#') + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--muted);text-decoration:none;">↗ ' + host + '</a></div>' +
       '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;">' +
         '<div class="score-box"><div class="score-box-label">Sentiment</div><div class="score-box-val ' + sc + '">' + (r.sentiment_score || 0).toFixed(0) + '</div></div>' +
@@ -1384,12 +1166,11 @@ function renderPRScanner() {
       (r.approval_signal ? '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (r.signal && r.signal.indexOf('BULLISH') >= 0 ? 'var(--accent2)' : r.signal && r.signal.indexOf('BEARISH') >= 0 ? 'var(--red)' : 'var(--amber)') + ';line-height:1.6;color:var(--text);">' + r.approval_signal + '</div>' : '') +
       (tells.length ? '<div class="card-flags" style="margin-top:0.5rem;">' + tells.map(function(t) { return '<div class="card-flag">' + t + '</div>'; }).join('') + '</div>' : '') +
       (r.timing_flag ? '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);color:var(--amber);">⏰ ' + r.timing_flag.replace('_',' ') + '</div>' : '') +
-      (r.key_excerpt ? '<div style="font-family:var(--serif);font-size:0.78rem;font-style:italic;margin-top:0.6rem;padding:0.6rem 0.75rem;background:var(--deep);border-left:2px solid var(--accent);color:var(--text);line-height:1.5;">"' + r.key_excerpt.substring(0, 280) + (r.key_excerpt.length > 280 ? '…' : '') + '"</div>' : '') +
+      (r.key_excerpt ? '<div style="font-family:var(--serif);font-size:0.78rem;font-style:italic;margin-top:0.6rem;padding:0.6rem 0.75rem;background:var(--deep);border-left:2px solid var(--accent);color:var(--text);line-height:1.5;">"' + escapeHtml(r.key_excerpt.substring(0, 280)) + (r.key_excerpt.length > 280 ? '…' : '') + '"</div>' : '') +
       '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View ' + r.ticker + ' deep dive →</div>' +
     '</div>';
   }).join('');
 }
-
 (function() {
   var loaded = false;
   var originalSwitch = window.switchTab;
