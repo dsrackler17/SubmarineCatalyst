@@ -406,6 +406,20 @@ footer a:hover { color:var(--accent); }
         </div>
       </div>
 
+      <!-- ═══ CMC Recovery — only renders if CMC signal present ════════════════ -->
+      <div class="detail-section locked-block hidden" id="section-cmc">
+        <div class="section-title">CMC Recovery Profile</div>
+        <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-bottom:1rem;line-height:1.7;">
+          Chemistry, Manufacturing, and Controls risk assessment. CMC-only CRLs resubmit at an 88% success rate vs 58% for clinical CRLs. Low CMC risk on a prior CRL setup = highest-probability recovery trade in the universe.
+        </p>
+        <div class="lockable" id="cmc-content"></div>
+        <div class="lock-overlay hidden" id="lock-cmc">
+          <div class="lock-icon-lg">🔒</div>
+          <div class="lock-msg">CMC recovery profile visible to subscribers</div>
+          <a href="/signup.html" class="lock-cta">Unlock — $29.99/mo</a>
+        </div>
+      </div>
+
       <div class="detail-section locked-block" id="section-targets">
         <div class="section-title">Price Targets &amp; Scenarios</div>
         <div class="lockable">
@@ -762,6 +776,77 @@ function renderInnovation(d) {
   return barsHTML + signalsHTML + summary;
 }
 
+// ─── CMC RECOVERY RENDERING ───────────────────────────────────────────────────
+// Surfaces cmc_risk + cmc_flags. Only renders the section if a meaningful signal
+// is present — we don't want to clutter non-CMC setups with empty boxes.
+function shouldRenderCMC(d) {
+  var risk = (d.cmc_risk || '').toUpperCase();
+  var hasRisk = risk && risk !== 'UNKNOWN' && risk !== '—' && risk !== '';
+  var hasFlags = Array.isArray(d.cmc_flags) && d.cmc_flags.length > 0;
+  var flagsStr = ((d.flags || []).concat(d.cmc_flags || [])).join(' ').toLowerCase();
+  var typeStr = (d.type || '').toLowerCase();
+  var notesStr = (d.notes || '').toLowerCase();
+  var cmcContext = flagsStr.indexOf('cmc') >= 0 || flagsStr.indexOf('manufacturing') >= 0 ||
+                   typeStr.indexOf('resubmission') >= 0 || typeStr.indexOf('class 2') >= 0 ||
+                   typeStr.indexOf('class 1') >= 0 || notesStr.indexOf('post-crl') >= 0;
+  return hasRisk || hasFlags || cmcContext;
+}
+
+function renderCMC(d) {
+  var risk = (d.cmc_risk || '—').toUpperCase();
+  var riskColor = {
+    'LOW': 'var(--accent2)', 'MINIMAL': 'var(--accent2)',
+    'MODERATE': 'var(--amber)',
+    'HIGH': 'var(--red)', 'EXTREME': 'var(--red)',
+    'UNKNOWN': 'var(--muted)', '—': 'var(--muted)', '': 'var(--muted)'
+  }[risk] || 'var(--muted)';
+  var riskEmoji = {
+    'LOW': '✅', 'MINIMAL': '✅',
+    'MODERATE': '🟡',
+    'HIGH': '🚨', 'EXTREME': '🚨',
+    'UNKNOWN': '❓', '—': '❓', '': '❓'
+  }[risk] || '❓';
+
+  // Resubmission-success context based on risk level.
+  // These are the historical base rates Davis tracks (88% CMC-only vs 58% clinical).
+  var contextLine = '';
+  if (risk === 'LOW' || risk === 'MINIMAL') {
+    contextLine = 'CMC-only CRL recovery setups historically resubmit at 88% success vs 58% for clinical CRLs. Low CMC risk = cleanest recovery profile.';
+  } else if (risk === 'MODERATE') {
+    contextLine = 'Some CMC exposure flagged. Still higher base rate than clinical CRLs, but not the cleanest recovery setup. Watch the resubmission class (Class 1 = 2 months, Class 2 = 6 months).';
+  } else if (risk === 'HIGH' || risk === 'EXTREME') {
+    contextLine = 'Significant CMC concerns flagged. Resubmission cycle may require plant inspection, BLA/NDA amendment, or supplemental data. Timeline extends materially beyond the standard Class 2 resubmission window.';
+  } else {
+    contextLine = 'CMC risk not yet classified. If this is a resubmission or post-CRL setup, check the flags below for manufacturing language.';
+  }
+
+  var riskBar =
+    '<div class="bar-row">' +
+      '<span class="bar-label">CMC Risk Level</span>' +
+      '<div class="bar-track"><div class="bar-fill" style="width:' +
+        (risk === 'LOW' || risk === 'MINIMAL' ? 25 : risk === 'MODERATE' ? 55 : risk === 'HIGH' || risk === 'EXTREME' ? 90 : 10) +
+        '%;background:' + riskColor + ';"></div></div>' +
+      '<span class="bar-val" style="color:' + riskColor + ';">' + riskEmoji + ' ' + risk + '</span>' +
+    '</div>';
+
+  var flags = Array.isArray(d.cmc_flags) ? d.cmc_flags : [];
+  var flagsHTML = '';
+  if (flags.length > 0) {
+    flagsHTML = '<hr class="bar-divider">' +
+      '<div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">CMC Signal Flags</div>' +
+      flags.map(function(f) {
+        return '<div class="flag-item" style="border-color:rgba(0,212,255,0.08);">' + escapeHtml(String(f)) + '</div>';
+      }).join('');
+  }
+
+  var contextBox =
+    '<div style="font-family:var(--mono);font-size:0.72rem;color:var(--text);padding:0.75rem 0.85rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + riskColor + ';margin-top:1rem;line-height:1.7;letter-spacing:0.02em;">' +
+      escapeHtml(contextLine) +
+    '</div>';
+
+  return riskBar + flagsHTML + contextBox;
+}
+
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
 function populatePage(d, isPaid) {
   document.title = d.ticker + ' — Catalyst Deep Dive — Submarine Catalyst';
@@ -874,7 +959,14 @@ function populatePage(d, isPaid) {
   var innScoreDisplay = innScore > 0 ? innScore + '/25' : '—';
   var innFactorDisplay = innFactor !== 1.0 ? innFactor.toFixed(3) + 'x' : '—';
 
-  document.getElementById('key-metrics').innerHTML = [
+  // Conditional metrics — only push rows when data is meaningful
+  var buyoutProbPct = Number(d.buyout_probability_pct) || 0;
+  var buyoutTimelineMonths = Number(d.buyout_timeline_months) || 0;
+  var monthsSinceApproval = Number(d.months_since_approval) || 0;
+  var dataConfidence = (d.data_confidence || '').toUpperCase();
+  var cmcRisk = (d.cmc_risk || '').toUpperCase();
+
+  var metricRows = [
     ['PDUFA Date',    d.date],
     ['Days Out',      days >= 0 ? days + 'd' : 'Resolved'],
     ['Application',   d.type || 'PDUFA'],
@@ -891,12 +983,40 @@ function populatePage(d, isPaid) {
     ['ATM Active',    d.atm_active ? 'YES' : 'No'],
     ['Buyout Score',  (d.buyout_score || 0) + '/100'],
     ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
+  ];
+
+  // Only add buyout probability/timeline when the model has actually populated them
+  if (buyoutProbPct > 0) {
+    metricRows.push(['Buyout Probability', buyoutProbPct.toFixed(0) + '%']);
+  }
+  if (buyoutTimelineMonths > 0) {
+    metricRows.push(['Buyout Timeline', buyoutTimelineMonths + ' months']);
+  }
+  if (monthsSinceApproval > 0) {
+    metricRows.push(['Months Since Approval', monthsSinceApproval + ' months']);
+  }
+
+  metricRows.push(
     ['Drug TAM',      d.tam_label || 'Unknown'],
-    ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—'],
+    ['TAM / Cap',     d.tam_ratio ? d.tam_ratio + 'x' : '—']
+  );
+
+  // Surface CMC Risk in key metrics when it's a meaningful value
+  if (cmcRisk && cmcRisk !== 'UNKNOWN' && cmcRisk !== '—' && cmcRisk !== '') {
+    metricRows.push(['CMC Risk', cmcRisk]);
+  }
+
+  metricRows.push(
     ['⭐ Innovation',  innScoreDisplay, 'gold'],
     ['⭐ Innov. Factor', innFactorDisplay, 'gold'],
-    ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100'],
-  ].map(function(triple) {
+    ['Net Edge',      (d.net_edge_score || d.score || 0).toFixed(1) + '/100']
+  );
+
+  if (dataConfidence) {
+    metricRows.push(['Data Confidence', dataConfidence]);
+  }
+
+  document.getElementById('key-metrics').innerHTML = metricRows.map(function(triple) {
     var cls = triple[2] === 'gold' ? 'metric-val gold' : 'metric-val';
     return '<div class="metric-row"><span class="metric-label">' + triple[0] + '</span><span class="' + cls + '">' + triple[1] + '</span></div>';
   }).join('');
@@ -925,7 +1045,12 @@ function populatePage(d, isPaid) {
 
   if (!isPaid) {
     document.getElementById('upgrade-bar').classList.remove('hidden');
-    ['lock-summary','lock-poa','lock-innovation','lock-convex','lock-timeline','lock-stn','lock-targets','lock-flags','lock-sources','lock-stn-badge']
+    // Only show CMC lock if CMC signal exists — otherwise keep the section hidden entirely
+    if (shouldRenderCMC(d)) {
+      var cmcSectionLocked = document.getElementById('section-cmc');
+      if (cmcSectionLocked) cmcSectionLocked.classList.remove('hidden');
+    }
+    ['lock-summary','lock-poa','lock-innovation','lock-convex','lock-timeline','lock-stn','lock-cmc','lock-targets','lock-flags','lock-sources','lock-stn-badge']
       .forEach(function(id) { var el = document.getElementById(id); if(el) el.classList.remove('hidden'); });
     return;
   }
@@ -971,6 +1096,15 @@ function populatePage(d, isPaid) {
 
   // Innovation breakdown
   document.getElementById('innovation-bars').innerHTML = renderInnovation(d);
+
+  // CMC Recovery — only shown when a signal exists
+  if (shouldRenderCMC(d)) {
+    var cmcSection = document.getElementById('section-cmc');
+    if (cmcSection) {
+      cmcSection.classList.remove('hidden');
+      document.getElementById('cmc-content').innerHTML = renderCMC(d);
+    }
+  }
 
   // Convexity breakdown
   var convScore = d.score * 0.6 || 30;
@@ -1237,6 +1371,13 @@ async function generateAISummary(d) {
         estimated_market_cap: Number(e.estimated_market_cap) || 0,
         months_since_approval: e.months_since_approval || null,
         institutional_pct: Number(e.institutional_pct) || 0,
+        // ─── CMC Recovery fields ─────────────────────────────────────────
+        cmc_risk: e.cmc_risk || 'UNKNOWN',
+        cmc_flags: e.cmc_flags || [],
+        // ─── Buyout probability + timeline ───────────────────────────────
+        buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
+        buyout_timeline_months: Number(e.buyout_timeline_months) || 0,
+        data_confidence: e.data_confidence || '',
         // ─── Innovation & Appreciation Factor fields ─────────────────────
         innovation_score: Number(e.innovation_score) || 0,
         innovation_factor: Number(e.innovation_factor) || 1.0,
@@ -1291,6 +1432,12 @@ async function generateAISummary(d) {
           innovation_factor: 1.0,
           innovation_flags: [],
           appreciation_signals: [],
+          cmc_risk: 'UNKNOWN',
+          cmc_flags: [],
+          buyout_probability_pct: 0,
+          buyout_timeline_months: 0,
+          months_since_approval: null,
+          data_confidence: '',
         };
       }
     } catch (err) {
@@ -1332,6 +1479,12 @@ async function generateAISummary(d) {
       innovation_factor: 1.0,
       innovation_flags: [],
       appreciation_signals: [],
+      cmc_risk: 'UNKNOWN',
+      cmc_flags: [],
+      buyout_probability_pct: 0,
+      buyout_timeline_months: 0,
+      months_since_approval: null,
+      data_confidence: '',
     };
   }
 

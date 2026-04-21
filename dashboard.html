@@ -230,6 +230,9 @@
       <button class="sidebar-item" onclick="switchTab(this,'pr-scanner')">
         <span class="sidebar-icon">📰</span> PR Scanner
       </button>
+      <button class="sidebar-item" onclick="switchTab(this,'cmc-recovery')">
+        <span class="sidebar-icon">🔧</span> CMC Recovery
+      </button>
       <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'">
         <span class="sidebar-icon">🔄</span> CRL Recovery
       </button>
@@ -241,9 +244,24 @@
       </button>
     </div>
     <div class="sidebar-section">
+      <span class="sidebar-label">Catalysts</span>
+      <button class="sidebar-item" onclick="switchTab(this,'clinical')">
+        <span class="sidebar-icon">🧪</span> Clinical Readouts
+      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'earnings')">
+        <span class="sidebar-icon">📊</span> Earnings
+      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'adcom')">
+        <span class="sidebar-icon">⚖️</span> AdCom
+      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'conferences')">
+        <span class="sidebar-icon">🎤</span> Conferences
+      </button>
+    </div>
+    <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
       <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')">
-        <span class="sidebar-icon">📅</span> Calendar
+        <span class="sidebar-icon">📅</span> Full Calendar
       </button>
       <button class="sidebar-item" onclick="window.location.href='/compare.html'">
         <span class="sidebar-icon">⚖️</span> Compare
@@ -303,6 +321,7 @@
           <option value="poa">Sort: PoA ↓</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
+          <option value="innovation">Sort: Innovation ↓</option>
           <option value="trend30d">Sort: 30D Trend ↓</option>
         </select>
         <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -385,6 +404,94 @@
       <div class="scanner-grid" id="pr-scanner-grid"></div>
     </div>
 
+    <div class="tab-panel" id="tab-cmc-recovery">
+      <div class="section-header">
+        <h2 class="section-title">CMC Recovery Scanner</h2>
+        <span class="section-meta" id="cmc-count-meta"></span>
+      </div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
+        Companies that received a Complete Response Letter (CRL) solely for Chemistry, Manufacturing, and Controls (CMC) issues rather than clinical efficacy failures. CMC-only CRLs historically resubmit at an 88% success rate vs 58% for clinical CRLs. This filter isolates the highest-probability recovery setups in the PDUFA universe.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <input type="text" id="cmc-search" placeholder="Search ticker..." oninput="renderCMCRecovery()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
+        <select id="cmc-risk-filter" onchange="renderCMCRecovery()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All CMC Risk</option>
+          <option value="LOW">LOW only (cleanest)</option>
+          <option value="MODERATE">MODERATE+</option>
+          <option value="HIGH">HIGH risk</option>
+        </select>
+      </div>
+      <div class="scanner-grid" id="cmc-grid"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-clinical">
+      <div class="section-header">
+        <h2 class="section-title">Clinical Readouts</h2>
+        <span class="section-meta" id="clinical-count-meta">Loading from ClinicalTrials.gov...</span>
+      </div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
+        Phase 2 and Phase 3 primary completion dates, pulled directly from ClinicalTrials.gov v2. Matched to your scanner universe by sponsor name. Hard dates (ACTUAL) flagged separately from estimated windows.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <input type="text" id="clinical-search" placeholder="Search ticker..." oninput="renderCatalystGrid('clinical')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
+        <select id="clinical-window" onchange="renderCatalystGrid('clinical')" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">All Dates</option>
+          <option value="30">Next 30 days</option>
+          <option value="90">Next 90 days</option>
+          <option value="180">Next 6 months</option>
+          <option value="365">Next 12 months</option>
+        </select>
+      </div>
+      <div class="scanner-grid" id="clinical-grid"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-earnings">
+      <div class="section-header">
+        <h2 class="section-title">Biotech Earnings Calendar</h2>
+        <span class="section-meta" id="earnings-count-meta">Loading from Finnhub...</span>
+      </div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
+        Upcoming earnings for biotechs in your scanner universe. Market-cap tier shown for context. Pre-earnings drift and post-earnings volatility are especially relevant when PDUFA setups overlap with earnings windows.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <input type="text" id="earnings-search" placeholder="Search ticker..." oninput="renderCatalystGrid('earnings')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
+        <select id="earnings-window" onchange="renderCatalystGrid('earnings')" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="all">Next 90 days</option>
+          <option value="30">Next 30 days</option>
+          <option value="60">Next 60 days</option>
+        </select>
+      </div>
+      <div class="scanner-grid" id="earnings-grid"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-adcom">
+      <div class="section-header">
+        <h2 class="section-title">FDA Advisory Committee Meetings</h2>
+        <span class="section-meta" id="adcom-count-meta">Loading from Federal Register...</span>
+      </div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
+        Scheduled FDA advisory committee meetings, pulled from the Federal Register API. Committee votes historically drive 30-60% single-day moves. When committee ticker can be resolved from the drug name, we match it to your scanner universe.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <input type="text" id="adcom-search" placeholder="Search ticker or drug..." oninput="renderCatalystGrid('adcom')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:180px;">
+      </div>
+      <div class="scanner-grid" id="adcom-grid"></div>
+    </div>
+
+    <div class="tab-panel" id="tab-conferences">
+      <div class="section-header">
+        <h2 class="section-title">Medical Conferences</h2>
+        <span class="section-meta" id="conf-count-meta">Loading...</span>
+      </div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
+        Upcoming oncology, immunology, and therapeutic-area conferences. Abstract release dates and presentation windows drive catalyst-style price action. Tickers are matched when presenting companies are listed in the conference manifest.
+      </p>
+      <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
+        <input type="text" id="conf-search" placeholder="Search conference or ticker..." oninput="renderCatalystGrid('conferences')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:220px;">
+      </div>
+      <div class="scanner-grid" id="conf-grid"></div>
+    </div>
+
     <div class="tab-panel" id="tab-calendar-tab">
       <div class="section-header">
         <h2 class="section-title">Full Calendar</h2>
@@ -462,7 +569,8 @@ function daysUntil(dateStr) {
   return Math.round((new Date(dateStr) - today) / 86400000);
 }
 function daysPill(days) {
-  const cls = days <= 14 ? 'days-hot' : days <= 30 ? 'days-warm' : days <= 90 ? 'days-watch' : 'days-far';
+  if (days < 0) return `<span class="days-pill days-far">RESOLVED</span>`;
+  const cls = days <= 7 ? 'days-hot' : days <= 30 ? 'days-warm' : 'days-watch';
   return `<span class="days-pill ${cls}">${days}d</span>`;
 }
 function gradeClass(g) { return {ELITE:'elite',STRONG:'strong',WATCH:'watch',WEAK:'weak'}[g]||'weak'; }
@@ -696,6 +804,7 @@ function renderScanner() {
       case 'poa':       return (b.poa || 0) - (a.poa || 0);
       case 'buyout':    return (b.buyout_score || 0) - (a.buyout_score || 0);
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
+      case 'innovation': return (Number(b.innovation_score) || 0) - (Number(a.innovation_score) || 0);
       case 'trend30d':  return ((PRICE_DATA[b.ticker]||{}).change30d||0) - ((PRICE_DATA[a.ticker]||{}).change30d||0);
       default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
     }
@@ -704,14 +813,23 @@ function renderScanner() {
   if (countEl) countEl.textContent = sorted.length + ' of ' + SCANNER_DATA.length + ' events';
   document.getElementById('scanner-grid').innerHTML = sorted.map((d,i) => {
     const days = daysUntil(d.date);
+    const isRoyalty = (d.ticker_role === 'royalty' || d.ticker_role === 'licensee');
+    const royaltyBadge = isRoyalty
+      ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);margin-left:0.4rem;vertical-align:middle;" title="${d.ticker} exposure to this PDUFA is via ${d.ticker_role} arrangement with ${d.primary_ticker || 'commercial partner'}">${d.ticker_role.toUpperCase()}</span>`
+      : '';
+    const innScore = Number(d.innovation_score) || 0;
+    const innFactor = Number(d.innovation_factor) || 1.0;
+    const innColor = innScore >= 20 ? 'green' : innScore >= 12 ? 'green' : innScore >= 6 ? 'cyan' : 'white';
+    const innStarColor = innScore >= 20 ? '#ffd700' : innScore >= 12 ? 'var(--accent2)' : innScore >= 6 ? 'var(--accent)' : 'var(--muted)';
+    const innDisplay = innScore > 0 ? innScore + '/25' : '—';
     return `
       <div class="scanner-card ${gradeClass(d.grade)}" style="animation-delay:${i*0.05}s"
            onclick="window.location.href='/catalyst-detail.html?ticker=${d.ticker}'"
            title="View ${d.ticker} deep dive →">
         <div class="card-top">
           <div>
-            <div class="card-ticker">${d.ticker} ${daysPill(days)}</div>
-            <div class="card-date">${d.date} · ${d.type}</div>
+            <div class="card-ticker">${d.ticker} ${daysPill(days)}${royaltyBadge}</div>
+            <div class="card-date">${d.date} · ${d.type}${isRoyalty && d.primary_ticker ? ' · via ' + d.primary_ticker : ''}</div>
           </div>
           ${gradeBadge(d.grade)}
         </div>
@@ -725,13 +843,14 @@ function renderScanner() {
         </div>
         <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
           <div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div></div>
-          <div class="score-box"><div class="score-box-label">Acquirer</div><div class="score-box-val white" style="font-size:0.65rem;">${d.acquirer_urgency_top || '—'}</div></div>
           <div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div></div>
-          <div class="score-box"><div class="score-box-label">30D</div>${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>'; var c = p.change30d; var arrow = c >= 0 ? '▲' : '▼'; var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red'; return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>'; })()}</div>
+          <div class="score-box" title="Innovation & Appreciation Factor (0-25 scale). Route-of-admin upgrades, dosing frequency, first-in-class status, best-in-class head-to-head data."><div class="score-box-label" style="color:${innStarColor};">⭐ Innov</div><div class="score-box-val" style="color:${innStarColor};">${innDisplay}</div></div>
+          <div class="score-box"><div class="score-box-label">30D</div>${(() => { var p = PRICE_DATA[d.ticker]; if (!p || typeof p.change30d !== 'number') return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>'; var c = p.change30d; var arrow = c >= 0 ? '▲' : '▼'; var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red'; return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>'; })()}</div>
         </div>
-        ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + p.volRatio + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + p.chartColor + ';font-weight:700;">' + p.chartIcon + ' ' + p.chartSetup + '</span></div>' + '</div>'; })()}
+        ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; var volDisplay = typeof p.volRatio === 'number' ? p.volRatio + '%' : '—'; var chartDisplay = p.chartIcon && p.chartSetup ? p.chartIcon + ' ' + p.chartSetup : '—'; var chartColor = p.chartColor || 'var(--muted)'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + volDisplay + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + chartColor + ';font-weight:700;">' + chartDisplay + '</span></div>' + '</div>'; })()}
+        ${innScore >= 6 && (d.appreciation_signals || []).length > 0 ? '<div style="font-family:var(--mono);font-size:0.58rem;padding:0.4rem 0.55rem;background:rgba(255,215,0,0.04);border-left:2px solid #ffd700;margin-bottom:0.4rem;color:var(--text);line-height:1.5;">⭐ ' + d.appreciation_signals.slice(0,2).map(function(s){return s.length>90?s.substring(0,90)+'…':s;}).join(' · ') + (innFactor !== 1.0 ? ' <span style="color:#ffd700;">(+' + Math.round((innFactor - 1) * 100) + '% edge)</span>' : '') + '</div>' : ''}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
-        <div class="card-flags">${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market')).map(f=>`<div class="card-flag">${f}</div>`).join('')}</div>
+        <div class="card-flags">${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market') && !String(f).startsWith('AUTO-RESOLVED:')).map(f=>`<div class="card-flag">${f}</div>`).join('')}</div>
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
       </div>`;
   }).join('');
@@ -761,7 +880,7 @@ function renderBuyoutGrid() {
         buyout_flags: d.buyout_flags || [], tam_ratio: Number(d.tam_ratio) || 0,
         partnership_detected: d.has_partnership || false, partner_name: d.partner_name || '',
         acquirer_urgency_top: d.acquirer_urgency_top || '',
-        revenue_m: Number(d.revenue_M) || 0, buyout_timeline: d.buyout_timeline || '',
+        revenue_m: Number(d.revenue_m) || 0, buyout_timeline: d.buyout_timeline || '',
         has_pdufa: true, pdufa_date: d.date || '', poa: Number(d.poa) || 0, grade: d.grade || 'WATCH',
       });
     }
@@ -811,13 +930,442 @@ function renderBuyoutGrid() {
   document.getElementById('buyout-count').textContent = display.length + ' of ' + filtered.length + ' companies shown';
 }
 
+// ─── CMC RECOVERY ─────────────────────────────────────────────────────────────
+// Filters SCANNER_DATA for events with CMC resubmission flags. CMC-only CRLs
+// resubmit at 88% vs 58% for clinical CRLs — highest-probability recovery setups.
+function renderCMCRecovery() {
+  if (!SCANNER_DATA || SCANNER_DATA.length === 0) {
+    document.getElementById('cmc-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">Loading scanner data first...</div>';
+    return;
+  }
+  var search = (document.getElementById('cmc-search')?.value || '').toUpperCase();
+  var riskFilter = document.getElementById('cmc-risk-filter')?.value || 'all';
+  var cmcEvents = SCANNER_DATA.filter(function(d) {
+    var flagsStr = ((d.flags || []).concat(d.cmc_flags || [])).join(' ').toLowerCase();
+    var typeStr = (d.type || '').toLowerCase();
+    var notesStr = (d.notes || '').toLowerCase();
+    var isCmc = flagsStr.includes('cmc') || flagsStr.includes('manufacturing') ||
+                typeStr.includes('resubmission') || typeStr.includes('class 2') || typeStr.includes('class 1') ||
+                notesStr.includes('post-crl') || notesStr.includes('resubmission') ||
+                (d.cmc_risk && d.cmc_risk !== 'UNKNOWN' && d.cmc_risk !== '—');
+    if (!isCmc) return false;
+    if (search && !d.ticker.toUpperCase().includes(search)) return false;
+    if (riskFilter !== 'all' && d.cmc_risk !== riskFilter) return false;
+    return true;
+  });
+  cmcEvents.sort(function(a, b) {
+    return daysUntil(a.date) - daysUntil(b.date);
+  });
+  document.getElementById('cmc-count-meta').textContent = cmcEvents.length + ' CMC / resubmission setups';
+  if (cmcEvents.length === 0) {
+    document.getElementById('cmc-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No CMC recovery setups match filters.<br><span style="font-size:0.65rem;opacity:0.7;">CMC filter looks for: CMC flags, manufacturing flags, Class 1/Class 2 resubmissions, post-CRL setups, or tickers with a resolved cmc_risk value.</span></div>';
+    return;
+  }
+  document.getElementById('cmc-grid').innerHTML = cmcEvents.map(function(d) {
+    var days = daysUntil(d.date);
+    var cmcColor = d.cmc_risk === 'LOW' ? 'green' : d.cmc_risk === 'MODERATE' ? 'amber' : d.cmc_risk === 'HIGH' ? 'red' : 'white';
+    var cmcTop = (d.cmc_flags || [])[0] || '';
+    return '<div class="scanner-card ' + gradeClass(d.grade) + '" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;">' +
+      '<div class="card-top"><div><div class="card-ticker">' + d.ticker + ' ' + daysPill(days) + '</div><div class="card-date">' + d.date + ' · ' + d.type + '</div></div>' + gradeBadge(d.grade) + '</div>' +
+      '<div class="card-drug">' + (d.drug || '—') + '</div>' +
+      '<div class="card-indication">' + (d.indication || '') + '</div>' +
+      '<div class="card-scores"><div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">' + (d.poa || 0).toFixed(0) + '%</div></div><div class="score-box"><div class="score-box-label">CMC Risk</div><div class="score-box-val ' + cmcColor + '">' + (d.cmc_risk || '—') + '</div></div><div class="score-box"><div class="score-box-label">Net Edge</div><div class="score-box-val cyan">' + (d.net_edge_score || d.score || 0).toFixed(0) + '</div></div><div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + (d.dilution_risk === 'HIGH' || d.dilution_risk === 'EXTREME' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : 'green') + '">' + (d.dilution_risk || '—') + '</div></div></div>' +
+      (cmcTop ? '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,212,255,0.04);border-left:2px solid var(--accent);color:var(--text);">' + cmcTop + '</div>' : '') +
+      ((d.cmc_flags || []).length > 1 ? '<div class="card-flags" style="margin-top:0.4rem;">' + d.cmc_flags.slice(1, 4).map(function(f) { return '<div class="card-flag">' + f + '</div>'; }).join('') + '</div>' : '') +
+      '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
+    '</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CATALYST LOADERS — Clinical / Earnings / AdCom / Conferences
+// Client-side ingestion with session cache. Mirrors calendar.html behavior so
+// dashboard subscribers don't have to leave the workspace to scan the universe.
+// ═══════════════════════════════════════════════════════════════════════════
+var CAT_CACHE_PREFIX = 'sc_dash_cat_v1_';
+var CAT_CACHE_6H = 6 * 60 * 60 * 1000;
+var CAT_CACHE_24H = 24 * 60 * 60 * 1000;
+var CATALYST_DATA = { clinical: [], earnings: [], adcom: [], conferences: [] };
+var CAT_LOADED = { clinical: false, earnings: false, adcom: false, conferences: false };
+
+function catCacheGet(key, maxAge) {
+  try {
+    var raw = sessionStorage.getItem(CAT_CACHE_PREFIX + key);
+    if (!raw) return null;
+    var obj = JSON.parse(raw);
+    if (Date.now() - obj.ts > maxAge) return null;
+    return obj.data;
+  } catch (e) { return null; }
+}
+
+function catCacheSet(key, data) {
+  try { sessionStorage.setItem(CAT_CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
+}
+
+function catNormalizeToken(name) {
+  if (!name) return '';
+  var s = name.toLowerCase().replace(/[,.()&/]/g, ' ');
+  s = s.replace(/\b(inc|incorporated|corp|corporation|ltd|limited|plc|sa|ag|nv|bv|co|company|llc|llp|holdings?|group|therapeutics|pharmaceuticals?|biosciences?|biotech|biosystems?|laboratories|labs?|sciences?|medicines?|health|medical|bio)\b/g, ' ');
+  s = s.replace(/\s+/g, ' ').trim();
+  var parts = s.split(' ').filter(function(w) { return w.length >= 3; });
+  return parts[0] || '';
+}
+
+// ── Clinical readouts from ClinicalTrials.gov v2 ──
+async function loadClinicalReadouts() {
+  if (CAT_LOADED.clinical) return;
+  var cached = catCacheGet('clinical', CAT_CACHE_6H);
+  if (cached) { CATALYST_DATA.clinical = cached; CAT_LOADED.clinical = true; console.log('[dash-clinical] cache: ' + cached.length); return; }
+
+  var sb = getSupabase();
+  var { data: universe } = await sb.from('biotech_universe')
+    .select('ticker, company_name, market_cap_tier, estimated_market_cap')
+    .eq('active', true);
+  if (!universe || universe.length === 0) return;
+
+  var tokenIndex = {};
+  universe.forEach(function(u) {
+    var tok = catNormalizeToken(u.company_name || '');
+    if (!tok) return;
+    if (!tokenIndex[tok]) tokenIndex[tok] = [];
+    tokenIndex[tok].push(u);
+  });
+
+  var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  var minDate = new Date(today.getTime() - 14 * 86400000);
+  var maxDate = new Date(today.getTime() + 365 * 86400000);
+
+  var pageToken = null, events = [], seen = {}, pages = 0;
+  while (pages < 15) {
+    var params = new URLSearchParams({
+      'filter.overallStatus': 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED',
+      'filter.phase': 'PHASE2|PHASE3',
+      'pageSize': '1000', 'format': 'json', 'sort': 'LastUpdatePostDate:desc',
+    });
+    if (pageToken) params.set('pageToken', pageToken);
+    var url = 'https://clinicaltrials.gov/api/v2/studies?' + params.toString();
+    try {
+      var res = await fetch(url);
+      if (!res.ok) break;
+      var data = await res.json();
+      var studies = data.studies || [];
+      for (var j = 0; j < studies.length; j++) {
+        try {
+          var s = studies[j];
+          var ps = s.protocolSection || {};
+          var id = ps.identificationModule || {};
+          var status = ps.statusModule || {};
+          var sponsor = ps.sponsorCollaboratorsModule || {};
+          var design = ps.designModule || {};
+          var cond = ps.conditionsModule || {};
+          var nctId = id.nctId || '';
+          var phases = Array.isArray(design.phases) ? design.phases.join('/') : '';
+          var leadSponsor = (sponsor.leadSponsor && sponsor.leadSponsor.name) || '';
+          var pcdStruct = status.primaryCompletionDateStruct || {};
+          var pcd = pcdStruct.date || status.primaryCompletionDate || '';
+          var pcdType = pcdStruct.type || 'UNKNOWN';
+          var conditions = Array.isArray(cond.conditions) ? cond.conditions : [];
+          if (!leadSponsor || !pcd || !nctId) continue;
+          var pcdStr = pcd.length === 7 ? pcd + '-15' : pcd;
+          var pcdD = new Date(pcdStr);
+          if (isNaN(pcdD.getTime()) || pcdD < minDate || pcdD > maxDate) continue;
+          var tok = catNormalizeToken(leadSponsor);
+          if (!tok || !tokenIndex[tok]) continue;
+          var best = tokenIndex[tok][0];
+          var key = best.ticker + '|' + pcdStr + '|' + nctId;
+          if (seen[key]) continue;
+          seen[key] = true;
+          events.push({
+            ticker: best.ticker, company_name: best.company_name,
+            market_cap_tier: best.market_cap_tier,
+            estimated_market_cap: Number(best.estimated_market_cap) || 0,
+            drug: (phases || 'Phase ?') + ' readout — ' + (conditions.slice(0, 2).join(', ') || 'Clinical Readout'),
+            indication: conditions.slice(0, 2).join(', ') || '',
+            type: 'CLINICAL', date: pcdStr, grade: 'WATCH',
+            nctId: nctId, confidence: pcdType === 'ACTUAL' ? 'HARD_DATE' : 'ESTIMATED_WINDOW',
+            phase: phases,
+          });
+        } catch (err) {}
+      }
+      pageToken = data.nextPageToken || null;
+      pages++;
+      if (!pageToken) break;
+    } catch (e) { break; }
+  }
+  CATALYST_DATA.clinical = events;
+  CAT_LOADED.clinical = true;
+  catCacheSet('clinical', events);
+  console.log('[dash-clinical] loaded: ' + events.length);
+}
+
+// ── Earnings from Finnhub ──
+async function loadEarnings() {
+  if (CAT_LOADED.earnings) return;
+  var cached = catCacheGet('earnings', CAT_CACHE_6H);
+  if (cached) { CATALYST_DATA.earnings = cached; CAT_LOADED.earnings = true; console.log('[dash-earnings] cache: ' + cached.length); return; }
+  if (!SC_CONFIG.finnhubApiKey) { CAT_LOADED.earnings = true; return; }
+
+  var sb = getSupabase();
+  var { data: universe } = await sb.from('biotech_universe')
+    .select('ticker, company_name, market_cap_tier, estimated_market_cap')
+    .eq('active', true);
+  if (!universe || universe.length === 0) return;
+  var uniMap = {};
+  universe.forEach(function(u) { uniMap[u.ticker] = u; });
+
+  var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  var all = [];
+  for (var offset = 0; offset < 90; offset += 30) {
+    var from = new Date(today.getTime() + offset * 86400000).toISOString().split('T')[0];
+    var to = new Date(today.getTime() + Math.min(offset + 30, 90) * 86400000).toISOString().split('T')[0];
+    var url = 'https://finnhub.io/api/v1/calendar/earnings?from=' + from + '&to=' + to + '&token=' + SC_CONFIG.finnhubApiKey;
+    try {
+      var res = await fetch(url);
+      if (!res.ok) continue;
+      var data = await res.json();
+      (data.earningsCalendar || []).forEach(function(e) { all.push(e); });
+    } catch (e) {}
+    await new Promise(function(r) { setTimeout(r, 300); });
+  }
+
+  var events = [], seen = {};
+  all.forEach(function(e) {
+    if (!e.symbol || !e.date || !uniMap[e.symbol]) return;
+    var key = e.symbol + '|' + e.date;
+    if (seen[key]) return;
+    seen[key] = true;
+    var u = uniMap[e.symbol];
+    var hourLabel = e.hour === 'bmo' ? 'Before Market Open' : e.hour === 'amc' ? 'After Market Close' : '';
+    var fiscal = e.year && e.quarter ? 'Q' + e.quarter + ' ' + e.year : 'Quarterly';
+    events.push({
+      ticker: e.symbol, company_name: u.company_name,
+      market_cap_tier: u.market_cap_tier,
+      estimated_market_cap: Number(u.estimated_market_cap) || 0,
+      drug: fiscal + ' Earnings' + (hourLabel ? ' — ' + hourLabel : ''),
+      indication: fiscal, type: 'EARNINGS', date: e.date, grade: 'WATCH',
+      hour: e.hour || '',
+    });
+  });
+  CATALYST_DATA.earnings = events;
+  CAT_LOADED.earnings = true;
+  catCacheSet('earnings', events);
+  console.log('[dash-earnings] loaded: ' + events.length);
+}
+
+// ── AdCom from Federal Register ──
+async function loadAdcom() {
+  if (CAT_LOADED.adcom) return;
+  var cached = catCacheGet('adcom', CAT_CACHE_6H);
+  if (cached) { CATALYST_DATA.adcom = cached; CAT_LOADED.adcom = true; console.log('[dash-adcom] cache: ' + cached.length); return; }
+
+  var sb = getSupabase();
+  var drugMap = new Map();
+  try {
+    var { data: drugAssets } = await sb.from('drug_assets').select('drug_name, brand_name, parent_ticker');
+    (drugAssets || []).forEach(function(d) {
+      if (d.drug_name && d.parent_ticker) drugMap.set(d.drug_name.toLowerCase(), d.parent_ticker);
+      if (d.brand_name && d.parent_ticker) drugMap.set(d.brand_name.toLowerCase(), d.parent_ticker);
+    });
+  } catch (err) {}
+
+  var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+  var lookback = new Date(today.getTime() - 45 * 86400000);
+  var params = new URLSearchParams({
+    'conditions[term]': 'Advisory Committee Meeting',
+    'conditions[agencies][]': 'food-and-drug-administration',
+    'conditions[publication_date][gte]': lookback.toISOString().split('T')[0],
+    'per_page': '100', 'order': 'newest',
+  });
+  ['title', 'document_number', 'publication_date', 'abstract', 'html_url'].forEach(function(f) { params.append('fields[]', f); });
+
+  var events = [];
+  try {
+    var res = await fetch('https://www.federalregister.gov/api/v1/documents.json?' + params.toString());
+    if (res.ok) {
+      var data = await res.json();
+      var docs = data.results || [];
+      var monthRe = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),\s*(\d{4})\b/i;
+      var months = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+      var seen = {};
+      docs.forEach(function(d) {
+        if (!d.title || !/advisory committee/i.test(d.title)) return;
+        var body = (d.abstract || '').substring(0, 5000);
+        var m = body.match(monthRe);
+        if (!m) return;
+        var idx = months.indexOf(m[1].toLowerCase());
+        if (idx < 0) return;
+        var meetingDate = new Date(Date.UTC(parseInt(m[3]), idx, parseInt(m[2])));
+        if (isNaN(meetingDate.getTime()) || meetingDate < today) return;
+        var mdStr = meetingDate.toISOString().split('T')[0];
+        var ticker = null;
+        var bodyLower = (d.title + ' ' + body).toLowerCase();
+        drugMap.forEach(function(t, drug) {
+          if (!ticker && drug && drug.length >= 4 && bodyLower.indexOf(drug) >= 0) ticker = t;
+        });
+        if (!ticker) ticker = 'ADCOM';
+        var committeeMatch = d.title.match(/([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)\s+Advisory Committee/);
+        var desc = committeeMatch ? committeeMatch[0] : d.title.substring(0, 120);
+        var key = ticker + '|' + mdStr + '|' + (d.document_number || desc);
+        if (seen[key]) return;
+        seen[key] = true;
+        events.push({
+          ticker: ticker, company_name: ticker === 'ADCOM' ? 'FDA Advisory Committee' : ticker,
+          drug: desc, indication: '', type: 'ADCOM', date: mdStr, grade: 'WATCH',
+          docNum: d.document_number || '', htmlUrl: d.html_url || '',
+        });
+      });
+    }
+  } catch (e) {}
+  CATALYST_DATA.adcom = events;
+  CAT_LOADED.adcom = true;
+  catCacheSet('adcom', events);
+  console.log('[dash-adcom] loaded: ' + events.length);
+}
+
+// ── Conferences from static JSON manifest ──
+async function loadConferences() {
+  if (CAT_LOADED.conferences) return;
+  var cached = catCacheGet('conf', CAT_CACHE_24H);
+  if (cached) { CATALYST_DATA.conferences = cached; CAT_LOADED.conferences = true; console.log('[dash-conf] cache: ' + cached.length); return; }
+
+  var events = [];
+  try {
+    var bust = Math.floor(Date.now() / 86400000);
+    var res = await fetch('/data/biotech_conferences.json?t=' + bust);
+    if (res.ok) {
+      var data = await res.json();
+      var today = new Date(); today.setUTCHours(0, 0, 0, 0);
+      (data.conferences || []).forEach(function(c) {
+        if (!c.date_start || !c.name) return;
+        var d = new Date(c.date_start);
+        if (isNaN(d.getTime()) || d < today) return;
+        var tickers = Array.isArray(c.tickers) && c.tickers.length > 0 ? c.tickers : ['CONFERENCE'];
+        tickers.forEach(function(ticker) {
+          var isGeneric = ticker === 'CONFERENCE';
+          events.push({
+            ticker: ticker, company_name: isGeneric ? c.name : ticker,
+            drug: c.name + (c.date_end && c.date_end !== c.date_start ? ' (' + c.date_start + ' → ' + c.date_end + ')' : ''),
+            indication: c.location || '', type: 'CONFERENCE', date: c.date_start, grade: 'WATCH',
+            location: c.location || '', category: c.category || 'MEDICAL',
+            confirmed: c.status === 'confirmed',
+          });
+        });
+      });
+    }
+  } catch (e) {}
+  CATALYST_DATA.conferences = events;
+  CAT_LOADED.conferences = true;
+  catCacheSet('conf', events);
+  console.log('[dash-conf] loaded: ' + events.length);
+}
+
+// ── Unified catalyst grid renderer ──
+function renderCatalystGrid(kind) {
+  var data = CATALYST_DATA[kind] || [];
+  var gridId, countId, searchId, windowId;
+  switch (kind) {
+    case 'clinical': gridId = 'clinical-grid'; countId = 'clinical-count-meta'; searchId = 'clinical-search'; windowId = 'clinical-window'; break;
+    case 'earnings': gridId = 'earnings-grid'; countId = 'earnings-count-meta'; searchId = 'earnings-search'; windowId = 'earnings-window'; break;
+    case 'adcom': gridId = 'adcom-grid'; countId = 'adcom-count-meta'; searchId = 'adcom-search'; break;
+    case 'conferences': gridId = 'conf-grid'; countId = 'conf-count-meta'; searchId = 'conf-search'; break;
+  }
+  var grid = document.getElementById(gridId);
+  if (!grid) return;
+
+  var search = (document.getElementById(searchId)?.value || '').toUpperCase();
+  var windowDays = windowId ? parseInt(document.getElementById(windowId)?.value || '0') : 0;
+
+  var filtered = data.filter(function(e) {
+    if (search) {
+      var match = e.ticker.toUpperCase().includes(search) ||
+                  (e.drug || '').toUpperCase().includes(search) ||
+                  (e.company_name || '').toUpperCase().includes(search);
+      if (!match) return false;
+    }
+    if (windowDays > 0) {
+      var days = daysUntil(e.date);
+      if (days < 0 || days > windowDays) return false;
+    }
+    return true;
+  });
+  filtered.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
+
+  var countEl = document.getElementById(countId);
+  if (countEl) countEl.textContent = filtered.length + ' events';
+
+  if (filtered.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No ' + kind + ' events match filters.</div>';
+    return;
+  }
+
+  var display = filtered.slice(0, 100);
+  grid.innerHTML = display.map(function(e) {
+    var days = daysUntil(e.date);
+    var cap = Number(e.estimated_market_cap) || 0;
+    var capStr = cap >= 1e9 ? '$' + (cap / 1e9).toFixed(1) + 'B' : cap >= 1e6 ? '$' + (cap / 1e6).toFixed(0) + 'M' : '—';
+    var icon = { clinical: '🧪', earnings: '📊', adcom: '⚖️', conferences: '🎤' }[kind] || '📅';
+    var extraLine = '';
+    if (kind === 'clinical') {
+      extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;">' + (e.phase || '') + ' · ' + (e.confidence === 'HARD_DATE' ? '✓ confirmed date' : '~ estimated window') + (e.nctId ? ' · <a href="https://clinicaltrials.gov/study/' + e.nctId + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">' + e.nctId + '</a>' : '') + '</div>';
+    } else if (kind === 'adcom' && e.htmlUrl) {
+      extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;"><a href="' + e.htmlUrl + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">Federal Register notice ↗</a></div>';
+    } else if (kind === 'conferences') {
+      extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;">' + (e.location || '') + ' · ' + (e.confirmed ? '✓ confirmed' : '~ tentative') + '</div>';
+    }
+    var isTickerResolved = e.ticker !== 'ADCOM' && e.ticker !== 'CONFERENCE';
+    var click = isTickerResolved ? 'window.location.href=\'/catalyst-detail.html?ticker=' + e.ticker + '\';' : 'void(0);';
+    var cursor = isTickerResolved ? 'cursor:pointer;' : 'cursor:default;';
+    return '<div class="scanner-card" onclick="' + click + '" style="' + cursor + '">' +
+      '<div class="card-top"><div><div class="card-ticker">' + (isTickerResolved ? e.ticker : icon + ' ' + e.ticker) + ' ' + daysPill(days) + '</div><div class="card-date">' + e.date + ' · ' + e.type + '</div></div><span class="card-grade grade-watch">' + capStr + '</span></div>' +
+      '<div class="card-drug">' + (e.drug || '—') + '</div>' +
+      (e.company_name && e.company_name !== e.ticker ? '<div class="card-indication">' + e.company_name + '</div>' : '') +
+      extraLine +
+      (isTickerResolved ? '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>' : '') +
+    '</div>';
+  }).join('');
+}
+
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(btn, id) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('tab-' + id).classList.add('active');
+  var panel = document.getElementById('tab-' + id);
+  if (panel) panel.classList.add('active');
+
+  // Lazy load catalyst data when tab is first opened
+  if (id === 'cmc-recovery') {
+    renderCMCRecovery();
+  } else if (id === 'clinical') {
+    if (!CAT_LOADED.clinical) {
+      document.getElementById('clinical-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading clinical readouts...</div></div>';
+      loadClinicalReadouts().then(function() { renderCatalystGrid('clinical'); });
+    } else {
+      renderCatalystGrid('clinical');
+    }
+  } else if (id === 'earnings') {
+    if (!CAT_LOADED.earnings) {
+      document.getElementById('earnings-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading earnings calendar...</div></div>';
+      loadEarnings().then(function() { renderCatalystGrid('earnings'); });
+    } else {
+      renderCatalystGrid('earnings');
+    }
+  } else if (id === 'adcom') {
+    if (!CAT_LOADED.adcom) {
+      document.getElementById('adcom-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading AdCom meetings...</div></div>';
+      loadAdcom().then(function() { renderCatalystGrid('adcom'); });
+    } else {
+      renderCatalystGrid('adcom');
+    }
+  } else if (id === 'conferences') {
+    if (!CAT_LOADED.conferences) {
+      document.getElementById('conf-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading conferences...</div></div>';
+      loadConferences().then(function() { renderCatalystGrid('conferences'); });
+    } else {
+      renderCatalystGrid('conferences');
+    }
+  }
 }
 
 // ─── AUTH GUARD + INIT ────────────────────────────────────────────────────────
@@ -905,10 +1453,24 @@ function switchTab(btn, id) {
           buyout_flags: e.buyout_flags || [], tam_ratio: Number(e.tam_ratio) || 0,
           has_partnership: e.has_partnership || false, partner_name: e.partner_name || '',
           acquirer_urgency_top: e.acquirer_urgency_top || '',
-          revenue_M: Number(e.revenue_m || e.revenue_M) || 0,
+          revenue_m: Number(e.revenue_m || e.revenue_M) || 0,
           buyout_timeline: e.buyout_timeline || '',
+          buyout_timeline_months: Number(e.buyout_timeline_months) || 0,
+          buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
           estimated_market_cap: Number(e.estimated_market_cap) || 0,
           cmc_risk: e.cmc_risk || 'UNKNOWN', cmc_flags: e.cmc_flags || [],
+          months_since_approval: e.months_since_approval || null,
+          data_confidence: e.data_confidence || '',
+          company_name: e.company_name || '',
+          // Innovation and Appreciation Factor
+          innovation_score: Number(e.innovation_score) || 0,
+          innovation_factor: Number(e.innovation_factor) || 1.0,
+          innovation_flags: e.innovation_flags || [],
+          appreciation_signals: e.appreciation_signals || [],
+          // Ticker role (royalty/licensee handling)
+          ticker_role: e.ticker_role || 'primary',
+          primary_ticker: e.primary_ticker || '',
+          is_primary_ticker: e.is_primary_ticker !== false,
         };
       });
       console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
