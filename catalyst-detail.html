@@ -504,32 +504,73 @@ function escapeHtml(s) {
 }
 
 // ─── DRUG NAME FORMATTER ──────────────────────────────────────────────────────
-// Detects four failure modes and displays cleanly:
+// Detects failure modes and displays cleanly:
 //   (a) placeholder "TICKER — drug name needs update"
 //   (b) FDA boilerplate in drug column ("The FDA set a PDUFA date of...")
 //   (c) drug name hiding in notes when drug col is placeholder
-//   (d) AUTO-RESOLVED:CT.GOV flag — show provenance badge
-// Returns {text, isPlaceholder, badge, provenance}.
+//   (d) AUTO-RESOLVED flags — show provenance badge
+//
+// Recognized AUTO-RESOLVED sources:
+//   CT.GOV       → legacy ClinicalTrials.gov resolver (nct id in parts[3])
+//   DRUG_ASSETS  → score-events v4.1 drug_assets lookup
+//   AI           → resolve-drug-names Claude + web search
+//   NOTES        → score-events v4.1 notes extraction
+//
+// Flag formats:
+//   AUTO-RESOLVED:CT.GOV:drug:nct:CONFIDENCE
+//   AUTO-RESOLVED:DRUG_ASSETS:ticker:drug:CONFIDENCE
+//   AUTO-RESOLVED:AI:ticker:drug:CONFIDENCE
+//   AUTO-RESOLVED:NOTES:ticker:extracted:CONFIDENCE
+//
+// Returns {text, isPlaceholder, badge, nctId, confidence, source, sourceLabel}.
 function formatDrugName(e) {
   var drug = (e.drug || '').trim();
   var notes = (e.notes || '').trim();
   var flags = e.flags || [];
 
-  // Extract AUTO-RESOLVED flag if present
+  // Extract first AUTO-RESOLVED flag from any supported source
   var resolveFlag = null;
+  var resolveSource = null;
   for (var i = 0; i < flags.length; i++) {
     var f = String(flags[i]);
-    if (f.indexOf('AUTO-RESOLVED:CT.GOV:') === 0) { resolveFlag = f; break; }
+    if (f.indexOf('AUTO-RESOLVED:') === 0) {
+      resolveFlag = f;
+      var srcMatch = f.match(/^AUTO-RESOLVED:([A-Z_.]+):/);
+      resolveSource = srcMatch ? srcMatch[1] : null;
+      break;
+    }
   }
 
   var parts = resolveFlag ? resolveFlag.split(':') : null;
-  var confidence = parts && parts.length >= 5 ? parts[4].toLowerCase() : null;
-  var nctId = parts && parts.length >= 4 ? parts[3] : null;
+  var confidence = null;
+  var nctId = null;
+  var sourceLabel = null;
+
+  if (parts && parts.length >= 5) {
+    // All current formats put confidence in parts[4]
+    confidence = parts[4].toLowerCase();
+
+    if (resolveSource === 'CT.GOV') {
+      // AUTO-RESOLVED:CT.GOV:drug:nct:confidence
+      nctId = parts[3];
+      sourceLabel = 'ClinicalTrials.gov';
+    } else if (resolveSource === 'DRUG_ASSETS') {
+      // AUTO-RESOLVED:DRUG_ASSETS:ticker:drug:confidence
+      sourceLabel = 'drug_assets lookup';
+    } else if (resolveSource === 'AI') {
+      // AUTO-RESOLVED:AI:ticker:drug:confidence
+      sourceLabel = 'AI + web search';
+    } else if (resolveSource === 'NOTES') {
+      // AUTO-RESOLVED:NOTES:ticker:extracted:confidence
+      sourceLabel = 'notes extraction';
+    }
+  }
 
   // Placeholder detection
   var isPlaceholder =
     !drug ||
     /drug name needs update/i.test(drug) ||
+    /pending verification/i.test(drug) ||
     /^[A-Z]{2,6}\s*[—–-]\s*drug/i.test(drug);
 
   // FDA boilerplate detection (drug column accidentally holds FDA language)
@@ -561,8 +602,13 @@ function formatDrugName(e) {
     badge = '<span class="drug-badge pending">⚠ NEEDS VERIFY</span>';
   } else {
     displayText = escapeHtml(drug);
-    if (confidence) {
-      badge = '<span class="drug-badge ' + confidence + '">AUTO-RESOLVED · ' + confidence.toUpperCase() + '</span>';
+    if (confidence && sourceLabel) {
+      // Short badge label depending on source
+      var shortLabel = resolveSource === 'AI' ? 'AI' :
+                       resolveSource === 'CT.GOV' ? 'CT.GOV' :
+                       resolveSource === 'DRUG_ASSETS' ? 'VERIFIED' :
+                       resolveSource === 'NOTES' ? 'NOTES' : 'RESOLVED';
+      badge = '<span class="drug-badge ' + confidence + '" title="Resolved via ' + sourceLabel + '">' + shortLabel + ' · ' + confidence.toUpperCase() + '</span>';
     }
   }
 
@@ -571,7 +617,9 @@ function formatDrugName(e) {
     isPlaceholder: !rescued && (isPlaceholder || isFDABoilerplate),
     badge: badge,
     nctId: nctId,
-    confidence: confidence
+    confidence: confidence,
+    source: resolveSource,
+    sourceLabel: sourceLabel
   };
 }
 
@@ -859,14 +907,28 @@ function populatePage(d, isPaid) {
   if (dn.isPlaceholder) drugNameEl.classList.add('pending');
   else drugNameEl.classList.remove('pending');
 
-  // Provenance strip — show CT.gov resolver source when present
-  if (dn.nctId && dn.confidence) {
+  // Provenance strip — show resolver source + confidence for any AUTO-RESOLVED flag
+  if (dn.source && dn.confidence) {
     var pvStrip = document.getElementById('provenance-strip');
     var pvBody = document.getElementById('provenance-body');
-    pvBody.innerHTML = 'Resolved via ClinicalTrials.gov v2 → ' +
-      '<a href="https://clinicaltrials.gov/study/' + escapeHtml(dn.nctId) + '" target="_blank" rel="noopener">' +
-      escapeHtml(dn.nctId) + '</a> · confidence: <strong>' + dn.confidence.toUpperCase() + '</strong>';
-    pvStrip.style.display = 'flex';
+    var pvHtml = '';
+    if (dn.source === 'CT.GOV' && dn.nctId) {
+      pvHtml = 'Resolved via ClinicalTrials.gov v2 → ' +
+        '<a href="https://clinicaltrials.gov/study/' + escapeHtml(dn.nctId) + '" target="_blank" rel="noopener">' +
+        escapeHtml(dn.nctId) + '</a> · confidence: <strong>' + dn.confidence.toUpperCase() + '</strong>';
+    } else if (dn.source === 'AI') {
+      pvHtml = 'Resolved via AI + web search (Claude) · confidence: <strong>' + dn.confidence.toUpperCase() + '</strong> · ' +
+        '<span style="opacity:0.7;">verify with SEC filings before trading</span>';
+    } else if (dn.source === 'DRUG_ASSETS') {
+      pvHtml = 'Resolved from drug_assets lookup · confidence: <strong>' + dn.confidence.toUpperCase() + '</strong>';
+    } else if (dn.source === 'NOTES') {
+      pvHtml = 'Extracted from notes field · confidence: <strong>' + dn.confidence.toUpperCase() + '</strong> · ' +
+        '<span style="opacity:0.7;">best-effort extraction, verify manually</span>';
+    }
+    if (pvHtml) {
+      pvBody.innerHTML = pvHtml;
+      pvStrip.style.display = 'flex';
+    }
   }
 
   // Royalty/licensee indicator
