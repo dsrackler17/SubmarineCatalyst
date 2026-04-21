@@ -3,17 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Submarine Catalyst — Biotech Intelligence Platform</title>
-<meta name="description" content="Submarine Catalyst — Biotech PDUFA intelligence platform. 870+ companies tracked. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. Built by a Navy submarine veteran for investors who do their own work.">
-<meta name="keywords" content="PDUFA, biotech, FDA approval, binary events, catalyst trading, biotech scanner, approval probability, sell the news, dilution risk, ATM offering, EDGAR, buyout probability, TAM, biotech intelligence, FDA calendar, biotech earnings">
-<meta name="author" content="Submarine Catalyst">
+<title>Submarine Catalyst — Biotech PDUFA Scanner Built Solo</title>
+<meta name="description" content="Biotech PDUFA scanner built by a Navy veteran working solo. 870+ tickers. Eight risk layers scored daily. Live track record: 8/9 pre-decision calls correct. 102-event retrospective backtest. $1M portfolio IRR on real Polygon data. $29.99/mo, cancel anytime.">
+<meta name="keywords" content="PDUFA scanner, biotech FDA calendar, sell the news risk, dilution radar, SEC EDGAR biotech, buyout probability, TAM biotech, ClinicalTrials.gov API, openFDA FAERS, Federal Register FDA">
+<meta name="author" content="Davis Rackler · Submarine Catalyst">
 <link rel="canonical" href="https://submarinecatalyst.com/">
 
 <!-- Open Graph / Social -->
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://submarinecatalyst.com/">
-<meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta property="og:description" content="870+ biotech companies. Approval probability, sell-the-news risk, dilution radar, buyout scoring, TAM/Cap analysis, and AI deep dives. Public live track record · retrospective PoA backtest · $1M portfolio IRR simulation on real Polygon.io data. $29.99/mo.">
+<meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Scanner Built Solo">
+<meta property="og:description" content="870+ tickers. Eight risk layers. Built by a Navy vet because the tools I needed didn't exist. 8/9 live resolved calls correct. Every outcome logged — wins and losses. $29.99/mo.">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -23,8 +23,8 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@DRackler">
 <meta name="twitter:creator" content="@DRackler">
-<meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Intelligence">
-<meta name="twitter:description" content="870+ companies. 8-layer scoring model. Public live track record + retrospective PoA backtest + $1M portfolio IRR on real Polygon.io data. $29.99/mo.">
+<meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Scanner Built Solo">
+<meta name="twitter:description" content="Scanner caught TVTX +33%, VNDA +45%, REPL -64% CRL all before resolution. 870+ tickers, 8 layers, $29.99/mo. Solo builder, full track record public.">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -113,13 +113,18 @@ nav {
 }
 .hero-eyebrow { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
 .hero-eyebrow::before { content: ''; display: block; width: 2rem; height: 1px; background: var(--accent); }
-.hero-headline { font-family: var(--serif); font-size: clamp(2.8rem, 5vw, 4.5rem); line-height: 1.1; color: var(--white); margin-bottom: 1.5rem; }
-.hero-headline em { color: var(--accent); font-style: italic; }
-.hero-sub { font-size: 1.1rem; color: var(--text); max-width: 480px; margin-bottom: 2.5rem; line-height: 1.7; font-weight: 300; }
-.hero-actions { display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; }
+.hero-headline { font-family: var(--serif); font-size: clamp(2.8rem, 5vw, 4.5rem); line-height: 1.05; color: var(--white); margin-bottom: 1.5rem; }
+.hero-headline em { color: var(--accent); font-style: normal; }
+.hero-headline .hl-red { color: var(--red); font-style: normal; }
+.hero-sub { font-size: 1.1rem; color: var(--text); max-width: 500px; margin-bottom: 2.5rem; line-height: 1.7; font-weight: 300; }
+.hero-sub strong { color: var(--white); font-weight: 400; }
+.hero-actions { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1rem; }
 .btn-primary { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.9rem 2rem; cursor: pointer; font-weight: 700; text-decoration: none; display: inline-block; transition: opacity 0.2s, transform 0.2s; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
 .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-.hero-note { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.06em; }
+.btn-secondary { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); text-decoration: none; border-bottom: 1px solid rgba(200,223,240,0.3); padding-bottom: 3px; transition: color 0.2s, border-color 0.2s; }
+.btn-secondary:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.hero-note { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.06em; line-height: 1.7; }
+.hero-note span { color: var(--accent2); }
 .hero-terminal { background: var(--surface); border: 1px solid var(--border); font-family: var(--mono); font-size: 0.78rem; overflow: hidden; position: relative; animation: fadeUp 0.8s ease both 0.3s; }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 .terminal-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
@@ -142,13 +147,40 @@ nav {
 .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); max-width: 80px; }
 .section-heading { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); color: var(--white); margin-bottom: 1rem; line-height: 1.15; }
 .section-sub { color: var(--muted); max-width: 580px; font-weight: 300; font-size: 1.05rem; }
-.how-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 3.5rem; border: 1px solid var(--border); }
-.how-card { padding: 2rem 1.75rem; border-right: 1px solid var(--border); position: relative; transition: background 0.3s; }
-.how-card:last-child { border-right: none; }
-.how-card:hover { background: rgba(0,212,255,0.03); }
-.how-num { font-family: var(--mono); font-size: 2.5rem; font-weight: 700; color: rgba(0,212,255,0.12); line-height: 1; margin-bottom: 1rem; display: block; }
-.how-title { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
-.how-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
+
+/* Comparison table */
+.compare-wrap { margin-top: 3rem; border: 1px solid var(--border); overflow-x: auto; }
+.compare-table { width: 100%; border-collapse: collapse; min-width: 760px; font-family: var(--mono); }
+.compare-table th, .compare-table td { padding: 0.9rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.78rem; }
+.compare-table thead th { background: var(--panel); color: var(--muted); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+.compare-table thead th.col-sc { color: var(--accent); background: rgba(0,212,255,0.08); border-bottom: 2px solid var(--accent); }
+.compare-table tbody tr:hover td { background: rgba(0,212,255,0.02); }
+.compare-table td.col-sc { color: var(--white); background: rgba(0,212,255,0.04); border-right: 1px solid rgba(0,212,255,0.15); border-left: 1px solid rgba(0,212,255,0.15); }
+.compare-table td.feature { color: var(--text); font-family: var(--sans); font-size: 0.85rem; font-weight: 400; }
+.compare-table td.muted { color: var(--muted); }
+.compare-check { color: var(--accent2); font-weight: 700; }
+.compare-x { color: var(--red); opacity: 0.6; }
+.compare-tilde { color: var(--amber); }
+
+/* Feature buckets */
+.buckets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
+.bucket { background: var(--surface); border: 1px solid var(--border); padding: 2rem 1.75rem; position: relative; }
+.bucket::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
+.bucket:nth-child(2)::before { background: var(--accent2); }
+.bucket:nth-child(3)::before { background: var(--amber); }
+.bucket-eyebrow { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
+.bucket:nth-child(2) .bucket-eyebrow { color: var(--accent2); }
+.bucket:nth-child(3) .bucket-eyebrow { color: var(--amber); }
+.bucket-title { font-family: var(--serif); font-size: 1.5rem; color: var(--white); margin-bottom: 1rem; line-height: 1.2; }
+.bucket-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.7; font-weight: 300; margin-bottom: 1.5rem; }
+.bucket-list { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+.bucket-list li { display: flex; align-items: flex-start; gap: 0.5rem; font-family: var(--mono); font-size: 0.72rem; color: var(--text); line-height: 1.6; }
+.bucket-list li::before { content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 0.1rem; }
+.bucket:nth-child(2) .bucket-list li::before { color: var(--accent2); }
+.bucket:nth-child(3) .bucket-list li::before { color: var(--amber); }
+.bucket-source { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+
+/* Signals section */
 .signals-section { background: var(--deep); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .signals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin-top: 3rem; }
 .signal-list { display: flex; flex-direction: column; gap: 0; }
@@ -170,6 +202,8 @@ nav {
 .score-total-row { display: flex; justify-content: space-between; align-items: center; }
 .score-total-label { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em; }
 .score-total-val { font-size: 1.8rem; font-weight: 700; color: var(--accent2); }
+
+/* Pricing */
 .pricing-wrapper { display: grid; grid-template-columns: 1fr 440px 1fr; gap: 1.5rem; margin-top: 3.5rem; align-items: center; }
 .pricing-context { color: var(--muted); font-size: 0.9rem; font-weight: 300; line-height: 1.9; }
 .pricing-context strong { display: block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
@@ -192,7 +226,11 @@ nav {
 .pricing-cta:disabled { opacity: 0.4; cursor: not-allowed; }
 .pricing-note { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-align: center; margin-top: 0.75rem; letter-spacing: 0.06em; }
 .pricing-right { color: var(--muted); font-size: 0.9rem; font-weight: 300; line-height: 1.9; padding-left: 1rem; border-left: 1px solid var(--border); }
-.pricing-right strong { display: block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber); margin-bottom: 0.75rem; }
+.pricing-right strong { display: block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent2); margin-bottom: 0.75rem; }
+.risk-reversal { margin-top: 1rem; font-family: var(--mono); font-size: 0.68rem; color: var(--text); background: rgba(0,255,157,0.05); border: 1px solid rgba(0,255,157,0.2); padding: 0.75rem 1rem; line-height: 1.7; }
+.risk-reversal strong { color: var(--accent2); letter-spacing: 0.04em; }
+
+/* Origin */
 .origin-section { background: var(--deep); border-top: 1px solid var(--border); }
 .origin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; }
 .origin-text p { font-size: 1rem; color: var(--muted); font-weight: 300; line-height: 1.85; margin-bottom: 1.25rem; }
@@ -201,16 +239,31 @@ nav {
 .stat-cell { background: var(--surface); padding: 1.75rem; text-align: center; }
 .stat-val { font-family: var(--serif); font-size: 2.8rem; color: var(--accent); line-height: 1; display: block; margin-bottom: 0.3rem; }
 .stat-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+
+/* Coverage */
+.coverage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 3rem; border: 1px solid var(--border); }
+.coverage-card { padding: 2rem 1.75rem; border-right: 1px solid var(--border); position: relative; transition: background 0.3s; }
+.coverage-card:last-child { border-right: none; }
+.coverage-card:hover { background: rgba(0,212,255,0.03); }
+.coverage-num { font-family: var(--mono); font-size: 2.5rem; font-weight: 700; line-height: 1; margin-bottom: 1rem; display: block; }
+.coverage-title { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
+.coverage-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
+
+/* Footer */
 footer { border-top: 1px solid var(--border); padding: 2rem 3rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); }
 footer a { color: var(--muted); text-decoration: none; }
 footer a:hover { color: var(--accent); }
 .footer-disclaimer { max-width: 600px; text-align: center; line-height: 1.7; }
+
+/* Reveal */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
 .reveal.visible { opacity: 1; transform: none; }
 .auth-status { font-family: var(--mono); font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 4px; margin: 1rem 0; text-align: center; }
 .auth-success { background: rgba(0,255,157,0.15); color: var(--accent2); }
 .auth-error { background: rgba(255,68,68,0.15); color: var(--red); }
 .hidden { display: none !important; }
+
+/* Email */
 .email-capture { display: flex; max-width: 460px; margin: 0 auto; gap: 0; }
 .email-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-right: none; color: var(--white); font-family: var(--mono); font-size: 0.82rem; padding: 0.85rem 1rem; outline: none; transition: border-color 0.2s; }
 .email-input::placeholder { color: var(--muted); }
@@ -222,6 +275,8 @@ footer a:hover { color: var(--accent); }
 .social-row { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; }
 .social-link { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 0.4rem 1rem; transition: all 0.2s; }
 .social-link:hover { color: var(--white); border-color: var(--white); }
+
+/* FAQ */
 .faq-list { display: flex; flex-direction: column; gap: 0; }
 .faq-item { border-bottom: 1px solid var(--border); }
 .faq-item:first-child { border-top: 1px solid var(--border); }
@@ -230,7 +285,9 @@ footer a:hover { color: var(--accent); }
 .faq-arrow { font-family: var(--mono); font-size: 1.2rem; color: var(--muted); transition: transform 0.3s; flex-shrink: 0; margin-left: 1.5rem; }
 .faq-item.open .faq-arrow { transform: rotate(45deg); color: var(--accent); }
 .faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; font-size: 0.9rem; color: var(--muted); font-weight: 300; line-height: 1.8; padding: 0 0 0 0; }
-.faq-item.open .faq-a { max-height: 300px; padding: 0 0 1.25rem 0; }
+.faq-item.open .faq-a { max-height: 400px; padding: 0 0 1.25rem 0; }
+
+/* Urgency bar */
 .urgency-bar {
   background: rgba(0,255,157,0.08);
   border-bottom: 1px solid rgba(0,255,157,0.25);
@@ -250,6 +307,8 @@ footer a:hover { color: var(--accent); }
 .urgency-bar a { color: var(--accent2); text-decoration: underline; text-underline-offset: 3px; }
 .urgency-bar .ub-divider { color: rgba(0,255,157,0.3); }
 .urgency-bar strong { color: var(--white); font-weight: 700; }
+
+/* Insight callout (used in proof) */
 .insight-callout {
   background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.15);
   border-left: 3px solid var(--accent);
@@ -260,13 +319,14 @@ footer a:hover { color: var(--accent); }
 .insight-callout .ic-body { color: var(--text); line-height: 1.7; }
 .insight-callout .ic-body strong { color: var(--accent2); }
 .insight-callout .ic-body .ic-neg { color: var(--red); }
+
 .diff-badge {
   display: inline-block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
   text-transform: uppercase; padding: 0.2rem 0.6rem; background: rgba(0,255,157,0.1);
   color: var(--accent2); border: 1px solid rgba(0,255,157,0.25); margin-left: 0.75rem; vertical-align: middle;
 }
 
-/* ===== PORTFOLIO SIMULATION SECTION (landing page teaser) ===== */
+/* Portfolio sim */
 .sim-section { background: var(--navy); border-top: 1px solid var(--border); }
 .sim-wrap { max-width: 1000px; margin: 0 auto; padding: 5rem 3rem; }
 .sim-head { text-align: center; margin-bottom: 2.5rem; }
@@ -291,8 +351,33 @@ footer a:hover { color: var(--accent); }
 .sim-footer a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed rgba(0,212,255,0.35); }
 .sim-footer a:hover { color: var(--accent2); border-bottom-color: var(--accent2); }
 
-@media (max-width: 1024px) { .hero { grid-template-columns: 1fr; padding: 4rem 2rem; } .how-grid { grid-template-columns: 1fr 1fr; } .how-card { border-bottom: 1px solid var(--border); } .signals-grid { grid-template-columns: 1fr; } .pricing-wrapper { grid-template-columns: 1fr; } .origin-grid { grid-template-columns: 1fr; gap: 3rem; } nav { padding: 1rem 1.5rem; } .nav-links { display: none; } }
-@media (max-width: 640px) { .how-grid { grid-template-columns: 1fr; } .origin-stats { grid-template-columns: 1fr 1fr; } .section { padding: 3.5rem 1.5rem; } .sim-wrap { padding: 3.5rem 1.5rem; } .sim-stats { grid-template-columns: 1fr 1fr; } .sim-val { font-size: 1.7rem; } }
+/* Final CTA strip */
+.final-cta { background: linear-gradient(180deg, var(--deep) 0%, var(--navy) 100%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4rem 3rem; text-align: center; }
+.final-cta h2 { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.5rem); color: var(--white); margin-bottom: 1rem; }
+.final-cta p { color: var(--muted); font-size: 1rem; font-weight: 300; max-width: 560px; margin: 0 auto 2rem; line-height: 1.7; }
+.final-cta .btn-primary { font-size: 0.9rem; padding: 1.1rem 2.75rem; }
+.final-cta .final-note { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-top: 1.25rem; letter-spacing: 0.06em; }
+.final-cta .final-note span { color: var(--accent2); }
+
+@media (max-width: 1024px) {
+  .hero { grid-template-columns: 1fr; padding: 4rem 2rem; }
+  .buckets-grid { grid-template-columns: 1fr; }
+  .signals-grid { grid-template-columns: 1fr; }
+  .pricing-wrapper { grid-template-columns: 1fr; }
+  .origin-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .coverage-grid { grid-template-columns: 1fr; }
+  .coverage-card { border-right: none; border-bottom: 1px solid var(--border); }
+  nav { padding: 1rem 1.5rem; }
+  .nav-links { display: none; }
+}
+@media (max-width: 640px) {
+  .origin-stats { grid-template-columns: 1fr 1fr; }
+  .section { padding: 3.5rem 1.5rem; }
+  .sim-wrap { padding: 3.5rem 1.5rem; }
+  .sim-stats { grid-template-columns: 1fr 1fr; }
+  .sim-val { font-size: 1.7rem; }
+  .final-cta { padding: 3rem 1.5rem; }
+}
 </style>
 <script type="application/ld+json">
 {
@@ -302,7 +387,7 @@ footer a:hover { color: var(--accent); }
   "applicationCategory": "FinanceApplication",
   "operatingSystem": "Web",
   "url": "https://submarinecatalyst.com",
-  "description": "Biotech PDUFA intelligence platform. 870+ companies tracked with 8-layer scoring: approval probability, sell-the-news risk, dilution detection, buyout probability, TAM/Cap analysis, and AI research. Built for biotech investors.",
+  "description": "Biotech PDUFA scanner. 870+ tickers tracked with 8 risk layers: approval probability, sell-the-news risk, SEC EDGAR dilution detection, buyout probability, TAM/Cap analysis, AI research. Built solo by a Navy veteran.",
   "offers": {
     "@type": "Offer",
     "price": "29.99",
@@ -349,33 +434,35 @@ footer a:hover { color: var(--accent); }
     <li><a href="/compare.html">Compare</a></li>
     <li><a href="/track-record.html">Track Record</a></li>
     <li><a href="/how-institutions-trade.html">Methodology</a></li>
-    <li><a href="/behavior-patterns.html">Patterns</a></li>
-    <li><a href="#pricing">Pricing</a></li>
     <li><a href="#faq">FAQ</a></li>
+    <li><a href="/login.html">Login</a></li>
   </ul>
-  <a href="#pricing" class="nav-cta">Get Access</a>
+  <a href="#pricing" class="nav-cta">Start Tracking Catalysts</a>
 </nav>
 
 <div class="urgency-bar" id="urgency-bar">
-  <span><span class="ub-pulse"></span>Apr 13 resolved: TVTX <strong>+33.29%</strong> · LGND <strong>+14%</strong> · both APPROVE calls correct · live record <strong id="ub-live-count">8/9</strong></span>
+  <span><span class="ub-pulse"></span>Live record: <strong id="ub-live-count">8/9</strong> pre-decision calls correct · most recent wins TVTX <strong>+33%</strong> and LGND <strong>+14%</strong></span>
   <span class="ub-divider">·</span>
-  <span><span id="ub-bt-scored">102</span>-event scored backtest + <span id="ub-bt-tradable">73</span>-event $1M IRR now live</span>
+  <span><span id="ub-bt-scored">102</span>-event backtest + <span id="ub-bt-tradable">73</span>-event $1M IRR on real Polygon data</span>
   <span class="ub-divider">·</span>
-  <a href="/track-record.html">View full track record →</a>
+  <a href="/track-record.html">View everything logged →</a>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     HERO — outcome-first, human voice
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section>
   <div class="hero">
     <div class="hero-left">
-      <div class="hero-eyebrow">Biotech Catalyst Research Terminal</div>
-      <h1 class="hero-headline">870+ companies. Eight scoring layers.<br><em>One screen.</em></h1>
-      <p class="hero-sub">Probability of approval, post-decision price behavior modeling, dilution detection, M&A scoring, supply chain risk classification, and TAM analysis — structured from FDA filings, SEC EDGAR, and clinical data. Updated daily. Built for biotech investors who do their own work.</p>
+      <div class="hero-eyebrow">Biotech PDUFA scanner · 870+ tickers</div>
+      <h1 class="hero-headline">Catch the <em>+33%</em> approval.<br>Flag the <span class="hl-red">-64%</span> CRL.</h1>
+      <p class="hero-sub">I was spending five hours per ticker reading FDA history, S-3 shelf registrations, and clinical trial data, and still missing the one thing that tanked the trade. So I built a scanner that reads all of it for me, every day, across <strong>870+ biotech tickers</strong>. Eight risk layers. Every pre-decision call logged publicly. Wins and losses.</p>
       <div id="auth-status" class="auth-status hidden"></div>
       <div class="hero-actions">
-        <button id="signup-btn" class="btn-primary">Get Access</button>
-        <button id="login-btn" class="btn-primary" style="background:var(--muted);">Login</button>
-        <span class="hero-note">$29.99/month · Cancel anytime</span>
+        <button id="signup-btn" class="btn-primary">Start Tracking Catalysts — $29.99/mo</button>
+        <a href="#proof" class="btn-secondary">See the track record →</a>
       </div>
+      <p class="hero-note"><span>✓</span> Cancel any time · No contracts · Solo-built by a Navy vet · Billed monthly via Stripe</p>
     </div>
 
     <div class="hero-terminal">
@@ -385,20 +472,20 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="terminal-body">
         <div class="t-dim">══════════════════════════════════════════════════</div>
-        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · PoA called </span><span class="t-grn">72%</span><span class="t-dim"> · move </span><span class="t-grn">+33.29%</span></div>
-        <div><span class="t-grn">✅ LGND</span><span class="t-dim"> APPROVED · PoA called </span><span class="t-grn">71.5%</span><span class="t-dim"> · move </span><span class="t-grn">+14%</span></div>
+        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">72% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+33.29%</span></div>
+        <div><span class="t-grn">✅ LGND</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">71.5% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+14%</span></div>
+        <div><span class="t-grn">✅ VNDA</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">78% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+45%</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-red">❌ REPL</span><span class="t-dim"> 2nd CRL · PoA called </span><span class="t-red">84%</span><span class="t-dim"> — model miss</span></div>
-        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">−64%</span><span class="t-dim"> downside risk</span></div>
+        <div><span class="t-red">❌ REPL</span><span class="t-dim"> 2nd CRL · called </span><span class="t-red">84% PoA</span><span class="t-dim"> — model miss</span></div>
+        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">-64%</span><span class="t-dim"> downside risk</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div class="t-dim"> 📊 Live: <span id="hero-live-count">8/9</span> Resolved · <span id="hero-miss-count">1</span> Miss Logged (<span id="hero-miss-tickers">REPL</span>)</div>
-        <div><span class="t-dim"> VNDA </span><span class="t-grn">+45%</span><span class="t-dim"> | RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️</span></div>
-        <div><span class="t-dim"> TVTX </span><span class="t-grn">+33.29%</span><span class="t-dim"> | LGND </span><span class="t-grn">+14%</span><span class="t-dim"> | DNLI </span><span class="t-grn">+8%</span></div>
+        <div><span class="t-dim"> RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️ · DNLI </span><span class="t-grn">+8%</span><span class="t-dim"> · BIIB </span><span class="t-red">-5%</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div><span class="t-dim"> 🧪 Backtest: </span><span class="t-acc" id="hero-bt-scored">102</span><span class="t-dim"> scored · </span><span class="t-acc" id="hero-bt-tradable">73</span><span class="t-dim"> with real IRR data</span></div>
-        <div><span class="t-dim"> 💰 Portfolio: </span><span class="t-grn">$1M → live IRR</span><span class="t-dim"> · 7.5% sizing · chronological</span></div>
+        <div><span class="t-dim"> 💰 Portfolio: </span><span class="t-grn">$1M → live IRR</span><span class="t-dim"> · Polygon.io close data</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-dim"> 870+ companies tracked | Updated daily | </span><span class="t-grn">LIVE</span></div>
+        <div><span class="t-dim"> 870+ tickers · 8 risk layers · Updated </span><span class="t-grn">DAILY</span></div>
         <div class="t-dim">══════════════════════════════════════════════════</div>
         <div class="cursor t-dim"> </div>
       </div>
@@ -406,9 +493,12 @@ footer a:hover { color: var(--accent); }
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PROOF — live track record (unchanged; pulls from DB)
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="proof" style="background:var(--navy);border-top:1px solid var(--border);padding:3rem 0;">
   <div class="section reveal" style="text-align:center;">
-    <div class="section-label" style="justify-content:center;">Model Validation</div>
+    <div class="section-label" style="justify-content:center;">Track Record</div>
     <h2 class="section-heading" id="proof-headline">Loading track record…</h2>
     <p class="section-sub" id="proof-intro" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record.</p>
 
@@ -433,7 +523,7 @@ footer a:hover { color: var(--accent); }
 
     <div style="max-width:700px;margin:1.25rem auto 0;text-align:left;">
       <p id="proof-summary" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">Loading summary…</p>
-      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative research classifications derived from public data. Not investment advice. Past classification accuracy does not guarantee future results.</p>
+      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative classifications from public data. Not investment advice. Past accuracy does not guarantee future results.</p>
     </div>
 
     <div style="margin-top:1.5rem;">
@@ -443,7 +533,7 @@ footer a:hover { color: var(--accent); }
 
   <script>
   // ═══════════════════════════════════════════════════════════════════════════
-  // PROOF SECTION — LIVE TRACK RECORD LOADER
+  // PROOF SECTION — LIVE TRACK RECORD LOADER (unchanged)
   // ═══════════════════════════════════════════════════════════════════════════
   (async function loadProof() {
     const $ = (id) => document.getElementById(id);
@@ -511,11 +601,9 @@ footer a:hover { color: var(--accent); }
     $('proof-headline').textContent =
       `${correct.length}/${scored.length} live resolved.${missText} Plus ${btScored}-event scored backtest and ${btTradable}-event IRR simulation.`;
 
-    const pendingText = pending.length > 0
-      ? ` ${pending.length} pending.`
-      : '';
+    const pendingText = pending.length > 0 ? ` ${pending.length} pending.` : '';
     $('proof-intro').innerHTML =
-      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">${btScored}-event retrospective backtest</a> scores the same PoA engine against every FDA NME decision from Feb 2024 onward. And a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">${btTradable}-event $1M portfolio IRR</a> compounded through every event where Polygon.io has real post-decision data.`;
+      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">${btScored}-event retrospective backtest</a> runs the same PoA engine against every FDA NME decision from Feb 2024 onward. And a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">${btTradable}-event $1M portfolio IRR</a> compounded through every event where Polygon.io has real post-decision close data.`;
 
     let calloutHTML = '';
     if (misses.length > 0) {
@@ -527,7 +615,7 @@ footer a:hover { color: var(--accent); }
       calloutHTML +=
         `<strong>The miss:</strong> ${m.ticker} was called ${m.scanner_call || 'APPROVE'} at ` +
         `<span class="ic-neg">${m.scanner_poa}% PoA</span> — FDA issued a ${m.actual_result}. ` +
-        `${misses.length === 1 ? 'Only' : 'Most recent'} incorrect call in the live track record. Logged, not deleted.${stnNote} `;
+        `${misses.length === 1 ? 'Only' : 'Most recent'} incorrect call in the live record. Logged, not deleted.${stnNote} `;
     }
 
     const stnCorrectFlags = scored.filter(r => {
@@ -629,16 +717,15 @@ footer a:hover { color: var(--accent); }
   </script>
 </section>
 
-<!-- ═════════════════════════════════════════════════════════════════════════
-     PORTFOLIO SIMULATION SECTION — $1M landing-page teaser
-     Pulls track_record, computes capital at 7.5% sizing, links to full page
-     ═════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PORTFOLIO SIMULATION (unchanged; pulls from DB)
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="portfolio-sim" class="sim-section">
   <div class="sim-wrap reveal">
     <div class="sim-head">
       <div class="section-label">Portfolio Simulation</div>
       <h2 class="section-heading" style="margin-bottom:1rem;">$1M, compounded through every call.</h2>
-      <p class="sim-sub">What $1,000,000 would have done if sized through every resolved live call at a fixed 7.5% of equity per trade, in chronological order. LONG and SHORT directions follow the classification's <code style="font-family:var(--mono);color:var(--accent);background:rgba(0,212,255,0.08);padding:1px 4px;font-size:0.85em;">trade_type</code>. No leverage, no overlap, no fee model. Because PDUFA events don't overlap at the portfolio level, IRR collapses to CAGR.</p>
+      <p class="sim-sub">What $1,000,000 would have done sized through every resolved live call at a fixed 7.5% of equity per trade, in chronological order. LONG and SHORT follow the classification's <code style="font-family:var(--mono);color:var(--accent);background:rgba(0,212,255,0.08);padding:1px 4px;font-size:0.85em;">trade_type</code>. No leverage. No overlap. No fee model. Since PDUFA events don't overlap at the portfolio level, IRR collapses to CAGR.</p>
     </div>
 
     <div class="sim-stats">
@@ -671,10 +758,6 @@ footer a:hover { color: var(--accent); }
   </div>
 
   <script>
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LANDING-PAGE PORTFOLIO SIM — lightweight, read-only
-  // Computes $1M → ending equity at 7.5% sizing. Full page has sizing toggle.
-  // ═══════════════════════════════════════════════════════════════════════════
   (async function loadSim() {
     const $ = (id) => document.getElementById(id);
 
@@ -705,7 +788,6 @@ footer a:hover { color: var(--accent); }
       return;
     }
 
-    // Filter: must have return_pct AND position taken (not WATCH)
     const trades = rows.filter(r => {
       if (r.return_pct === null || r.return_pct === undefined) return false;
       if (Number.isNaN(Number(r.return_pct))) return false;
@@ -775,43 +857,192 @@ footer a:hover { color: var(--accent); }
   </script>
 </section>
 
-<section id="how" style="background: var(--deep); border-top: 1px solid var(--border);">
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     COMPARISON TABLE — positioning vs manual / calendar tools / Bloomberg
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section id="compare" style="background:var(--deep);border-top:1px solid var(--border);">
   <div class="section reveal">
-    <div class="section-label">The Method</div>
-    <h2 class="section-heading">Not a calendar. Not a screener.<span class="diff-badge">vs BioPharma Catalyst</span><br>An intelligence platform.</h2>
-    <p class="section-sub">Eight independent analysis layers sourced from FDA filings, SEC EDGAR, and peer-reviewed literature (Hay et al. 2014 · Wong et al. 2019). Every score is documented. No black boxes. Unlike calendar-only tools, Submarine Catalyst models <em>both</em> approval probability and post-decision price behavior from the same dataset.</p>
-    <div class="how-grid">
-      <div class="how-card"><span class="how-num">01</span><div class="how-title">Calendar Ingestion</div><p class="how-desc">Pulls the live PDUFA calendar daily. Every upcoming FDA decision — small-cap, mid-cap, and large-cap — across the entire biotech universe gets queued for scoring automatically.</p></div>
-      <div class="how-card"><span class="how-num">02</span><div class="how-title">PoA Computation</div><p class="how-desc">Blends indication-specific base rates (Hay 2014, Wong 2019) with review pathway type, AdCom vote parsing, and SEC 8-K filing language signals to produce a calibrated approval probability.</p></div>
-      <div class="how-card"><span class="how-num">03</span><div class="how-title">Sell-The-News Risk</div><p class="how-desc">Approval ≠ stock move. The STN model scores whether approval is priced in, revenue potential, commercial launch burden, and institutional positioning. Calibrated against real outcomes — RCKT (approved, −20%), VNDA (approved, +45%), TVTX (approved, +33.29%). STN HIGH was also flagged on REPL before the 2nd CRL — stock dropped 64% regardless of the reason.</p></div>
-      <div class="how-card"><span class="how-num">04</span><div class="how-title">Dilution Radar</div><p class="how-desc">Scans SEC EDGAR for 424B5 filings, S-3 shelf registrations, ATM offerings, and sales agent changes near PDUFA dates. Detects the capital raises that destroy post-approval gains before you buy.</p></div>
-      <div class="how-card"><span class="how-num">05</span><div class="how-title">Net Edge Score</div><p class="how-desc">Combines PoA, STN Risk, Dilution Radar, cash runway, and insider activity into a single composite. One number that answers "is this a good trade" — not just "will it get approved."</p></div>
-      <div class="how-card"><span class="how-num">06</span><div class="how-title">Behavioral Patterns</div><p class="how-desc">Classifies each event into five post-catalyst behaviors: Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction. Not predictions — behavioral tendencies drawn from historical data.</p></div>
-      <div class="how-card"><span class="how-num">07</span><div class="how-title">TAM / Market Cap Ratio</div><p class="how-desc">Estimates the drug's Total Addressable Market and compares it to the company's market cap. A $500M company with a $10B drug market has 20x upside. A $2B company with a $200M drug market has limited room. TAM/Cap tells you if the stock can actually move.</p></div>
-      <div class="how-card"><span class="how-num">08</span><div class="how-title">Buyout Probability</div><p class="how-desc">Scores acquisition likelihood from 8 factors: asset quality (approved + orphan + breakthrough), acquirer urgency from a 14-company Big Pharma patent cliff database (ABBV, MRK, PFE, LLY, BIIB and 9 others), strategic cluster, insider momentum, valuation gap, balance sheet, and penalty filters for litigation and management resistance.</p></div>
+    <div class="section-label">Why this exists</div>
+    <h2 class="section-heading">Biotech catalyst data is either free and useless or $2k/mo and overkill.</h2>
+    <p class="section-sub">A PDUFA calendar without risk scoring tells you when the event is. It doesn't tell you whether the setup is worth trading. That gap is the whole point of this tool.</p>
+
+    <div class="compare-wrap">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="width:32%;">&nbsp;</th>
+            <th>DIY research</th>
+            <th>Calendar-only tools</th>
+            <th>Bloomberg Terminal</th>
+            <th class="col-sc">Submarine Catalyst</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="feature">Monthly cost</td>
+            <td class="muted">$0 + 5 hrs/ticker</td>
+            <td class="muted">$0 – $200</td>
+            <td class="muted">~$2,000+/mo</td>
+            <td class="col-sc"><strong>$29.99/mo</strong></td>
+          </tr>
+          <tr>
+            <td class="feature">PDUFA calendar</td>
+            <td class="muted">Manual from FDA.gov</td>
+            <td><span class="compare-check">✓</span></td>
+            <td><span class="compare-check">✓</span></td>
+            <td class="col-sc"><span class="compare-check">✓</span> 870+ tickers</td>
+          </tr>
+          <tr>
+            <td class="feature">Probability-of-approval scoring</td>
+            <td class="muted">You guess</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted">Analyst reports, not scored</td>
+            <td class="col-sc"><span class="compare-check">✓</span> Hay 2014 · Wong 2019</td>
+          </tr>
+          <tr>
+            <td class="feature">Sell-the-news risk layer</td>
+            <td class="muted">You guess</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="col-sc"><span class="compare-check">✓</span> HIGH flagged REPL -64%, RCKT -20%</td>
+          </tr>
+          <tr>
+            <td class="feature">Dilution radar (SEC EDGAR)</td>
+            <td class="muted">Manual 424B5 scans</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted">Manual</td>
+            <td class="col-sc"><span class="compare-check">✓</span> Auto every 6 hrs</td>
+          </tr>
+          <tr>
+            <td class="feature">Buyout probability model</td>
+            <td class="muted">You guess</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="col-sc"><span class="compare-check">✓</span> 14-company patent cliff DB</td>
+          </tr>
+          <tr>
+            <td class="feature">TAM / Market Cap ratio</td>
+            <td class="muted">Spreadsheet</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="col-sc"><span class="compare-check">✓</span> Per-indication TAM</td>
+          </tr>
+          <tr>
+            <td class="feature">Live track record (wins + losses)</td>
+            <td class="muted">Your trading journal</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted">N/A</td>
+            <td class="col-sc"><span class="compare-check">✓</span> Public, including REPL miss</td>
+          </tr>
+          <tr>
+            <td class="feature">Pre-run calibration backtest</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted">N/A</td>
+            <td class="col-sc"><span class="compare-check">✓</span> 102-event, Feb 2024 →</td>
+          </tr>
+          <tr>
+            <td class="feature">AI deep-dive per ticker</td>
+            <td class="muted">You write it</td>
+            <td class="muted"><span class="compare-x">✗</span></td>
+            <td class="muted">Partial</td>
+            <td class="col-sc"><span class="compare-check">✓</span> Any of 870+</td>
+          </tr>
+          <tr>
+            <td class="feature">Runs on your phone</td>
+            <td class="muted"><span class="compare-tilde">~</span> tabs and PDFs</td>
+            <td><span class="compare-check">✓</span></td>
+            <td class="muted">Bloomberg Anywhere $</td>
+            <td class="col-sc"><span class="compare-check">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:1rem;line-height:1.7;">Bloomberg pricing from publicly reported figures. Calendar-only tools category includes free PDUFA tracker sites and low-cost calendar apps. Comparison is opinion based on my own use of each category — you're welcome to disagree.</p>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FEATURE BUCKETS — organized technical capabilities
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section id="features" style="background:var(--navy);border-top:1px solid var(--border);">
+  <div class="section reveal">
+    <div class="section-label">What the platform actually does</div>
+    <h2 class="section-heading">Three data layers. Eight scoring layers.<span class="diff-badge">No black boxes</span></h2>
+    <p class="section-sub">Every data point traces back to a public source. FDA filings, SEC EDGAR, ClinicalTrials.gov v2, Federal Register, openFDA, Finnhub, Polygon.io. You can audit any score on any ticker.</p>
+
+    <div class="buckets-grid">
+
+      <div class="bucket">
+        <div class="bucket-eyebrow">Bucket 01 · Regulatory & Clinical</div>
+        <h3 class="bucket-title">Catalysts the calendar tools don't show you.</h3>
+        <p class="bucket-desc">PDUFA dates are table stakes. The real signal is what's around them — AdCom meetings, Phase 2/3 readouts, CRL resubmissions.</p>
+        <ul class="bucket-list">
+          <li>PDUFA calendar · pulled and scored daily</li>
+          <li>AdCom meetings · via Federal Register API</li>
+          <li>Phase 2/3 readouts · via ClinicalTrials.gov v2</li>
+          <li>CRL recovery filter · isolates CMC-only resubmissions</li>
+          <li>Drug asset database · resolves ticker drift</li>
+        </ul>
+        <div class="bucket-source">Source: FDA.gov · Federal Register · ClinicalTrials.gov v2</div>
+      </div>
+
+      <div class="bucket">
+        <div class="bucket-eyebrow">Bucket 02 · Risk Signal Layers</div>
+        <h3 class="bucket-title">Eight independent scores. One composite.</h3>
+        <p class="bucket-desc">Every layer is documented, weighted, and recalibrated after each resolved event. This is where the edge lives.</p>
+        <ul class="bucket-list">
+          <li>Probability of Approval · Hay 2014 · Wong 2019</li>
+          <li>Sell-the-News Risk · pricing-in + dilution + urgency</li>
+          <li>Dilution Radar · SEC EDGAR scans every 6 hrs</li>
+          <li>Buyout Probability · 8 factors, patent cliff DB</li>
+          <li>TAM / Market Cap ratio · per-indication market size</li>
+          <li>Net Edge Score · composite of all eight</li>
+        </ul>
+        <div class="bucket-source">Source: SEC EDGAR · peer-reviewed approval rates · proprietary weights</div>
+      </div>
+
+      <div class="bucket">
+        <div class="bucket-eyebrow">Bucket 03 · Market Context</div>
+        <h3 class="bucket-title">The stuff that moves the stock.</h3>
+        <p class="bucket-desc">Catalysts don't fire in a vacuum. The rest of the market context — earnings windows, medical conferences, safety reports — all gets scored and placed on the same calendar.</p>
+        <ul class="bucket-list">
+          <li>Earnings calendar · 90-day window via Finnhub</li>
+          <li>Conferences · JPM · ASCO · AACR · ASH · ESMO</li>
+          <li>Safety signals · openFDA FAERS spike detection</li>
+          <li>Live price & volume · Polygon.io</li>
+          <li>Chart-pattern classifier · coiling · building · extended</li>
+        </ul>
+        <div class="bucket-source">Source: Finnhub · openFDA · Polygon.io · static conference manifest</div>
+      </div>
+
     </div>
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     SIGNAL ARCHITECTURE — deep dive for the skeptics (unchanged structure)
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="signals" class="signals-section">
   <div class="section reveal">
     <div class="section-label">Signal Architecture</div>
-    <h2 class="section-heading">Eight signal layers. One composite score.</h2>
-    <p class="section-sub">Each signal is sourced, weighted, and documented. No black boxes. You can audit every modifier on every ticker.</p>
+    <h2 class="section-heading">Eight signal layers. Every modifier documented.</h2>
+    <p class="section-sub">Each signal is sourced and weighted. The RCKT and VNDA panels below show the same model evaluating two approvals — one that made money, one that lost it. Same PoA range, very different outcomes. That's the point.</p>
     <div class="signals-grid">
       <div class="signal-list">
-        <div class="signal-item"><span class="signal-icon">🧬</span><div><div class="signal-name">Indication Classifier</div><div class="signal-desc">Maps drug to 16 therapeutic areas. Applies published FDA phase-3→approval rates. Oncology: 85.5% · Rare/Orphan: 86.2% · CNS: 49%.</div></div><span class="signal-source">Hay 2014 · Wong 2019</span></div>
-        <div class="signal-item"><span class="signal-icon">📋</span><div><div class="signal-name">Review Pathway</div><div class="signal-desc">Breakthrough (90%), Priority NME (81%), Accelerated (72%), Resubmission (65%). Blended 50/50 with indication rate.</div></div><span class="signal-source">FDA PDUFA reports</span></div>
-        <div class="signal-item"><span class="signal-icon">🗳️</span><div><div class="signal-name">AdCom Vote Parser</div><div class="signal-desc">Extracts numerical votes (e.g. "8-7", "14-0"). Unanimous → 1.25× multiplier. Close vote → 0.82×. Also feeds STN Risk.</div></div><span class="signal-source">PMC10329213</span></div>
-        <div class="signal-item"><span class="signal-icon">📁</span><div><div class="signal-name">SEC EDGAR Dilution Radar</div><div class="signal-desc">Scans 424B5, S-3 shelf registrations, ATM offering agreements, and sales agent changes near PDUFA dates every 6 hours. Detects capital raises that destroy post-approval gains before you enter a position.</div></div><span class="signal-source">SEC EDGAR API</span></div>
-        <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov</div><div class="signal-desc">Checks Phase 3 trial status. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
+        <div class="signal-item"><span class="signal-icon">🧬</span><div><div class="signal-name">Indication Classifier</div><div class="signal-desc">Maps drug to 16 therapeutic areas. Applies published FDA phase-3→approval rates. Oncology 85.5% · Rare/Orphan 86.2% · CNS 49%.</div></div><span class="signal-source">Hay 2014 · Wong 2019</span></div>
+        <div class="signal-item"><span class="signal-icon">📋</span><div><div class="signal-name">Review Pathway</div><div class="signal-desc">Breakthrough 90% · Priority NME 81% · Accelerated 72% · Resubmission 65%. Blended 50/50 with indication rate.</div></div><span class="signal-source">FDA PDUFA reports</span></div>
+        <div class="signal-item"><span class="signal-icon">🗳️</span><div><div class="signal-name">AdCom Vote Parser</div><div class="signal-desc">Extracts numerical votes (e.g. 8-7, 14-0). Unanimous → 1.25× multiplier. Close vote → 0.82×. Also feeds STN Risk.</div></div><span class="signal-source">PMC10329213</span></div>
+        <div class="signal-item"><span class="signal-icon">📁</span><div><div class="signal-name">SEC EDGAR Dilution Radar</div><div class="signal-desc">Scans 424B5, S-3 shelf, ATM agreements, and sales-agent changes near PDUFA dates every 6 hours.</div></div><span class="signal-source">SEC EDGAR API</span></div>
+        <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov v2</div><div class="signal-desc">Phase 3 trial status check. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
         <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
-        <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Estimates drug TAM across 50+ indications ($20M–$50B). Compares to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA, the model recalibrates. <span id="sig-live-count">8/9</span> on live resolved events — <span id="sig-miss-text">only miss (REPL 2nd CRL) logged</span>. STN Risk correctly flagged downside on RCKT (-20%), BIIB (-5%), and REPL CRL (-64%). Plus <span id="sig-bt-scored">102</span>-event scored backtest with calibration curve and <span id="sig-bt-tradable">73</span>-event $1M IRR simulation on real Polygon data.</div></div><span class="signal-source">Live log + backtest</span></div>
+        <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Drug TAM across 50+ indications ($20M–$50B). Compared to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
+        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA the model recalibrates. <span id="sig-live-count">8/9</span> on live resolved · <span id="sig-miss-text">only miss (REPL 2nd CRL) logged</span>. Plus <span id="sig-bt-scored">102</span>-event backtest + <span id="sig-bt-tradable">73</span>-event $1M IRR on real Polygon data.</div></div><span class="signal-source">Live log + backtest</span></div>
       </div>
       <div>
         <div class="score-panel">
-          <div class="score-panel-title">// RCKT — Why approval lost money</div>
+          <div class="score-panel-title">// RCKT — why approval lost money</div>
           <div class="score-bar-row"><span class="score-bar-label">PoA (approved ✓)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:77%"></div></div><span class="score-bar-val">77.5%</span></div>
           <div class="score-bar-row"><span class="score-bar-label">STN Risk</span><div class="score-bar-track"><div class="score-bar-fill" style="width:85%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">HIGH</span></div>
           <div class="score-bar-row"><span class="score-bar-label">Dilution ($100M ATM)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:70%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">HIGH</span></div>
@@ -820,11 +1051,11 @@ footer a:hover { color: var(--accent); }
           <hr class="score-divider">
           <div class="score-bar-row"><span class="score-bar-label">Actual move</span><div class="score-bar-track"><div class="score-bar-fill" style="width:20%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">-20%</span></div>
           <hr class="score-divider">
-          <div class="score-total-row"><div><div class="score-total-label">THE LESSON</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">Approval ≠ profit. The scanner saw it.</div></div><div class="score-total-val" style="color:var(--red)">⚠️</div></div>
+          <div class="score-total-row"><div><div class="score-total-label">The lesson</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">Approval ≠ profit. The scanner saw it before I did.</div></div><div class="score-total-val" style="color:var(--red)">⚠️</div></div>
         </div>
 
         <div class="score-panel" style="margin-top:1px;">
-          <div class="score-panel-title">// VNDA — Why approval made money</div>
+          <div class="score-panel-title">// VNDA — why approval made money</div>
           <div class="score-bar-row"><span class="score-bar-label">PoA (approved ✓)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:78%"></div></div><span class="score-bar-val">78%</span></div>
           <div class="score-bar-row"><span class="score-bar-label">STN Risk</span><div class="score-bar-track"><div class="score-bar-fill" style="width:40%; background:var(--amber)"></div></div><span class="score-bar-val" style="color:var(--amber)">MODERATE</span></div>
           <div class="score-bar-row"><span class="score-bar-label">Dilution</span><div class="score-bar-track"><div class="score-bar-fill" style="width:10%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">MINIMAL</span></div>
@@ -832,120 +1063,133 @@ footer a:hover { color: var(--accent); }
           <hr class="score-divider">
           <div class="score-bar-row"><span class="score-bar-label">Actual move</span><div class="score-bar-track"><div class="score-bar-fill" style="width:45%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">+45%</span></div>
           <hr class="score-divider">
-          <div class="score-total-row"><div><div class="score-total-label">THE EDGE</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">MODERATE STN but 5x TAM and no dilution = real upside.</div></div><div class="score-total-val" style="color:var(--accent2)">+45%</div></div>
+          <div class="score-total-row"><div><div class="score-total-label">The edge</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">MODERATE STN but 5x TAM and no dilution = real upside.</div></div><div class="score-total-val" style="color:var(--accent2)">+45%</div></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     COVERAGE — small/mid/large cap
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="coverage" style="padding:4rem 3rem;">
   <div class="section reveal">
     <div class="section-label">Full Coverage</div>
-    <h2 class="section-heading">The entire biotech universe. One platform.</h2>
-    <p class="section-sub">Submarine Catalyst tracks every FDA binary event across the full market cap spectrum — not just the small-caps that retail traders already know about.</p>
-    <div class="how-grid">
-      <div class="how-card"><span class="how-num" style="color:var(--accent2)">SC</span><div class="how-title">Small-Cap ($0–$2B)</div><p class="how-desc">Highest volatility. Highest spike potential. Highest dilution risk. Where the asymmetric PDUFA trades live — and where the scanner's STN Risk and Dilution Radar add the most value.</p></div>
-      <div class="how-card"><span class="how-num" style="color:var(--accent)">MC</span><div class="how-title">Mid-Cap ($2B–$10B)</div><p class="how-desc">More institutional coverage, more efficient pricing. Moderate moves on approval (+10-25%). Sell-the-news risk is higher. sNDA/label expansions are common. Where the smart money operates.</p></div>
-      <div class="how-card"><span class="how-num" style="color:var(--amber)">LC</span><div class="how-title">Large-Cap ($10B+)</div><p class="how-desc">One drug rarely moves the needle. Tracked for competitive dynamics, pipeline intelligence, and the ripple effects a large-cap approval has on smaller companies in the same therapeutic area.</p></div>
+    <h2 class="section-heading">Every cap tier. Small-caps are where the asymmetry lives.</h2>
+    <p class="section-sub">Submarine Catalyst tracks every FDA binary event across the full market cap spectrum — not just the small-caps retail traders already crowd into.</p>
+    <div class="coverage-grid">
+      <div class="coverage-card"><span class="coverage-num" style="color:var(--accent2)">SC</span><div class="coverage-title">Small-Cap · $0–$2B</div><p class="coverage-desc">Highest volatility. Highest spike potential. Highest dilution risk. Where the asymmetric PDUFA trades live — and where STN Risk and the Dilution Radar add the most value.</p></div>
+      <div class="coverage-card"><span class="coverage-num" style="color:var(--accent)">MC</span><div class="coverage-title">Mid-Cap · $2B–$10B</div><p class="coverage-desc">More institutional coverage, more efficient pricing. Moderate moves on approval (+10 to 25%). sNDA/label expansions are common. STN Risk goes up with coverage.</p></div>
+      <div class="coverage-card"><span class="coverage-num" style="color:var(--amber)">LC</span><div class="coverage-title">Large-Cap · $10B+</div><p class="coverage-desc">One drug rarely moves the needle. Tracked for competitive dynamics, pipeline intelligence, and the ripple effects a large-cap approval has on smaller players in the same therapeutic area.</p></div>
     </div>
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     ORIGIN — founder story (moved up, right before pricing)
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section id="origin" class="origin-section">
+  <div class="section reveal">
+    <div class="origin-grid">
+      <div class="origin-text">
+        <div class="section-label">Who built this</div>
+        <h2 class="section-heading">A submarine, a spreadsheet, and a problem nobody was solving.</h2>
+        <p>I spent three years in the Navy, most of it on the USS Montana during dry dock in Newport News, Virginia. Eleven months inside a boat that wasn't in the water yet. What you learn in that environment is that everything runs on procedure, verification, and trusting your instruments when your instincts are screaming something else. That stuck with me.</p>
+        <p>I got medically separated and enrolled at Texas Tech for a BBA in IT Systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker — FDA history, EDGAR filings, clinical trial data, cash runway math — and still miss the one thing that tanked the trade. So I started building a tool to do the research for me.</p>
+        <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across <strong>870+ biotech companies</strong>, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
+        <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this from a basic PDUFA calendar.</p>
+        <p>REPL on April 10, 2026 was the only PoA miss in the live record. The model called 84%. FDA issued a 2nd CRL. The stock dropped 64%. The STN HIGH flag had correctly flagged severe downside before the decision — the risk layer was right even when the probability layer was wrong. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
+      </div>
+      <div class="origin-stats">
+        <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Tickers in Database</span></div>
+        <div class="stat-cell"><span class="stat-val" id="origin-live-stat">8/9</span><span class="stat-label">Live Calls Correct</span></div>
+        <div class="stat-cell"><span class="stat-val" id="origin-bt-tradable">73</span><span class="stat-label">IRR Tradable Events</span></div>
+        <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PRICING — enhanced risk reversal
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="pricing">
   <div class="section reveal">
     <div class="section-label">Pricing</div>
-    <h2 class="section-heading">Full database access. One subscription.</h2>
-    <p class="section-sub">No freemium limitations. No data delays. No upsells. Complete quantitative research output, updated daily.</p>
+    <h2 class="section-heading">One tier. Full database. Cancel whenever.</h2>
+    <p class="section-sub">No freemium walls. No data delays. No upsells. Every risk layer on every ticker, updated daily.</p>
     <div class="pricing-wrapper">
       <ul class="pricing-context">
-        <strong>What you get</strong>
-        <li>870+ biotech companies — structured quantitative profiles updated daily</li>
-        <li>Eight analysis layers: PoA, STN Risk, Dilution Radar, Buyout Score, TAM/Cap, Net Edge</li>
-        <li>10-tab research calendar — PDUFA, Earnings, Buyout Factors, CMC Recovery, Dilution Watch</li>
-        <li>AI Research Module — pipeline analysis, SEC filing context, risk factor assessment on any ticker</li>
-        <li>Compare Module — side-by-side quantitative analysis of 2-4 companies</li>
-        <li>Post-catalyst behavioral pattern classifications — historical data, not forecasts</li>
-        <li>Free education library — institutional dynamics, behavioral patterns, research methodology</li>
-        <li>Full backtest record with actual outcomes documented transparently</li>
+        <strong>What's included</strong>
+        <li>870+ biotech tickers · small, mid, large cap</li>
+        <li>Eight risk layers on every scored event</li>
+        <li>10-tab research calendar · PDUFA · Earnings · Clinical · AdCom · CMC Recovery · Dilution Watch · Conferences</li>
+        <li>AI research tool · deep dives on any ticker</li>
+        <li>Compare tool · side-by-side on 2-4 companies</li>
+        <li>Full backtest record · PoA calibration curve + $1M IRR</li>
+        <li>Every outcome documented · including losses</li>
       </ul>
       <div class="pricing-card">
-        <span class="pricing-badge">PRO ACCESS</span>
+        <span class="pricing-badge">Founding-member rate</span>
         <div class="pricing-body">
           <div class="pricing-price">
             <span class="price-dollar">$</span>
             <span class="price-amount">29.99</span>
             <span class="price-period">/month</span>
           </div>
-          <p class="pricing-tagline">Full database · All tickers · All layers</p>
+          <p class="pricing-tagline">Full database · all tickers · all layers</p>
           <ul class="pricing-features">
-            <li>870+ biotech companies — small-cap, mid-cap, large-cap quantitative profiles</li>
-            <li>60+ scored PDUFA events with eight independent risk classification layers</li>
-            <li>Sell-The-News Risk classification — quantifies whether approval is priced in</li>
-            <li>Dilution Radar — real-time EDGAR scanning for ATM, shelf, 424B5 filings</li>
-            <li>Buyout Factor Score — 8-factor acquisition likelihood model</li>
-            <li>TAM / Market Cap Ratio — drug market size vs company valuation</li>
-            <li>CMC Recovery Filter — isolates manufacturing-only CRL resubmissions</li>
-            <li>Net Edge Score — composite of all eight layers into one classification</li>
-            <li>AI Research Module — quantitative deep dives on any ticker</li>
-            <li>Compare Module — side-by-side multi-company analysis</li>
-            <li>10-tab research calendar: PDUFA, Earnings, Buyout Factors, CMC Recovery, more</li>
-            <li>Full backtest record with actual outcomes — including adverse moves</li>
+            <li>870+ biotech tickers — SC, MC, LC profiles</li>
+            <li>Eight independent risk layers per event</li>
+            <li>Sell-The-News Risk classification</li>
+            <li>Dilution Radar — SEC EDGAR, every 6 hrs</li>
+            <li>Buyout Probability — 8-factor, patent cliff DB</li>
+            <li>TAM / Market Cap ratio</li>
+            <li>CMC Recovery filter</li>
+            <li>AI Research Module — any ticker</li>
+            <li>Compare Module — 2-4 companies side-by-side</li>
+            <li>10-tab research calendar</li>
+            <li>Full backtest with real outcomes</li>
           </ul>
-          <div style="display:flex;align-items:flex-start;gap:0.75rem;margin-bottom:1.25rem">
+          <div class="risk-reversal">
+            <strong>✓ Cancel any time.</strong> No contracts. No cancellation fees. Access runs to the end of your billing period, then stops billing.
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:0.75rem;margin:1.25rem 0;">
             <input type="checkbox" id="tos-agree" style="margin-top:0.2rem;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
             <label for="tos-agree" style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);line-height:1.6;cursor:pointer;letter-spacing:0.03em;">
-              I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent);text-decoration:none;">Terms of Service</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent);text-decoration:none;">Privacy Policy</a>. I understand this is a quantitative tool, not investment advice, and that trading involves substantial risk of loss.
+              I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent);text-decoration:none;">Terms</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent);text-decoration:none;">Privacy Policy</a>. I understand this is a quantitative tool, not investment advice, and trading biotech carries substantial risk of loss.
             </label>
           </div>
-          <button id="checkout-btn" class="pricing-cta" disabled>Start Subscription</button>
-          <p class="pricing-note">Cancel anytime · Billed monthly via Stripe</p>
+          <button id="checkout-btn" class="pricing-cta" disabled>Get Instant Access →</button>
+          <p class="pricing-note">Billed monthly via Stripe · Access within 60 seconds</p>
         </div>
       </div>
       <div class="pricing-right">
-        <strong>⚠️ Important</strong>
-        Submarine Catalyst is a quantitative scoring tool, not investment advice. PDUFA binary events carry substantial risk. A high score reflects favorable evidence — it does not guarantee approval. Position sizing, risk management, and final trade decisions are entirely yours.<br><br>
-        This is a tool built for traders who already understand biotech catalyst risk and want a systematic edge in evaluating setups.
+        <strong>Straight talk</strong>
+        This is a quantitative research tool, not investment advice. A high score reflects favorable evidence — it does not guarantee approval. Biotech binary events carry substantial risk of total loss.<br><br>
+        It's built for traders who already understand that risk and want a systematic edge evaluating setups. If you're looking for someone to tell you what to buy, this isn't it. If you're looking for eight risk layers scored on every biotech in the universe so your research takes ten minutes instead of five hours — that's what this is.
       </div>
     </div>
   </div>
 </section>
 
-<section id="origin" class="origin-section">
-  <div class="section reveal">
-    <div class="origin-grid">
-      <div class="origin-text">
-        <div class="section-label">Who Built This</div>
-        <h2 class="section-heading">A submarine, a spreadsheet, and a problem nobody was solving.</h2>
-        <p>I spent three years in the Navy, most of it on the USS Montana during dry dock in Newport News, Virginia. Eleven months inside a boat that wasn't in the water yet. What you learn in that environment is that everything runs on procedure, verification, and trusting your instruments when your instincts are screaming something else. That stuck with me.</p>
-        <p>I got medically separated and enrolled at Texas Tech for a BBA in IT systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker, digging through FDA history, EDGAR filings, clinical trial data, cash runway math, and still miss something that tanked the trade. So I started building a tool to do the research for me.</p>
-        <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across 870+ biotech companies, updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
-        <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this platform from a basic PDUFA calendar.</p>
-        <p>REPL on April 10, 2026 was the only PoA miss in the live record. The model called 84% approval. FDA issued a 2nd CRL. The stock dropped 64%. The STN HIGH flag had correctly identified severe downside before the decision — the risk layer was right even when the probability layer was wrong. That distinction matters. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
-      </div>
-      <div class="origin-stats">
-        <div class="stat-cell"><span class="stat-val">870+</span><span class="stat-label">Companies in Database</span></div>
-        <div class="stat-cell"><span class="stat-val" id="origin-live-stat">8/9</span><span class="stat-label">Live Calls Correct</span></div>
-        <div class="stat-cell"><span class="stat-val" id="origin-bt-tradable">73</span><span class="stat-label">IRR Tradable Events</span></div>
-        <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs Mapped</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FAQ
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="faq" style="background: var(--navy); border-top: 1px solid var(--border);">
   <div class="section reveal">
     <div class="section-label">FAQ</div>
     <h2 class="section-heading">Common questions.</h2>
-    <p class="section-sub">Straight answers. No marketing filler.</p>
+    <p class="section-sub">Straight answers. No filler.</p>
     <div class="faq-list" style="margin-top:2.5rem; max-width:780px;">
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What exactly am I getting for $29.99/month?</span>
+          <span>What exactly am I paying $29.99/mo for?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Full access to the entire platform: 870+ biotech companies tracked across small-cap, mid-cap, and large-cap. Every PDUFA event scored with approval probability (PoA), Sell-The-News Risk, Dilution Radar (real-time EDGAR monitoring), Buyout Probability, TAM/Market Cap ratio, Net Edge Score, and ELITE/STRONG/WATCH/WEAK grading. AI Research Tool for deep dives with pipeline analysis, price targets, and investment scenarios on any ticker. Compare Tool for side-by-side analysis of 2-4 companies. 10-tab catalyst calendar covering PDUFA dates, earnings, buyout signals, and dilution watch. Post-catalyst behavioral patterns. Full education section. Transparent track record. Updated daily via automated pipeline. No feature gates, no data delays.</div>
+        <div class="faq-a">Full access to everything. 870+ biotech tickers — small, mid, large cap. Every PDUFA event scored with approval probability (PoA), Sell-The-News Risk, Dilution Radar (EDGAR scans every 6 hours), Buyout Probability, TAM/Cap ratio, Net Edge Score, and ELITE/STRONG/WATCH/WEAK grading. The AI Research Tool for any ticker. The Compare Tool for 2-4 companies side-by-side. 10-tab catalyst calendar covering PDUFAs, earnings, clinical readouts, AdComs, dilution watch, conferences. Post-catalyst behavioral patterns. The full education section. The transparent track record. Updated daily. No feature gates, no data delays.</div>
       </div>
 
       <div class="faq-item">
@@ -953,63 +1197,63 @@ footer a:hover { color: var(--accent); }
           <span>Is this investment advice?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">No. Submarine Catalyst is a quantitative scoring tool. It synthesizes publicly available data — FDA approval rates, SEC filings, clinical trial status, market data — into a structured score. It does not tell you to buy or sell anything. All trading decisions, position sizing, and risk management are entirely your responsibility. PDUFA binary events carry substantial risk of loss.</div>
+        <div class="faq-a">No. It's a quantitative scoring tool. Every output is a data classification from public sources — FDA filings, SEC EDGAR, clinical trial status, market data. It does not tell you what to buy or sell. All position sizing, risk management, and final trade decisions are yours. Biotech binary events carry substantial risk of total loss. I am not a registered investment adviser, broker-dealer, or financial planner.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>How accurate is the PoA (Probability of Approval) score?</span>
+          <span>How accurate is the PoA score, really?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">The base rates are sourced from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are then modified by seven independent signal layers. Live record: <span id="faq-live-count">8/9</span> pre-decision calls correct. A separate <span id="faq-bt-scored">102</span>-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with a full per-bucket calibration curve. The scoring functions are byte-for-byte identical to production, with a synced-block comment preventing divergence. Of those scored events, <span id="faq-bt-tradable">73</span> have real Polygon.io post-decision price data and feed the $1M portfolio IRR simulation — placeholder tickers, non-US exchanges, and delisted names are excluded rather than modeled, so every IRR P&amp;L figure traces back to actual market activity. No prediction model is perfect — the goal is to identify where the evidence is strongest and where the risk/reward asymmetry is most favorable.</div>
+        <div class="faq-a">The base rates come from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are modified by seven other signal layers. Live record: <span id="faq-live-count">8/9</span> pre-decision calls correct. A separate <span id="faq-bt-scored">102</span>-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with per-bucket calibration. The scoring functions are byte-for-byte identical to production (synced-block comment prevents drift). Of those scored events, <span id="faq-bt-tradable">73</span> have real Polygon.io post-decision price data and feed the $1M portfolio IRR simulation — placeholder tickers, non-US exchanges, and delisted names are excluded rather than modeled, so every IRR P&amp;L figure traces back to actual market activity. No model is perfect. The REPL miss is in the record.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>How often is the scanner updated?</span>
+          <span>How often is data updated?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Scanner data refreshes daily via automated pipeline. The calendar syncs new PDUFA events from the FDA source every morning. The EDGAR Dilution Radar scans SEC filings for every active ticker every 6 hours — checking for 424B5 prospectus supplements, S-3 shelf registrations, ATM agreements, and insider transactions. The scoring engine then recalculates PoA, STN Risk, Dilution Score, and Net Edge Score. When a PDUFA event resolves, the outcome is logged with actual stock move data and the model's weights auto-calibrate.</div>
+        <div class="faq-a">Daily via automated pipeline. New PDUFA events sync from FDA each morning. EDGAR Dilution Radar scans SEC filings for every active ticker every 6 hours — checking for 424B5 prospectus supplements, S-3 shelf registrations, ATM agreements, and insider transactions. Scoring engine recalculates PoA, STN Risk, Dilution Score, and Net Edge Score after each data refresh. When a PDUFA resolves, the outcome is logged with actual stock-move data and the model's weights recalibrate.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What is the AI Research Tool?</span>
+          <span>What's the AI Research Tool?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">A subscriber-only AI analyst that runs deep dives on any biotech company. For PDUFA events, it generates executive summaries, SEC filing analysis, dilution risk assessment, and bull/base/bear price scenarios. For companies without active PDUFA dates, it covers pipeline overview, catalyst timeline, buyout potential, competitive landscape, and investment scenarios. It knows the scanner's data — PoA, STN Risk, Dilution Score, Buyout Probability, TAM/Cap ratio — and incorporates all of it into the analysis.</div>
+        <div class="faq-a">A subscriber-only AI analyst that runs deep dives on any biotech. For PDUFA events: executive summaries, SEC filing context, dilution risk assessment, bull/base/bear price scenarios. For companies without active PDUFAs: pipeline overview, catalyst timeline, buyout potential, competitive landscape. It knows the scanner's data — PoA, STN Risk, Dilution, Buyout Probability, TAM/Cap — and builds analysis on top of it.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What is Buyout Probability?</span>
+          <span>Why should I trust this more than a free calendar?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">A 0-100 score estimating how likely a company is to be acquired after a catalyst event. Factors include first-in-class status, orphan drug designation, PRV eligibility, existing partnerships, market cap tier, commercial infrastructure, and therapeutic area M&A history. Small-cap biotechs with first-in-class approved drugs and no sales force are the most common acquisition targets — the score identifies them before the market does.</div>
+        <div class="faq-a">You don't have to. Every classification is logged before the event resolves — wins and losses both. The REPL 2nd CRL miss is in the record. The RCKT -20% move on approval is in the record. The VNDA +45% win is in the record. The 102-event retrospective backtest is public with a per-bucket calibration curve. The $1M portfolio IRR runs on real Polygon.io close-to-close data, not theoretical. Compare that to a calendar-only tool that just lists dates. If the track record looks wrong, don't subscribe.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What is TAM / Market Cap ratio?</span>
+          <span>What's Buyout Probability?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">TAM (Total Addressable Market) is the estimated annual peak revenue of the drug's indication. TAM/Cap ratio compares that market to the company's current market cap. A ratio of 10x means the drug market is 10 times the company's value — significant upside on approval. A ratio below 1x means the drug market is smaller than the company — limited upside even on good news. RCKT had a TAM/Cap ratio of 0.04x (gene therapy for ~30 patients). VNDA had 5x (gastroparesis, $1.5B market). The ratio predicted which approval was worth trading.</div>
+        <div class="faq-a">A 0-100 score estimating acquisition likelihood post-catalyst. Factors: first-in-class status, orphan/breakthrough designation, PRV eligibility, existing partnerships, market cap tier, commercial infrastructure, and therapeutic area M&A history — scored against a 14-company Big Pharma patent cliff database (ABBV, MRK, PFE, LLY, BIIB, and 9 others). Small-cap biotechs with first-in-class approved drugs and no sales force are the most common acquisition targets — the score identifies them before the market does.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>Can I compare multiple companies?</span>
+          <span>What's TAM / Market Cap ratio?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Yes. The Compare Tool lets you select any 2-4 companies from the 870+ universe and view every risk layer side by side — PoA, STN Risk, Dilution, Buyout, TAM/Cap, Net Edge, and more. The AI generates a comparison analysis recommending which setup has the best risk/reward and how to size positions relative to each other.</div>
+        <div class="faq-a">TAM (Total Addressable Market) is the estimated annual peak revenue of the drug's indication. TAM/Cap ratio compares that market to the company's current market cap. 10x = drug market is 10 times company value (significant upside). Below 1x = drug market is smaller than company (limited upside even on good news). RCKT had 0.04x (gene therapy for ~30 patients). VNDA had 5x (gastroparesis, ~$1.5B market). Ratio predicted which approval was worth trading.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>Can I cancel anytime?</span>
+          <span>Can I cancel?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Yes. Billing is monthly through Stripe. Cancel from your dashboard at any time — no contracts, no cancellation fees, no questions asked. Your access continues through the end of the current billing period.</div>
+        <div class="faq-a">Yes. Billing is monthly via Stripe. Cancel from your dashboard any time — no contracts, no cancellation fees, no questions. Access runs through the end of the current billing period, then stops.</div>
       </div>
 
       <div class="faq-item">
@@ -1017,18 +1261,31 @@ footer a:hover { color: var(--accent); }
           <span>Who built this?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">A 23-year-old Navy veteran and full-time student at Texas Tech. I served three years on the USS Montana, got medically separated, and now I'm finishing a BBA in IT systems. I started trading biotech PDUFA events, got frustrated with how long the research took, and built a tool to automate it. That tool became Submarine Catalyst. I run it solo, it costs me less than $30 a month to operate, and every outcome gets logged publicly whether it makes me look good or not.</div>
+        <div class="faq-a">Me. Davis Rackler. 23-year-old Navy veteran, full-time student at Texas Tech (BBA in IT Systems). I served three years on the USS Montana, got medically separated, started trading biotech PDUFA events, got frustrated with how long the research took, and built a tool to automate it. I run it solo. It costs me less than $30/month to operate. Every outcome gets logged publicly whether it makes me look good or not. If you want to know more, the full story is in the "Who built this" section above — or reach out on X (@DRackler).</div>
       </div>
 
     </div>
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     FINAL CTA — bottom of page
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section class="final-cta reveal">
+  <h2>See today's live classifications.</h2>
+  <p>870+ biotechs. Eight risk layers. Every score sourced and documented. $29.99/month, cancel any time. I built this because I needed it — turns out you probably do too.</p>
+  <a href="#pricing" class="btn-primary">Start Tracking Catalysts →</a>
+  <p class="final-note"><span>✓</span> Cancel any time · <span>✓</span> No contracts · <span>✓</span> Access within 60 seconds</p>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     EMAIL CAPTURE
+     ═══════════════════════════════════════════════════════════════════════════ -->
 <section id="updates" style="background:var(--deep);border-top:1px solid var(--border);">
   <div class="section reveal" style="text-align:center;">
-    <div class="section-label" style="justify-content:center;">Research Updates</div>
-    <h2 class="section-heading">Monthly catalyst briefing. Free.</h2>
-    <p class="section-sub" style="margin:0 auto 2.5rem;">Upcoming PDUFA dates, new risk classifications, model updates, and resolved event outcomes. No spam. No financial advice. Unsubscribe anytime.</p>
+    <div class="section-label" style="justify-content:center;">Free Updates</div>
+    <h2 class="section-heading">Monthly catalyst briefing.</h2>
+    <p class="section-sub" style="margin:0 auto 2.5rem;">Upcoming PDUFA dates, new risk classifications, model updates, resolved outcomes. No spam. No financial advice. Unsubscribe any time.</p>
     <form class="email-capture" id="email-capture" action="https://formspree.io/f/mlgpanlj" method="POST">
       <input type="email" name="email" class="email-input" placeholder="you@example.com" required autocomplete="email" />
       <button type="submit" class="email-btn" id="email-btn">Subscribe</button>
@@ -1045,7 +1302,7 @@ footer a:hover { color: var(--accent); }
 
 <footer>
   <a href="/" class="nav-wordmark" style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);text-decoration:none;letter-spacing:0.1em;">SUBMARINE CATALYST</a>
-  <div class="footer-disclaimer">Submarine Catalyst is a quantitative research platform. All outputs — including Probability of Approval (PoA), Sell-The-News Risk, Net Edge Score, Dilution Risk, Buyout Factor Score, TAM/Cap Ratio, and Grade classifications — are software-generated quantitative model outputs derived from publicly available data sources including FDA filing records, SEC EDGAR, published clinical approval rate studies (Hay et al. 2014, Wong et al. 2019), and market data. These outputs are data classifications, not investment advice, trade recommendations, or solicitations to buy, sell, or hold any security. No content on this platform constitutes personalized financial guidance. All investment decisions, position sizing, and risk management are solely the responsibility of the user. Biotech binary events carry substantial risk of total loss. Past model classification accuracy does not guarantee future results. Submarine Catalyst is not a registered investment adviser, broker-dealer, or financial planner under any jurisdiction.</div>
+  <div class="footer-disclaimer">Submarine Catalyst is a quantitative research platform. All outputs — PoA, Sell-The-News Risk, Net Edge Score, Dilution Risk, Buyout Factor Score, TAM/Cap Ratio, and Grade classifications — are software-generated model outputs from public data (FDA filings, SEC EDGAR, published approval rate studies, market data). These are data classifications, not investment advice or solicitations to buy, sell, or hold any security. All decisions, sizing, and risk management are the user's responsibility. Biotech binary events carry substantial risk of total loss. Past accuracy does not guarantee future results. Not a registered investment adviser, broker-dealer, or financial planner.</div>
   <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
     <a href="https://x.com/DRackler" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.4rem;">
       <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
@@ -1065,15 +1322,12 @@ footer a:hover { color: var(--accent); }
 </footer>
 
 <script>
-  // Wrap everything so one error doesn't kill all buttons
   const authStatus  = document.getElementById('auth-status');
   const signupBtn   = document.getElementById('signup-btn');
-  const loginBtn    = document.getElementById('login-btn');
   const checkoutBtn = document.getElementById('checkout-btn');
   const tosCheckbox = document.getElementById('tos-agree');
 
   signupBtn.addEventListener('click', () => { window.location.href = '/signup.html'; });
-  loginBtn.addEventListener('click',  () => { window.location.href = '/login.html';  });
   tosCheckbox.addEventListener('change', () => { checkoutBtn.disabled = !tosCheckbox.checked; });
 
   checkoutBtn.addEventListener('click', async () => {
@@ -1150,14 +1404,7 @@ footer a:hover { color: var(--accent); }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // LIVE-COUNTS LOADER
-  // Single source of truth for every counter scattered across the page:
-  //   · live track record ratio (correct/resolved)
-  //   · miss count + miss tickers
-  //   · scored backtest universe (the full event set with PoA/outcome)
-  //   · IRR-tradable subset (events with real Polygon close-to-close data)
-  // Keeps every callout in sync so "X-event backtest" and "Y-event IRR"
-  // can never drift from actual database truth.
+  // LIVE-COUNTS LOADER — single source of truth for all counters
   // ═══════════════════════════════════════════════════════════════════════════
   (async function liveCountsLoader() {
     try {
@@ -1173,7 +1420,7 @@ footer a:hover { color: var(--accent); }
         );
       }
 
-      // ─── 1. Live track record counts ─────────────────────────────────────
+      // Live track record counts
       try {
         const { data: rows, error } = await sb
           .from('track_record')
@@ -1214,7 +1461,7 @@ footer a:hover { color: var(--accent); }
         }
       } catch (e) { console.warn('[SC live-counts] track_record:', e); }
 
-      // ─── 2. Backtest universe counts (scored + IRR-tradable) ─────────────
+      // Backtest counts
       try {
         const { data: btRows, error: btErr } = await sb
           .from('v_backtest_public_rows')
