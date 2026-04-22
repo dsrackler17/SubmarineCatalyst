@@ -508,9 +508,6 @@ function escapeHtml(s) {
 // never shows worse data than the card grid it came from.
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Drug name (lowercase substring) → corrected indication.
-// Mirrored from dashboard.html. If score-events lags or misclassifies, the
-// detail page still shows the right indication.
 var DRUG_INDICATION_OVERRIDE = {
   'tolebrutinib':              'Multiple Sclerosis',
   'lecanemab':                 "Alzheimer's Disease",
@@ -572,7 +569,6 @@ function fixIndication(d) {
       return;
     }
   }
-  // Demote "Infectious" default when drug doesn't look infectious.
   if (d.indication === 'Infectious') {
     var infectiousLike = /mrna|vaccine|tebipenem|clesrovimab|enflonsia|antibiotic|antiviral|bacteri|viral|flu|covid|rsv|hpv|hiv|sepsis|pneumon|infect/i;
     if (!infectiousLike.test(d.drug)) {
@@ -581,8 +577,6 @@ function fixIndication(d) {
   }
 }
 
-// Normalize innovation to /100 scale. Rescales legacy /25 values; assigns a
-// neutral 40/100 default for drugs with no score. Matches dashboard exactly.
 function normalizeInnovation(d) {
   var raw = Number(d.innovation_score);
   if (!isFinite(raw) || raw <= 0) {
@@ -590,31 +584,25 @@ function normalizeInnovation(d) {
       d.innovation_score = 40;
     }
   } else if (raw > 0 && raw <= 25) {
-    // Legacy /25 scale — rescale to /100
     d.innovation_score = raw * 4;
   }
-  // Recompute innovation_factor: 1.0 + (score - 50) / 200 → range 0.75…1.25
   var s = Number(d.innovation_score) || 0;
   if (s > 0) {
     d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
   }
 }
 
-// Returns Net Edge with innovation folded in (±7.5 pts).
-// Matches dashboard.html computeNetEdge exactly.
 function computeNetEdge(d) {
   var base = Number(d.net_edge_score) || Number(d.score) || 0;
   var inn = Number(d.innovation_score) || 0;
   if (inn <= 0) return base;
   var rawScore = Number(d.score) || 0;
-  // If server already folded innovation into net_edge_score, trust it.
   var serverFolded = Math.abs(base - rawScore) > 0.5;
   if (serverFolded) return base;
   var edge = (inn - 50) * 0.15;
   return Math.max(0, Math.min(100, rawScore + edge));
 }
 
-// Chart-setup classifier — same buckets as dashboard cards.
 function classifyChart(change30d, volRatio, bars) {
   var consolidating = false;
   if (bars && bars.length >= 20) {
@@ -632,7 +620,6 @@ function classifyChart(change30d, volRatio, bars) {
   return                      { label: 'READY',     icon: '✅',  color: 'var(--accent2)' };
 }
 
-// Volume ratio: recent 5 bars vs prior bars (same as dashboard).
 function computeVolRatio(bars) {
   if (!bars || bars.length < 10) return null;
   var recentVols = bars.slice(-5).map(function(b){return b.v;});
@@ -642,12 +629,6 @@ function computeVolRatio(bars) {
   return avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
 }
 
-// ─── DRUG NAME FORMATTER ──────────────────────────────────────────────────────
-// Detects failure modes and displays cleanly:
-//   (a) placeholder "TICKER — drug name needs update"
-//   (b) FDA boilerplate in drug column ("The FDA set a PDUFA date of...")
-//   (c) drug name hiding in notes when drug col is placeholder
-//   (d) AUTO-RESOLVED flags — show provenance badge
 function formatDrugName(e) {
   var drug = (e.drug || '').trim();
   var notes = (e.notes || '').trim();
@@ -873,7 +854,7 @@ function applyLiveMarketData(eventData, live, snap) {
   }
 }
 
-// ─── INNOVATION FACTOR RENDERING (/100 SCALE — SYNCED WITH DASHBOARD) ────────
+// ─── INNOVATION FACTOR RENDERING ────────────────────────────────────────────
 function renderInnovation(d) {
   var innScore = Number(d.innovation_score) || 0;
   var innFactor = Number(d.innovation_factor) || 1.0;
@@ -882,7 +863,6 @@ function renderInnovation(d) {
 
   var bars = [];
 
-  // Score bar (0–100 scale)
   var pct = Math.min(100, Math.max(0, innScore));
   var barColor = innScore >= 75 ? 'gold' : innScore >= 55 ? 'green' : innScore >= 35 ? 'amber' : 'red';
   bars.push({
@@ -892,7 +872,6 @@ function renderInnovation(d) {
     val: Math.round(innScore) + '/100'
   });
 
-  // Factor multiplier (formula: 1.0 + (score - 50) / 200 → range 0.75…1.25)
   var factorPct = Math.min(100, Math.max(0, ((innFactor - 0.75) / 0.50) * 100));
   var factorColor = innFactor >= 1.15 ? 'gold' : innFactor >= 1.05 ? 'green' : innFactor >= 1.00 ? '' : 'amber';
   bars.push({
@@ -910,7 +889,6 @@ function renderInnovation(d) {
     '</div>';
   }).join('');
 
-  // Signals list
   var signalsHTML = '';
   if (apprSignals.length > 0) {
     signalsHTML = '<hr class="bar-divider">' +
@@ -929,7 +907,6 @@ function renderInnovation(d) {
       '<div class="innovation-empty">No innovation signals detected yet. Score populates after drug name and indication are verified and score-events v4+ has run.</div>';
   }
 
-  // Summary line (/100 thresholds — match dashboard)
   var summaryColor = innScore >= 75 ? '#ffd700' : innScore >= 55 ? 'var(--accent2)' : innScore >= 35 ? 'var(--accent)' : 'var(--muted)';
   var summaryText = innScore >= 75 ? 'High differentiation — significant appreciation potential'
                   : innScore >= 55 ? 'Notable differentiation features'
@@ -1011,9 +988,6 @@ function renderCMC(d) {
 
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
 function populatePage(d, isPaid) {
-  // Normalize scoring + indication BEFORE any render logic runs.
-  // This guarantees the detail page uses the exact same numbers as the
-  // dashboard cards, even if the DB row is stale.
   normalizeInnovation(d);
   fixIndication(d);
   var netEdge = computeNetEdge(d);
@@ -1021,14 +995,12 @@ function populatePage(d, isPaid) {
   document.title = d.ticker + ' — Catalyst Deep Dive — Submarine Catalyst';
   document.getElementById('drug-ticker').textContent    = d.ticker;
 
-  // Drug name with placeholder detection + AUTO-RESOLVED badge
   var dn = formatDrugName(d);
   var drugNameEl = document.getElementById('drug-name');
   drugNameEl.innerHTML = dn.text + (dn.badge ? ' ' + dn.badge : '');
   if (dn.isPlaceholder) drugNameEl.classList.add('pending');
   else drugNameEl.classList.remove('pending');
 
-  // Provenance strip
   if (dn.source && dn.confidence) {
     var pvStrip = document.getElementById('provenance-strip');
     var pvBody = document.getElementById('provenance-body');
@@ -1052,7 +1024,6 @@ function populatePage(d, isPaid) {
     }
   }
 
-  // Royalty/licensee indicator
   var isRoyaltyTicker = (d.ticker_role === 'royalty' || d.ticker_role === 'licensee');
   var indicationEl = document.getElementById('drug-indication');
   if (isRoyaltyTicker && d.primary_ticker) {
@@ -1068,7 +1039,6 @@ function populatePage(d, isPaid) {
   if (isRoyaltyTicker) {
     eyebrow = (d.type || 'PDUFA') + ' · ' + d.ticker_role.toUpperCase() + ' TICKER';
   }
-  // Post-approval / resolved state detection
   var days = daysUntil(d.date);
   var isApproved = (String(d.type).toUpperCase() === 'APPROVED') ||
                    (d.poa >= 100 && (d.date === '—' || !d.date || isNaN(days)));
@@ -1079,7 +1049,6 @@ function populatePage(d, isPaid) {
   document.getElementById('grade-badge').innerHTML       = gradeBadgeHTML(d.grade);
 
   if (isApproved) {
-    // For approved drugs, show months since approval + the actual approval date.
     var monthsSince = Number(d.months_since_approval) || 0;
     var countdownEl = document.getElementById('countdown-days');
     var labelEl = document.querySelector('.countdown-label');
@@ -1111,7 +1080,6 @@ function populatePage(d, isPaid) {
   dilEl.textContent = dilRisk;
   dilEl.style.color = {'EXTREME':'var(--red)','HIGH':'var(--red)','MODERATE':'var(--amber)','LOW':'var(--accent2)','MINIMAL':'var(--accent2)','UNKNOWN':'var(--muted)'}[dilRisk] || 'var(--muted)';
 
-  // Innovation Score stat cell — /100 SCALE (synced with dashboard)
   var innScore = Number(d.innovation_score) || 0;
   var innEl = document.getElementById('stat-innovation');
   if (innEl) {
@@ -1124,10 +1092,8 @@ function populatePage(d, isPaid) {
     }
   }
 
-  // Net Edge — with innovation fold-in (matches dashboard)
   document.getElementById('stat-final').textContent     = netEdge.toFixed(1);
 
-  // ─── LIVE MARKET DATA STRIP ──────────────────────────────────────────────
   var fmtCap = function(c) {
     if (!c || c <= 0) return '—';
     return c >= 1e9 ? '$' + (c / 1e9).toFixed(2) + 'B' : '$' + (c / 1e6).toFixed(1) + 'M';
@@ -1164,7 +1130,6 @@ function populatePage(d, isPaid) {
   var vol10El = document.getElementById('stat-vol10');
   if (vol10El) vol10El.textContent = (typeof d.live_vol10 === 'number') ? d.live_vol10.toFixed(0) + '%' : '—';
 
-  // ─── KEY METRICS SIDEBAR ─────────────────────────────────────────────────
   var innFactor = Number(d.innovation_factor) || 1.0;
   var innScoreDisplay = innScore > 0 ? Math.round(innScore) + '/100' : '—';
   var innFactorDisplay = innFactor !== 1.0 ? innFactor.toFixed(3) + 'x' : '—';
@@ -1230,14 +1195,12 @@ function populatePage(d, isPaid) {
     metricRows.push(['CMC Risk', cmcRisk]);
   }
 
-  // Innovation metrics (/100 scale, synced with dashboard)
   metricRows.push(
     ['⭐ Innovation',    innScoreDisplay, 'gold'],
     ['⭐ Innov. Factor', innFactorDisplay, 'gold'],
     ['Net Edge',         netEdge.toFixed(1) + '/100']
   );
 
-  // Chart setup + vol ratio (from Polygon bars — dashboard classification)
   if (d.live_chart_setup && d.live_chart_setup.label) {
     metricRows.push(['Chart Setup', d.live_chart_setup.icon + ' ' + d.live_chart_setup.label]);
   }
@@ -1254,7 +1217,6 @@ function populatePage(d, isPaid) {
     return '<div class="metric-row"><span class="metric-label">' + triple[0] + '</span><span class="' + cls + '">' + triple[1] + '</span></div>';
   }).join('');
 
-  // ─── RISK FLAGS — filter AUTO-RESOLVED (shown in provenance strip instead) ─
   var visibleFlags = (d.flags || []).filter(function(f) {
     return !String(f).startsWith('AUTO-RESOLVED:');
   });
@@ -1267,7 +1229,6 @@ function populatePage(d, isPaid) {
     document.getElementById('risk-flags').innerHTML = '<div class="flag-item" style="color:var(--muted)">No specific risk flags detected</div>';
   }
 
-  // Sources
   document.getElementById('source-links').innerHTML = [
     {name: 'SEC EDGAR — ' + d.ticker + ' Filings', url: 'https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=' + d.ticker + '&type=8-K'},
     {name: 'ClinicalTrials.gov', url: 'https://clinicaltrials.gov/search?term=' + encodeURIComponent(d.drug || d.ticker)},
@@ -1287,13 +1248,11 @@ function populatePage(d, isPaid) {
     return;
   }
 
-  // ─── PAID USER: Remove all blur ────────────────────────────────────────────
   document.querySelectorAll('.locked-block').forEach(function(el) { el.classList.remove('locked-block'); });
   document.querySelectorAll('.lockable').forEach(function(el) { el.style.filter='none'; el.style.userSelect='auto'; el.style.pointerEvents='auto'; });
 
   document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
 
-  // STN Risk badge in sidebar
   var stnColor = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[stnRisk] || 'var(--muted)';
   var stnEmoji = {'HIGH':'🚨','ELEVATED':'⚠️','MODERATE':'🟡','LOW':'✅','VERY LOW':'✅'}[stnRisk] || '🟡';
   document.getElementById('stn-badge').innerHTML = DOMPurify.sanitize(
@@ -1304,7 +1263,6 @@ function populatePage(d, isPaid) {
     '</div>'
   );
 
-  // STN Content — move flags
   var mFlags = d.move_flags || [];
   if (mFlags.length > 0) {
     document.getElementById('stn-content').innerHTML = DOMPurify.sanitize(
@@ -1317,7 +1275,6 @@ function populatePage(d, isPaid) {
 
   document.getElementById('targets-content').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating price target analysis for ' + d.ticker + '...</span>';
 
-  // PoA breakdown
   document.getElementById('poa-bars').innerHTML = [
     {label: 'Indication (' + (d.indication || 'Unknown') + ')', pct: Math.min(100, d.poa * 1.05), color: 'green', val: (d.poa || 0).toFixed(1) + '%'},
     {label: 'Review pathway (' + (d.type || 'Standard') + ')', pct: 75, color: '', val: d.type || 'Standard'},
@@ -1326,10 +1283,8 @@ function populatePage(d, isPaid) {
     return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:' + b.pct + '%"></div></div><span class="bar-val ' + b.color + '">' + b.val + '</span></div>';
   }).join('');
 
-  // Innovation breakdown
   document.getElementById('innovation-bars').innerHTML = renderInnovation(d);
 
-  // CMC Recovery — only shown when a signal exists
   if (shouldRenderCMC(d)) {
     var cmcSection = document.getElementById('section-cmc');
     if (cmcSection) {
@@ -1338,9 +1293,7 @@ function populatePage(d, isPaid) {
     }
   }
 
-  // Convexity breakdown
   var convScore = d.score * 0.6 || 30;
-  // Handle missing/invalid dates — don't show NaN to users
   var proxLabel = (isNaN(days) || isApproved) ? 'Proximity (n/a)' : 'Proximity (' + days + 'd)';
   var proxPts;
   if (isNaN(days) || isApproved) proxPts = 0;
@@ -1357,8 +1310,6 @@ function populatePage(d, isPaid) {
     return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div><span class="bar-val">' + b.pts + '/' + b.max + '</span></div>';
   }).join('');
 
-  // Catalyst timeline — approved drugs show the historical approval event,
-  // upcoming PDUFAs show the action date.
   if (isApproved) {
     var approvalDateDisplay = d.last_approval_date || '—';
     var monthsLine = (Number(d.months_since_approval) || 0) > 0
@@ -1371,7 +1322,6 @@ function populatePage(d, isPaid) {
       '<div class="timeline-item"><div class="timeline-dot amber"></div><div class="timeline-content"><div class="timeline-date">' + d.date + '</div><div class="timeline-event">FDA PDUFA Action Date</div><div class="timeline-note">' + (d.type || 'PDUFA') + ' decision expected — ' + escapeHtml(d.drug || d.ticker) + '</div></div></div>';
   }
 
-  // AI summary
   generateAISummary(d, netEdge);
 }
 
@@ -1384,13 +1334,11 @@ async function generateAISummary(d, netEdgeValue) {
     var stnRisk = d.sell_news_risk || 'MODERATE';
     var prompt;
 
-    // Is this a post-approval tracking page? (already approved, no future PDUFA)
     var daysToPdufa = daysUntil(d.date);
     var isApprovedEvent = (String(d.type).toUpperCase() === 'APPROVED') ||
                           (d.poa >= 100 && (d.date === '—' || !d.date || isNaN(daysToPdufa)));
 
     if (isApprovedEvent) {
-      // Post-approval analysis — focus on commercial trajectory, not PDUFA prep
       var monthsSince = Number(d.months_since_approval) || 0;
       prompt = 'Post-approval analysis for ' + d.ticker + ' — ' + (d.drug || 'approved drug') + ' for ' + (d.indication || 'unknown indication') + '.\n\n' +
         'Approval date: ' + (d.last_approval_date || 'unknown') + '. Months since approval: ' + monthsSince + '.\n' +
@@ -1453,7 +1401,6 @@ async function generateAISummary(d, netEdgeValue) {
           'milestone ladder for this specific asset.\n\n';
       }
 
-      // Innovation Factor context (/100 scale — matches dashboard)
       var innovationContext = '';
       var innScore = Number(d.innovation_score) || 0;
       var innFactor = Number(d.innovation_factor) || 1.0;
@@ -1596,87 +1543,211 @@ async function generateAISummary(d, netEdgeValue) {
 
   var eventData = null;
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // STEP 1 — Query pdufa_events directly for the best upcoming row.
+  //
+  // Why this runs FIRST instead of get-scanner-data:
+  // The edge function was returning synthetic APPROVED rows (from the
+  // biotech_universe approved_drug field) for tickers that ALSO have real
+  // upcoming PDUFA rows in pdufa_events. Every detail page was rendering
+  // "APPROVED · 100% PoA · drug name pending verification" regardless of
+  // whether a live PDUFA existed.
+  //
+  // Fix: go straight to pdufa_events. Pick the earliest future-dated row
+  // that is NOT type='APPROVED'. If found, that's the event. Only fall
+  // back to the edge function if pdufa_events has nothing live for this
+  // ticker (non-PDUFA tickers, already-resolved events, etc).
+  // ═══════════════════════════════════════════════════════════════════════
   try {
-    var session = await scGetSession();
-    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?ticker=' + ticker, {
-      headers: {
-        'Authorization': 'Bearer ' + (session?.access_token || ''),
-        'Content-Type': 'application/json',
-      },
-    });
+    var sb = getSupabase();
+    var todayIso = new Date().toISOString().split('T')[0];
 
-    var result = await res.json();
-    if (result.event) {
-      var e = result.event;
+    // Pull all pdufa_events rows for this ticker. We sort client-side so
+    // we can prefer upcoming non-APPROVED first, then approved as fallback.
+    var { data: pdufaRows, error: pdufaErr } = await sb
+      .from('pdufa_events')
+      .select('*')
+      .eq('ticker', ticker)
+      .order('date', { ascending: true });
+
+    if (pdufaErr) {
+      console.warn('[SC] pdufa_events direct query failed:', pdufaErr);
+    } else if (pdufaRows && pdufaRows.length > 0) {
+      // Prefer: non-APPROVED AND date >= today AND has a real date
+      var upcoming = pdufaRows.find(function(r) {
+        var t = String(r.type || '').toUpperCase();
+        if (t === 'APPROVED') return false;
+        if (!r.date) return false;
+        return r.date >= todayIso;
+      });
+
+      // Second choice: any non-APPROVED row (past-dated but recent, still shows PDUFA setup)
+      if (!upcoming) {
+        upcoming = pdufaRows.find(function(r) {
+          var t = String(r.type || '').toUpperCase();
+          return t !== 'APPROVED' && r.date;
+        });
+      }
+
+      // Last choice: take whatever we have (will show as approved)
+      var chosen = upcoming || pdufaRows[0];
+
       eventData = {
-        ticker: e.ticker,
-        drug: e.drug || '',
-        indication: e.indication || 'Unknown',
-        type: e.type || 'PDUFA',
-        date: e.date,
-        grade: e.grade || 'WATCH',
-        poa: Number(e.poa) || 0,
-        score: Number(e.score) || 0,
-        flags: e.flags || [],
-        notes: e.notes || '',
-        source_url: e.source_url || '',
-        description: e.description || '',
-        sell_news_risk: e.sell_news_risk || 'MODERATE',
-        move_score: Number(e.move_score) || 0,
-        expected_move: e.expected_move || '',
-        move_flags: e.move_flags || [],
-        net_edge_score: Number(e.net_edge_score) || Number(e.score) || 0,
-        dilution_risk: e.dilution_risk || 'UNKNOWN',
-        dilution_score: Number(e.dilution_score) || 0,
-        dilution_flags: e.dilution_flags || [],
-        runway_months: e.runway_months,
-        runway_risk: e.runway_risk || 'UNKNOWN',
-        insider_signal: e.insider_signal || 'NEUTRAL',
-        insider_net_buys: Number(e.insider_net_buys) || 0,
-        shelf_active: e.shelf_active || false,
-        atm_active: e.atm_active || false,
-        partnership_detected: e.has_partnership || e.partnership_detected || false,
-        partner_name: e.partner_name || '',
-        ticker_role: e.ticker_role || 'primary',
-        primary_ticker: e.primary_ticker || '',
-        is_primary_ticker: e.is_primary_ticker !== false,
-        acquirer_urgency_top: e.acquirer_urgency_top || '',
-        buyout_score: Number(e.buyout_score) || 0,
-        buyout_risk: e.buyout_risk || 'UNLIKELY',
-        buyout_flags: e.buyout_flags || [],
-        buyout_timeline: e.buyout_timeline || '',
-        drug_tam_estimate: Number(e.drug_tam_estimate) || 0,
-        tam_ratio: Number(e.tam_ratio) || 0,
-        tam_label: e.tam_label || '',
-        news_items: e.news_items || [],
-        revenue_m: Number(e.revenue_m) || 0,
-        estimated_market_cap: Number(e.estimated_market_cap) || 0,
-        months_since_approval: e.months_since_approval || null,
-        last_approval_date: e.last_approval_date || null,
-        institutional_pct: Number(e.institutional_pct) || 0,
-        // ─── CMC Recovery fields ─────────────────────────────────────────
-        cmc_risk: e.cmc_risk || 'UNKNOWN',
-        cmc_flags: e.cmc_flags || [],
-        // ─── Buyout probability + timeline ───────────────────────────────
-        buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
-        buyout_timeline_months: Number(e.buyout_timeline_months) || 0,
-        data_confidence: e.data_confidence || '',
-        // ─── Innovation & Appreciation Factor fields ─────────────────────
-        innovation_score: Number(e.innovation_score) || 0,
-        innovation_factor: Number(e.innovation_factor) || 1.0,
-        innovation_flags: e.innovation_flags || [],
-        appreciation_signals: e.appreciation_signals || [],
+        ticker: chosen.ticker,
+        drug: chosen.drug || '',
+        indication: chosen.indication || 'Unknown',
+        type: chosen.type || 'PDUFA',
+        date: chosen.date,
+        grade: chosen.grade || 'WATCH',
+        poa: Number(chosen.poa) || 0,
+        score: Number(chosen.score) || 0,
+        flags: chosen.flags || [],
+        notes: chosen.notes || '',
+        source_url: chosen.source_url || '',
+        description: '',
+        sell_news_risk: chosen.sell_news_risk || 'MODERATE',
+        move_score: Number(chosen.move_score) || 0,
+        expected_move: chosen.expected_move || '',
+        move_flags: chosen.move_flags || [],
+        net_edge_score: Number(chosen.net_edge_score) || Number(chosen.score) || 0,
+        dilution_risk: chosen.dilution_risk || 'UNKNOWN',
+        dilution_score: Number(chosen.dilution_score) || 0,
+        dilution_flags: chosen.dilution_flags || [],
+        runway_months: chosen.runway_months,
+        runway_risk: chosen.runway_risk || 'UNKNOWN',
+        insider_signal: chosen.insider_signal || 'NEUTRAL',
+        insider_net_buys: Number(chosen.insider_net_buys) || 0,
+        shelf_active: chosen.shelf_active || false,
+        atm_active: chosen.atm_active || false,
+        partnership_detected: chosen.has_partnership || false,
+        partner_name: chosen.partner_name || '',
+        ticker_role: chosen.ticker_role || 'primary',
+        primary_ticker: chosen.primary_ticker || '',
+        is_primary_ticker: chosen.is_primary_ticker !== false,
+        acquirer_urgency_top: chosen.acquirer_urgency_top || '',
+        buyout_score: Number(chosen.buyout_score) || 0,
+        buyout_risk: chosen.buyout_risk || 'UNLIKELY',
+        buyout_flags: chosen.buyout_flags || [],
+        buyout_timeline: chosen.buyout_timeline || '',
+        drug_tam_estimate: 0,
+        tam_ratio: Number(chosen.tam_ratio) || 0,
+        tam_label: '',
+        news_items: chosen.news_items || [],
+        revenue_m: Number(chosen.revenue_m) || 0,
+        estimated_market_cap: Number(chosen.estimated_market_cap) || 0,
+        months_since_approval: chosen.months_since_approval || null,
+        last_approval_date: null,
+        institutional_pct: 0,
+        cmc_risk: chosen.cmc_risk || 'UNKNOWN',
+        cmc_flags: chosen.cmc_flags || [],
+        buyout_probability_pct: Number(chosen.buyout_probability_pct) || 0,
+        buyout_timeline_months: Number(chosen.buyout_timeline_months) || 0,
+        data_confidence: chosen.data_confidence || '',
+        innovation_score: Number(chosen.innovation_score) || 0,
+        innovation_factor: Number(chosen.innovation_factor) || 1.0,
+        innovation_flags: chosen.innovation_flags || [],
+        appreciation_signals: chosen.appreciation_signals || [],
       };
-      if (result.isPaid === false) isPaid = false;
+
+      var chosenType = String(chosen.type || '').toUpperCase();
+      console.log('[SC] Loaded from pdufa_events direct → ' + ticker + ' · ' +
+                  chosenType + ' · ' + (chosen.date || 'no date') +
+                  ' · PoA ' + (chosen.poa || 0) +
+                  (upcoming ? ' · UPCOMING' : ' · fallback (no upcoming)'));
     }
   } catch (err) {
-    console.warn('[SC] Failed to fetch event data:', err);
+    console.warn('[SC] Direct pdufa_events query failed:', err);
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // STEP 2 — Fall back to get-scanner-data edge function.
+  // Only runs if pdufa_events had zero rows for this ticker. This preserves
+  // the edge function's biotech_universe fallback for non-PDUFA tickers.
+  // ═══════════════════════════════════════════════════════════════════════
   if (!eventData) {
     try {
-      var sb = getSupabase();
-      var { data: company } = await sb.from('biotech_universe')
+      var session2 = await scGetSession();
+      var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?ticker=' + ticker, {
+        headers: {
+          'Authorization': 'Bearer ' + (session2?.access_token || ''),
+          'Content-Type': 'application/json',
+        },
+      });
+
+      var result = await res.json();
+      if (result.event) {
+        var e = result.event;
+        eventData = {
+          ticker: e.ticker,
+          drug: e.drug || '',
+          indication: e.indication || 'Unknown',
+          type: e.type || 'PDUFA',
+          date: e.date,
+          grade: e.grade || 'WATCH',
+          poa: Number(e.poa) || 0,
+          score: Number(e.score) || 0,
+          flags: e.flags || [],
+          notes: e.notes || '',
+          source_url: e.source_url || '',
+          description: e.description || '',
+          sell_news_risk: e.sell_news_risk || 'MODERATE',
+          move_score: Number(e.move_score) || 0,
+          expected_move: e.expected_move || '',
+          move_flags: e.move_flags || [],
+          net_edge_score: Number(e.net_edge_score) || Number(e.score) || 0,
+          dilution_risk: e.dilution_risk || 'UNKNOWN',
+          dilution_score: Number(e.dilution_score) || 0,
+          dilution_flags: e.dilution_flags || [],
+          runway_months: e.runway_months,
+          runway_risk: e.runway_risk || 'UNKNOWN',
+          insider_signal: e.insider_signal || 'NEUTRAL',
+          insider_net_buys: Number(e.insider_net_buys) || 0,
+          shelf_active: e.shelf_active || false,
+          atm_active: e.atm_active || false,
+          partnership_detected: e.has_partnership || e.partnership_detected || false,
+          partner_name: e.partner_name || '',
+          ticker_role: e.ticker_role || 'primary',
+          primary_ticker: e.primary_ticker || '',
+          is_primary_ticker: e.is_primary_ticker !== false,
+          acquirer_urgency_top: e.acquirer_urgency_top || '',
+          buyout_score: Number(e.buyout_score) || 0,
+          buyout_risk: e.buyout_risk || 'UNLIKELY',
+          buyout_flags: e.buyout_flags || [],
+          buyout_timeline: e.buyout_timeline || '',
+          drug_tam_estimate: Number(e.drug_tam_estimate) || 0,
+          tam_ratio: Number(e.tam_ratio) || 0,
+          tam_label: e.tam_label || '',
+          news_items: e.news_items || [],
+          revenue_m: Number(e.revenue_m) || 0,
+          estimated_market_cap: Number(e.estimated_market_cap) || 0,
+          months_since_approval: e.months_since_approval || null,
+          last_approval_date: e.last_approval_date || null,
+          institutional_pct: Number(e.institutional_pct) || 0,
+          cmc_risk: e.cmc_risk || 'UNKNOWN',
+          cmc_flags: e.cmc_flags || [],
+          buyout_probability_pct: Number(e.buyout_probability_pct) || 0,
+          buyout_timeline_months: Number(e.buyout_timeline_months) || 0,
+          data_confidence: e.data_confidence || '',
+          innovation_score: Number(e.innovation_score) || 0,
+          innovation_factor: Number(e.innovation_factor) || 1.0,
+          innovation_flags: e.innovation_flags || [],
+          appreciation_signals: e.appreciation_signals || [],
+        };
+        if (result.isPaid === false) isPaid = false;
+        console.log('[SC] Loaded from get-scanner-data edge function → ' + ticker);
+      }
+    } catch (err) {
+      console.warn('[SC] Failed to fetch event data from edge function:', err);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // STEP 3 — biotech_universe fallback (company-level deep dive, no PDUFA).
+  // ═══════════════════════════════════════════════════════════════════════
+  if (!eventData) {
+    try {
+      var sb2 = getSupabase();
+      var { data: company } = await sb2.from('biotech_universe')
         .select('ticker, company_name, market_cap_tier')
         .eq('ticker', ticker)
         .single();
@@ -1728,6 +1799,9 @@ async function generateAISummary(d, netEdgeValue) {
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // STEP 4 — Hard fallback: ticker-only stub so the page still renders.
+  // ═══════════════════════════════════════════════════════════════════════
   if (!eventData) {
     eventData = {
       ticker: ticker,
@@ -1771,12 +1845,15 @@ async function generateAISummary(d, netEdgeValue) {
     };
   }
 
-  // biotech_universe enrich
+  // ═══════════════════════════════════════════════════════════════════════
+  // STEP 5 — biotech_universe enrichment (cap, TAM, approval metadata).
+  // Fills in fields the pdufa_events row may be missing.
+  // ═══════════════════════════════════════════════════════════════════════
   if (eventData) {
     try {
-      var sb2 = getSupabase();
-      var uniRes = await sb2.from('biotech_universe')
-        .select('estimated_market_cap, drug_tam_billions, tam_ratio, approved_drug, last_approval_date')
+      var sb3 = getSupabase();
+      var uniRes = await sb3.from('biotech_universe')
+        .select('estimated_market_cap, drug_tam_billions, tam_ratio, approved_drug, last_approval_date, company_name, market_cap_tier')
         .eq('ticker', ticker)
         .limit(1);
       var uniRow = uniRes && uniRes.data && uniRes.data[0];
@@ -1793,8 +1870,20 @@ async function generateAISummary(d, netEdgeValue) {
         if (uniRow.last_approval_date && !eventData.last_approval_date) {
           eventData.last_approval_date = uniRow.last_approval_date;
         }
-        if (uniRow.approved_drug && !eventData.drug) {
+        // Only use approved_drug as drug name if this is actually an APPROVED
+        // event. Do NOT overwrite drug names on upcoming PDUFA rows — the
+        // approved drug from biotech_universe may be a totally different
+        // historical asset (e.g. BMS has Keytruda approved but the PDUFA
+        // row might be for a new indication).
+        var evTypeUpper = String(eventData.type || '').toUpperCase();
+        if (uniRow.approved_drug && !eventData.drug && evTypeUpper === 'APPROVED') {
           eventData.drug = uniRow.approved_drug;
+        }
+        if (uniRow.company_name && !eventData.company_name) {
+          eventData.company_name = uniRow.company_name;
+        }
+        if (uniRow.market_cap_tier && !eventData.market_cap_tier) {
+          eventData.market_cap_tier = uniRow.market_cap_tier;
         }
       }
     } catch (e) {
@@ -1802,7 +1891,9 @@ async function generateAISummary(d, netEdgeValue) {
     }
   }
 
-  // Live cap + price + bars
+  // ═══════════════════════════════════════════════════════════════════════
+  // STEP 6 — Live market data overlay (Polygon).
+  // ═══════════════════════════════════════════════════════════════════════
   try {
     var capPromise = Promise.race([
       fetchLiveCap(ticker),
