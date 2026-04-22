@@ -1068,12 +1068,38 @@ function populatePage(d, isPaid) {
   if (isRoyaltyTicker) {
     eyebrow = (d.type || 'PDUFA') + ' · ' + d.ticker_role.toUpperCase() + ' TICKER';
   }
+  // Post-approval / resolved state detection
+  var days = daysUntil(d.date);
+  var isApproved = (String(d.type).toUpperCase() === 'APPROVED') ||
+                   (d.poa >= 100 && (d.date === '—' || !d.date || isNaN(days)));
+  if (isApproved) {
+    eyebrow = 'APPROVED · POST-APPROVAL TRACKING';
+  }
   document.getElementById('header-eyebrow').textContent = eyebrow;
   document.getElementById('grade-badge').innerHTML       = gradeBadgeHTML(d.grade);
 
-  var days = daysUntil(d.date);
-  document.getElementById('countdown-days').textContent = days >= 0 ? days : 'Resolved';
-  document.getElementById('countdown-date').textContent = d.date;
+  if (isApproved) {
+    // For approved drugs, show months since approval + the actual approval date.
+    var monthsSince = Number(d.months_since_approval) || 0;
+    var countdownEl = document.getElementById('countdown-days');
+    var labelEl = document.querySelector('.countdown-label');
+    var dateEl = document.getElementById('countdown-date');
+    if (monthsSince > 0) {
+      countdownEl.textContent = monthsSince;
+      countdownEl.style.color = 'var(--accent2)';
+      if (labelEl) labelEl.textContent = 'months since approval';
+    } else {
+      countdownEl.textContent = '✓';
+      countdownEl.style.color = 'var(--accent2)';
+      if (labelEl) labelEl.textContent = 'approved';
+    }
+    if (dateEl) {
+      dateEl.textContent = d.last_approval_date ? 'Approved ' + d.last_approval_date : '';
+    }
+  } else {
+    document.getElementById('countdown-days').textContent = days >= 0 ? days : 'Resolved';
+    document.getElementById('countdown-date').textContent = d.date;
+  }
 
   document.getElementById('stat-poa').textContent       = (d.poa || 0).toFixed(1) + '%';
   var stnRisk = d.sell_news_risk || 'MODERATE';
@@ -1149,7 +1175,24 @@ function populatePage(d, isPaid) {
   var dataConfidence = (d.data_confidence || '').toUpperCase();
   var cmcRisk = (d.cmc_risk || '').toUpperCase();
 
-  var metricRows = [
+  var metricRows = isApproved ? [
+    ['Approval Date', d.last_approval_date || '—'],
+    ['Months Since Approval', (Number(d.months_since_approval) || 0) + ' months'],
+    ['Application',   d.type || 'APPROVED'],
+    ['Indication',    d.indication || 'Unknown'],
+    ['Grade',         d.grade || 'WATCH'],
+    ['PoA',           (d.poa || 0).toFixed(1) + '%'],
+    ['STN Risk',      d.sell_news_risk || 'MODERATE'],
+    ['Move Score',    (d.move_score || 0) + '/100'],
+    ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
+    ['Dilution Score', (d.dilution_score || 0) + '/100'],
+    ['Runway',        d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown'],
+    ['Insider Signal', d.insider_signal || 'NEUTRAL'],
+    ['Shelf Active',  d.shelf_active ? 'YES' : 'No'],
+    ['ATM Active',    d.atm_active ? 'YES' : 'No'],
+    ['Buyout Score',  (d.buyout_score || 0) + '/100'],
+    ['Buyout Risk',   d.buyout_risk || 'UNLIKELY'],
+  ] : [
     ['PDUFA Date',    d.date],
     ['Days Out',      days >= 0 ? days + 'd' : 'Resolved'],
     ['Application',   d.type || 'PDUFA'],
@@ -1174,7 +1217,7 @@ function populatePage(d, isPaid) {
   if (buyoutTimelineMonths > 0) {
     metricRows.push(['Buyout Timeline', buyoutTimelineMonths + ' months']);
   }
-  if (monthsSinceApproval > 0) {
+  if (!isApproved && monthsSinceApproval > 0) {
     metricRows.push(['Months Since Approval', monthsSinceApproval + ' months']);
   }
 
@@ -1297,8 +1340,16 @@ function populatePage(d, isPaid) {
 
   // Convexity breakdown
   var convScore = d.score * 0.6 || 30;
+  // Handle missing/invalid dates — don't show NaN to users
+  var proxLabel = (isNaN(days) || isApproved) ? 'Proximity (n/a)' : 'Proximity (' + days + 'd)';
+  var proxPts;
+  if (isNaN(days) || isApproved) proxPts = 0;
+  else if (days <= 14) proxPts = 18;
+  else if (days <= 45) proxPts = 25;
+  else if (days <= 90) proxPts = 14;
+  else proxPts = 6;
   document.getElementById('convex-bars').innerHTML = [
-    {label: 'Proximity (' + days + 'd)', pts: days <= 14 ? 18 : days <= 45 ? 25 : days <= 90 ? 14 : 6, max: 25},
+    {label: proxLabel, pts: proxPts, max: 25},
     {label: 'PoA strength', pts: Math.round(d.poa / 100 * 20) || 10, max: 20},
     {label: 'Setup quality', pts: Math.round(convScore / 100 * 15) || 8, max: 15},
   ].map(function(b) {
@@ -1306,9 +1357,19 @@ function populatePage(d, isPaid) {
     return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill" style="width:' + pct + '%"></div></div><span class="bar-val">' + b.pts + '/' + b.max + '</span></div>';
   }).join('');
 
-  // Catalyst timeline
-  document.getElementById('catalyst-timeline').innerHTML =
-    '<div class="timeline-item"><div class="timeline-dot amber"></div><div class="timeline-content"><div class="timeline-date">' + d.date + '</div><div class="timeline-event">FDA PDUFA Action Date</div><div class="timeline-note">' + (d.type || 'PDUFA') + ' decision expected — ' + escapeHtml(d.drug || d.ticker) + '</div></div></div>';
+  // Catalyst timeline — approved drugs show the historical approval event,
+  // upcoming PDUFAs show the action date.
+  if (isApproved) {
+    var approvalDateDisplay = d.last_approval_date || '—';
+    var monthsLine = (Number(d.months_since_approval) || 0) > 0
+      ? ' · ' + Number(d.months_since_approval) + ' months ago'
+      : '';
+    document.getElementById('catalyst-timeline').innerHTML =
+      '<div class="timeline-item"><div class="timeline-dot green"></div><div class="timeline-content"><div class="timeline-date">' + approvalDateDisplay + monthsLine + '</div><div class="timeline-event">FDA Approval Granted</div><div class="timeline-note">' + escapeHtml(d.drug || d.ticker) + ' — ' + escapeHtml(d.indication || 'approved indication') + '</div></div></div>';
+  } else {
+    document.getElementById('catalyst-timeline').innerHTML =
+      '<div class="timeline-item"><div class="timeline-dot amber"></div><div class="timeline-content"><div class="timeline-date">' + d.date + '</div><div class="timeline-event">FDA PDUFA Action Date</div><div class="timeline-note">' + (d.type || 'PDUFA') + ' decision expected — ' + escapeHtml(d.drug || d.ticker) + '</div></div></div>';
+  }
 
   // AI summary
   generateAISummary(d, netEdge);
@@ -1323,7 +1384,37 @@ async function generateAISummary(d, netEdgeValue) {
     var stnRisk = d.sell_news_risk || 'MODERATE';
     var prompt;
 
-    if (d.type === 'COMPANY' || d.date === '—') {
+    // Is this a post-approval tracking page? (already approved, no future PDUFA)
+    var daysToPdufa = daysUntil(d.date);
+    var isApprovedEvent = (String(d.type).toUpperCase() === 'APPROVED') ||
+                          (d.poa >= 100 && (d.date === '—' || !d.date || isNaN(daysToPdufa)));
+
+    if (isApprovedEvent) {
+      // Post-approval analysis — focus on commercial trajectory, not PDUFA prep
+      var monthsSince = Number(d.months_since_approval) || 0;
+      prompt = 'Post-approval analysis for ' + d.ticker + ' — ' + (d.drug || 'approved drug') + ' for ' + (d.indication || 'unknown indication') + '.\n\n' +
+        'Approval date: ' + (d.last_approval_date || 'unknown') + '. Months since approval: ' + monthsSince + '.\n' +
+        'Buyout Score: ' + (d.buyout_score || 0) + '/100 (' + (d.buyout_risk || 'UNKNOWN') + '). ' +
+        'Buyout Probability: ' + (d.buyout_probability_pct || 0) + '%. ' +
+        'CMC Risk: ' + (d.cmc_risk || 'UNKNOWN') + '. ' +
+        'TAM/Cap: ' + (d.tam_ratio || '—') + 'x. Estimated cap: $' + Math.round((Number(d.estimated_market_cap) || 0) / 1e6) + 'M.\n' +
+        'Risk flags: ' + ((d.flags || []).filter(function(f){return !String(f).startsWith('AUTO-RESOLVED:');})).join(', ') + '.\n\n' +
+        'Provide THREE sections using these exact headers:\n\n' +
+        '**EXECUTIVE SUMMARY**\n' +
+        'Write 2-3 paragraphs on: commercial launch trajectory (if data is public), revenue run-rate, physician adoption, label breadth, competitive positioning vs existing treatments in ' + (d.indication || 'the indication') + ', and whether this drug is living up to peak-sales projections or underperforming. Be specific — name competitor drugs, cite label language, reference launch quarters.\n\n' +
+        '**DILUTION RISK & CAPITAL STRUCTURE**\n' +
+        '1. Does ' + d.ticker + ' have an active ATM facility or shelf registration? Scanner says ATM: ' + (d.atm_active ? 'YES' : 'No') + ', Shelf: ' + (d.shelf_active ? 'YES' : 'No') + '.\n' +
+        '2. Cash runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown') + '. Given commercial launch burn, when would they need to raise?\n' +
+        '3. Is this a "shorting the launch" candidate — commercial launch costs exceeding cash?\n' +
+        '4. Insider activity: ' + (d.insider_signal || 'NEUTRAL') + '.\n\n' +
+        '**BUYOUT & PRICE SCENARIOS**\n' +
+        '1. Bull case: Buyout at premium (Buyout Score: ' + (d.buyout_score || 0) + '/100 suggests ' + (d.buyout_risk || 'UNLIKELY') + ' near-term). Realistic takeout multiple and timeline.\n' +
+        '2. Base case: Independent commercial ramp. 12-month trajectory given launch data.\n' +
+        '3. Bear case: Commercial disappointment, dilution, competitive pressure.\n' +
+        '4. Key question: What single factor determines whether this stock works from here?\n' +
+        '5. Historical pattern: Which post-approval behavioral pattern does this most resemble — Post-Approval Spike, Deep Dive, Strong Ascend, Buyout Wave, or Surface-Level Reaction?\n\n' +
+        'Be specific with numbers. This is quantitative research, not investment advice. End with disclaimer.';
+    } else if (d.type === 'COMPANY' || d.date === '—') {
       prompt = 'Provide a comprehensive biotech intelligence deep dive on ' + d.ticker + ' (' + (d.company_name || d.ticker) + '). Provide THREE clearly separated sections using these exact headers:\n\n' +
         '**COMPANY OVERVIEW & PIPELINE**\n' +
         'Market cap tier: ' + (d.market_cap_tier || 'UNKNOWN') + '.\n' +
@@ -1561,6 +1652,7 @@ async function generateAISummary(d, netEdgeValue) {
         revenue_m: Number(e.revenue_m) || 0,
         estimated_market_cap: Number(e.estimated_market_cap) || 0,
         months_since_approval: e.months_since_approval || null,
+        last_approval_date: e.last_approval_date || null,
         institutional_pct: Number(e.institutional_pct) || 0,
         // ─── CMC Recovery fields ─────────────────────────────────────────
         cmc_risk: e.cmc_risk || 'UNKNOWN',
@@ -1697,6 +1789,12 @@ async function generateAISummary(d, netEdgeValue) {
         }
         if (Number(uniRow.drug_tam_billions)) {
           eventData.drug_tam_billions = Number(uniRow.drug_tam_billions);
+        }
+        if (uniRow.last_approval_date && !eventData.last_approval_date) {
+          eventData.last_approval_date = uniRow.last_approval_date;
+        }
+        if (uniRow.approved_drug && !eventData.drug) {
+          eventData.drug = uniRow.approved_drug;
         }
       }
     } catch (e) {
