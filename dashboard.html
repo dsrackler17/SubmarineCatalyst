@@ -197,6 +197,7 @@
     <li><a href="/dashboard.html" class="active">Dashboard</a></li>
     <li><a href="/how-institutions-trade.html">Education</a></li>
     <li><a href="/behavior-patterns.html">Patterns</a></li>
+    <li><a href="/contact.html">Contact</a></li>
   </ul>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">—</span>
@@ -271,6 +272,9 @@
       <span class="sidebar-label">Account</span>
       <button class="sidebar-item" onclick="switchTab(this,'account')">
         <span class="sidebar-icon">⚙️</span> Account &amp; Billing
+      </button>
+      <button class="sidebar-item" onclick="window.location.href='/contact.html'">
+        <span class="sidebar-icon">💬</span> Contact Support
       </button>
     </div>
   </aside>
@@ -516,6 +520,19 @@
           </div>
         </div>
       </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:2rem;">
+        <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem;">Need help?</div>
+        <div style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:0.85rem;">
+          Billing questions, access issues, feature requests, feedback — I answer email personally, usually within a few hours.
+        </div>
+        <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+          <a href="/contact.html" class="btn-portal">💬 Contact Page →</a>
+          <a href="mailto:dsrackler@gmail.com" class="btn-portal">✉️ Email Me</a>
+          <a href="https://www.linkedin.com/in/davis-rackler-008619199" target="_blank" rel="noopener" class="btn-portal">💼 LinkedIn</a>
+        </div>
+      </div>
+
       <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;">
         ⚠️ Submarine Catalyst is a quantitative scoring tool only. It is not investment advice.
         All trading decisions are solely your own. PDUFA binary events carry substantial risk of loss.
@@ -529,6 +546,7 @@
   <span style="font-family:var(--mono);font-size:0.7rem;font-weight:700;letter-spacing:0.12em;">SUBMARINE CATALYST</span>
   <span>Not investment advice · Quantitative signals only · Trading involves risk of loss</span>
   <div style="display:flex;gap:1.5rem">
+    <a href="/contact.html">Contact</a>
     <a href="/privacy.html">Privacy</a>
     <a href="/terms.html">Terms</a>
   </div>
@@ -2035,5 +2053,7 @@ function renderPRScanner() {
   };
 })();
 </script>
+
+<script src="/js/support-widget.js"></script>
 </body>
 </html>
