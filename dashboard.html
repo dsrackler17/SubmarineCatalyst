@@ -600,16 +600,10 @@ function classifyChart(change30d, volRatio, bars) {
   return { label: 'READY', icon: '✅', color: 'var(--accent2)' };
 }
 
-// ─── BULK SNAPSHOT — fast live prices for many tickers in ONE call ──────────
-// Polygon /v2/snapshot/locale/us/markets/stocks/tickers?tickers=A,B,C returns
-// live intraday prices + today's change % for up to ~250 tickers per request.
-// One HTTP call instead of N. Runs in parallel with fetchPriceData so the UI
-// shows live prices immediately while 30D history + cap backfill.
 async function polyBulkSnapshot(tickers) {
   if (!SC_CONFIG.polygonApiKey || !tickers || tickers.length === 0) return {};
   var apiKey = SC_CONFIG.polygonApiKey;
   var result = {};
-  // Chunk at 250 to stay under URL length limits
   for (var i = 0; i < tickers.length; i += 250) {
     var chunk = tickers.slice(i, i + 250);
     var url = 'https://api.polygon.io/v2/snapshot/locale/us/markets/stocks/tickers?tickers=' + chunk.join(',') + '&apiKey=' + apiKey;
@@ -636,9 +630,6 @@ async function polyBulkSnapshot(tickers) {
   return result;
 }
 
-// Merges bulk snapshot data into PRICE_DATA. Called before fetchPriceData completes
-// so users see live prices right away. fetchPriceData will add change30d/vol/chart
-// without overwriting these fields (merge semantics in fetchPriceData below).
 function applyBulkSnapshot(snap) {
   var applied = 0;
   Object.keys(snap).forEach(function(tk) {
@@ -651,9 +642,6 @@ function applyBulkSnapshot(snap) {
   return applied;
 }
 
-// Fetches both the OHLC bars AND the ticker details (for live market_cap) in parallel.
-// Polygon's /v3/reference/tickers/{ticker} returns market_cap in full USD — matches
-// how estimated_market_cap is stored and rendered app-wide.
 async function fetchPriceData(tickers) {
   if (!SC_CONFIG.polygonApiKey) {
     console.warn('[SC] No polygonApiKey in SC_CONFIG');
@@ -680,7 +668,6 @@ async function fetchPriceData(tickers) {
           var first = bars[0].c;
           var last = bars[bars.length - 1].c;
           var prev = bars.length >= 2 ? bars[bars.length - 2].c : last;
-          // If bulk snapshot already set a fresher intraday price, use that for change30d
           var currentPrice = (PRICE_DATA[tk] && PRICE_DATA[tk]._fromSnapshot && PRICE_DATA[tk].close) || last;
           var change30d = ((currentPrice - first) / first) * 100;
           var todayChange = ((last - prev) / prev) * 100;
@@ -691,7 +678,6 @@ async function fetchPriceData(tickers) {
           var volRatio = avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
           var chart = classifyChart(change30d, volRatio, bars);
           if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
-          // Preserve snapshot's intraday close/todayChange if present (fresher)
           if (!PRICE_DATA[tk]._fromSnapshot) {
             PRICE_DATA[tk].close = last;
             PRICE_DATA[tk].todayChange = todayChange;
@@ -702,9 +688,6 @@ async function fetchPriceData(tickers) {
           PRICE_DATA[tk].chartIcon = chart.icon;
           PRICE_DATA[tk].chartColor = chart.color;
         }
-        // Live market cap from Polygon ticker details (full USD).
-        // Also capture shares_outstanding so we can compute cap = shares × live_price
-        // when Polygon's stored market_cap is null or stale.
         if (details && details.results) {
           if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
           if (typeof details.results.market_cap === 'number' && details.results.market_cap > 0) {
@@ -728,14 +711,6 @@ async function fetchPriceData(tickers) {
   console.log('[SC] Polygon: ' + withPrice + ' tickers w/ price, ' + withCap + ' tickers w/ live cap (of ' + tickers.length + ')');
 }
 
-// ─── APPLY LIVE MARKET CAP + LIVE TAM/CAP ────────────────────────────────────
-// Overrides stale DB estimated_market_cap with Polygon live value, then re-derives
-// tam_ratio with a two-path fallback chain:
-//   Path 1: staticTAM = oldTamRatio × oldCap (works when DB cap is present)
-//   Path 2: staticTAM = drug_tam_billions × 1e9 (works when edge fn dropped cap)
-// Live cap itself has a two-tier fallback: Polygon market_cap field, else
-// shares × live intraday price. This handles tickers where Polygon's pre-computed
-// market_cap is null or stale.
 function applyLiveMarketData() {
   function resolveLiveCap(p) {
     if (!p) return null;
@@ -769,8 +744,49 @@ function applyLiveMarketData() {
   }
   var sc = applyTo(SCANNER_DATA);
   var bo = applyTo(window.BUYOUT_DATA);
-  console.log('[SC] Live cap applied: ' + sc.updated + ' scanner events (' + sc.noTamSource + ' no TAM source), ' +
-    bo.updated + ' buyout companies (' + bo.noTamSource + ' no TAM source)');
+  console.log('[SC] Live cap applied: ' + sc.updated + ' scanner events, ' + bo.updated + ' buyout companies');
+}
+
+// ─── CLIENT-SIDE INNOVATION FALLBACK ──────────────────────────────────────────
+// Guarantees every drug has an innovation_score on /100 even if the DB row is
+// null/zero or still on the legacy /25 scale. Server-computed score-events
+// values remain the source of truth when present.
+function normalizeInnovation(d) {
+  var raw = Number(d.innovation_score);
+  if (!isFinite(raw) || raw <= 0) {
+    // No score at all — assign neutral default so display never shows "—"
+    // for drugs. Non-drug rows keep 0.
+    if (d.drug && String(d.drug).trim()) {
+      d.innovation_score = 40;
+    }
+  } else if (raw > 0 && raw <= 25) {
+    // Legacy /25 scale — rescale to /100
+    d.innovation_score = raw * 4;
+  }
+  // Recompute innovation_factor: 1.0 + (score - 50) / 200 → range 0.75…1.25
+  var s = Number(d.innovation_score) || 0;
+  if (s > 0) {
+    d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
+  }
+}
+
+// Returns the Net Edge score with innovation folded in.
+// Contribution: (innovation_score - 50) × 0.15 → range -7.5…+7.5 points
+// `d.score` is the raw pre-innovation score from score-events.
+// `d.net_edge_score` is whatever the server sent as the headline metric.
+// We prefer server net_edge_score if it looks like it already includes innovation,
+// otherwise we derive from `score` + innovation_edge.
+function computeNetEdge(d) {
+  var base = Number(d.net_edge_score) || Number(d.score) || 0;
+  var inn = Number(d.innovation_score) || 0;
+  if (inn <= 0) return base;
+  // If server already folded innovation into net_edge_score (detected by
+  // net_edge_score ≠ score), trust it. Otherwise apply the fold-in here.
+  var rawScore = Number(d.score) || 0;
+  var serverFolded = Math.abs(base - rawScore) > 0.5;
+  if (serverFolded) return base;
+  var edge = (inn - 50) * 0.15;
+  return Math.max(0, Math.min(100, rawScore + edge));
 }
 
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
@@ -782,6 +798,12 @@ function renderScanner() {
       </div>`;
     return;
   }
+  // Normalize innovation + compute net_edge_adj once per render
+  SCANNER_DATA.forEach(function(d) {
+    normalizeInnovation(d);
+    d.net_edge_adj = computeNetEdge(d);
+  });
+
   const sortBy = (document.getElementById('scanner-sort')?.value) || 'score';
   const gradeFilter = (document.getElementById('scanner-grade')?.value) || 'all';
   const timeframe = parseInt((document.getElementById('scanner-timeframe')?.value) || '0');
@@ -806,7 +828,7 @@ function renderScanner() {
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
       case 'innovation': return (Number(b.innovation_score) || 0) - (Number(a.innovation_score) || 0);
       case 'trend30d':  return ((PRICE_DATA[b.ticker]||{}).change30d||0) - ((PRICE_DATA[a.ticker]||{}).change30d||0);
-      default:          return (b.net_edge_score || b.score || 0) - (a.net_edge_score || a.score || 0);
+      default:          return (b.net_edge_adj || 0) - (a.net_edge_adj || 0);
     }
   });
   const countEl = document.getElementById('scanner-count');
@@ -817,11 +839,13 @@ function renderScanner() {
     const royaltyBadge = isRoyalty
       ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);margin-left:0.4rem;vertical-align:middle;" title="${d.ticker} exposure to this PDUFA is via ${d.ticker_role} arrangement with ${d.primary_ticker || 'commercial partner'}">${d.ticker_role.toUpperCase()}</span>`
       : '';
+    // ─── Innovation (/100 scale) ──────────────────────────────────────────
     const innScore = Number(d.innovation_score) || 0;
     const innFactor = Number(d.innovation_factor) || 1.0;
-    const innColor = innScore >= 20 ? 'green' : innScore >= 12 ? 'green' : innScore >= 6 ? 'cyan' : 'white';
-    const innStarColor = innScore >= 20 ? '#ffd700' : innScore >= 12 ? 'var(--accent2)' : innScore >= 6 ? 'var(--accent)' : 'var(--muted)';
-    const innDisplay = innScore > 0 ? innScore + '/25' : '—';
+    const innColor = innScore >= 75 ? 'green' : innScore >= 55 ? 'cyan' : innScore >= 35 ? 'white' : 'amber';
+    const innStarColor = innScore >= 80 ? '#ffd700' : innScore >= 60 ? 'var(--accent2)' : innScore >= 40 ? 'var(--accent)' : 'var(--muted)';
+    const innDisplay = innScore > 0 ? Math.round(innScore) + '/100' : '—';
+    const netEdge = Number(d.net_edge_adj) || 0;
     return `
       <div class="scanner-card ${gradeClass(d.grade)}" style="animation-delay:${i*0.05}s"
            onclick="window.location.href='/catalyst-detail.html?ticker=${d.ticker}'"
@@ -839,22 +863,22 @@ function renderScanner() {
           <div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div></div>
           <div class="score-box"><div class="score-box-label">STN Risk</div><div class="score-box-val ${d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? 'green' : 'amber'}">${d.sell_news_risk || 'MOD'}</div></div>
           <div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ${d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL' ? 'green' : 'white'}">${d.dilution_risk || '—'}</div></div>
-          <div class="score-box"><div class="score-box-label">Net Edge</div><div class="score-box-val ${(d.net_edge_score || d.score) >= 72 ? 'green' : (d.net_edge_score || d.score) >= 58 ? 'cyan' : (d.net_edge_score || d.score) >= 42 ? 'amber' : 'red'}">${(d.net_edge_score || d.score || 0).toFixed(1)}</div></div>
+          <div class="score-box" title="Net Edge = base score + innovation fold-in (±7.5 pts)"><div class="score-box-label">Net Edge</div><div class="score-box-val ${netEdge >= 72 ? 'green' : netEdge >= 58 ? 'cyan' : netEdge >= 42 ? 'amber' : 'red'}">${netEdge.toFixed(1)}</div></div>
         </div>
         <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
           <div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div></div>
           <div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div></div>
-          <div class="score-box" title="Innovation & Appreciation Factor (0-25 scale). Route-of-admin upgrades, dosing frequency, first-in-class status, best-in-class head-to-head data."><div class="score-box-label" style="color:${innStarColor};">⭐ Innov</div><div class="score-box-val" style="color:${innStarColor};">${innDisplay}</div></div>
+          <div class="score-box" title="Innovation & Appreciation Factor (0-100 scale). Route-of-admin upgrades, dosing frequency, first-in-class status, best-in-class head-to-head data. Folds ±7.5 pts into Net Edge."><div class="score-box-label" style="color:${innStarColor};">⭐ Innov</div><div class="score-box-val ${innColor}" style="color:${innStarColor};">${innDisplay}</div></div>
           <div class="score-box"><div class="score-box-label">30D</div>${(() => { var p = PRICE_DATA[d.ticker]; if (!p || typeof p.change30d !== 'number') return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>'; var c = p.change30d; var arrow = c >= 0 ? '▲' : '▼'; var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red'; return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>'; })()}</div>
         </div>
         ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; var volDisplay = typeof p.volRatio === 'number' ? p.volRatio + '%' : '—'; var chartDisplay = p.chartIcon && p.chartSetup ? p.chartIcon + ' ' + p.chartSetup : '—'; var chartColor = p.chartColor || 'var(--muted)'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + volDisplay + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + chartColor + ';font-weight:700;">' + chartDisplay + '</span></div>' + '</div>'; })()}
-        ${innScore >= 6 && (d.appreciation_signals || []).length > 0 ? '<div style="font-family:var(--mono);font-size:0.58rem;padding:0.4rem 0.55rem;background:rgba(255,215,0,0.04);border-left:2px solid #ffd700;margin-bottom:0.4rem;color:var(--text);line-height:1.5;">⭐ ' + d.appreciation_signals.slice(0,2).map(function(s){return s.length>90?s.substring(0,90)+'…':s;}).join(' · ') + (innFactor !== 1.0 ? ' <span style="color:#ffd700;">(+' + Math.round((innFactor - 1) * 100) + '% edge)</span>' : '') + '</div>' : ''}
+        ${innScore >= 24 && (d.appreciation_signals || []).length > 0 ? '<div style="font-family:var(--mono);font-size:0.58rem;padding:0.4rem 0.55rem;background:rgba(255,215,0,0.04);border-left:2px solid #ffd700;margin-bottom:0.4rem;color:var(--text);line-height:1.5;">⭐ ' + d.appreciation_signals.slice(0,2).map(function(s){return s.length>90?s.substring(0,90)+'…':s;}).join(' · ') + (innFactor !== 1.0 ? ' <span style="color:#ffd700;">(' + (innFactor > 1 ? '+' : '') + Math.round((innFactor - 1) * 100) + '% edge)</span>' : '') + '</div>' : ''}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
         <div class="card-flags">${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market') && !String(f).startsWith('AUTO-RESOLVED:')).map(f=>`<div class="card-flag">${f}</div>`).join('')}</div>
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
       </div>`;
   }).join('');
-  const elite    = SCANNER_DATA.filter(d => d.score >= 72).length;
+  const elite    = SCANNER_DATA.filter(d => (d.net_edge_adj || 0) >= 72).length;
   const within30 = SCANNER_DATA.filter(d => daysUntil(d.date) <= 30).length;
   const avgPoa   = SCANNER_DATA.length > 0 ? (SCANNER_DATA.reduce((s,d) => s + (d.poa || 0), 0) / SCANNER_DATA.length).toFixed(1) : '0';
   document.getElementById('stat-elite').textContent = elite;
@@ -931,8 +955,6 @@ function renderBuyoutGrid() {
 }
 
 // ─── CMC RECOVERY ─────────────────────────────────────────────────────────────
-// Filters SCANNER_DATA for events with CMC resubmission flags. CMC-only CRLs
-// resubmit at 88% vs 58% for clinical CRLs — highest-probability recovery setups.
 function renderCMCRecovery() {
   if (!SCANNER_DATA || SCANNER_DATA.length === 0) {
     document.getElementById('cmc-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">Loading scanner data first...</div>';
@@ -953,9 +975,7 @@ function renderCMCRecovery() {
     if (riskFilter !== 'all' && d.cmc_risk !== riskFilter) return false;
     return true;
   });
-  cmcEvents.sort(function(a, b) {
-    return daysUntil(a.date) - daysUntil(b.date);
-  });
+  cmcEvents.sort(function(a, b) { return daysUntil(a.date) - daysUntil(b.date); });
   document.getElementById('cmc-count-meta').textContent = cmcEvents.length + ' CMC / resubmission setups';
   if (cmcEvents.length === 0) {
     document.getElementById('cmc-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No CMC recovery setups match filters.<br><span style="font-size:0.65rem;opacity:0.7;">CMC filter looks for: CMC flags, manufacturing flags, Class 1/Class 2 resubmissions, post-CRL setups, or tickers with a resolved cmc_risk value.</span></div>';
@@ -969,7 +989,7 @@ function renderCMCRecovery() {
       '<div class="card-top"><div><div class="card-ticker">' + d.ticker + ' ' + daysPill(days) + '</div><div class="card-date">' + d.date + ' · ' + d.type + '</div></div>' + gradeBadge(d.grade) + '</div>' +
       '<div class="card-drug">' + (d.drug || '—') + '</div>' +
       '<div class="card-indication">' + (d.indication || '') + '</div>' +
-      '<div class="card-scores"><div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">' + (d.poa || 0).toFixed(0) + '%</div></div><div class="score-box"><div class="score-box-label">CMC Risk</div><div class="score-box-val ' + cmcColor + '">' + (d.cmc_risk || '—') + '</div></div><div class="score-box"><div class="score-box-label">Net Edge</div><div class="score-box-val cyan">' + (d.net_edge_score || d.score || 0).toFixed(0) + '</div></div><div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + (d.dilution_risk === 'HIGH' || d.dilution_risk === 'EXTREME' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : 'green') + '">' + (d.dilution_risk || '—') + '</div></div></div>' +
+      '<div class="card-scores"><div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">' + (d.poa || 0).toFixed(0) + '%</div></div><div class="score-box"><div class="score-box-label">CMC Risk</div><div class="score-box-val ' + cmcColor + '">' + (d.cmc_risk || '—') + '</div></div><div class="score-box"><div class="score-box-label">Net Edge</div><div class="score-box-val cyan">' + ((d.net_edge_adj || d.net_edge_score || d.score || 0)).toFixed(0) + '</div></div><div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + (d.dilution_risk === 'HIGH' || d.dilution_risk === 'EXTREME' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : 'green') + '">' + (d.dilution_risk || '—') + '</div></div></div>' +
       (cmcTop ? '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,212,255,0.04);border-left:2px solid var(--accent);color:var(--text);">' + cmcTop + '</div>' : '') +
       ((d.cmc_flags || []).length > 1 ? '<div class="card-flags" style="margin-top:0.4rem;">' + d.cmc_flags.slice(1, 4).map(function(f) { return '<div class="card-flag">' + f + '</div>'; }).join('') + '</div>' : '') +
       '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
@@ -979,8 +999,6 @@ function renderCMCRecovery() {
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CATALYST LOADERS — Clinical / Earnings / AdCom / Conferences
-// Client-side ingestion with session cache. Mirrors calendar.html behavior so
-// dashboard subscribers don't have to leave the workspace to scan the universe.
 // ═══════════════════════════════════════════════════════════════════════════
 var CAT_CACHE_PREFIX = 'sc_dash_cat_v1_';
 var CAT_CACHE_6H = 6 * 60 * 60 * 1000;
@@ -997,11 +1015,9 @@ function catCacheGet(key, maxAge) {
     return obj.data;
   } catch (e) { return null; }
 }
-
 function catCacheSet(key, data) {
   try { sessionStorage.setItem(CAT_CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
 }
-
 function catNormalizeToken(name) {
   if (!name) return '';
   var s = name.toLowerCase().replace(/[,.()&/]/g, ' ');
@@ -1011,18 +1027,14 @@ function catNormalizeToken(name) {
   return parts[0] || '';
 }
 
-// ── Clinical readouts from ClinicalTrials.gov v2 ──
 async function loadClinicalReadouts() {
   if (CAT_LOADED.clinical) return;
   var cached = catCacheGet('clinical', CAT_CACHE_6H);
-  if (cached) { CATALYST_DATA.clinical = cached; CAT_LOADED.clinical = true; console.log('[dash-clinical] cache: ' + cached.length); return; }
-
+  if (cached) { CATALYST_DATA.clinical = cached; CAT_LOADED.clinical = true; return; }
   var sb = getSupabase();
   var { data: universe } = await sb.from('biotech_universe')
-    .select('ticker, company_name, market_cap_tier, estimated_market_cap')
-    .eq('active', true);
+    .select('ticker, company_name, market_cap_tier, estimated_market_cap').eq('active', true);
   if (!universe || universe.length === 0) return;
-
   var tokenIndex = {};
   universe.forEach(function(u) {
     var tok = catNormalizeToken(u.company_name || '');
@@ -1030,11 +1042,9 @@ async function loadClinicalReadouts() {
     if (!tokenIndex[tok]) tokenIndex[tok] = [];
     tokenIndex[tok].push(u);
   });
-
   var today = new Date(); today.setUTCHours(0, 0, 0, 0);
   var minDate = new Date(today.getTime() - 14 * 86400000);
   var maxDate = new Date(today.getTime() + 365 * 86400000);
-
   var pageToken = null, events = [], seen = {}, pages = 0;
   while (pages < 15) {
     var params = new URLSearchParams({
@@ -1095,24 +1105,19 @@ async function loadClinicalReadouts() {
   CATALYST_DATA.clinical = events;
   CAT_LOADED.clinical = true;
   catCacheSet('clinical', events);
-  console.log('[dash-clinical] loaded: ' + events.length);
 }
 
-// ── Earnings from Finnhub ──
 async function loadEarnings() {
   if (CAT_LOADED.earnings) return;
   var cached = catCacheGet('earnings', CAT_CACHE_6H);
-  if (cached) { CATALYST_DATA.earnings = cached; CAT_LOADED.earnings = true; console.log('[dash-earnings] cache: ' + cached.length); return; }
+  if (cached) { CATALYST_DATA.earnings = cached; CAT_LOADED.earnings = true; return; }
   if (!SC_CONFIG.finnhubApiKey) { CAT_LOADED.earnings = true; return; }
-
   var sb = getSupabase();
   var { data: universe } = await sb.from('biotech_universe')
-    .select('ticker, company_name, market_cap_tier, estimated_market_cap')
-    .eq('active', true);
+    .select('ticker, company_name, market_cap_tier, estimated_market_cap').eq('active', true);
   if (!universe || universe.length === 0) return;
   var uniMap = {};
   universe.forEach(function(u) { uniMap[u.ticker] = u; });
-
   var today = new Date(); today.setUTCHours(0, 0, 0, 0);
   var all = [];
   for (var offset = 0; offset < 90; offset += 30) {
@@ -1127,7 +1132,6 @@ async function loadEarnings() {
     } catch (e) {}
     await new Promise(function(r) { setTimeout(r, 300); });
   }
-
   var events = [], seen = {};
   all.forEach(function(e) {
     if (!e.symbol || !e.date || !uniMap[e.symbol]) return;
@@ -1149,15 +1153,12 @@ async function loadEarnings() {
   CATALYST_DATA.earnings = events;
   CAT_LOADED.earnings = true;
   catCacheSet('earnings', events);
-  console.log('[dash-earnings] loaded: ' + events.length);
 }
 
-// ── AdCom from Federal Register ──
 async function loadAdcom() {
   if (CAT_LOADED.adcom) return;
   var cached = catCacheGet('adcom', CAT_CACHE_6H);
-  if (cached) { CATALYST_DATA.adcom = cached; CAT_LOADED.adcom = true; console.log('[dash-adcom] cache: ' + cached.length); return; }
-
+  if (cached) { CATALYST_DATA.adcom = cached; CAT_LOADED.adcom = true; return; }
   var sb = getSupabase();
   var drugMap = new Map();
   try {
@@ -1167,7 +1168,6 @@ async function loadAdcom() {
       if (d.brand_name && d.parent_ticker) drugMap.set(d.brand_name.toLowerCase(), d.parent_ticker);
     });
   } catch (err) {}
-
   var today = new Date(); today.setUTCHours(0, 0, 0, 0);
   var lookback = new Date(today.getTime() - 45 * 86400000);
   var params = new URLSearchParams({
@@ -1177,7 +1177,6 @@ async function loadAdcom() {
     'per_page': '100', 'order': 'newest',
   });
   ['title', 'document_number', 'publication_date', 'abstract', 'html_url'].forEach(function(f) { params.append('fields[]', f); });
-
   var events = [];
   try {
     var res = await fetch('https://www.federalregister.gov/api/v1/documents.json?' + params.toString());
@@ -1219,15 +1218,12 @@ async function loadAdcom() {
   CATALYST_DATA.adcom = events;
   CAT_LOADED.adcom = true;
   catCacheSet('adcom', events);
-  console.log('[dash-adcom] loaded: ' + events.length);
 }
 
-// ── Conferences from static JSON manifest ──
 async function loadConferences() {
   if (CAT_LOADED.conferences) return;
   var cached = catCacheGet('conf', CAT_CACHE_24H);
-  if (cached) { CATALYST_DATA.conferences = cached; CAT_LOADED.conferences = true; console.log('[dash-conf] cache: ' + cached.length); return; }
-
+  if (cached) { CATALYST_DATA.conferences = cached; CAT_LOADED.conferences = true; return; }
   var events = [];
   try {
     var bust = Math.floor(Date.now() / 86400000);
@@ -1256,10 +1252,8 @@ async function loadConferences() {
   CATALYST_DATA.conferences = events;
   CAT_LOADED.conferences = true;
   catCacheSet('conf', events);
-  console.log('[dash-conf] loaded: ' + events.length);
 }
 
-// ── Unified catalyst grid renderer ──
 function renderCatalystGrid(kind) {
   var data = CATALYST_DATA[kind] || [];
   var gridId, countId, searchId, windowId;
@@ -1271,10 +1265,8 @@ function renderCatalystGrid(kind) {
   }
   var grid = document.getElementById(gridId);
   if (!grid) return;
-
   var search = (document.getElementById(searchId)?.value || '').toUpperCase();
   var windowDays = windowId ? parseInt(document.getElementById(windowId)?.value || '0') : 0;
-
   var filtered = data.filter(function(e) {
     if (search) {
       var match = e.ticker.toUpperCase().includes(search) ||
@@ -1289,15 +1281,12 @@ function renderCatalystGrid(kind) {
     return true;
   });
   filtered.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
-
   var countEl = document.getElementById(countId);
   if (countEl) countEl.textContent = filtered.length + ' events';
-
   if (filtered.length === 0) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No ' + kind + ' events match filters.</div>';
     return;
   }
-
   var display = filtered.slice(0, 100);
   grid.innerHTML = display.map(function(e) {
     var days = daysUntil(e.date);
@@ -1334,37 +1323,28 @@ function switchTab(btn, id) {
   var panel = document.getElementById('tab-' + id);
   if (panel) panel.classList.add('active');
 
-  // Lazy load catalyst data when tab is first opened
   if (id === 'cmc-recovery') {
     renderCMCRecovery();
   } else if (id === 'clinical') {
     if (!CAT_LOADED.clinical) {
       document.getElementById('clinical-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading clinical readouts...</div></div>';
       loadClinicalReadouts().then(function() { renderCatalystGrid('clinical'); });
-    } else {
-      renderCatalystGrid('clinical');
-    }
+    } else { renderCatalystGrid('clinical'); }
   } else if (id === 'earnings') {
     if (!CAT_LOADED.earnings) {
       document.getElementById('earnings-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading earnings calendar...</div></div>';
       loadEarnings().then(function() { renderCatalystGrid('earnings'); });
-    } else {
-      renderCatalystGrid('earnings');
-    }
+    } else { renderCatalystGrid('earnings'); }
   } else if (id === 'adcom') {
     if (!CAT_LOADED.adcom) {
       document.getElementById('adcom-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading AdCom meetings...</div></div>';
       loadAdcom().then(function() { renderCatalystGrid('adcom'); });
-    } else {
-      renderCatalystGrid('adcom');
-    }
+    } else { renderCatalystGrid('adcom'); }
   } else if (id === 'conferences') {
     if (!CAT_LOADED.conferences) {
       document.getElementById('conf-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading conferences...</div></div>';
       loadConferences().then(function() { renderCatalystGrid('conferences'); });
-    } else {
-      renderCatalystGrid('conferences');
-    }
+    } else { renderCatalystGrid('conferences'); }
   }
 }
 
@@ -1462,27 +1442,20 @@ function switchTab(btn, id) {
           months_since_approval: e.months_since_approval || null,
           data_confidence: e.data_confidence || '',
           company_name: e.company_name || '',
-          // Innovation and Appreciation Factor
           innovation_score: Number(e.innovation_score) || 0,
           innovation_factor: Number(e.innovation_factor) || 1.0,
           innovation_flags: e.innovation_flags || [],
           appreciation_signals: e.appreciation_signals || [],
-          // Ticker role (royalty/licensee handling)
           ticker_role: e.ticker_role || 'primary',
           primary_ticker: e.primary_ticker || '',
           is_primary_ticker: e.is_primary_ticker !== false,
         };
       });
-      console.log('[SC] Loaded ' + SCANNER_DATA.length + ' events from server');
     }
   } catch (e) {
     console.warn('[SC] Failed to fetch live data:', e);
   }
 
-  // ─── ENRICH SCANNER_DATA FROM biotech_universe ──────────────────────────
-  // The get-scanner-data edge function sometimes returns estimated_market_cap = null
-  // or omits drug_tam_billions. Fill those in from the table so the TAM derivation
-  // in applyLiveMarketData has what it needs to re-compute against live cap.
   if (SCANNER_DATA.length > 0) {
     try {
       var scannerTickerList = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
@@ -1492,13 +1465,11 @@ function switchTab(btn, id) {
       if (uniRows && uniRows.length > 0) {
         var uniMap = {};
         uniRows.forEach(function(r) { uniMap[r.ticker] = r; });
-        var enriched = 0;
         SCANNER_DATA.forEach(function(d) {
           var u = uniMap[d.ticker];
           if (!u) return;
           if (!Number(d.estimated_market_cap) && Number(u.estimated_market_cap)) {
             d.estimated_market_cap = Number(u.estimated_market_cap);
-            enriched++;
           }
           if (!Number(d.tam_ratio) && Number(u.tam_ratio)) {
             d.tam_ratio = Number(u.tam_ratio);
@@ -1507,7 +1478,6 @@ function switchTab(btn, id) {
             d.drug_tam_billions = Number(u.drug_tam_billions);
           }
         });
-        console.log('[SC] Enriched ' + enriched + ' scanner events with biotech_universe cap/TAM');
       }
     } catch (err) {
       console.warn('[SC] biotech_universe enrich failed:', err);
@@ -1517,22 +1487,14 @@ function switchTab(btn, id) {
   renderScanner();
   if (SCANNER_DATA.length > 0 && SC_CONFIG.polygonApiKey) {
     var tickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
-
-    // Fast path: bulk snapshot for instant live prices (1 call covers all tickers)
     polyBulkSnapshot(tickers).then(function(snap) {
       var n = applyBulkSnapshot(snap);
-      if (n > 0) {
-        renderScanner();
-        console.log('[SC] Scanner rendered with bulk snapshot live prices (' + n + ' tickers)');
-      }
+      if (n > 0) renderScanner();
     });
-
-    // Full path: per-ticker aggs + ticker-details for 30D history + live cap
     fetchPriceData(tickers).then(function() {
       applyLiveMarketData();
       renderScanner();
       renderBuyoutGrid();
-      console.log('[SC] Scanner + buyout re-rendered with live price + live market cap');
     });
   }
   try {
@@ -1546,8 +1508,6 @@ function switchTab(btn, id) {
         c.tam_ratio = (tam > 0 && mcap > 0) ? Math.round((tam * 1e9 / mcap) * 10) / 10 : 0;
       });
       window.BUYOUT_DATA = approvedCompanies;
-
-      // If Polygon is configured, fetch live caps for buyout-only tickers (not in scanner)
       if (SC_CONFIG.polygonApiKey) {
         var scannerTickers = {};
         SCANNER_DATA.forEach(function(d) { scannerTickers[d.ticker] = true; });
@@ -1556,13 +1516,10 @@ function switchTab(btn, id) {
           .filter(function(t) { return !scannerTickers[t]; })
           .filter(function(t, i, a) { return a.indexOf(t) === i; });
         if (buyoutOnlyTickers.length > 0) {
-          console.log('[SC] Fetching live caps for ' + buyoutOnlyTickers.length + ' buyout-only tickers');
-          // Bulk snapshot first for instant prices
           polyBulkSnapshot(buyoutOnlyTickers).then(function(snap) {
             applyBulkSnapshot(snap);
             renderBuyoutGrid();
           });
-          // Full fetch for 30D + cap
           fetchPriceData(buyoutOnlyTickers).then(function() {
             applyLiveMarketData();
             renderBuyoutGrid();
@@ -1883,7 +1840,6 @@ async function loadPRData() {
     return true;
   });
   PR_DATA.sort(function(a, b) { return new Date(b.published_at) - new Date(a.published_at); });
-  console.log('[PR] Loaded ' + PR_DATA.length + ' releases across ' + tickers.length + ' tickers');
   document.getElementById('pr-timestamp').textContent = 'Last updated: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
   PR_LOADING = false;
   renderPRScanner();
