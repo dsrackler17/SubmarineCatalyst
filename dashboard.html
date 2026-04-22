@@ -557,30 +557,192 @@ function gradeBadge(g) {
   return `<span class="card-grade ${cls}">${lbl}</span>`;
 }
 
-// Defensive filter: hide any row with a broken drug field so garbage never
-// renders to subscribers even if the DB cleanup lags behind.
+// ═══════════════════════════════════════════════════════════════════════════
+// CLIENT-SIDE DATA HYGIENE
+// Every defense below runs at render time so bad DB data never reaches users.
+// ═══════════════════════════════════════════════════════════════════════════
+
+// Drug name (lowercase substring) → corrected indication.
+// Same philosophy as the server-side drug_indication_map table, mirrored here
+// as belt-and-suspenders defense. If score-events lags or misclassifies, the
+// dashboard still shows the right indication.
+var DRUG_INDICATION_OVERRIDE = {
+  'tolebrutinib':              'Multiple Sclerosis',
+  'lecanemab':                 "Alzheimer's Disease",
+  'leqembi':                   "Alzheimer's Disease",
+  'sabirnetug':                "Alzheimer's Disease",
+  'acu193':                    "Alzheimer's Disease",
+  'zilganersen':               'Alexander Disease',
+  'olezarsen':                 'Familial Chylomicronemia Syndrome',
+  'ulixacaltamide':            'Essential Tremor',
+  'nimodipine':                'Subarachnoid Hemorrhage',
+  'auvelity':                  'Major Depressive Disorder',
+  'dexmethylphenidate':        'ADHD',
+  'igalmi':                    'Agitation (Bipolar/Schizophrenia)',
+  'vepdegestrant':             'ER+ HER2- Breast Cancer',
+  'gedatolisib':               'HR+ HER2- Breast Cancer',
+  'iberdomide':                'Multiple Myeloma',
+  'anitocabtagene':            'Multiple Myeloma',
+  'anito-cel':                 'Multiple Myeloma',
+  'zidesamtinib':              'ROS1+ NSCLC',
+  'augtyro':                   'ROS1+ / NTRK+ NSCLC',
+  'ivonescimab':               'Non-Small Cell Lung Cancer',
+  'zanzalintinib':             'Renal Cell Carcinoma',
+  'bezuclastinib':             'Systemic Mastocytosis',
+  'ameluz':                    'Actinic Keratosis',
+  'edotreotide':               'Neuroendocrine Tumor Imaging',
+  'efgartigimod':              'Myasthenia Gravis',
+  'vyvgart':                   'Myasthenia Gravis',
+  'imsidolimab':               'Generalized Pustular Psoriasis',
+  'atacicept':                 'IgA Nephropathy',
+  'molbreevi':                 'Autoimmune Pulmonary Alveolar Proteinosis',
+  'tzield':                    'Type 1 Diabetes',
+  'teplizumab':                'Type 1 Diabetes',
+  'lifyorli':                  "Cushing's Syndrome",
+  'relacorilant':              "Cushing's Syndrome",
+  'lorundrostat':              'Hypertension',
+  'pariglasgene':              'Ornithine Transcarbamylase Deficiency',
+  'brecaparvovec':             'Ornithine Transcarbamylase Deficiency',
+  'ino-3107':                  'Recurrent Respiratory Papillomatosis',
+  'deramiocel':                'Duchenne Muscular Dystrophy',
+  'tebipenem':                 'Complicated UTI',
+  'mrna-1010':                 'Seasonal Influenza',
+  'clesrovimab':               'RSV Prevention (Infant)',
+  'enflonsia':                 'RSV Prevention (Infant)',
+  'furoscix':                  'Heart Failure (Congestion)',
+  'oxylanthanum':              'Hyperphosphatemia (ESRD)',
+  'norelgestromin':            'Contraception (Transdermal)',
+  'syfovre':                   'Geographic Atrophy',
+  'vrdn-001':                  'Thyroid Eye Disease',
+  'veligrotug':                'Thyroid Eye Disease'
+};
+
+// Applies the override at render time. Mutates the event so downstream
+// display picks up the corrected indication.
+function fixIndication(d) {
+  if (!d || !d.drug) return;
+  var drugLower = String(d.drug).toLowerCase();
+  // Try longest-match-first so "anitocabtagene" beats "tacel"
+  var keys = Object.keys(DRUG_INDICATION_OVERRIDE).sort(function(a, b) { return b.length - a.length; });
+  for (var i = 0; i < keys.length; i++) {
+    if (drugLower.indexOf(keys[i]) >= 0) {
+      d.indication = DRUG_INDICATION_OVERRIDE[keys[i]];
+      return;
+    }
+  }
+  // No override found — but if current indication is "Infectious" and the drug
+  // doesn't look infectious, promote to "Unknown" (better than lying).
+  if (d.indication === 'Infectious') {
+    var infectiousLike = /mrna|vaccine|tebipenem|clesrovimab|enflonsia|antibiotic|antiviral|bacteri|viral|flu|covid|rsv|hpv|hiv|sepsis|pneumon|infect/i;
+    if (!infectiousLike.test(d.drug)) {
+      d.indication = 'Unknown';
+    }
+  }
+}
+
+// Defensive filter: hide any row with a broken drug field OR unscored data.
+// Every pattern here corresponds to a real failure mode seen in the wild.
 function isBrokenRow(d) {
   if (!d) return true;
   var drug = String(d.drug || '').trim();
   if (!drug) return true;
   var ticker = String(d.ticker || '').trim().toUpperCase();
   var drugU  = drug.toUpperCase();
-  // Drug field is literally the ticker or "TICKER — drug name needs update"
+
+  // ─── UNSCORED ROW (PoA 0, Net Edge 0, Dilution UNKNOWN) ─────────────────
+  // These are ingest-pipeline rows that score-events choked on.
+  // An analyst sees 0.0% PoA and thinks the model broke — hide them.
+  var poa = Number(d.poa) || 0;
+  var netEdge = Number(d.net_edge_score) || Number(d.score) || 0;
+  var dilutionUnscored = !d.dilution_risk || d.dilution_risk === 'UNKNOWN' || d.dilution_risk === '—';
+  if (poa === 0 && netEdge === 0 && dilutionUnscored) return true;
+
+  // ─── LITERAL TICKER OR TICKER-DASH PLACEHOLDER ──────────────────────────
   if (ticker && drugU === ticker) return true;
   if (ticker && drugU.indexOf(ticker + ' —') === 0) return true;
   if (ticker && drugU.indexOf(ticker + ' -') === 0) return true;
-  // Placeholder / AI failure text leaked into drug field
-  if (drug.indexOf('drug name needs update') >= 0) return true;
-  if (drug.indexOf('AI_RESOLUTION_FAILED')    >= 0) return true;
-  if (drug.indexOf('AUTO-RESOLVED:')          >= 0) return true;
-  // Sentence-as-drug (PDUFA date boilerplate)
+
+  // ─── KNOWN PLACEHOLDER / DEBUG TEXT ─────────────────────────────────────
+  if (drug.indexOf('drug name needs update')     >= 0) return true;
+  if (drug.indexOf('AI_RESOLUTION_FAILED')       >= 0) return true;
+  if (drug.indexOf('AUTO-RESOLVED:')             >= 0) return true;
+  if (drug.indexOf('⚠️ DRUG NAME PLACEHOLDER')   >= 0) return true;
+  if (/^(placeholder|tbd|unknown|pending|null)$/i.test(drug)) return true;
+
+  // ─── SENTENCE-AS-DRUG PATTERNS (boilerplate text leaked in) ─────────────
+  // Forward-Looking Statements (SEC filing boilerplate)
+  if (/forward.?looking\s+statement/i.test(drug)) return true;
+  // "The FDA ..." / "The PDUFA ..."
   if (/^The\s+(FDA|PDUFA)/i.test(drug)) return true;
-  // OCR/scraping garbage: starts with digits followed by uppercase, long string
+  // "FDA set PDUFA date" / "FDA assigned" / "FDA has set" / "FDA approved"
+  if (/^(§\s*)?(the\s+)?FDA\s+(set|has|decision|target|accepted|assigned|approved|rejected|granted)/i.test(drug)) return true;
+  // "Sanofi has reported" / "Company reported that the FDA"
+  if (/has\s+reported\s+that/i.test(drug)) return true;
+  if (/reported\s+that\s+(the\s+)?FDA/i.test(drug)) return true;
+  // "The agency has" / "The agency granted"
+  if (/^The\s+agency\s+/i.test(drug)) return true;
+  // "target action date" / "action date of"
+  if (/target\s+action\s+date/i.test(drug)) return true;
+  if (/action\s+date\s+of/i.test(drug)) return true;
+  // "has granted" / "has set" / "has assigned" anywhere in a long string
+  if (/\b(has|is)\s+(granted|set|assigned|target)/i.test(drug) && drug.length > 40) return true;
+  // "priority review and set a PDUFA"
+  if (/priority\s+review.*PDUFA/i.test(drug)) return true;
+  // "PDUFA date of" / "PDUFA action date"
+  if (/PDUFA\s+(date|action\s+date)\s+of/i.test(drug)) return true;
+  // Section mark or footnote prefix (§ * †)
+  if (/^[§*†]\s/.test(drug)) return true;
+  // Drug field ends with period AND is long — that's a sentence, not a name
+  if (drug.length > 45 && /\.\s*$/.test(drug)) return true;
+  // Drug field contains a year (2024, 2025, 2026, 2027) — real drug names don't
+  if (/\b20(2[4-9]|3[0-9])\b/.test(drug)) return true;
+  // Contains "supplemental application" / "NDA" / "BLA" as a phrase not a drug class
+  if (/supplemental\s+application/i.test(drug)) return true;
+  // Contains month names (real drug names don't)
+  if (/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/i.test(drug)) return true;
+  // Drug longer than 120 chars is definitely a sentence
+  if (drug.length > 120) return true;
+
+  // ─── OCR / SCRAPING GARBAGE ─────────────────────────────────────────────
+  // Starts with digits followed by uppercase, long string
   if (/^\d+\s+[A-Z]/i.test(drug) && drug.length > 25) return true;
-  // Known hallucinated brand + ticker combos
+
+  // ─── KNOWN WRONG TICKER-DRUG COMBOS ─────────────────────────────────────
   if (ticker === 'MGNX' && /tzield|teplizumab/i.test(drug)) return true;
   if (ticker === 'MRK'  && drugU === 'IDVYNSO') return true;
+
   return false;
+}
+
+// Dedupe: collapse rows with the same (ticker, drug_family) to one representative.
+// Rule: same ticker + same normalized drug keyword → keep the highest PoA,
+// then the earliest date on tiebreak. Matches the SQL dedupe logic.
+function dedupeEvents(events) {
+  var out = [];
+  var seen = {};
+  // Sort by net_edge DESC so the "best" row per group is seen first
+  var sorted = events.slice().sort(function(a, b) {
+    var poaDiff = (Number(b.poa) || 0) - (Number(a.poa) || 0);
+    if (Math.abs(poaDiff) > 0.01) return poaDiff;
+    // On tiebreak, earliest date wins
+    return new Date(a.date) - new Date(b.date);
+  });
+  for (var i = 0; i < sorted.length; i++) {
+    var d = sorted[i];
+    if (!d.drug) { out.push(d); continue; }
+    // Normalize drug to a short keyword for grouping
+    var keyword = String(d.drug).toLowerCase()
+      .replace(/\([^)]*\)/g, '')        // strip parenthetical
+      .replace(/[^a-z0-9\- ]/g, '')      // strip punctuation
+      .trim()
+      .split(/\s+/)[0] || '';            // first word
+    if (keyword.length < 4) { out.push(d); continue; }
+    var key = (d.ticker || '') + '|' + keyword;
+    if (seen[key]) continue;
+    seen[key] = true;
+    out.push(d);
+  }
+  return out;
 }
 
 // ─── POLYGON LIVE MARKET DATA ─────────────────────────────────────────────────
@@ -801,9 +963,10 @@ function renderScanner() {
       </div>`;
     return;
   }
-  // Normalize innovation + compute net_edge_adj once per render
+  // Normalize innovation, fix indication, compute net_edge_adj once per render
   SCANNER_DATA.forEach(function(d) {
     normalizeInnovation(d);
+    fixIndication(d);
     d.net_edge_adj = computeNetEdge(d);
   });
 
@@ -811,8 +974,10 @@ function renderScanner() {
   const gradeFilter = (document.getElementById('scanner-grade')?.value) || 'all';
   const timeframe = parseInt((document.getElementById('scanner-timeframe')?.value) || '0');
   const search = ((document.getElementById('scanner-search')?.value) || '').toUpperCase();
-  let filtered = SCANNER_DATA.filter(d => {
-    if (isBrokenRow(d)) return false;
+  // Remove broken rows FIRST, then dedupe, then apply user filters
+  let clean = SCANNER_DATA.filter(d => !isBrokenRow(d));
+  clean = dedupeEvents(clean);
+  let filtered = clean.filter(d => {
     if (search && !d.ticker.toUpperCase().includes(search)) return false;
     if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
     if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
@@ -882,7 +1047,7 @@ function renderScanner() {
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
       </div>`;
   }).join('');
-  const validData = SCANNER_DATA.filter(d => !isBrokenRow(d));
+  const validData = clean;
   const elite    = validData.filter(d => (d.net_edge_adj || 0) >= 72).length;
   const within30 = validData.filter(d => daysUntil(d.date) <= 30).length;
   const avgPoa   = validData.length > 0 ? (validData.reduce((s,d) => s + (d.poa || 0), 0) / validData.length).toFixed(1) : '0';
