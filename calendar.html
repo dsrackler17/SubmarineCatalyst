@@ -235,10 +235,6 @@ function polySaveCache() {
 }
 
 // ─── BULK SNAPSHOT — fast live prices for many tickers in ONE call ──────────
-// /v2/snapshot/locale/us/markets/stocks/tickers?tickers=A,B,C returns live
-// intraday prices for up to ~250 tickers in a single request. One HTTP call
-// instead of N per-ticker aggs calls for today's price. Runs first so users
-// see live prices immediately; per-ticker aggs + cap backfill after.
 async function polyBulkSnapshot(tickers) {
   if (!tickers || tickers.length === 0) return {};
   var result = {};
@@ -268,9 +264,6 @@ async function polyBulkSnapshot(tickers) {
   return result;
 }
 
-// Apply bulk snapshot data onto ALL_EVENTS as an immediate live-price overlay.
-// Sets price_change_today, _live_price, and lets renderTable show fresh prices
-// before the per-ticker aggs enrichment completes.
 function polyApplyBulkSnapshot(snap) {
   var applied = 0;
   ALL_EVENTS.forEach(function(e) {
@@ -283,7 +276,6 @@ function polyApplyBulkSnapshot(snap) {
   return applied;
 }
 
-// Bars fetch (existing) — returns {status, bars, empty}
 async function polyFetchOne(ticker) {
   var now = new Date();
   var to = now.toISOString().split('T')[0];
@@ -316,10 +308,6 @@ async function polyFetchOne(ticker) {
   }
 }
 
-// Live market cap fetch — returns number (full USD) or null.
-// Polygon /v3/reference/tickers/{ticker} returns market_cap computed from
-// latest close × weighted shares outstanding. Same units as
-// estimated_market_cap in DB (e.g. 69500000 for $69.5M GRCE).
 async function polyFetchCap(ticker) {
   var url = POLY_BASE + '/v3/reference/tickers/' + encodeURIComponent(ticker) + '?apiKey=' + POLY_KEY;
   try {
@@ -337,7 +325,6 @@ function polyComputeMetrics(bars) {
   var first = bars[0];
   var change30d = ((latest.c - first.c) / first.c) * 100;
 
-  // Realized vol — annualized from daily log returns
   var rets = [];
   for (var i = 1; i < bars.length; i++) {
     if (bars[i - 1].c > 0) rets.push(Math.log(bars[i].c / bars[i - 1].c));
@@ -349,7 +336,6 @@ function polyComputeMetrics(bars) {
     vol = Math.sqrt(variance) * Math.sqrt(252) * 100;
   }
 
-  // Chart pattern heuristic
   var pattern = 'NEUTRAL';
   if (bars.length >= 10) {
     var r5 = bars.slice(-5), p5 = bars.slice(-10, -5);
@@ -368,9 +354,6 @@ function polyComputeMetrics(bars) {
   return { change30d: change30d, vol: vol, pattern: pattern, price: latest.c, avgVol: bars.slice(-5).reduce(function(a, b) { return a + b.v; }, 0) / 5 };
 }
 
-// Apply bar-derived metrics AND live market cap (with TAM derivation).
-// TAM (absolute $) is static per indication — only cap denominator moves.
-// So: staticTAM = oldTamRatio × oldCap, newTamRatio = staticTAM / liveCap.
 function polyApplyMetrics(ticker, m, liveCap) {
   ALL_EVENTS.forEach(function(e) {
     if (e.ticker === ticker) {
@@ -401,7 +384,6 @@ async function enrichWithPolygon() {
     if (statusEl) { statusEl.style.display = 'inline'; statusEl.textContent = msg; if (color) statusEl.style.color = color; }
   }
 
-  // ── Step 0: Apply any cached data immediately ──
   var cachedCount = 0;
   Object.keys(polyCache).forEach(function(ticker) {
     var c = polyCache[ticker];
@@ -409,8 +391,6 @@ async function enrichWithPolygon() {
   });
   if (cachedCount > 0) { renderTable(); console.log('[Polygon] Applied ' + cachedCount + ' cached tickers'); }
 
-  // ── Step 0.5: Bulk snapshot for instant live intraday prices ──
-  // One call for ALL tickers at once — massively faster than per-ticker.
   setStatus('◉ Bulk snapshot...', 'var(--accent)');
   var allTickers = [];
   var ticker_seen = {};
@@ -426,7 +406,6 @@ async function enrichWithPolygon() {
     if (snapApplied > 0) { renderTable(); console.log('[Polygon] Bulk snapshot applied to ' + snapApplied + ' events'); }
   }
 
-  // ── Step 1: Validate API key with a known ticker ──
   setStatus('Validating Polygon API...', 'var(--accent)');
   console.log('[Polygon] Testing API key with AAPL...');
   var testPair = await Promise.all([polyFetchOne('AAPL'), polyFetchCap('AAPL')]);
@@ -462,7 +441,6 @@ async function enrichWithPolygon() {
 
   console.log('[Polygon] ✓ API key valid. AAPL returned ' + test.bars.length + ' bars, cap=' + (testCap || 'n/a'));
 
-  // ── Step 2: Detect tier — try 3 rapid bar-fetches ──
   setStatus('Detecting Polygon tier...', 'var(--accent)');
   var rapidTest = await Promise.all(['REGN', 'BMY', 'GILD'].map(function(t) {
     return Promise.all([polyFetchOne(t), polyFetchCap(t)]).then(function(pair) {
@@ -473,17 +451,16 @@ async function enrichWithPolygon() {
 
   if (!rapid429) {
     polyIsPaidTier = true;
-    polyDelay = 250;       // 250ms between calls — fast enough for paid tier
+    polyDelay = 250;
     POLY_MAX_TICKERS = 200;
     console.log('[Polygon] ✓ Paid tier detected — parallel mode, 250ms delay');
   } else {
     polyIsPaidTier = false;
-    polyDelay = 12500;     // 12.5s = safe for 5/min
-    POLY_MAX_TICKERS = 50; // ~10 min max
+    polyDelay = 12500;
+    POLY_MAX_TICKERS = 50;
     console.log('[Polygon] Free tier detected — sequential mode, 12.5s delay, capped at ' + POLY_MAX_TICKERS + ' tickers');
   }
 
-  // Cache the test results (both bars AND cap)
   var testPool = [{ t: 'AAPL', r: test, c: testCap }].concat(rapidTest.map(function(r) {
     return { t: r.ticker, r: r.result, c: r.cap };
   }));
@@ -496,7 +473,6 @@ async function enrichWithPolygon() {
   });
   renderTable();
 
-  // ── Step 3: Build priority ticker list ──
   var knownLiquid = ['ABBV','AMGN','AZN','BIIB','CELC','CRSP','CYTK','DAWN','DYNE','ERAS','EWTX','GSK','HALO','HIMS','INSM','JAZZ','LEGN','LNTH','MEDP','MIRM','NBIX','NTRA','NUVL','REGN','VTRS','XENE','BMY','GILD','PFE','JNJ','LLY','MRK','NVS','SNY','AUPH','CLDX','CRNX','DNLI','HRMY','LQDA','SGEN','VCEL'];
   var seen = {};
   var prioritized = [];
@@ -521,14 +497,12 @@ async function enrichWithPolygon() {
 
   console.log('[Polygon] Fetching ' + prioritized.length + ' tickers (bars + cap, delay: ' + polyDelay + 'ms)...');
 
-  // ── Step 4: Sequential fetch with progressive rendering ──
   var enriched = 0, skipped = 0, rateLimited = 0, capsApplied = 0;
 
   for (var i = 0; i < prioritized.length; i++) {
     var ticker = prioritized[i];
     setStatus('◉ ' + ticker + ' (' + enriched + '/' + prioritized.length + ')', 'var(--accent)');
 
-    // Fetch bars AND cap in parallel for this ticker
     var pair = await Promise.all([polyFetchOne(ticker), polyFetchCap(ticker)]);
     var result = pair[0];
     var liveCap = pair[1];
@@ -538,7 +512,6 @@ async function enrichWithPolygon() {
       console.warn('[Polygon] Rate limited at ticker ' + (i + 1) + '/' + prioritized.length + '. Pausing 65s...');
       setStatus('⏸ Rate limited — pausing 65s...', 'var(--amber)');
       await new Promise(function(r) { setTimeout(r, 65000); });
-      // Retry this ticker
       pair = await Promise.all([polyFetchOne(ticker), polyFetchCap(ticker)]);
       result = pair[0];
       liveCap = pair[1];
@@ -557,7 +530,6 @@ async function enrichWithPolygon() {
       if (m) enriched++;
       if (liveCap) capsApplied++;
     } else {
-      // No data for this ticker (delisted, OTC, foreign, etc.)
       polyCache[ticker] = { bars: null, metrics: null, cap: null, ts: Date.now() };
       skipped++;
     }
@@ -604,21 +576,73 @@ function riskColor(risk) {
   return {'HIGH':'var(--red)','EXTREME':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)','MINIMAL':'var(--accent2)'}[risk] || 'var(--muted)';
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+//  classifyEvent — rewritten to match the scorer's actual output vocabulary.
+//
+//  score-events writes structured columns (sell_news_risk, dilution_risk,
+//  buyout_risk) AND descriptive flag strings (e.g. "🟡 SELL-THE-NEWS RISK:
+//  MODERATE", "🚨 ACTIVE ATM OFFERING", "⚠️ Post-CRL resubmission").
+//
+//  Old classifier only read structured columns and missed almost everything
+//  because columns skew LOW while flags carry the MODERATE/ELEVATED/ATM/CRL
+//  signal. New classifier reads BOTH and surfaces any event where either
+//  source shows MODERATE or higher.
+// ═══════════════════════════════════════════════════════════════════════════
 function classifyEvent(e) {
   var t = ((e.type || '') + ' ' + (e.notes || '') + ' ' + (e.drug || '')).toLowerCase();
+  var flags = (e.flags || []).join(' ').toLowerCase();
   var tags = [];
+
+  // Event-type tags (unchanged)
   if (t.includes('pdufa') || t.includes('nda') || t.includes('bla') || t.includes('snda') || t.includes('fda')) tags.push('pdufa');
   if (t.includes('clinical') || t.includes('readout') || t.includes('phase') || t.includes('data release')) tags.push('clinical');
   if (t.includes('adcom') || t.includes('advisory committee')) tags.push('adcom');
   if (t.includes('earning')) tags.push('earnings');
   if (t.includes('conference') || t.includes('abstract') || t.includes('asco') || t.includes('aacr')) tags.push('conference');
-  if (e.sell_news_risk === 'HIGH' || e.sell_news_risk === 'ELEVATED') tags.push('stn');
-  if (e.dilution_risk === 'HIGH' || e.dilution_risk === 'EXTREME') tags.push('dilution');
-  if (e.atm_active || e.shelf_active) tags.push('dilution');
-  var flags = (e.flags || []).join(' ').toLowerCase();
-  if (flags.includes('cmc') || flags.includes('manufacturing') || t.includes('resubmission') || t.includes('post-crl') || t.includes('class 2 resubmission') || t.includes('class 1 resubmission')) tags.push('cmc');
-  if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') tags.push('buyout');
-  if (flags.includes('first-in-class') || flags.includes('first in class') || flags.includes('prv') || flags.includes('acquisition') || e.partnership_detected) tags.push('buyout');
+
+  // STN Risk — MODERATE threshold. Column is often VERY LOW/LOW even when
+  // flags say MODERATE/ELEVATED, so check both.
+  if (e.sell_news_risk === 'HIGH' || e.sell_news_risk === 'ELEVATED' || e.sell_news_risk === 'MODERATE'
+      || flags.indexOf('sell-the-news risk: high') >= 0
+      || flags.indexOf('sell-the-news risk: elevated') >= 0
+      || flags.indexOf('sell-the-news risk: moderate') >= 0) {
+    tags.push('stn');
+  }
+
+  // Dilution Watch — column, booleans, OR flag phrases. Scorer emits
+  // "ACTIVE ATM OFFERING" as a flag without setting atm_active=TRUE, so
+  // surface the flag directly.
+  if (e.dilution_risk === 'HIGH' || e.dilution_risk === 'EXTREME' || e.dilution_risk === 'MODERATE'
+      || e.atm_active === true || e.shelf_active === true
+      || flags.indexOf('active atm offering') >= 0
+      || flags.indexOf('active shelf') >= 0
+      || flags.indexOf('atm offering') >= 0
+      || flags.indexOf('dilution risk: high') >= 0
+      || flags.indexOf('dilution risk: extreme') >= 0
+      || flags.indexOf('dilution risk: moderate') >= 0) {
+    tags.push('dilution');
+  }
+
+  // CMC Recovery — scorer writes "Post-CRL resubmission" and "Prior CRL
+  // detected" as flag strings, not in type/notes. Check flags first.
+  if (flags.indexOf('cmc') >= 0 || flags.indexOf('manufactur') >= 0
+      || flags.indexOf('post-crl') >= 0 || flags.indexOf('post crl') >= 0
+      || flags.indexOf('crl detected') >= 0 || flags.indexOf('crl resubmission') >= 0
+      || flags.indexOf('resubmission') >= 0
+      || t.indexOf('resubmission') >= 0 || t.indexOf('post-crl') >= 0
+      || t.indexOf('class 2 resubmission') >= 0 || t.indexOf('class 1 resubmission') >= 0) {
+    tags.push('cmc');
+  }
+
+  // Buyout Signals — include ELEVATED (old classifier skipped it).
+  if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE' || e.buyout_risk === 'ELEVATED'
+      || flags.indexOf('first-in-class') >= 0 || flags.indexOf('first in class') >= 0
+      || flags.indexOf('prv') >= 0 || flags.indexOf('acquisition') >= 0
+      || flags.indexOf('patent cliff') >= 0
+      || e.partnership_detected === true) {
+    tags.push('buyout');
+  }
+
   if (tags.length === 0) tags.push('pdufa');
   return tags;
 }
@@ -738,7 +762,6 @@ function renderTable() {
       catalyst = (e.drug || e.notes || 'Catalyst Event').substring(0, 50);
     }
 
-    // Market cap — prefer live dollar value when available, else fall back to tier label
     var capColor = {'LARGE':'var(--amber)','MID':'var(--accent)','SMALL':'var(--accent2)'}[e.market_cap_tier] || 'var(--muted)';
     var capLabel = {'LARGE':'LRG','MID':'MID','SMALL':'SM'}[e.market_cap_tier] || '—';
     var liveCap = Number(e.estimated_market_cap) || 0;
@@ -746,7 +769,6 @@ function renderTable() {
     if (liveCap > 0) {
       if (liveCap >= 1e9) capDisplay = '$' + (liveCap / 1e9).toFixed(1) + 'B';
       else if (liveCap >= 1e6) capDisplay = '$' + (liveCap / 1e6).toFixed(0) + 'M';
-      // Re-color by actual live cap
       if (liveCap >= 10e9) capColor = 'var(--amber)';
       else if (liveCap >= 2e9) capColor = 'var(--accent)';
       else capColor = 'var(--accent2)';
@@ -846,8 +868,6 @@ function updateCounts() {
 
 // ╔══════════════════════════════════════════════════════════════════════════╗
 // ║  CATALYST SOURCE LOADERS — client-side ingestion, all cached             ║
-// ║  Pulls earnings (Finnhub), clinical readouts (ClinicalTrials.gov v2),    ║
-// ║  AdCom (Federal Register), and conferences (static JSON manifest).       ║
 // ╚══════════════════════════════════════════════════════════════════════════╝
 
 var SC_CACHE_PREFIX = 'sc_cal_v1_';
@@ -868,15 +888,34 @@ function scCacheSet(key, data) {
   try { sessionStorage.setItem(SC_CACHE_PREFIX + key, JSON.stringify({ ts: Date.now(), data: data })); } catch (e) {}
 }
 
-// Normalize a company name to a short match token for sponsor matching.
-// "Moderna, Inc." -> "moderna"  |  "Vertex Pharmaceuticals" -> "vertex"
-function scNormalizeToken(name) {
-  if (!name) return '';
-  var s = name.toLowerCase().replace(/[,.()&/]/g, ' ');
-  s = s.replace(/\b(inc|incorporated|corp|corporation|ltd|limited|plc|sa|ag|nv|bv|co|company|llc|llp|holdings?|group|therapeutics|pharmaceuticals?|biosciences?|biotech|biosystems?|laboratories|labs?|sciences?|medicines?|health|medical|bio)\b/g, ' ');
+// Expanded stopword list — corporate suffixes, generic pharma/bio words,
+// and common academic/hospital noise that shows up in CT.gov sponsors.
+var SC_NAME_STOPWORDS = /\b(inc|incorporated|corp|corporation|ltd|limited|plc|sa|ag|nv|bv|co|company|llc|llp|lp|holdings?|group|therapeutics?|pharmaceuticals?|pharma|pharm|biosciences?|biotech|biosystems?|biopharmaceuticals?|laboratories|labs?|sciences?|medicines?|health|medical|bio|gmbh|kgaa|spa|srl|sarl|international|global|usa|china|japan|europe|american|national|the|and|of|for|with)\b/g;
+
+// Return ALL meaningful tokens from a company/sponsor name, lowercased,
+// stripped of punctuation and generic corporate/pharma suffixes. Tokens
+// shorter than 4 chars are dropped since they're almost always noise
+// ("co", "tx", "us", "lab", "eli"). This replaces the old single-first-
+// word approach that missed "Hoffmann-La Roche" → "hoffmann" vs "Roche
+// Holding" → "roche" and dozens of similar ticker-drift cases.
+function scNormalizeTokens(name) {
+  if (!name) return [];
+  var s = name.toLowerCase().replace(/[,.()&/\-]/g, ' ');
+  s = s.replace(SC_NAME_STOPWORDS, ' ');
   s = s.replace(/\s+/g, ' ').trim();
-  var parts = s.split(' ').filter(function (w) { return w.length >= 3; });
-  return parts[0] || '';
+  var seen = {};
+  var out = [];
+  s.split(' ').forEach(function (w) {
+    if (w.length >= 4 && !seen[w]) { seen[w] = true; out.push(w); }
+  });
+  return out;
+}
+
+// Legacy single-token helper — kept so any other loader that still calls
+// scNormalizeToken() doesn't break. Returns the first meaningful token.
+function scNormalizeToken(name) {
+  var toks = scNormalizeTokens(name);
+  return toks[0] || '';
 }
 
 function scMakeEvent(opts) {
@@ -901,7 +940,6 @@ function scMakeEvent(opts) {
   };
 }
 
-// Append new events to ALL_EVENTS, dedupe against (ticker|date|type).
 function scAppendEvents(newEvents) {
   if (!newEvents || newEvents.length === 0) return 0;
   var seen = {};
@@ -918,7 +956,6 @@ function scAppendEvents(newEvents) {
   return added;
 }
 
-// ── LOADER: Finnhub upcoming earnings ────────────────────────────────────────
 async function loadFinnhubEarnings(universe) {
   var cached = scCacheGet('earnings', SC_CACHE_TTL_6H);
   if (cached) { console.log('[earnings] cache hit: ' + cached.length); return cached; }
@@ -977,19 +1014,58 @@ async function loadFinnhubEarnings(universe) {
   return events;
 }
 
-// ── LOADER: ClinicalTrials.gov v2 Phase 2/3 readouts ─────────────────────────
 async function loadClinicalReadouts(universe) {
   var cached = scCacheGet('clinical', SC_CACHE_TTL_6H);
   if (cached) { console.log('[clinical] cache hit: ' + cached.length); return cached; }
   if (!universe || universe.length === 0) return [];
 
-  var tokenIndex = {};
+  // Multi-token index — each universe company contributes every distinctive
+  // word in its name. Sponsor matches on ANY overlapping token; best match
+  // wins on intersection count with a Jaccard floor to block weak single-
+  // generic-word false positives ("Pfizer Oncology" claiming a multi-word
+  // universe entry on "oncology" alone).
+  var universeTokensByTicker = {};
+  var tokenToTickers = {};
+  var universeByTicker = {};
+
   universe.forEach(function (u) {
-    var tok = scNormalizeToken(u.company_name || '');
-    if (!tok) return;
-    if (!tokenIndex[tok]) tokenIndex[tok] = [];
-    tokenIndex[tok].push(u);
+    if (!u.ticker || !u.company_name) return;
+    universeByTicker[u.ticker] = u;
+    var toks = scNormalizeTokens(u.company_name);
+    if (toks.length === 0) return;
+    universeTokensByTicker[u.ticker] = toks;
+    toks.forEach(function (tok) {
+      if (!tokenToTickers[tok]) tokenToTickers[tok] = [];
+      if (tokenToTickers[tok].indexOf(u.ticker) < 0) tokenToTickers[tok].push(u.ticker);
+    });
   });
+
+  function findSponsorTicker(sponsorName) {
+    var sToks = scNormalizeTokens(sponsorName);
+    if (sToks.length === 0) return null;
+    var scores = {};
+    sToks.forEach(function (tok) {
+      (tokenToTickers[tok] || []).forEach(function (tkr) {
+        scores[tkr] = (scores[tkr] || 0) + 1;
+      });
+    });
+    var bestTkr = null, bestCount = 0;
+    Object.keys(scores).forEach(function (tkr) {
+      if (scores[tkr] > bestCount) { bestCount = scores[tkr]; bestTkr = tkr; }
+    });
+    if (!bestTkr) return null;
+    var uToks = universeTokensByTicker[bestTkr] || [];
+    var union = {};
+    sToks.forEach(function (t) { union[t] = true; });
+    uToks.forEach(function (t) { union[t] = true; });
+    var jaccard = bestCount / Math.max(Object.keys(union).length, 1);
+    // 2+ token matches is always good. 1 token match only counts if it's a
+    // large share of the name (short sponsor/universe names).
+    if (bestCount < 2 && jaccard < 0.33) return null;
+    return universeByTicker[bestTkr];
+  }
+
+  console.log('[clinical] indexed ' + Object.keys(universeTokensByTicker).length + ' universe companies, ' + Object.keys(tokenToTickers).length + ' unique tokens');
 
   var today = new Date(); today.setUTCHours(0, 0, 0, 0);
   var minDate = new Date(today.getTime() - 14 * 86400000);
@@ -1044,18 +1120,8 @@ async function loadClinicalReadouts(universe) {
           if (isNaN(pcdD.getTime())) continue;
           if (pcdD < minDate || pcdD > maxDate) continue;
 
-          var tok = scNormalizeToken(leadSponsor);
-          if (!tok || !tokenIndex[tok]) continue;
-          var matches = tokenIndex[tok];
-          var best = matches[0];
-          if (matches.length > 1) {
-            var sp = leadSponsor.toLowerCase();
-            best = matches.reduce(function (a, b) {
-              var aS = (a.company_name || '').toLowerCase().split(' ').filter(function (w) { return w.length > 2 && sp.indexOf(w) >= 0; }).length;
-              var bS = (b.company_name || '').toLowerCase().split(' ').filter(function (w) { return w.length > 2 && sp.indexOf(w) >= 0; }).length;
-              return bS > aS ? b : a;
-            });
-          }
+          var best = findSponsorTicker(leadSponsor);
+          if (!best) continue;
 
           var key = best.ticker + '|' + pcdStr + '|' + nctId;
           if (seen[key]) continue;
@@ -1090,7 +1156,6 @@ async function loadClinicalReadouts(universe) {
   return events;
 }
 
-// ── LOADER: Federal Register AdCom meetings ──────────────────────────────────
 async function loadFederalRegisterAdcom(drugMap) {
   var cached = scCacheGet('adcom', SC_CACHE_TTL_6H);
   if (cached) { console.log('[adcom] cache hit: ' + cached.length); return cached; }
@@ -1164,14 +1229,12 @@ async function loadFederalRegisterAdcom(drugMap) {
   return events;
 }
 
-// ── LOADER: Conferences from static JSON manifest ────────────────────────────
 async function loadConferences() {
   var cached = scCacheGet('conf', SC_CACHE_TTL_24H);
   if (cached) { console.log('[conferences] cache hit: ' + cached.length); return cached; }
 
   var events = [];
   try {
-    // Bust cache once per day so manifest edits propagate without hard refresh
     var bust = Math.floor(Date.now() / 86400000);
     var res = await fetch('/data/biotech_conferences.json?t=' + bust);
     if (!res.ok) { scCacheSet('conf', []); return []; }
@@ -1253,7 +1316,6 @@ async function loadConferences() {
     }
   }
 
-  // Fallback: load basic calendar data from Supabase directly
   if (ALL_EVENTS.length === 0) {
     var { data: pdufaEvents } = await sb.from('pdufa_events')
       .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, estimated_market_cap, tam_ratio')
@@ -1278,7 +1340,6 @@ async function loadConferences() {
     }
   }
 
-  // ── ALWAYS LOAD: Catalyst events (non-PDUFA) ───────────────────────
   try {
     var { data: catEvents2 } = await sb.from('catalyst_events')
       .select('ticker, company_name, event_type, event_date, event_description, source, relevance_score, behavioral_pattern, flags, market_cap_tier')
@@ -1313,11 +1374,6 @@ async function loadConferences() {
     }
   } catch (err) { console.warn('Catalyst events load failed:', err); }
 
-  // ── ENRICHMENT ONLY: pull biotech_universe data onto existing events ──
-  // Fills missing company_name, market_cap_tier, sic_description, exchange,
-  // estimated_market_cap, and tam_ratio for tickers we already have events
-  // for. We do NOT add universe tickers as standalone calendar rows and we
-  // do NOT fabricate earnings dates. Real catalysts only.
   try {
     var { data: universe } = await sb.from('biotech_universe')
       .select('ticker, company_name, market_cap_tier, sic_description, exchange, estimated_market_cap, tam_ratio')
@@ -1340,7 +1396,6 @@ async function loadConferences() {
           e.tam_ratio = Number(u.tam_ratio);
         }
       });
-      // Reclassify in case enrichment changed tag-relevant fields
       ALL_EVENTS.forEach(function(e) { e._tags = classifyEvent(e); });
       console.log('[SC] Enriched ' + ALL_EVENTS.length + ' events from universe');
     }
@@ -1350,7 +1405,6 @@ async function loadConferences() {
   renderTable();
 
   // ── CLIENT-SIDE CATALYST INGESTION ──────────────────────────────────────
-  // Load drug_assets (needed for AdCom ticker matching)
   var drugMap = new Map();
   try {
     var { data: drugAssets } = await sb.from('drug_assets').select('drug_name, brand_name, parent_ticker');
@@ -1361,10 +1415,8 @@ async function loadConferences() {
     console.log('[SC] drug_assets loaded: ' + drugMap.size + ' drug/brand names');
   } catch (err) { console.warn('[drug_assets] load failed:', err); }
 
-  // Universe may be undefined if enrichment block errored — fall back to empty array
   var universeForLoaders = (typeof universe !== 'undefined' && universe) ? universe : [];
 
-  // Fire all four loaders in parallel. Each renders progressively as it completes.
   loadFinnhubEarnings(universeForLoaders)
     .then(function (evs) { var added = scAppendEvents(evs); console.log('[earnings] added ' + added + '/' + evs.length); updateCounts(); renderTable(); })
     .catch(function (e) { console.warn('[earnings] failed:', e); });
