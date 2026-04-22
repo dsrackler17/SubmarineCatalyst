@@ -649,14 +649,6 @@ function isBrokenRow(d) {
   var ticker = String(d.ticker || '').trim().toUpperCase();
   var drugU  = drug.toUpperCase();
 
-  // ─── UNSCORED ROW (PoA 0, Net Edge 0, Dilution UNKNOWN) ─────────────────
-  // These are ingest-pipeline rows that score-events choked on.
-  // An analyst sees 0.0% PoA and thinks the model broke — hide them.
-  var poa = Number(d.poa) || 0;
-  var netEdge = Number(d.net_edge_score) || Number(d.score) || 0;
-  var dilutionUnscored = !d.dilution_risk || d.dilution_risk === 'UNKNOWN' || d.dilution_risk === '—';
-  if (poa === 0 && netEdge === 0 && dilutionUnscored) return true;
-
   // ─── LITERAL TICKER OR TICKER-DASH PLACEHOLDER ──────────────────────────
   if (ticker && drugU === ticker) return true;
   if (ticker && drugU.indexOf(ticker + ' —') === 0) return true;
