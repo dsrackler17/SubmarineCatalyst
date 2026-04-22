@@ -1229,51 +1229,6 @@ async function loadFederalRegisterAdcom(drugMap) {
   return events;
 }
 
-async function loadConferences() {
-  var cached = scCacheGet('conf', SC_CACHE_TTL_24H);
-  if (cached) { console.log('[conferences] cache hit: ' + cached.length); return cached; }
-
-  var events = [];
-  try {
-    var bust = Math.floor(Date.now() / 86400000);
-    var res = await fetch('/data/biotech_conferences.json?t=' + bust);
-    if (!res.ok) { scCacheSet('conf', []); return []; }
-    var data = await res.json();
-
-    var today = new Date(); today.setUTCHours(0, 0, 0, 0);
-
-    (data.conferences || []).forEach(function (c) {
-      if (!c.date_start || !c.name) return;
-      var d = new Date(c.date_start);
-      if (isNaN(d.getTime()) || d < today) return;
-
-      var tickers = Array.isArray(c.tickers) && c.tickers.length > 0 ? c.tickers : ['CONFERENCE'];
-      tickers.forEach(function (ticker) {
-        var isGeneric = ticker === 'CONFERENCE';
-        events.push(scMakeEvent({
-          ticker: ticker,
-          drug: c.name + (c.date_end && c.date_end !== c.date_start ? ' (' + c.date_start + ' → ' + c.date_end + ')' : ''),
-          type: 'CONFERENCE',
-          date: c.date_start,
-          company_name: isGeneric ? c.name : ticker,
-          market_cap_tier: 'UNKNOWN',
-          score: isGeneric ? 50 : 70,
-          flags: [
-            c.status === 'confirmed' ? 'CONFIDENCE:HARD_DATE' : 'CONFIDENCE:ESTIMATED_WINDOW',
-            c.category || 'MEDICAL',
-            c.location || '',
-          ].filter(Boolean),
-          notes: c.description || c.name,
-          _source: 'catalyst',
-        }));
-      });
-    });
-  } catch (e) { console.warn('[conferences] fetch failed:', e); }
-
-  scCacheSet('conf', events);
-  return events;
-}
-
 // ── INIT ──────────────────────────────────────────────────────────────────────
 (async function() {
   var sb = getSupabase();
@@ -1428,10 +1383,6 @@ async function loadConferences() {
   loadFederalRegisterAdcom(drugMap)
     .then(function (evs) { var added = scAppendEvents(evs); console.log('[adcom] added ' + added + '/' + evs.length); updateCounts(); renderTable(); })
     .catch(function (e) { console.warn('[adcom] failed:', e); });
-
-  loadConferences()
-    .then(function (evs) { var added = scAppendEvents(evs); console.log('[conferences] added ' + added + '/' + evs.length); updateCounts(); renderTable(); })
-    .catch(function (e) { console.warn('[conferences] failed:', e); });
 
   if (isPaid) {
     setTimeout(function() { enrichWithPolygon(); }, 500);
