@@ -702,16 +702,18 @@ function isBrokenRow(d) {
   if (/PDUFA\s+(date|action\s+date)\s+of/i.test(drug)) return true;
   // Section mark or footnote prefix (§ * †)
   if (/^[§*†]\s/.test(drug)) return true;
-  // Drug field ends with period AND is long — that's a sentence, not a name
-  if (drug.length > 45 && /\.\s*$/.test(drug)) return true;
-  // Drug field contains a year (2024, 2025, 2026, 2027) — real drug names don't
-  if (/\b20(2[4-9]|3[0-9])\b/.test(drug)) return true;
-  // Contains "supplemental application" / "NDA" / "BLA" as a phrase not a drug class
-  if (/supplemental\s+application/i.test(drug)) return true;
-  // Contains month names (real drug names don't)
-  if (/\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/i.test(drug)) return true;
-  // Drug longer than 120 chars is definitely a sentence
+// Drug longer than 120 chars is definitely a sentence
   if (drug.length > 120) return true;
+  // Contains "supplemental application" as a phrase (not a drug class)
+  if (/supplemental\s+application/i.test(drug)) return true;
+  // Year / month / long-period-ending are only "broken" when they COMBINE.
+  // "Tolebrutinib (Q2 2026)" has a year but is a real drug. A sentence will
+  // trip two of these at once, and the targeted regexes above already catch
+  // the explicit "The FDA / target action date / PDUFA date of" boilerplate.
+  var hasYear = /\b20(2[4-9]|3[0-9])\b/.test(drug);
+  var hasMonth = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/i.test(drug);
+  var longEndsPeriod = drug.length > 80 && /\.\s*$/.test(drug);
+  if ((hasYear && hasMonth) || (hasYear && longEndsPeriod) || (hasMonth && longEndsPeriod)) return true;
 
   // ─── OCR / SCRAPING GARBAGE ─────────────────────────────────────────────
   // Starts with digits followed by uppercase, long string
