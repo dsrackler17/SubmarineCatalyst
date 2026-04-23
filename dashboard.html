@@ -303,9 +303,9 @@
         <div class="stat-sub">calendar average</div>
       </div>
       <div class="stat-cell">
-        <div class="stat-label">Last Scan</div>
-        <div class="stat-val white" style="font-size:1.1rem;margin-top:0.25rem" id="stat-scan">—</div>
-        <div class="stat-sub">auto-updates daily</div>
+        <div class="stat-label">Companies</div>
+        <div class="stat-val white" id="stat-scan">—</div>
+        <div class="stat-sub">unique tickers</div>
       </div>
     </div>
 
@@ -996,8 +996,32 @@ function renderScanner() {
     }
   });
   const countEl = document.getElementById('scanner-count');
-  if (countEl) countEl.textContent = sorted.length + ' of ' + SCANNER_DATA.length + ' events';
+  if (countEl) {
+    var uniqueTickers = {};
+    sorted.forEach(function(d) { uniqueTickers[d.ticker] = true; });
+    var companyCount = Object.keys(uniqueTickers).length;
+    var totalClean = clean.length;
+    var hiddenByFilters = totalClean - sorted.length;
+    var line = sorted.length + ' events · ' + companyCount + ' ' + (companyCount === 1 ? 'company' : 'companies');
+    if (hiddenByFilters > 0) line += ' · ' + hiddenByFilters + ' filtered';
+    countEl.textContent = line;
+  }
+  // Count how many DISTINCT events each ticker has in the current view.
+  // This powers the "PDUFA N of K" disambiguation pill so institutional users
+  // can instantly see SNY has 3 different drugs, each with its own setup.
+  const tickerEventCounts = {};
+  sorted.forEach(function(d) {
+    tickerEventCounts[d.ticker] = (tickerEventCounts[d.ticker] || 0) + 1;
+  });
+  const tickerEventIndex = {};
   document.getElementById('scanner-grid').innerHTML = sorted.map((d,i) => {
+    // Position within this ticker's event group (1-indexed)
+    tickerEventIndex[d.ticker] = (tickerEventIndex[d.ticker] || 0) + 1;
+    const tickerTotal = tickerEventCounts[d.ticker] || 1;
+    const tickerPos = tickerEventIndex[d.ticker];
+    const multiBadge = tickerTotal > 1
+      ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);color:var(--accent);margin-left:0.4rem;vertical-align:middle;" title="${d.ticker} has ${tickerTotal} distinct PDUFA events tracked. This is event ${tickerPos} of ${tickerTotal}.">#${tickerPos}/${tickerTotal}</span>`
+      : '';
     const days = daysUntil(d.date);
     const isRoyalty = (d.ticker_role === 'royalty' || d.ticker_role === 'licensee');
     const royaltyBadge = isRoyalty
@@ -1016,7 +1040,7 @@ function renderScanner() {
            title="View ${d.ticker} deep dive →">
         <div class="card-top">
           <div>
-            <div class="card-ticker">${d.ticker} ${daysPill(days)}${royaltyBadge}</div>
+            <div class="card-ticker">${d.ticker} ${daysPill(days)}${royaltyBadge}${multiBadge}</div>
             <div class="card-date">${d.date} · ${d.type}${isRoyalty && d.primary_ticker ? ' · via ' + d.primary_ticker : ''}</div>
           </div>
           ${gradeBadge(d.grade)}
@@ -1044,13 +1068,16 @@ function renderScanner() {
   }).join('');
   const validData = clean;
   const elite    = validData.filter(d => (d.net_edge_adj || 0) >= 72).length;
-  const within30 = validData.filter(d => daysUntil(d.date) <= 30).length;
+  const within30 = validData.filter(d => daysUntil(d.date) <= 30 && daysUntil(d.date) >= 0).length;
   const avgPoa   = validData.length > 0 ? (validData.reduce((s,d) => s + (d.poa || 0), 0) / validData.length).toFixed(1) : '0';
+  // Unique company count across the full clean dataset — this is the
+  // institutional-grade "coverage" metric, not a filtered subset.
+  const uniqueCompaniesAll = Object.keys(validData.reduce(function(acc, d) { acc[d.ticker] = 1; return acc; }, {})).length;
   document.getElementById('stat-elite').textContent = elite;
   document.getElementById('stat-30d').textContent   = within30;
   document.getElementById('stat-poa').textContent   = avgPoa + '%';
-  document.getElementById('stat-scan').textContent  = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric'});
-  document.getElementById('scan-timestamp').textContent = 'Last updated: ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+  document.getElementById('stat-scan').textContent  = uniqueCompaniesAll;
+  document.getElementById('scan-timestamp').textContent = validData.length + ' events tracked · last scored ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
 // ─── BUYOUT SCANNER ──────────────────────────────────────────────────────────
