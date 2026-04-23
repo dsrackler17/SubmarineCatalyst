@@ -789,6 +789,17 @@ function resolveDrugName(d) {
     (drug.length > 90 && /\./.test(drug))
   );
 
+  // Step 0: drug_assets lookup — if the canonical drug-asset table has a
+  // row matching this event's (ticker, date) pair, use that name. This is
+  // the source of truth: drug_assets is maintained independently of the
+  // PDUFA event stream, so it never ships sentence boilerplate. Wins over
+  // anything extracted from the drug field itself.
+  if (window.DRUG_ASSETS_MAP && d.ticker && d.date) {
+    var key = d.ticker + '|' + d.date;
+    var fromAssets = window.DRUG_ASSETS_MAP[key];
+    if (fromAssets) return { name: fromAssets, confident: true };
+  }
+
   // Step 1: clean drug name already (not a sentence, reasonable length)
   if (!sentenceLike && drug.length > 0 && drug.length < 120) {
     return { name: drug, confident: true };
@@ -1766,6 +1777,47 @@ function switchTab(btn, id) {
     }
   }
 
+  // ─── DRUG ASSETS LOOKUP (authoritative name table) ─────────────────────
+  // Fetches drug_assets rows for the current scanner ticker set and builds
+  // a (ticker, pdufa_date) → drug_name map. The dashboard's resolveDrugName
+  // checks this first, so whenever drug_assets has a canonical name for a
+  // (ticker, date) pair, the card displays it — regardless of what garbage
+  // might be in pdufa_events.drug. Complements the server-side auto-resolver
+  // cron in case new garbage rows land between cron runs.
+  window.DRUG_ASSETS_MAP = {};
+  if (SCANNER_DATA.length > 0) {
+    try {
+      var assetTickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
+      var { data: assetRows } = await sb.from('drug_assets')
+        .select('drug_name, brand_name, parent_ticker, licensee_tickers, royalty_tickers, partner_ticker, pdufa_date')
+        .in('parent_ticker', assetTickers);
+      if (assetRows && assetRows.length > 0) {
+        assetRows.forEach(function(a) {
+          var displayName = a.brand_name || a.drug_name;
+          if (!displayName) return;
+          // Primary key: (parent_ticker, pdufa_date)
+          if (a.parent_ticker && a.pdufa_date) {
+            window.DRUG_ASSETS_MAP[a.parent_ticker + '|' + a.pdufa_date] = displayName;
+          }
+          // Also index under every licensee / royalty / partner ticker so
+          // royalty-role events resolve to the actual drug name
+          var companions = [].concat(
+            Array.isArray(a.licensee_tickers) ? a.licensee_tickers : [],
+            Array.isArray(a.royalty_tickers)  ? a.royalty_tickers  : [],
+            a.partner_ticker ? [a.partner_ticker] : []
+          );
+          companions.forEach(function(tk) {
+            if (tk && a.pdufa_date) {
+              window.DRUG_ASSETS_MAP[tk + '|' + a.pdufa_date] = displayName;
+            }
+          });
+        });
+        console.log('[SC] drug_assets: indexed ' + Object.keys(window.DRUG_ASSETS_MAP).length + ' (ticker,date) pairs');
+      }
+    } catch (err) {
+      console.warn('[SC] drug_assets lookup failed:', err);
+    }
+  }
   renderScanner();
   if (SCANNER_DATA.length > 0 && SC_CONFIG.polygonApiKey) {
     var tickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
