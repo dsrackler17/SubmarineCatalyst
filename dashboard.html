@@ -324,6 +324,9 @@
           <option value="tam">Sort: TAM/Cap ↓</option>
           <option value="innovation">Sort: Innovation ↓</option>
           <option value="trend30d">Sort: 30D Trend ↓</option>
+          <option value="trend90d">Sort: 90D Trend ↓</option>
+          <option value="cmc_haircut">Sort: CMC Haircut ↓</option>
+          <option value="rsi">Sort: RSI ↓</option>
         </select>
         <select id="scanner-grade" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Grades</option>
@@ -1137,6 +1140,9 @@ function renderScanner() {
       case 'tam':       return (b.tam_ratio || 0) - (a.tam_ratio || 0);
       case 'innovation': return (Number(b.innovation_score) || 0) - (Number(a.innovation_score) || 0);
       case 'trend30d':  return ((PRICE_DATA[b.ticker]||{}).change30d||0) - ((PRICE_DATA[a.ticker]||{}).change30d||0);
+      case 'trend90d':  return (Number(b.price_change_90d)||-999) - (Number(a.price_change_90d)||-999);
+      case 'cmc_haircut': return (Number(b.cmc_haircut_pct)||0) - (Number(a.cmc_haircut_pct)||0);
+      case 'rsi':       return (Number(b.rsi_14d)||0) - (Number(a.rsi_14d)||0);
       default:          return (b.net_edge_adj || 0) - (a.net_edge_adj || 0);
     }
   });
@@ -1206,6 +1212,36 @@ function renderScanner() {
         </div>
         ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; var volDisplay = typeof p.volRatio === 'number' ? p.volRatio + '%' : '—'; var chartDisplay = p.chartIcon && p.chartSetup ? p.chartIcon + ' ' + p.chartSetup : '—'; var chartColor = p.chartColor || 'var(--muted)'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + volDisplay + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + chartColor + ';font-weight:700;">' + chartDisplay + '</span></div>' + '</div>'; })()}
         ${innScore >= 24 && (d.appreciation_signals || []).length > 0 ? '<div style="font-family:var(--mono);font-size:0.58rem;padding:0.4rem 0.55rem;background:rgba(255,215,0,0.04);border-left:2px solid #ffd700;margin-bottom:0.4rem;color:var(--text);line-height:1.5;">⭐ ' + d.appreciation_signals.slice(0,2).map(function(s){return s.length>90?s.substring(0,90)+'…':s;}).join(' · ') + (innFactor !== 1.0 ? ' <span style="color:#ffd700;">(' + (innFactor > 1 ? '+' : '') + Math.round((innFactor - 1) * 100) + '% edge)</span>' : '') + '</div>' : ''}
+        ${(() => {
+          var hasCMC = (d.formulation_class && d.formulation_class !== 'UNKNOWN' && d.formulation_class !== 'SMALL_MOLECULE') || (Number(d.cmc_score)||0) >= 15 || (Number(d.cmc_haircut_pct)||0) >= 5 || d.runway_trustworthy === false;
+          if (!hasCMC) return '';
+          var fc = d.formulation_class || '';
+          var emoji = fc === 'NANOPARTICLE' ? '🧪' : fc === 'CELL_THERAPY' ? '🧫' : fc === 'GENE_THERAPY' ? '🧬' : fc === 'BIOLOGIC' ? '🔬' : '';
+          var label = fc && fc !== 'UNKNOWN' && fc !== 'SMALL_MOLECULE' ? fc.replace(/_/g,' ') : '';
+          var clin = Number(d.clinical_poa)||0, op = Number(d.operational_poa)||0, hc = Number(d.cmc_haircut_pct)||0;
+          var splitStr = (clin > 0 && op > 0) ? 'Clinical ' + clin.toFixed(0) + '% → Op ' + op.toFixed(0) + '% (−' + hc.toFixed(0) + '%)' : '';
+          var runwayFlag = d.runway_trustworthy === false ? ' <span style="color:var(--red);">🚨 runway anomaly</span>' : '';
+          if (!label && !splitStr && !runwayFlag) return '';
+          return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.4rem 0.55rem;background:rgba(245,166,35,0.05);border-left:2px solid var(--amber);margin-bottom:0.4rem;color:var(--text);line-height:1.5;">' +
+                 (label ? emoji + ' ' + label : '') + (label && splitStr ? ' · ' : '') + (splitStr ? '<span style="color:var(--amber);">' + splitStr + '</span>' : '') + runwayFlag +
+                 '</div>';
+        })()}
+        ${(() => {
+          var pills = [];
+          if (d.first_time_approver) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);color:var(--accent);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🆕 1ST-TIME</span>');
+          if (d.pdufa_is_friday_pm) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">📅 FRI PM</span>');
+          if (d.is_nce) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">NCE</span>');
+          if (d.is_505b2) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(90,122,153,0.5);background:rgba(90,122,153,0.1);color:var(--muted);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">505(b)(2)</span>');
+          if (d.volume_climax_flag) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🔊 VOL CLIMAX</span>');
+          var rsi = Number(d.rsi_14d);
+          if (isFinite(rsi) && rsi >= 70) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
+          else if (isFinite(rsi) && rsi <= 30) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
+          var prox = Number(d.analyst_target_proximity_pct);
+          if (isFinite(prox) && prox >= 95) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg target — priced in risk">TGT ' + prox.toFixed(0) + '%</span>');
+          else if (isFinite(prox) && prox <= 50) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg — heavily discounted">TGT ' + prox.toFixed(0) + '%</span>');
+          if (pills.length === 0) return '';
+          return '<div style="margin-bottom:0.4rem;line-height:1.8;">' + pills.join('') + '</div>';
+        })()}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
         <div class="card-flags">${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market') && !String(f).startsWith('AUTO-RESOLVED:')).map(f=>`<div class="card-flag">${f}</div>`).join('')}</div>
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
@@ -1224,6 +1260,7 @@ function renderScanner() {
   document.getElementById('stat-scan').textContent  = uniqueCompaniesAll;
   document.getElementById('scan-timestamp').textContent = validData.length + ' events tracked · last scored ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 }
+
 
 // ─── BUYOUT SCANNER ──────────────────────────────────────────────────────────
 function renderBuyoutGrid() {
@@ -1742,6 +1779,25 @@ function switchTab(btn, id) {
           ticker_role: e.ticker_role || 'primary',
           primary_ticker: e.primary_ticker || '',
           is_primary_ticker: e.is_primary_ticker !== false,
+          // ─── CMC v2 (v4.4) ─────────────────────────────────────────────
+          formulation_class: e.formulation_class || 'UNKNOWN',
+          cmc_score: Number(e.cmc_score) || 0,
+          clinical_poa: Number(e.clinical_poa) || 0,
+          operational_poa: Number(e.operational_poa) || 0,
+          cmc_haircut_pct: Number(e.cmc_haircut_pct) || 0,
+          runway_trustworthy: e.runway_trustworthy !== false,
+          // ─── STN v3 market signals (v4.5) ──────────────────────────────
+          rsi_14d: e.rsi_14d != null ? Number(e.rsi_14d) : null,
+          price_change_90d: e.price_change_90d != null ? Number(e.price_change_90d) : null,
+          volume_climax_flag: e.volume_climax_flag === true,
+          analyst_target_avg: e.analyst_target_avg != null ? Number(e.analyst_target_avg) : null,
+          analyst_target_proximity_pct: e.analyst_target_proximity_pct != null ? Number(e.analyst_target_proximity_pct) : null,
+          analyst_recommendation_mean: e.analyst_recommendation_mean != null ? Number(e.analyst_recommendation_mean) : null,
+          // ─── STN v3 pathway / calendar flags ───────────────────────────
+          pdufa_is_friday_pm: e.pdufa_is_friday_pm === true,
+          is_nce: e.is_nce === true,
+          is_505b2: e.is_505b2 === true,
+          first_time_approver: e.first_time_approver === true,
         };
       });
     }
@@ -1870,387 +1926,217 @@ function switchTab(btn, id) {
   applyLiveMarketData();
   renderBuyoutGrid();
 })();
-</script>
 
+</script>
 <script>
+
 // ═══════════════════════════════════════════════════════════════════════════
-// PR SCANNER — Submarine Catalyst (inline analyzer + Finnhub + renderer)
+// PR SCANNER (linguistic analysis on biotech press releases)
 // ═══════════════════════════════════════════════════════════════════════════
+var PR_DATA = [];
 
 var PR_STRONG_BULLISH = [
-  { re: /\bmet\s+(?:the\s+|its\s+|all\s+|both\s+)?primary\s+(?:endpoint|objective)/i, w: 18, t: "✅ Met primary endpoint" },
-  { re: /\bachieved\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: 18, t: "✅ Achieved primary endpoint" },
-  { re: /\bstatistically\s+significant.*?p\s*[<=]\s*0?\.0\d/i, w: 15, t: "✅ Statistically significant with p-value disclosed" },
-  { re: /\bp\s*[<=]\s*0?\.00\d/i, w: 12, t: "✅ p < 0.01 (highly significant)" },
-  { re: /\bhazard\s+ratio\s+(?:of\s+)?0?\.[0-5]\d?\b/i, w: 14, t: "✅ Hazard ratio ≤ 0.5 (strong survival benefit)" },
-  { re: /\bgranted\s+(?:fda\s+)?(?:full\s+|accelerated\s+|traditional\s+)?approval/i, w: 25, t: "✅ FDA approval granted" },
-  { re: /\bfda\s+approve[ds]?\b/i, w: 22, t: "✅ FDA approved" },
-  { re: /\breceived\s+(?:fda\s+)?approval/i, w: 22, t: "✅ Received FDA approval" },
-  { re: /\bbreakthrough\s+therapy\s+designation\b/i, w: 10, t: "⚡ Breakthrough Therapy Designation" },
-  { re: /\b(?:complete\s+response|cr)\s+rate\s+(?:of\s+)?[5-9]\d%/i, w: 12, t: "✅ CR rate ≥50%" },
-  { re: /\bobjective\s+response\s+rate\s+(?:of\s+)?[4-9]\d%/i, w: 10, t: "✅ ORR ≥40%" },
-  { re: /\bsuperior(?:ity)?\s+(?:to|over|versus|vs\.?)\s+\w+/i, w: 12, t: "✅ Demonstrated superiority" },
-  { re: /\bpdufa\s+(?:target\s+)?(?:action\s+)?date.*?(?:on\s+track|on\s+schedule|maintained)/i, w: 8, t: "✅ PDUFA date on track" },
-  { re: /\bno\s+new\s+safety\s+(?:signals|concerns|findings)/i, w: 6, t: "✅ No new safety signals" },
-  { re: /\bconsistent\s+with\s+(?:the\s+)?(?:known|established)\s+safety\s+profile/i, w: 5, t: "✅ Safety profile as expected" },
-  { re: /\bpriority\s+review\s+(?:granted|voucher|designation)/i, w: 7, t: "✅ Priority Review granted" },
-  { re: /\baccelerated\s+approval\s+(?:granted|pathway)/i, w: 9, t: "✅ Accelerated approval pathway" },
-  { re: /\bfirst[- ]in[- ]class\b/i, w: 5, t: "✅ First-in-class asset" }
+  /\bstatistically\s+significant(?:ly)?\s+improv/i,
+  /met\s+(?:the\s+)?primary\s+endpoint/i,
+  /achieved\s+(?:the\s+)?primary\s+endpoint/i,
+  /primary\s+endpoint.{0,30}(?:met|achieved|hit)/i,
+  /\bsuperior\s+(?:efficacy|to\s+placebo|to\s+standard\s+of\s+care)/i,
+  /FDA\s+approv(?:al|ed|es)/i,
+  /granted\s+(?:priority\s+review|breakthrough|accelerated\s+approval|orphan\s+drug)/i,
+  /breakthrough\s+therapy\s+designation/i,
+  /fast\s+track\s+designation/i,
+  /regenerative\s+medicine\s+advanced\s+therapy/i,
+  /acquired\s+by/i,
+  /\$[\d.]+\s*(?:billion|bn)\s+(?:deal|acquisition|merger)/i,
+  /signed\s+(?:a\s+)?licensing\s+agreement\s+worth/i,
 ];
 
 var PR_STRONG_BEARISH = [
-  { re: /\bdid\s+not\s+meet\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: -25, t: "🚨 Did NOT meet primary endpoint" },
-  { re: /\bfail(?:ed|ure)\s+to\s+(?:meet|achieve|reach)\s+(?:the\s+)?primary/i, w: -25, t: "🚨 Failed to meet primary endpoint" },
-  { re: /\bmissed\s+(?:the\s+|its\s+)?primary\s+(?:endpoint|objective)/i, w: -25, t: "🚨 Missed primary endpoint" },
-  { re: /\bcomplete\s+response\s+letter\b/i, w: -22, t: "🚨 Complete Response Letter (CRL)" },
-  { re: /\bfda\s+issued\s+(?:a\s+)?(?:complete\s+response|crl)/i, w: -25, t: "🚨 FDA issued CRL" },
-  { re: /\brejected\s+(?:the\s+)?(?:nda|bla|application)/i, w: -25, t: "🚨 Application rejected" },
-  { re: /\bclinical\s+hold\b/i, w: -20, t: "🚨 Clinical hold imposed" },
-  { re: /\bsuspend(?:ed|ing)?\s+(?:the\s+)?(?:trial|study|enrollment|program)/i, w: -18, t: "🚨 Trial/program suspended" },
-  { re: /\bdiscontinu(?:ed|ing)\s+(?:the\s+)?(?:trial|study|development|program)/i, w: -20, t: "🚨 Program discontinued" },
-  { re: /\btrend\s+toward(?:s)?\s+(?:statistical\s+)?significance/i, w: -18, t: "🚨 'Trend toward significance' = MISSED" },
-  { re: /\bdid\s+not\s+reach\s+statistical\s+significance/i, w: -22, t: "🚨 Did not reach statistical significance" },
-  { re: /\bnumerical(?:ly)?\s+(?:improved|better|favorable|higher|lower|greater)/i, w: -12, t: "⚠️ 'Numerical improvement' (not significant)" },
-  { re: /\bp\s*=\s*0?\.(?:0[6-9]|[1-9]\d*)\b/i, w: -14, t: "⚠️ p-value > 0.05" },
-  { re: /\b(?:pre-specified\s+)?subgroup\s+analysis\b/i, w: -8, t: "⚠️ Subgroup analysis (primary likely missed)" },
-  { re: /\bsupportive\s+(?:evidence|of\s+efficacy)/i, w: -8, t: "⚠️ 'Supportive evidence' (grasping at secondary)" },
-  { re: /\bmixed\s+results\b/i, w: -12, t: "⚠️ 'Mixed results'" },
-  { re: /\bpdufa\s+(?:target\s+)?(?:action\s+)?date.*?(?:extended|delayed|pushed)/i, w: -15, t: "🚨 PDUFA date extended/delayed" },
-  { re: /\bwithdraw(?:n|ing|al)\s+(?:the\s+)?(?:nda|bla|application)/i, w: -22, t: "🚨 Withdrew application" },
-  { re: /\brefus(?:al|ed)\s+to\s+file\b/i, w: -20, t: "🚨 Refusal to File (RTF)" }
+  /did\s+not\s+meet\s+(?:the\s+)?primary\s+endpoint/i,
+  /failed\s+(?:to\s+meet|the)\s+primary\s+endpoint/i,
+  /missed\s+(?:the\s+)?primary\s+endpoint/i,
+  /complete\s+response\s+letter/i,
+  /\bCRL\b(?!.*recovery)/i,
+  /received\s+(?:a\s+)?rejection/i,
+  /clinical\s+hold/i,
+  /FDA\s+rejection/i,
+  /discontinu(?:ing|ed|ation)\s+(?:the\s+)?(?:program|study|development|trial)/i,
+  /terminat(?:ing|ed)\s+(?:the\s+)?(?:program|trial|study)/i,
+  /voluntary\s+withdrawal/i,
+  /Going\s+Concern/i,
+  /going\s+concern\s+(?:doubt|warning)/i,
+  /Chapter\s+11/i,
+  /bankruptcy/i,
+  /filed\s+for\s+chapter/i,
 ];
 
 var PR_MODERATE_BULLISH = [
-  { re: /\borphan\s+drug\s+designation\b/i, w: 4, t: "🏥 Orphan Drug Designation" },
-  { re: /\bfast\s+track\s+designation\b/i, w: 4, t: "⚡ Fast Track Designation" },
-  { re: /\brare\s+pediatric\s+disease\s+designation\b/i, w: 5, t: "🎫 RPDD (PRV eligible)" },
-  { re: /\bpriority\s+review\s+voucher\b/i, w: 5, t: "🎫 Priority Review Voucher" },
-  { re: /\bpartnership\s+with\s+(?:pfizer|merck|novartis|roche|astrazeneca|bristol|sanofi|lilly|abbvie|gilead|amgen|biogen|regeneron|takeda)/i, w: 8, t: "🤝 Big Pharma partnership" },
-  { re: /\blicensing\s+agreement\b/i, w: 5, t: "📝 Licensing agreement" },
-  { re: /\bupfront\s+payment\s+of\s+\$[1-9]\d{2,}/i, w: 7, t: "💰 Upfront payment ≥$100M" },
-  { re: /\boverall\s+survival\s+(?:benefit|improvement|advantage)/i, w: 8, t: "✅ OS benefit demonstrated" },
-  { re: /\bprogression[- ]free\s+survival\s+(?:benefit|improvement)/i, w: 6, t: "✅ PFS benefit demonstrated" },
-  { re: /\bpositive\s+(?:topline|primary)\s+(?:data|results)/i, w: 10, t: "✅ Positive topline data" },
-  { re: /\b(?:well[- ])?tolerated\b/i, w: 3, t: "✅ Well-tolerated" }
+  /positive\s+(?:top-?line|topline|interim|data|results)/i,
+  /encouraging\s+(?:data|results|response)/i,
+  /exceed(?:ed|s)\s+expectations/i,
+  /well.?tolerat(?:ed|ion)/i,
+  /safety\s+profile\s+(?:was\s+)?(?:consistent|favorable|encouraging)/i,
+  /orphan\s+drug\s+designation/i,
+  /on\s+track\s+(?:to\s+file|for\s+filing|for\s+submission|for\s+approval)/i,
+  /filed\s+(?:the\s+)?(?:NDA|BLA|sNDA|sBLA)/i,
+  /accept(?:ed|ance)\s+(?:for\s+review|by\s+(?:the\s+)?FDA)/i,
+  /successful\s+(?:enrollment|completion|Type\s+[A-C])/i,
 ];
 
 var PR_MODERATE_BEARISH = [
-  { re: /\bcontinue[sd]?\s+to\s+(?:evaluate|assess|analyze|review)/i, w: -5, t: "⚠️ 'Continues to evaluate' (no clear path)" },
-  { re: /\badditional\s+analyses\s+(?:are\s+)?(?:ongoing|underway|planned)/i, w: -6, t: "⚠️ 'Additional analyses ongoing'" },
-  { re: /\bstrategic\s+(?:review|alternatives|evaluation)/i, w: -10, t: "🚨 'Strategic review'" },
-  { re: /\bexplor(?:e|ing)\s+strategic\s+(?:alternatives|options)/i, w: -12, t: "🚨 Exploring strategic alternatives" },
-  { re: /\brestructur(?:e|ing)\b/i, w: -8, t: "⚠️ Restructuring" },
-  { re: /\breduc(?:e|ing|tion)\s+(?:in\s+)?(?:workforce|headcount|staff)/i, w: -10, t: "🚨 Workforce reduction" },
-  { re: /\blaid?\s+off\b/i, w: -10, t: "🚨 Layoffs announced" },
-  { re: /\bextend(?:ed|ing)?\s+(?:the\s+)?(?:review\s+)?(?:period|timeline|date)/i, w: -6, t: "⚠️ Timeline extended" },
-  { re: /\binformation\s+request\s+(?:from\s+)?(?:the\s+)?fda/i, w: -6, t: "⚠️ FDA information request" },
-  { re: /\bmajor\s+amendment\b/i, w: -8, t: "⚠️ Major amendment (PDUFA ext trigger)" }
+  /trend(?:ed|ing)?\s+toward(?:s)?\s+significance/i,
+  /numerical(?:ly)?\s+(?:favored|better|improvement)/i,
+  /exploratory\s+endpoint/i,
+  /post.?hoc\s+analysis/i,
+  /descriptive\s+statistics/i,
+  /directional(?:ly)?\s+(?:favored|improvement|better)/i,
+  /delay(?:ed)?\s+(?:the\s+)?(?:filing|submission|trial|readout|PDUFA|decision)/i,
+  /pushed\s+back\s+(?:to|the|filing)/i,
+  /major\s+amendment/i,
+  /three.?month\s+extension/i,
+  /Type\s+(?:AA|A)\s+meeting/i,
+  /\$[\d.]+\s*(?:million|M)\s+(?:offering|raise|financing|registered\s+direct|ATM)/i,
+  /at.?the.?market\s+offering/i,
+  /shelf\s+registration/i,
+  /going\s+concern/i,
+  /insufficient\s+cash/i,
+  /runway\s+(?:extends|through)\s+(?:q[1-4]|month|mid)/i,
 ];
 
-var PR_HEDGING = ['believe','believes','believed','expect','expects','expected','anticipate','anticipates','anticipated','hope','hopes','may','might','could','potential','potentially','intend','intends','plan to','plans to','well-positioned','well positioned','remain committed','remains committed','look forward to','looking forward to','encourag','promising','meaningful','opportunity','opportunities'];
-
-var PR_SPEC_RE = [
-  /\bp\s*[<=]\s*0?\.\d+/gi, /\bhazard\s+ratio\s+(?:of\s+)?0?\.\d+/gi,
-  /\bci\s*(?:of\s+)?\[?\d+\.\d+[-–]\d+\.\d+\]?/gi, /\b\d{1,3}(?:\.\d{1,2})?%/g,
-  /\bn\s*=\s*\d+/gi, /\b\d+\s*(?:mg|kg|mcg|ng|ml|iu)(?:\/\w+)?\b/gi,
-  /\b\d+\.?\d*\s*(?:month|week|year|day)s?\b/gi, /\$\d+(?:,\d{3})*(?:\.\d+)?\s*(?:million|billion|m|b)?\b/gi
+var PR_HEDGE_WORDS = [
+  /\btrend(?:ed|ing)?\b/i, /\bnumerical(?:ly)?\b/i, /\bpromising\b/i, /\bsuggest(?:s|ing|ed)?\b/i,
+  /\bindicate(?:s|d)?\b/i, /\bpotential(?:ly)?\b/i, /\bmay\b/i, /\bcould\b/i, /\bapparent(?:ly)?\b/i,
+  /\bappear(?:s|ed)?\b/i, /\boptimistic\b/i, /\bencouraging\b/i, /\bfavorable\b/i, /\bpreliminary\b/i,
+  /\binitial\s+(?:data|indication|suggest)/i, /\bearly\s+signal/i,
 ];
 
-function prClassifyCategory(text) {
-  if (/\bfda\b.*?(?:approv|reject|crl|complete\s+response|pdufa|advisory|refus|accept|priority|breakthrough|fast\s+track)/i.test(text)) return 'FDA_ACTION';
-  if (/\b(?:pdufa|gdufa)\s+(?:date|action)/i.test(text) || /\badvisory\s+committee/i.test(text)) return 'FDA_ACTION';
-  if (/\b(?:nda|bla|snda|sbla)\s+(?:submitt|accept|approv|reject)/i.test(text)) return 'FDA_ACTION';
-  if (/\bphase\s+(?:1|2|3|i{1,3})\b/i.test(text) || /\b(?:clinical\s+)?trial\s+(?:results|data|topline)/i.test(text)) return 'CLINICAL_TRIAL';
-  if (/\bprimary\s+(?:endpoint|objective)/i.test(text) || /\btopline\s+(?:data|results)/i.test(text)) return 'CLINICAL_TRIAL';
-  if (/\binterim\s+(?:analysis|data|results)/i.test(text)) return 'CLINICAL_TRIAL';
-  if (/\bpublic\s+offering\b/i.test(text) || /\bprivate\s+placement\b/i.test(text)) return 'FINANCING';
-  if (/\bat-the-market\s+offering|\batm\s+(?:facility|program)/i.test(text)) return 'FINANCING';
-  if (/\b(?:s-3|424b5|prospectus\s+supplement)/i.test(text)) return 'FINANCING';
-  if (/\b(?:strategic\s+)?(?:collaboration|partnership|licensing\s+agreement)/i.test(text)) return 'PARTNERSHIP';
-  if (/\bmerger\b|\bacquisition\b|\bto\s+be\s+acquired\b/i.test(text)) return 'PARTNERSHIP';
-  if (/\b(?:first|second|third|fourth|q[1-4])\s+quarter\b/i.test(text) || /\bfinancial\s+results\b/i.test(text)) return 'EARNINGS';
-  if (/\b(?:appoint|name[ds]?)\s+(?:as\s+)?(?:chief|new)\s+\w+\s+officer/i.test(text)) return 'PERSONNEL';
-  if (/\bresign(?:ed|ation)\b/i.test(text)) return 'PERSONNEL';
-  return 'OTHER';
-}
-
-function prClassifyType(text) {
-  var t = text.toLowerCase();
-  if (/\b(?:fda\s+)?approv(?:ed|al)\b/.test(t) && /\bnda|bla|drug/.test(t)) return 'approval';
-  if (/\bcomplete\s+response\s+letter|\bcrl\b/.test(t)) return 'crl';
-  if (/\btopline\s+(?:data|results)/.test(t)) return 'topline';
-  if (/\binterim\s+(?:analysis|data|results)/.test(t)) return 'interim';
-  if (/\badvisory\s+committee/.test(t)) return 'adcom';
-  if (/\bpublic\s+offering|\batm|\b424b5\b/.test(t)) return 'financing';
-  if (/\bpdufa\s+(?:date|action)/.test(t)) return 'pdufa_update';
-  if (/\b(?:partnership|collaboration|licensing)/.test(t)) return 'partnership';
-  if (/\bacquisition|\bto\s+be\s+acquired\b|\bmerger/.test(t)) return 'ma';
-  if (/\bquarterly|\bfinancial\s+results/.test(t)) return 'earnings';
-  return 'other';
-}
-
-function prTimingFlag(publishedAt) {
-  if (!publishedAt) return null;
-  var d = new Date(publishedAt);
-  if (isNaN(d.getTime())) return null;
-  var etHour = (d.getUTCHours() - 4 + 24) % 24;
-  var etDay = d.getUTCDay();
-  if (etDay === 5 && etHour >= 15) return 'FRIDAY_AFTERNOON';
-  if (etDay === 0 || etDay === 6) return 'HOLIDAY_DUMP';
-  if (etHour >= 16 || etHour < 7) return 'AFTER_HOURS';
-  return null;
-}
-
-function prSpecificity(text, wordCount) {
-  if (wordCount < 50) return 50;
-  var matches = 0;
-  for (var i = 0; i < PR_SPEC_RE.length; i++) {
-    var found = text.match(PR_SPEC_RE[i]);
-    if (found) matches += found.length;
-  }
-  var per100 = (matches / wordCount) * 100;
-  return Math.round(Math.min(100, Math.max(0, per100 * 25)) * 10) / 10;
-}
-
-function prHedgingCount(text) {
-  var lower = text.toLowerCase();
-  var count = 0;
-  for (var i = 0; i < PR_HEDGING.length; i++) {
-    var re = new RegExp('\\b' + PR_HEDGING[i].replace(/\s+/g, '\\s+') + '\\b', 'gi');
-    var m = lower.match(re);
-    if (m) count += m.length;
-  }
-  return count;
-}
-
-function prExtractExcerpt(text, matched) {
-  if (!text) return '';
-  var sentences = text.split(/(?<=[.!?])\s+/).filter(function(s) { return s.length > 20 && s.length < 400; });
-  if (sentences.length === 0) return text.substring(0, 200);
-  var best = sentences[0], bestW = 0;
-  for (var i = 0; i < sentences.length; i++) {
-    var sw = 0;
-    for (var j = 0; j < matched.length; j++) if (matched[j].re.test(sentences[i])) sw += Math.abs(matched[j].w);
-    if (sw > bestW) { bestW = sw; best = sentences[i]; }
-  }
-  return best.trim().substring(0, 320);
-}
-
-function prApprovalSignal(score, signal, category, prType, bullCount, bearCount) {
-  if (prType === 'approval') return "✅ Approval already announced.";
-  if (prType === 'crl') return "🚨 CRL issued — approval delayed, resubmission cycle begins.";
-  if (prType === 'ma') return "🎯 M&A event — acquisition implies approval probability resolved.";
-  if (category === 'CLINICAL_TRIAL') {
-    if (signal === 'STRONGLY_BULLISH') return "🚀 Strong positive trial signal — raises FDA approval probability.";
-    if (signal === 'BULLISH') return "⚡ Positive trial signal — supports approval probability.";
-    if (signal === 'BEARISH') return "⚠️ Weak trial signal — management hedging. Re-examine PoA.";
-    if (signal === 'STRONGLY_BEARISH') return "🚨 Negative trial signal — primary miss. Reduce PoA substantially.";
-  }
-  if (category === 'FDA_ACTION') {
-    if (signal === 'STRONGLY_BULLISH') return "🚀 FDA positive action — approval or favorable step.";
-    if (signal === 'BULLISH') return "⚡ Favorable FDA signal.";
-    if (signal === 'BEARISH') return "⚠️ FDA friction.";
-    if (signal === 'STRONGLY_BEARISH') return "🚨 Adverse FDA action — CRL, rejection, or PDUFA extension.";
-  }
-  if (category === 'FINANCING') return "💰 Financing event — check Dilution Radar for impact.";
-  if (signal === 'STRONGLY_BULLISH') return "🚀 Strongly bullish (" + bullCount + " tells).";
-  if (signal === 'BULLISH') return "⚡ Net bullish — " + bullCount + " positive vs " + bearCount + " hedges.";
-  if (signal === 'STRONGLY_BEARISH') return "🚨 Strongly bearish (" + bearCount + " tells).";
-  if (signal === 'BEARISH') return "⚠️ Net bearish — " + bearCount + " negative vs " + bullCount + " positives.";
-  return "🟡 Mixed or neutral.";
-}
-
-function analyzePR(headline, summary, publishedAt) {
-  var fullText = (headline || '') + '\n\n' + (summary || '');
-  if (!fullText.trim()) return null;
-  var wordCount = fullText.split(/\s+/).filter(Boolean).length;
-  var score = 50;
-  var bullishTells = [], bearishTells = [], matched = [];
-  function apply(patterns) {
-    for (var i = 0; i < patterns.length; i++) {
-      if (patterns[i].re.test(fullText)) {
-        score += patterns[i].w;
-        if (patterns[i].w > 0) bullishTells.push(patterns[i].t); else bearishTells.push(patterns[i].t);
-        matched.push(patterns[i]);
-      }
-    }
-  }
-  apply(PR_STRONG_BULLISH); apply(PR_STRONG_BEARISH); apply(PR_MODERATE_BULLISH); apply(PR_MODERATE_BEARISH);
-  var hedging = prHedgingCount(fullText);
-  var hedgePenalty = Math.min(12, Math.floor(hedging / 3));
-  score -= hedgePenalty;
-  if (hedging >= 8) bearishTells.push("⚠️ Heavy hedging (" + hedging + " instances)");
-  var spec = prSpecificity(fullText, wordCount);
-  if (spec >= 60) score += 4;
-  else if (spec < 15 && wordCount > 150) { score -= 6; bearishTells.push("⚠️ Low specificity — vague language"); }
-  var timing = prTimingFlag(publishedAt);
-  if (timing === 'FRIDAY_AFTERNOON') { score -= 8; bearishTells.push("🚨 Friday afternoon dump"); }
-  else if (timing === 'AFTER_HOURS' || timing === 'HOLIDAY_DUMP') { score -= 3; bearishTells.push("⚠️ After-hours/weekend release"); }
-  score = Math.max(0, Math.min(100, score));
+function analyzePR(headline, body) {
+  var text = (headline + ' ' + (body || '')).substring(0, 8000);
+  var textLen = text.length;
+  var strongBull = 0, strongBear = 0, modBull = 0, modBear = 0, hedges = 0;
+  var matched = { strongBull: [], strongBear: [], modBull: [], modBear: [] };
+  PR_STRONG_BULLISH.forEach(function(re) { if (re.test(text)) { strongBull++; matched.strongBull.push(re.source); } });
+  PR_STRONG_BEARISH.forEach(function(re) { if (re.test(text)) { strongBear++; matched.strongBear.push(re.source); } });
+  PR_MODERATE_BULLISH.forEach(function(re) { if (re.test(text)) { modBull++; matched.modBull.push(re.source); } });
+  PR_MODERATE_BEARISH.forEach(function(re) { if (re.test(text)) { modBear++; matched.modBear.push(re.source); } });
+  PR_HEDGE_WORDS.forEach(function(re) { if (re.test(text)) hedges++; });
+  var score = (strongBull * 25) + (modBull * 8) - (strongBear * 25) - (modBear * 10) - (hedges * 1.5);
+  if (strongBull > 0 && modBear >= 2) score -= 15;
+  if (hedges >= 6) score -= 10;
+  var specificity = 0;
+  if (/\bp\s*(?:<|=)\s*0\.\d+/i.test(text)) specificity += 15;
+  if (/\d{1,3}(?:\.\d+)?%\s*(?:improvement|reduction|increase|decrease|response)/i.test(text)) specificity += 10;
+  if (/[\d,]+\s+patients?\s+(?:enrolled|treated|dosed|randomized)/i.test(text)) specificity += 8;
+  if (textLen < 800) specificity -= 10;
+  score += specificity * 0.3;
   var signal;
-  if (score >= 75) signal = 'STRONGLY_BULLISH';
-  else if (score >= 60) signal = 'BULLISH';
-  else if (score >= 40) signal = 'NEUTRAL';
-  else if (score >= 25) signal = 'BEARISH';
+  if (score >= 30) signal = 'STRONGLY_BULLISH';
+  else if (score >= 10) signal = 'BULLISH';
+  else if (score >= -10) signal = 'NEUTRAL';
+  else if (score >= -25) signal = 'BEARISH';
   else signal = 'STRONGLY_BEARISH';
-  var confidence;
-  var totalTells = bullishTells.length + bearishTells.length;
-  if (wordCount < 80 || totalTells === 0) confidence = 'LOW';
-  else if (totalTells >= 4 && spec >= 40) confidence = 'HIGH';
-  else confidence = 'MODERATE';
-  var category = prClassifyCategory(fullText);
-  var prType = prClassifyType(fullText);
-  return {
-    sentiment_score: Math.round(score * 10) / 10, signal: signal,
-    category: category, pr_type: prType,
-    bullish_tells: bullishTells, bearish_tells: bearishTells,
-    hedging_count: hedging, specificity_score: spec,
-    timing_flag: timing,
-    approval_signal: prApprovalSignal(score, signal, category, prType, bullishTells.length, bearishTells.length),
-    confidence: confidence,
-    key_excerpt: prExtractExcerpt(summary || headline, matched),
-    word_count: wordCount
-  };
+  var category = 'OTHER';
+  if (/CRL|complete\s+response/i.test(text) || /FDA\s+(?:approv|reject|decision|accept)/i.test(text) || /PDUFA/i.test(text)) category = 'FDA_ACTION';
+  else if (/primary\s+endpoint|phase\s+[23]|topline|interim/i.test(text)) category = 'CLINICAL_TRIAL';
+  else if (/acqui(?:red|sition)|merger|licensing\s+agreement|partnership/i.test(text)) category = 'PARTNERSHIP';
+  else if (/offering|raise|financing|ATM|registered\s+direct/i.test(text)) category = 'FINANCING';
+  else if (/earnings|quarterly\s+results|fiscal\s+year/i.test(text)) category = 'EARNINGS';
+  return { score: Math.round(score), signal: signal, category: category, matched: matched, specificity: specificity, hedges: hedges };
 }
-
-async function fetchFinnhubNews(ticker, daysBack) {
-  if (!SC_CONFIG.finnhubApiKey) { console.warn('[PR] No finnhubApiKey in SC_CONFIG'); return []; }
-  var to = new Date().toISOString().split('T')[0];
-  var from = new Date(Date.now() - daysBack * 86400000).toISOString().split('T')[0];
-  var url = 'https://finnhub.io/api/v1/company-news?symbol=' + ticker + '&from=' + from + '&to=' + to + '&token=' + SC_CONFIG.finnhubApiKey;
-  try {
-    var res = await fetch(url);
-    if (!res.ok) return [];
-    var data = await res.json();
-    return Array.isArray(data) ? data : [];
-  } catch (e) { return []; }
-}
-
-var PR_DATA = [];
-var PR_LOADING = false;
 
 async function loadPRData() {
-  if (PR_LOADING) return;
-  PR_LOADING = true;
   var grid = document.getElementById('pr-scanner-grid');
-  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;text-transform:uppercase;">Fetching press releases...</div></div>';
-  var daysBack = parseInt(document.getElementById('pr-days-filter').value || '7');
-  var tickers = (SCANNER_DATA || []).map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
-  if (tickers.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No tickers in scanner yet. Load the PDUFA Scanner tab first.</div>';
-    PR_LOADING = false;
+  var daysBack = parseInt(document.getElementById('pr-days-filter')?.value || '7');
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Scanning press releases from last ' + daysBack + ' days...</div></div>';
+  if (!SC_CONFIG.finnhubApiKey) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);">Finnhub API key not configured. PR scanner unavailable.</div>';
     return;
   }
-  tickers = tickers.slice(0, 40);
-  var allPRs = [];
-  for (var i = 0; i < tickers.length; i += 5) {
-    var batch = tickers.slice(i, i + 5);
-    var results = await Promise.all(batch.map(function(tk) {
-      return fetchFinnhubNews(tk, daysBack).then(function(news) {
-        return news.map(function(n) {
-          var analysis = analyzePR(n.headline, n.summary, new Date(n.datetime * 1000).toISOString());
-          if (!analysis || !n.headline || n.headline.length < 20) return null;
-          return {
-            ticker: tk, headline: n.headline, summary: n.summary, url: n.url, source: n.source,
-            published_at: new Date(n.datetime * 1000).toISOString(),
-            sentiment_score: analysis.sentiment_score, signal: analysis.signal,
-            category: analysis.category, pr_type: analysis.pr_type,
-            bullish_tells: analysis.bullish_tells, bearish_tells: analysis.bearish_tells,
-            hedging_count: analysis.hedging_count, specificity_score: analysis.specificity_score,
-            timing_flag: analysis.timing_flag, approval_signal: analysis.approval_signal,
-            confidence: analysis.confidence, key_excerpt: analysis.key_excerpt
-          };
-        }).filter(Boolean);
-      });
-    }));
-    results.forEach(function(arr) { allPRs = allPRs.concat(arr); });
-    if (i + 5 < tickers.length) await new Promise(function(r) { setTimeout(r, 1200); });
+  var sb = getSupabase();
+  var { data: universe } = await sb.from('biotech_universe').select('ticker').eq('active', true).gt('estimated_market_cap', 50e6).order('estimated_market_cap', { ascending: false }).limit(200);
+  if (!universe || universe.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);">No biotech companies in universe.</div>';
+    return;
   }
-  var seen = {};
-  PR_DATA = allPRs.filter(function(p) {
-    var key = p.ticker + '|' + p.headline.substring(0, 60);    if (seen[key]) return false;
-    seen[key] = true;
-    return true;
-  });
-  PR_DATA.sort(function(a, b) { return new Date(b.published_at) - new Date(a.published_at); });
-  document.getElementById('pr-timestamp').textContent = 'Last updated: ' + new Date().toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  PR_LOADING = false;
+  var today = new Date();
+  var from = new Date(today.getTime() - daysBack * 86400000);
+  var fromStr = from.toISOString().split('T')[0];
+  var toStr = today.toISOString().split('T')[0];
+  var allPRs = [], seen = {};
+  for (var i = 0; i < universe.length; i += 10) {
+    var batch = universe.slice(i, i + 10);
+    await Promise.all(batch.map(function(u) {
+      var url = 'https://finnhub.io/api/v1/company-news?symbol=' + u.ticker + '&from=' + fromStr + '&to=' + toStr + '&token=' + SC_CONFIG.finnhubApiKey;
+      return fetch(url).then(function(r) { return r.ok ? r.json() : []; }).then(function(news) {
+        (news || []).slice(0, 10).forEach(function(n) {
+          if (!n.headline || !n.datetime) return;
+          var key = u.ticker + '|' + n.id;
+          if (seen[key]) return;
+          seen[key] = true;
+          var analysis = analyzePR(n.headline, n.summary || '');
+          allPRs.push({
+            ticker: u.ticker, headline: n.headline, summary: n.summary || '',
+            source: n.source || '', url: n.url || '', datetime: n.datetime,
+            date: new Date(n.datetime * 1000).toISOString().split('T')[0],
+            score: analysis.score, signal: analysis.signal, category: analysis.category,
+            matched: analysis.matched, hedges: analysis.hedges, specificity: analysis.specificity,
+          });
+        });
+      }).catch(function() {});
+    }));
+    await new Promise(function(r) { setTimeout(r, 150); });
+    if (i % 30 === 0 && i > 0) {
+      grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Scanned ' + i + ' / ' + universe.length + ' tickers · ' + allPRs.length + ' PRs found</div></div>';
+    }
+  }
+  allPRs.sort(function(a, b) { return b.datetime - a.datetime; });
+  PR_DATA = allPRs;
+  document.getElementById('pr-timestamp').textContent = allPRs.length + ' PRs scanned · ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
   renderPRScanner();
-}
-
-function prSignalGrade(s) { return {'STRONGLY_BULLISH':'elite','BULLISH':'strong','NEUTRAL':'watch','BEARISH':'watch','STRONGLY_BEARISH':'weak'}[s] || 'weak'; }
-function prSignalBadge(s) {
-  var m = {'STRONGLY_BULLISH':['grade-elite','🚀 BULLISH'],'BULLISH':['grade-strong','⚡ BULLISH'],'NEUTRAL':['grade-watch','🟡 NEUTRAL'],'BEARISH':['grade-watch','⚠️ BEARISH'],'STRONGLY_BEARISH':['grade-weak','🚨 BEARISH']};
-  var p = m[s] || ['grade-weak', s];
-  return '<span class="card-grade ' + p[0] + '">' + p[1] + '</span>';
-}
-function prAgo(d) {
-  if (!d) return '';
-  var dt = new Date(d), h = Math.round((Date.now() - dt.getTime()) / 3600000);
-  if (h < 1) return 'just now';
-  if (h < 24) return h + 'h ago';
-  var days = Math.round(h / 24);
-  if (days < 30) return days + 'd ago';
-  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
 function renderPRScanner() {
   var grid = document.getElementById('pr-scanner-grid');
   if (!PR_DATA || PR_DATA.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No press releases found. Try increasing the date range or click Refresh.</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);">No PRs loaded yet. Click Refresh to scan.</div>';
     return;
   }
-  var sigFilter = document.getElementById('pr-signal-filter').value || 'all';
-  var catFilter = document.getElementById('pr-category-filter').value || 'all';
+  var signalFilter = document.getElementById('pr-signal-filter').value;
+  var categoryFilter = document.getElementById('pr-category-filter').value;
   var search = (document.getElementById('pr-search').value || '').toUpperCase();
-  var filtered = PR_DATA.filter(function(r) {
-    if (sigFilter !== 'all' && r.signal !== sigFilter) return false;
-    if (catFilter !== 'all' && r.category !== catFilter) return false;
-    if (search && !r.ticker.toUpperCase().includes(search)) return false;
+  var filtered = PR_DATA.filter(function(pr) {
+    if (signalFilter !== 'all' && pr.signal !== signalFilter) return false;
+    if (categoryFilter !== 'all' && pr.category !== categoryFilter) return false;
+    if (search && !pr.ticker.toUpperCase().includes(search)) return false;
     return true;
   });
-  document.getElementById('pr-count').textContent = filtered.length + ' of ' + PR_DATA.length + ' releases';
+  document.getElementById('pr-count').textContent = filtered.length + ' / ' + PR_DATA.length + ' PRs';
   if (filtered.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.75rem;color:var(--muted);">No PRs match filters</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);">No PRs match current filters.</div>';
     return;
   }
-  grid.innerHTML = filtered.map(function(r, i) {
-    var tells = [].concat((r.bullish_tells || []).slice(0, 3)).concat((r.bearish_tells || []).slice(0, 3));
-    var sc = r.sentiment_score >= 75 ? 'green' : r.sentiment_score >= 60 ? 'cyan' : r.sentiment_score >= 40 ? 'amber' : 'red';
-    var spc = r.specificity_score >= 50 ? 'green' : r.specificity_score >= 25 ? 'cyan' : 'amber';
-    var cc = r.confidence === 'HIGH' ? 'green' : r.confidence === 'LOW' ? 'amber' : 'cyan';
-    var icon = {'CLINICAL_TRIAL':'🧪','FDA_ACTION':'📋','PARTNERSHIP':'🤝','FINANCING':'💰','EARNINGS':'📊','PERSONNEL':'👤','OTHER':'📰'}[r.category] || '📰';
-    var host = 'source';
-    try { host = (new URL(r.url || 'https://x.y/')).hostname.replace('www.', ''); } catch(e) {}
-    return '<div class="scanner-card ' + prSignalGrade(r.signal) + '" style="animation-delay:' + (i * 0.03) + 's;cursor:pointer;" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + r.ticker + '\'">' +
-      '<div class="card-top"><div><div class="card-ticker">' + r.ticker + ' <span style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);letter-spacing:0.05em;margin-left:0.4rem;">' + prAgo(r.published_at) + '</span></div><div class="card-date">' + icon + ' ' + (r.category || 'OTHER').replace('_',' ') + ' · ' + (r.pr_type || 'other') + '</div></div>' + prSignalBadge(r.signal) + '</div>' +
-      '<div class="card-drug" style="font-weight:500;line-height:1.4;">' + (r.headline || '').substring(0, 140) + ((r.headline || '').length > 140 ? '…' : '') + '</div>' +
-      '<div class="card-indication" style="margin-top:0.3rem;margin-bottom:0.6rem;"><a href="' + (r.url || '#') + '" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="color:var(--muted);text-decoration:none;">↗ ' + host + '</a></div>' +
-      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;">' +
-        '<div class="score-box"><div class="score-box-label">Sentiment</div><div class="score-box-val ' + sc + '">' + (r.sentiment_score || 0).toFixed(0) + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Specificity</div><div class="score-box-val ' + spc + '">' + (r.specificity_score || 0).toFixed(0) + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Confidence</div><div class="score-box-val ' + cc + '" style="font-size:0.68rem;">' + (r.confidence || 'MOD') + '</div></div>' +
-        '<div class="score-box"><div class="score-box-label">Hedging</div><div class="score-box-val ' + ((r.hedging_count || 0) >= 8 ? 'amber' : 'white') + '">' + (r.hedging_count || 0) + '</div></div>' +
-      '</div>' +
-      (r.approval_signal ? '<div style="font-family:var(--mono);font-size:0.62rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (r.signal && r.signal.indexOf('BULLISH') >= 0 ? 'var(--accent2)' : r.signal && r.signal.indexOf('BEARISH') >= 0 ? 'var(--red)' : 'var(--amber)') + ';line-height:1.6;color:var(--text);">' + r.approval_signal + '</div>' : '') +
-      (tells.length ? '<div class="card-flags" style="margin-top:0.5rem;">' + tells.map(function(t) { return '<div class="card-flag">' + t + '</div>'; }).join('') + '</div>' : '') +
-      (r.timing_flag ? '<div style="font-family:var(--mono);font-size:0.58rem;margin-top:0.4rem;padding:0.35rem 0.5rem;background:rgba(245,166,35,0.08);border:1px solid rgba(245,166,35,0.2);color:var(--amber);">⏰ ' + r.timing_flag.replace('_',' ') + '</div>' : '') +
-      (r.key_excerpt ? '<div style="font-family:var(--serif);font-size:0.78rem;font-style:italic;margin-top:0.6rem;padding:0.6rem 0.75rem;background:var(--deep);border-left:2px solid var(--accent);color:var(--text);line-height:1.5;">"' + r.key_excerpt.substring(0, 280) + (r.key_excerpt.length > 280 ? '…' : '') + '"</div>' : '') +
-      '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View ' + r.ticker + ' deep dive →</div>' +
+  grid.innerHTML = filtered.slice(0, 150).map(function(pr) {
+    var signalBadge = { STRONGLY_BULLISH: { label: '🚀 STRONG BULL', cls: 'grade-elite' }, BULLISH: { label: '⚡ BULL', cls: 'grade-strong' }, NEUTRAL: { label: '🟡 NEUTRAL', cls: 'grade-watch' }, BEARISH: { label: '⚠️ BEAR', cls: 'grade-weak' }, STRONGLY_BEARISH: { label: '🚨 STRONG BEAR', cls: 'grade-weak' } }[pr.signal] || { label: pr.signal, cls: 'grade-weak' };
+    var scoreColor = pr.score >= 30 ? 'green' : pr.score >= 10 ? 'cyan' : pr.score >= -10 ? 'white' : pr.score >= -25 ? 'amber' : 'red';
+    var catLabel = { FDA_ACTION: '⚖️ FDA', CLINICAL_TRIAL: '🧪 TRIAL', PARTNERSHIP: '🤝 M&A', FINANCING: '💰 FIN', EARNINGS: '📊 EPS', OTHER: '📄' }[pr.category] || '📄';
+    var flagChips = [];
+    if ((pr.matched.strongBear || []).length > 0) flagChips.push('<span style="padding:0.1rem 0.35rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.08);color:var(--red);font-size:0.52rem;">' + pr.matched.strongBear.length + ' STRONG BEAR</span>');
+    if ((pr.matched.modBear || []).length > 0) flagChips.push('<span style="padding:0.1rem 0.35rem;border:1px solid rgba(245,166,35,0.5);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;">' + pr.matched.modBear.length + ' HEDGE</span>');
+    if (pr.hedges >= 4) flagChips.push('<span style="padding:0.1rem 0.35rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.05);color:var(--amber);font-size:0.52rem;">' + pr.hedges + ' hedge words</span>');
+    if (pr.specificity < 0) flagChips.push('<span style="padding:0.1rem 0.35rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.05);color:var(--amber);font-size:0.52rem;">LOW SPECIFICITY</span>');
+    if ((pr.matched.strongBull || []).length > 0) flagChips.push('<span style="padding:0.1rem 0.35rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;">' + pr.matched.strongBull.length + ' STRONG BULL</span>');
+    return '<div class="scanner-card" onclick="window.open(\'' + (pr.url || '#') + '\',\'_blank\');" style="cursor:pointer;">' +
+      '<div class="card-top"><div><div class="card-ticker">' + pr.ticker + ' <span style="font-size:0.52rem;color:var(--muted);margin-left:0.3rem;">' + catLabel + '</span></div><div class="card-date">' + pr.date + ' · ' + pr.source + '</div></div><span class="card-grade ' + signalBadge.cls + '">' + signalBadge.label + '</span></div>' +
+      '<div style="font-family:var(--sans);font-size:0.78rem;color:var(--text);margin:0.5rem 0 0.6rem;line-height:1.5;font-weight:400;">' + pr.headline + '</div>' +
+      (pr.summary ? '<div style="font-family:var(--sans);font-size:0.68rem;color:var(--muted);line-height:1.55;margin-bottom:0.6rem;">' + (pr.summary.length > 260 ? pr.summary.substring(0, 260) + '…' : pr.summary) + '</div>' : '') +
+      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;"><div class="score-box"><div class="score-box-label">Score</div><div class="score-box-val ' + scoreColor + '">' + (pr.score > 0 ? '+' : '') + pr.score + '</div></div><div class="score-box"><div class="score-box-label">Specificity</div><div class="score-box-val ' + (pr.specificity > 0 ? 'green' : 'amber') + '">' + Math.round(pr.specificity || 0) + '</div></div><div class="score-box"><div class="score-box-label">Hedges</div><div class="score-box-val ' + (pr.hedges >= 5 ? 'red' : pr.hedges >= 3 ? 'amber' : 'white') + '">' + pr.hedges + '</div></div></div>' +
+      (flagChips.length > 0 ? '<div style="display:flex;flex-wrap:wrap;gap:0.3rem;margin-top:0.6rem;">' + flagChips.join('') + '</div>' : '') +
+      '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">Open source ↗</div>' +
     '</div>';
   }).join('');
 }
 
-(function() {
-  var loaded = false;
-  var originalSwitch = window.switchTab;
-  window.switchTab = function(btn, id) {
-    originalSwitch(btn, id);
-    if (id === 'pr-scanner' && !loaded) { loaded = true; loadPRData(); }
-  };
-})();
 </script>
-
 <script src="/js/support-widget.js"></script>
 </body>
 </html>
