@@ -587,6 +587,10 @@ function riskColor(risk) {
 //  because columns skew LOW while flags carry the MODERATE/ELEVATED/ATM/CRL
 //  signal. New classifier reads BOTH and surfaces any event where either
 //  source shows MODERATE or higher.
+//
+//  v4.4 additions — formulation_class, cmc_score, cmc_haircut_pct also drive
+//  the 'cmc' tag so complex-formulation events surface in CMC Recovery even
+//  when no CRL history exists.
 // ═══════════════════════════════════════════════════════════════════════════
 function classifyEvent(e) {
   var t = ((e.type || '') + ' ' + (e.notes || '') + ' ' + (e.drug || '')).toLowerCase();
@@ -633,6 +637,20 @@ function classifyEvent(e) {
       || t.indexOf('class 2 resubmission') >= 0 || t.indexOf('class 1 resubmission') >= 0) {
     tags.push('cmc');
   }
+
+  // v4.4 CMC triggers — formulation complexity, CMC score, haircut.
+  // Any of these surfaces the event in CMC Recovery even without a CRL
+  // history in flags/notes — because complex formulations (nanoparticle,
+  // cell, gene, biologic) carry structural manufacturing risk regardless
+  // of resubmission status.
+  var fcUp = String(e.formulation_class || '').toUpperCase();
+  var hasV44CmcTrigger = (
+    fcUp === 'NANOPARTICLE' || fcUp === 'CELL_THERAPY' ||
+    fcUp === 'GENE_THERAPY' || fcUp === 'BIOLOGIC'
+    || (Number(e.cmc_score) || 0) >= 15
+    || (Number(e.cmc_haircut_pct) || 0) >= 5
+  );
+  if (hasV44CmcTrigger && tags.indexOf('cmc') < 0) tags.push('cmc');
 
   // Buyout Signals — include ELEVATED (old classifier skipped it).
   if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE' || e.buyout_risk === 'ELEVATED'
@@ -758,6 +776,40 @@ function renderTable() {
       if (tr >= 10) catalyst += ' <span style="font-size:0.52rem;color:var(--accent2);font-weight:700;">TAM ' + tr + 'x 🚀</span>';
       else if (tr >= 3) catalyst += ' <span style="font-size:0.52rem;color:var(--accent);font-weight:700;">TAM ' + tr + 'x</span>';
       else if (tr > 0 && tr < 1) catalyst += ' <span style="font-size:0.52rem;color:var(--red);">TAM ' + tr + 'x</span>';
+
+      // ─── v4.4 / v4.5 inline chips ────────────────────────────────────────
+      // Formulation emoji badge — colored border matches dashboard severity
+      // (amber nano, gold cell, orange gene, accent biologic)
+      var fcUp2 = String(e.formulation_class || '').toUpperCase();
+      var fcEmoji = fcUp2 === 'NANOPARTICLE' ? '🧪'
+                  : fcUp2 === 'CELL_THERAPY' ? '🧫'
+                  : fcUp2 === 'GENE_THERAPY' ? '🧬'
+                  : fcUp2 === 'BIOLOGIC' ? '🔬' : '';
+      if (fcEmoji) {
+        var fcColor = fcUp2 === 'NANOPARTICLE' ? 'var(--amber)'
+                    : fcUp2 === 'CELL_THERAPY' ? '#ffd700'
+                    : fcUp2 === 'GENE_THERAPY' ? '#ff8c42'
+                    : 'var(--accent)';
+        catalyst += ' <span style="font-size:0.52rem;padding:0.1rem 0.3rem;border:1px solid ' + fcColor + ';color:' + fcColor + ';letter-spacing:0.06em;margin-left:0.15rem;" title="' + fcUp2.replace(/_/g, ' ') + ' formulation">' + fcEmoji + '</span>';
+      }
+
+      // CMC haircut pill — red ≥12, amber ≥5
+      var hc = Number(e.cmc_haircut_pct) || 0;
+      if (hc >= 12) {
+        catalyst += ' <span style="font-size:0.52rem;padding:0.1rem 0.3rem;background:rgba(255,68,68,0.12);color:var(--red);border:1px solid rgba(255,68,68,0.4);letter-spacing:0.04em;margin-left:0.15rem;" title="CMC haircut on headline PoA">−' + hc.toFixed(0) + '% CMC</span>';
+      } else if (hc >= 5) {
+        catalyst += ' <span style="font-size:0.52rem;padding:0.1rem 0.3rem;background:rgba(245,166,35,0.1);color:var(--amber);border:1px solid rgba(245,166,35,0.4);letter-spacing:0.04em;margin-left:0.15rem;" title="CMC haircut on headline PoA">−' + hc.toFixed(0) + '% CMC</span>';
+      }
+
+      // Runway anomaly pill — when reported runway is internally inconsistent
+      if (e.runway_trustworthy === false) {
+        catalyst += ' <span style="font-size:0.52rem;padding:0.1rem 0.3rem;background:rgba(255,68,68,0.12);color:var(--red);border:1px solid rgba(255,68,68,0.4);letter-spacing:0.04em;margin-left:0.15rem;" title="Reported runway inconsistent with implied burn — hidden dilution risk">🚨 RUNWAY</span>';
+      }
+
+      // First-time approver pill — sponsor with no prior FDA approvals
+      if (e.first_time_approver === true) {
+        catalyst += ' <span style="font-size:0.52rem;padding:0.1rem 0.3rem;background:rgba(0,212,255,0.08);color:var(--accent);border:1px solid rgba(0,212,255,0.4);letter-spacing:0.04em;margin-left:0.15rem;" title="Sponsor has no prior FDA approval">🆕 1ST</span>';
+      }
     } else {
       catalyst = (e.drug || e.notes || 'Catalyst Event').substring(0, 50);
     }
@@ -778,7 +830,7 @@ function renderTable() {
     html += '<td class="ticker-cell">' + e.ticker + (days !== null && days >= 0 ? daysPill(days) : '') + '</td>';
     html += '<td style="font-family:var(--sans);font-size:0.72rem;color:var(--text);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + compName + '</td>';
     html += '<td>' + eventBadge(e.type) + '</td>';
-    html += '<td style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + catalyst.replace(/"/g,'') + '">' + catalyst + '</td>';
+    html += '<td style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + String(catalyst).replace(/"/g,'').replace(/<[^>]+>/g,'') + '">' + catalyst + '</td>';
     html += '<td style="font-family:var(--mono);font-size:0.68rem;">' + (e.date !== '—' ? e.date : '<span style="color:var(--muted)">—</span>') + '</td>';
     html += '<td style="font-family:var(--mono);font-size:0.62rem;color:' + capColor + ';font-weight:700;">' + capDisplay + '</td>';
 
@@ -1273,7 +1325,7 @@ async function loadFederalRegisterAdcom(drugMap) {
 
   if (ALL_EVENTS.length === 0) {
     var { data: pdufaEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, estimated_market_cap, tam_ratio')
+      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, estimated_market_cap, tam_ratio, formulation_class, cmc_score, clinical_poa, operational_poa, cmc_haircut_pct, runway_trustworthy, rsi_14d, price_change_90d, volume_climax_flag, analyst_target_avg, analyst_target_proximity_pct, analyst_recommendation_mean, pdufa_is_friday_pm, is_nce, is_505b2, first_time_approver')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 
@@ -1284,6 +1336,24 @@ async function loadFederalRegisterAdcom(drugMap) {
         e.net_edge_score = Number(e.net_edge_score) || Number(e.score) || 0;
         e.estimated_market_cap = Number(e.estimated_market_cap) || 0;
         e.tam_ratio = Number(e.tam_ratio) || 0;
+        // v4.4 CMC v2 — cast to numbers, default booleans so classifier and
+        // renderer never see undefined
+        e.cmc_score = Number(e.cmc_score) || 0;
+        e.clinical_poa = Number(e.clinical_poa) || 0;
+        e.operational_poa = Number(e.operational_poa) || 0;
+        e.cmc_haircut_pct = Number(e.cmc_haircut_pct) || 0;
+        e.runway_trustworthy = e.runway_trustworthy !== false;
+        // v4.5 STN market signals
+        e.rsi_14d = e.rsi_14d != null ? Number(e.rsi_14d) : null;
+        e.price_change_90d = e.price_change_90d != null ? Number(e.price_change_90d) : null;
+        e.volume_climax_flag = e.volume_climax_flag === true;
+        e.analyst_target_avg = e.analyst_target_avg != null ? Number(e.analyst_target_avg) : null;
+        e.analyst_target_proximity_pct = e.analyst_target_proximity_pct != null ? Number(e.analyst_target_proximity_pct) : null;
+        e.analyst_recommendation_mean = e.analyst_recommendation_mean != null ? Number(e.analyst_recommendation_mean) : null;
+        e.pdufa_is_friday_pm = e.pdufa_is_friday_pm === true;
+        e.is_nce = e.is_nce === true;
+        e.is_505b2 = e.is_505b2 === true;
+        e.first_time_approver = e.first_time_approver === true;
         e._tags = classifyEvent(e);
         e._source = 'pdufa';
         if (!isPaid) {

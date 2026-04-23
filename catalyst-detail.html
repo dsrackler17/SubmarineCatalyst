@@ -134,8 +134,10 @@ main { max-width: 1240px; margin: 0 auto; padding: 2rem 2.5rem 5rem; }
 .detail-section { background:var(--surface); border:1px solid var(--border); padding:1.75rem; margin-bottom:1.5rem; position:relative; }
 .detail-section::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg, var(--accent), transparent); }
 .detail-section.innovation::before { background:linear-gradient(90deg, #ffd700, transparent); }
+.detail-section.cmc::before { background:linear-gradient(90deg, var(--amber), transparent); }
 .section-title { font-family:var(--mono); font-size:0.68rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--accent); margin-bottom:1.25rem; display:flex; align-items:center; gap:0.75rem; }
 .section-title.innovation { color:#ffd700; }
+.section-title.cmc { color:var(--amber); }
 .section-title::after { content:''; flex:1; height:1px; background:var(--border); max-width:60px; }
 .summary-text { font-family:var(--sans); font-size:0.92rem; color:var(--text); font-weight:300; line-height:1.8; }
 
@@ -151,7 +153,9 @@ main { max-width: 1240px; margin: 0 auto; padding: 2rem 2.5rem 5rem; }
 .bar-val { font-family:var(--mono); font-size:0.68rem; color:var(--accent); text-align:right; }
 .bar-val.green { color:var(--accent2); }
 .bar-val.amber { color:var(--amber); }
+.bar-val.red   { color:var(--red); }
 .bar-val.gold  { color:#ffd700; }
+.bar-val.white { color:var(--white); font-weight:700; }
 .bar-divider { border:none; border-top:1px solid var(--border); margin:1rem 0; }
 .bar-total { display:flex; justify-content:space-between; align-items:center; margin-top:0.5rem; }
 .bar-total-label { font-family:var(--mono); font-size:0.65rem; color:var(--muted); }
@@ -182,10 +186,24 @@ main { max-width: 1240px; margin: 0 auto; padding: 2rem 2.5rem 5rem; }
 .metric-label { font-family:var(--mono); font-size:0.62rem; color:var(--muted); }
 .metric-val   { font-family:var(--mono); font-size:0.72rem; color:var(--white); }
 .metric-val.gold { color:#ffd700; }
+.metric-val.amber { color:var(--amber); }
+.metric-val.red { color:var(--red); }
+.metric-val.green { color:var(--accent2); }
+.metric-val.cyan { color:var(--accent); }
 .source-item { margin-bottom:0.65rem; }
 .source-name { font-family:var(--mono); font-size:0.62rem; color:var(--muted); letter-spacing:0.05em; margin-bottom:0.2rem; }
 .source-link { font-family:var(--mono); font-size:0.65rem; color:var(--accent); text-decoration:none; word-break:break-all; line-height:1.5; }
 .source-link:hover { text-decoration:underline; }
+
+.formulation-badge { display:inline-flex; align-items:center; gap:0.45rem; font-family:var(--mono); font-size:0.7rem; letter-spacing:0.08em; padding:0.35rem 0.75rem; border:1px solid; margin-bottom:0.85rem; }
+.formulation-badge.small_molecule { color:var(--accent2); border-color:rgba(0,255,157,0.35); background:rgba(0,255,157,0.05); }
+.formulation-badge.biologic { color:var(--accent); border-color:rgba(0,212,255,0.35); background:rgba(0,212,255,0.05); }
+.formulation-badge.nanoparticle { color:var(--amber); border-color:rgba(245,166,35,0.4); background:rgba(245,166,35,0.06); }
+.formulation-badge.cell_therapy { color:#ffd700; border-color:rgba(255,215,0,0.35); background:rgba(255,215,0,0.05); }
+.formulation-badge.gene_therapy { color:#ff8c42; border-color:rgba(255,140,66,0.4); background:rgba(255,140,66,0.06); }
+.formulation-badge.unknown { color:var(--muted); border-color:rgba(90,122,153,0.3); }
+
+.runway-anomaly-panel { background:rgba(255,68,68,0.08); border:1px solid rgba(255,68,68,0.3); padding:0.85rem 1rem; margin-top:1rem; font-family:var(--mono); font-size:0.72rem; color:var(--red); line-height:1.6; letter-spacing:0.02em; }
 
 .disclaimer-box { background:rgba(245,166,35,0.05); border:1px solid rgba(245,166,35,0.2); padding:1rem 1.25rem; font-family:var(--mono); font-size:0.65rem; color:var(--amber); line-height:1.7; letter-spacing:0.02em; margin-bottom:1.5rem; }
 
@@ -406,11 +424,11 @@ footer a:hover { color:var(--accent); }
         </div>
       </div>
 
-      <!-- ═══ CMC Recovery — only renders if CMC signal present ════════════════ -->
-      <div class="detail-section locked-block hidden" id="section-cmc">
-        <div class="section-title">CMC Recovery Profile</div>
+      <!-- ═══ CMC Recovery / Operational PoA — renders if CMC signal, complex formulation, or runway anomaly ═══ -->
+      <div class="detail-section cmc locked-block hidden" id="section-cmc">
+        <div class="section-title cmc">🏭 CMC &amp; Operational PoA</div>
         <p style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-bottom:1rem;line-height:1.7;">
-          Chemistry, Manufacturing, and Controls risk assessment. CMC-only CRLs resubmit at an 88% success rate vs 58% for clinical CRLs. Low CMC risk on a prior CRL setup = highest-probability recovery trade in the universe.
+          Chemistry, Manufacturing, and Controls risk assessment. For complex formulations (cell therapy, gene therapy, nanoparticles, biologics), operational execution is as important as clinical data. CMC-only CRLs resubmit at 88% success vs 58% for clinical CRLs.
         </p>
         <div class="lockable" id="cmc-content"></div>
         <div class="lock-overlay hidden" id="lock-cmc">
@@ -919,7 +937,18 @@ function renderInnovation(d) {
   return barsHTML + signalsHTML + summary;
 }
 
-// ─── CMC RECOVERY RENDERING ───────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════
+// CMC v2 (v4.4) — formulation classification + split PoA rendering
+// ═══════════════════════════════════════════════════════════════════════════
+// shouldRenderCMC — triggers the CMC & Operational PoA section when ANY of:
+//   - cmc_risk column is populated (legacy signal)
+//   - cmc_flags array has entries
+//   - flags/type/notes mention CMC, manufacturing, resubmission, post-CRL
+//   - formulation_class is complex (NANOPARTICLE / CELL_THERAPY /
+//     GENE_THERAPY / BIOLOGIC — small molecules skip unless flagged)
+//   - cmc_score >= 15 (material CMC penalty accumulated)
+//   - cmc_haircut_pct >= 5 (material spread between clinical and operational)
+//   - runway_trustworthy === false (balance-sheet anomaly flagged)
 function shouldRenderCMC(d) {
   var risk = (d.cmc_risk || '').toUpperCase();
   var hasRisk = risk && risk !== 'UNKNOWN' && risk !== '—' && risk !== '';
@@ -930,60 +959,159 @@ function shouldRenderCMC(d) {
   var cmcContext = flagsStr.indexOf('cmc') >= 0 || flagsStr.indexOf('manufacturing') >= 0 ||
                    typeStr.indexOf('resubmission') >= 0 || typeStr.indexOf('class 2') >= 0 ||
                    typeStr.indexOf('class 1') >= 0 || notesStr.indexOf('post-crl') >= 0;
-  return hasRisk || hasFlags || cmcContext;
+
+  // v4.4 structured triggers
+  var fc = String(d.formulation_class || '').toUpperCase();
+  var complexFormulation = (fc === 'NANOPARTICLE' || fc === 'CELL_THERAPY' ||
+                            fc === 'GENE_THERAPY' || fc === 'BIOLOGIC');
+  var materialCmcScore = (Number(d.cmc_score) || 0) >= 15;
+  var materialHaircut = (Number(d.cmc_haircut_pct) || 0) >= 5;
+  var runwayAnomaly = d.runway_trustworthy === false;
+
+  return hasRisk || hasFlags || cmcContext ||
+         complexFormulation || materialCmcScore || materialHaircut || runwayAnomaly;
 }
 
+// renderCMC — new layout (v4.4):
+//   1. Formulation badge + context box
+//   2. Three-bar split: Clinical PoA (green) → CMC Haircut (severity color) → Operational PoA (white, bold)
+//   3. CMC Score bar + CMC Risk bar (legacy)
+//   4. CMC Flags list
+//   5. Runway anomaly red panel when runway_trustworthy === false
 function renderCMC(d) {
-  var risk = (d.cmc_risk || '—').toUpperCase();
-  var riskColor = {
-    'LOW': 'var(--accent2)', 'MINIMAL': 'var(--accent2)',
-    'MODERATE': 'var(--amber)',
-    'HIGH': 'var(--red)', 'EXTREME': 'var(--red)',
-    'UNKNOWN': 'var(--muted)', '—': 'var(--muted)', '': 'var(--muted)'
-  }[risk] || 'var(--muted)';
-  var riskEmoji = {
-    'LOW': '✅', 'MINIMAL': '✅',
-    'MODERATE': '🟡',
-    'HIGH': '🚨', 'EXTREME': '🚨',
-    'UNKNOWN': '❓', '—': '❓', '': '❓'
-  }[risk] || '❓';
+  var fc = String(d.formulation_class || 'UNKNOWN').toUpperCase();
+  var fcLabel = {
+    'SMALL_MOLECULE': 'Small Molecule',
+    'BIOLOGIC': 'Biologic',
+    'NANOPARTICLE': 'Nanoparticle / LNP',
+    'CELL_THERAPY': 'Cell Therapy',
+    'GENE_THERAPY': 'Gene Therapy',
+    'UNKNOWN': 'Formulation Unknown'
+  }[fc] || fc;
+  var fcIcon = {
+    'SMALL_MOLECULE': '💊',
+    'BIOLOGIC': '🔬',
+    'NANOPARTICLE': '🧪',
+    'CELL_THERAPY': '🧫',
+    'GENE_THERAPY': '🧬',
+    'UNKNOWN': '❓'
+  }[fc] || '❓';
+  var fcCssClass = fc.toLowerCase();
 
-  var contextLine = '';
-  if (risk === 'LOW' || risk === 'MINIMAL') {
-    contextLine = 'CMC-only CRL recovery setups historically resubmit at 88% success vs 58% for clinical CRLs. Low CMC risk = cleanest recovery profile.';
-  } else if (risk === 'MODERATE') {
-    contextLine = 'Some CMC exposure flagged. Still higher base rate than clinical CRLs, but not the cleanest recovery setup. Watch the resubmission class (Class 1 = 2 months, Class 2 = 6 months).';
-  } else if (risk === 'HIGH' || risk === 'EXTREME') {
-    contextLine = 'Significant CMC concerns flagged. Resubmission cycle may require plant inspection, BLA/NDA amendment, or supplemental data. Timeline extends materially beyond the standard Class 2 resubmission window.';
-  } else {
-    contextLine = 'CMC risk not yet classified. If this is a resubmission or post-CRL setup, check the flags below for manufacturing language.';
-  }
+  var fcContext = {
+    'SMALL_MOLECULE': 'Mature manufacturing infrastructure. CMC risk limited to specific flags (e.g. novel excipient, facility inspection, supply chain).',
+    'BIOLOGIC': 'Moderate operational complexity. Process validation, characterization, and comparability studies matter. CMC-only CRLs common.',
+    'NANOPARTICLE': 'High operational complexity. Lipid supply, batch-to-batch consistency, and cold-chain logistics are material risks.',
+    'CELL_THERAPY': 'Extreme operational complexity. Autologous manufacturing, vein-to-vein logistics, and comparability across sites are structural risks.',
+    'GENE_THERAPY': 'Extreme operational complexity. Viral vector manufacturing capacity, lot release, and potency assays dominate.',
+    'UNKNOWN': 'Formulation class not yet classified — check the drug asset table or latest 10-K for dosage form and delivery method.'
+  }[fc];
 
-  var riskBar =
-    '<div class="bar-row">' +
-      '<span class="bar-label">CMC Risk Level</span>' +
-      '<div class="bar-track"><div class="bar-fill" style="width:' +
-        (risk === 'LOW' || risk === 'MINIMAL' ? 25 : risk === 'MODERATE' ? 55 : risk === 'HIGH' || risk === 'EXTREME' ? 90 : 10) +
-        '%;background:' + riskColor + ';"></div></div>' +
-      '<span class="bar-val" style="color:' + riskColor + ';">' + riskEmoji + ' ' + risk + '</span>' +
+  var badge =
+    '<div class="formulation-badge ' + fcCssClass + '">' +
+      fcIcon + ' ' + fcLabel +
     '</div>';
 
+  var contextBox =
+    '<div style="font-family:var(--mono);font-size:0.72rem;color:var(--text);padding:0.75rem 0.85rem;background:rgba(245,166,35,0.04);border-left:2px solid var(--amber);margin-bottom:1.25rem;line-height:1.7;letter-spacing:0.02em;">' +
+      escapeHtml(fcContext) +
+    '</div>';
+
+  // ─── Split PoA: Clinical → Haircut → Operational ───────────────────────
+  var clinicalPoa = Number(d.clinical_poa) || 0;
+  var operationalPoa = Number(d.operational_poa) || 0;
+  var haircutPct = Number(d.cmc_haircut_pct) || 0;
+
+  var splitPoaHTML = '';
+  if (clinicalPoa > 0 && operationalPoa > 0) {
+    // Haircut severity coloring
+    var haircutColor = haircutPct >= 12 ? 'red' : haircutPct >= 5 ? 'amber' : 'green';
+    var haircutBarPct = Math.min(100, Math.max(5, haircutPct * 4)); // 25% haircut → bar full
+
+    splitPoaHTML =
+      '<div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">Split PoA — Clinical vs Operational</div>' +
+      '<div class="bar-row">' +
+        '<span class="bar-label">Clinical PoA</span>' +
+        '<div class="bar-track"><div class="bar-fill green" style="width:' + Math.min(100, clinicalPoa) + '%"></div></div>' +
+        '<span class="bar-val green">' + clinicalPoa.toFixed(1) + '%</span>' +
+      '</div>' +
+      '<div class="bar-row">' +
+        '<span class="bar-label">− CMC Haircut</span>' +
+        '<div class="bar-track"><div class="bar-fill ' + haircutColor + '" style="width:' + haircutBarPct + '%"></div></div>' +
+        '<span class="bar-val ' + haircutColor + '">−' + haircutPct.toFixed(1) + '%</span>' +
+      '</div>' +
+      '<div class="bar-row">' +
+        '<span class="bar-label"><strong>Operational PoA</strong></span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + Math.min(100, operationalPoa) + '%;background:var(--white);"></div></div>' +
+        '<span class="bar-val white">' + operationalPoa.toFixed(1) + '%</span>' +
+      '</div>' +
+      '<hr class="bar-divider">';
+  }
+
+  // ─── CMC Score bar (if populated) ──────────────────────────────────────
+  var cmcScore = Number(d.cmc_score) || 0;
+  var cmcScoreHTML = '';
+  if (cmcScore > 0) {
+    var cmcScoreColor = cmcScore >= 40 ? 'red' : cmcScore >= 20 ? 'amber' : cmcScore >= 10 ? '' : 'green';
+    cmcScoreHTML =
+      '<div class="bar-row">' +
+        '<span class="bar-label">CMC Score</span>' +
+        '<div class="bar-track"><div class="bar-fill ' + cmcScoreColor + '" style="width:' + Math.min(100, cmcScore * 2) + '%"></div></div>' +
+        '<span class="bar-val ' + cmcScoreColor + '">' + cmcScore.toFixed(0) + '</span>' +
+      '</div>';
+  }
+
+  // ─── Legacy CMC risk bar ───────────────────────────────────────────────
+  var risk = String(d.cmc_risk || '').toUpperCase();
+  var riskHTML = '';
+  if (risk && risk !== 'UNKNOWN' && risk !== '—' && risk !== '') {
+    var riskColor = {
+      'LOW': 'var(--accent2)', 'MINIMAL': 'var(--accent2)',
+      'MODERATE': 'var(--amber)',
+      'HIGH': 'var(--red)', 'EXTREME': 'var(--red)'
+    }[risk] || 'var(--muted)';
+    var riskEmoji = {
+      'LOW': '✅', 'MINIMAL': '✅',
+      'MODERATE': '🟡',
+      'HIGH': '🚨', 'EXTREME': '🚨'
+    }[risk] || '❓';
+    var riskBarWidth = (risk === 'LOW' || risk === 'MINIMAL') ? 25
+                     : risk === 'MODERATE' ? 55
+                     : (risk === 'HIGH' || risk === 'EXTREME') ? 90 : 10;
+    riskHTML =
+      '<div class="bar-row">' +
+        '<span class="bar-label">CMC Risk Level</span>' +
+        '<div class="bar-track"><div class="bar-fill" style="width:' + riskBarWidth +
+          '%;background:' + riskColor + ';"></div></div>' +
+        '<span class="bar-val" style="color:' + riskColor + ';">' + riskEmoji + ' ' + risk + '</span>' +
+      '</div>';
+  }
+
+  // ─── Flags list ────────────────────────────────────────────────────────
   var flags = Array.isArray(d.cmc_flags) ? d.cmc_flags : [];
   var flagsHTML = '';
   if (flags.length > 0) {
     flagsHTML = '<hr class="bar-divider">' +
       '<div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">CMC Signal Flags</div>' +
       flags.map(function(f) {
-        return '<div class="flag-item" style="border-color:rgba(0,212,255,0.08);">' + escapeHtml(String(f)) + '</div>';
+        return '<div class="flag-item" style="border-color:rgba(245,166,35,0.12);">' + escapeHtml(String(f)) + '</div>';
       }).join('');
   }
 
-  var contextBox =
-    '<div style="font-family:var(--mono);font-size:0.72rem;color:var(--text);padding:0.75rem 0.85rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + riskColor + ';margin-top:1rem;line-height:1.7;letter-spacing:0.02em;">' +
-      escapeHtml(contextLine) +
-    '</div>';
+  // ─── Runway anomaly red panel (v4.4) ───────────────────────────────────
+  var runwayHTML = '';
+  if (d.runway_trustworthy === false) {
+    runwayHTML =
+      '<div class="runway-anomaly-panel">' +
+        '🚨 <strong>RUNWAY ANOMALY FLAGGED</strong><br>' +
+        'Reported cash position and burn rate are inconsistent with stated operating plan. ' +
+        'Runway figures from management may not reflect true capital needs. ' +
+        'Check latest 10-Q, 10-K, and subsequent 8-K filings for off-balance-sheet obligations, ' +
+        'prepaid milestones, or non-GAAP runway definitions before using runway months as a dilution signal.' +
+      '</div>';
+  }
 
-  return riskBar + flagsHTML + contextBox;
+  return badge + contextBox + splitPoaHTML + cmcScoreHTML + riskHTML + flagsHTML + runwayHTML;
 }
 
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
@@ -1195,6 +1323,91 @@ function populatePage(d, isPaid) {
     metricRows.push(['CMC Risk', cmcRisk]);
   }
 
+  // ═══════════════════════════════════════════════════════════════════════
+  // v4.4 CMC / Operational PoA sidebar rows — conditionally pushed
+  // ═══════════════════════════════════════════════════════════════════════
+  var cmcScoreVal = Number(d.cmc_score) || 0;
+  var clinicalPoaVal = Number(d.clinical_poa) || 0;
+  var operationalPoaVal = Number(d.operational_poa) || 0;
+  var cmcHaircutVal = Number(d.cmc_haircut_pct) || 0;
+  var fcRaw = String(d.formulation_class || '').toUpperCase();
+
+  if (cmcScoreVal > 0) {
+    var csColor = cmcScoreVal >= 40 ? 'red' : cmcScoreVal >= 20 ? 'amber' : '';
+    metricRows.push(['CMC Score', cmcScoreVal.toFixed(0), csColor]);
+  }
+  if (fcRaw && fcRaw !== 'UNKNOWN') {
+    var fcDisplay = {
+      'SMALL_MOLECULE': '💊 Small Molecule',
+      'BIOLOGIC': '🔬 Biologic',
+      'NANOPARTICLE': '🧪 Nanoparticle',
+      'CELL_THERAPY': '🧫 Cell Therapy',
+      'GENE_THERAPY': '🧬 Gene Therapy'
+    }[fcRaw] || fcRaw;
+    metricRows.push(['Formulation', fcDisplay]);
+  }
+  if (clinicalPoaVal > 0) {
+    metricRows.push(['Clinical PoA', clinicalPoaVal.toFixed(1) + '%', 'green']);
+  }
+  if (operationalPoaVal > 0) {
+    metricRows.push(['Operational PoA', operationalPoaVal.toFixed(1) + '%']);
+  }
+  if (cmcHaircutVal >= 2) {
+    var hcColor = cmcHaircutVal >= 12 ? 'red' : cmcHaircutVal >= 5 ? 'amber' : '';
+    metricRows.push(['CMC Haircut', '−' + cmcHaircutVal.toFixed(1) + '%', hcColor]);
+  }
+  if (d.runway_trustworthy === false) {
+    metricRows.push(['Runway', '🚨 ANOMALY', 'red']);
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════
+  // v4.5 STN market signals + pathway / calendar flags
+  // ═══════════════════════════════════════════════════════════════════════
+  var rsi = d.rsi_14d != null ? Number(d.rsi_14d) : null;
+  var change90 = d.price_change_90d != null ? Number(d.price_change_90d) : null;
+  var volClimax = d.volume_climax_flag === true;
+  var tgtAvg = d.analyst_target_avg != null ? Number(d.analyst_target_avg) : null;
+  var tgtProx = d.analyst_target_proximity_pct != null ? Number(d.analyst_target_proximity_pct) : null;
+  var recMean = d.analyst_recommendation_mean != null ? Number(d.analyst_recommendation_mean) : null;
+  var firstTime = d.first_time_approver === true;
+  var fridayPm = d.pdufa_is_friday_pm === true;
+  var isNce = d.is_nce === true;
+  var is505b2 = d.is_505b2 === true;
+
+  if (rsi !== null && isFinite(rsi)) {
+    var rsiColor = rsi >= 70 ? 'red' : rsi <= 30 ? 'green' : '';
+    metricRows.push(['RSI (14d)', rsi.toFixed(0), rsiColor]);
+  }
+  if (change90 !== null && isFinite(change90)) {
+    var c90Color = change90 >= 0 ? 'green' : 'red';
+    metricRows.push(['90D Change', (change90 >= 0 ? '+' : '') + change90.toFixed(1) + '%', c90Color]);
+  }
+  if (volClimax) {
+    metricRows.push(['Volume Climax', '🔊 YES', 'red']);
+  }
+  if (tgtAvg !== null && isFinite(tgtAvg) && tgtAvg > 0) {
+    metricRows.push(['Analyst Tgt Avg', '$' + tgtAvg.toFixed(2)]);
+  }
+  if (tgtProx !== null && isFinite(tgtProx)) {
+    var proxColor = tgtProx >= 95 ? 'amber' : tgtProx <= 50 ? 'green' : '';
+    metricRows.push(['Tgt Proximity', tgtProx.toFixed(0) + '%', proxColor]);
+  }
+  if (recMean !== null && isFinite(recMean) && recMean > 0) {
+    // Yahoo-style: 1=Strong Buy, 5=Strong Sell
+    var recColor = recMean <= 2 ? 'green' : recMean >= 4 ? 'red' : '';
+    metricRows.push(['Analyst Rec', recMean.toFixed(2), recColor]);
+  }
+  if (firstTime) {
+    metricRows.push(['First-Time Approver', '🆕 YES', 'cyan']);
+  }
+  if (fridayPm) {
+    metricRows.push(['PDUFA Timing', '📅 FRI PM', 'amber']);
+  }
+  if (isNce || is505b2) {
+    var pathway = isNce ? 'NCE' : '505(b)(2)';
+    metricRows.push(['Pathway', pathway, isNce ? 'green' : '']);
+  }
+
   metricRows.push(
     ['⭐ Innovation',    innScoreDisplay, 'gold'],
     ['⭐ Innov. Factor', innFactorDisplay, 'gold'],
@@ -1213,7 +1426,8 @@ function populatePage(d, isPaid) {
   }
 
   document.getElementById('key-metrics').innerHTML = metricRows.map(function(triple) {
-    var cls = triple[2] === 'gold' ? 'metric-val gold' : 'metric-val';
+    var colorClass = triple[2] || '';
+    var cls = colorClass ? 'metric-val ' + colorClass : 'metric-val';
     return '<div class="metric-row"><span class="metric-label">' + triple[0] + '</span><span class="' + cls + '">' + triple[1] + '</span></div>';
   }).join('');
 
@@ -1275,12 +1489,41 @@ function populatePage(d, isPaid) {
 
   document.getElementById('targets-content').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating price target analysis for ' + d.ticker + '...</span>';
 
-  document.getElementById('poa-bars').innerHTML = [
-    {label: 'Indication (' + (d.indication || 'Unknown') + ')', pct: Math.min(100, d.poa * 1.05), color: 'green', val: (d.poa || 0).toFixed(1) + '%'},
-    {label: 'Review pathway (' + (d.type || 'Standard') + ')', pct: 75, color: '', val: d.type || 'Standard'},
-    {label: 'Final PoA composite', pct: d.poa || 50, color: d.poa >= 75 ? 'green' : d.poa >= 55 ? '' : 'amber', val: (d.poa || 0).toFixed(1) + '%'},
-  ].map(function(b) {
-    return '<div class="bar-row"><span class="bar-label">' + b.label + '</span><div class="bar-track"><div class="bar-fill ' + b.color + '" style="width:' + b.pct + '%"></div></div><span class="bar-val ' + b.color + '">' + b.val + '</span></div>';
+  // ═══════════════════════════════════════════════════════════════════════
+  // v4.4 PoA breakdown — 5 rows if clinical/operational split is present,
+  // else the legacy 3-row composite.
+  // ═══════════════════════════════════════════════════════════════════════
+  var clinicalPoaV = Number(d.clinical_poa) || 0;
+  var operationalPoaV = Number(d.operational_poa) || 0;
+  var haircutPctV = Number(d.cmc_haircut_pct) || 0;
+
+  var poaBars;
+  if (clinicalPoaV > 0 && operationalPoaV > 0) {
+    var haircutColor = haircutPctV >= 12 ? 'red' : haircutPctV >= 5 ? 'amber' : 'green';
+    var haircutBarPct = Math.min(100, Math.max(5, haircutPctV * 4));
+    poaBars = [
+      {label: 'Indication (' + (d.indication || 'Unknown') + ')', pct: Math.min(100, (d.poa || 0) * 1.05), color: 'green', val: (d.poa || 0).toFixed(1) + '%'},
+      {label: 'Review pathway (' + (d.type || 'Standard') + ')', pct: 75, color: '', val: d.type || 'Standard'},
+      {label: 'Clinical PoA', pct: Math.min(100, clinicalPoaV), color: 'green', val: clinicalPoaV.toFixed(1) + '%'},
+      {label: '− CMC Haircut', pct: haircutBarPct, color: haircutColor, val: '−' + haircutPctV.toFixed(1) + '%'},
+      {label: 'Operational PoA', pct: Math.min(100, operationalPoaV), color: 'white', val: operationalPoaV.toFixed(1) + '%'},
+    ];
+  } else {
+    poaBars = [
+      {label: 'Indication (' + (d.indication || 'Unknown') + ')', pct: Math.min(100, d.poa * 1.05), color: 'green', val: (d.poa || 0).toFixed(1) + '%'},
+      {label: 'Review pathway (' + (d.type || 'Standard') + ')', pct: 75, color: '', val: d.type || 'Standard'},
+      {label: 'Final PoA composite', pct: d.poa || 50, color: d.poa >= 75 ? 'green' : d.poa >= 55 ? '' : 'amber', val: (d.poa || 0).toFixed(1) + '%'},
+    ];
+  }
+
+  document.getElementById('poa-bars').innerHTML = poaBars.map(function(b) {
+    var extraStyle = b.color === 'white' ? 'background:var(--white);' : '';
+    var fillCls = b.color === 'white' ? '' : (b.color || '');
+    return '<div class="bar-row">' +
+      '<span class="bar-label">' + b.label + '</span>' +
+      '<div class="bar-track"><div class="bar-fill ' + fillCls + '" style="width:' + b.pct + '%;' + extraStyle + '"></div></div>' +
+      '<span class="bar-val ' + (b.color || '') + '">' + b.val + '</span>' +
+    '</div>';
   }).join('');
 
   document.getElementById('innovation-bars').innerHTML = renderInnovation(d);
@@ -1345,6 +1588,7 @@ async function generateAISummary(d, netEdgeValue) {
         'Buyout Score: ' + (d.buyout_score || 0) + '/100 (' + (d.buyout_risk || 'UNKNOWN') + '). ' +
         'Buyout Probability: ' + (d.buyout_probability_pct || 0) + '%. ' +
         'CMC Risk: ' + (d.cmc_risk || 'UNKNOWN') + '. ' +
+        'Formulation: ' + (d.formulation_class || 'UNKNOWN') + '. ' +
         'TAM/Cap: ' + (d.tam_ratio || '—') + 'x. Estimated cap: $' + Math.round((Number(d.estimated_market_cap) || 0) / 1e6) + 'M.\n' +
         'Risk flags: ' + ((d.flags || []).filter(function(f){return !String(f).startsWith('AUTO-RESOLVED:');})).join(', ') + '.\n\n' +
         'Provide THREE sections using these exact headers:\n\n' +
@@ -1352,7 +1596,7 @@ async function generateAISummary(d, netEdgeValue) {
         'Write 2-3 paragraphs on: commercial launch trajectory (if data is public), revenue run-rate, physician adoption, label breadth, competitive positioning vs existing treatments in ' + (d.indication || 'the indication') + ', and whether this drug is living up to peak-sales projections or underperforming. Be specific — name competitor drugs, cite label language, reference launch quarters.\n\n' +
         '**DILUTION RISK & CAPITAL STRUCTURE**\n' +
         '1. Does ' + d.ticker + ' have an active ATM facility or shelf registration? Scanner says ATM: ' + (d.atm_active ? 'YES' : 'No') + ', Shelf: ' + (d.shelf_active ? 'YES' : 'No') + '.\n' +
-        '2. Cash runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown') + '. Given commercial launch burn, when would they need to raise?\n' +
+        '2. Cash runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'Unknown') + (d.runway_trustworthy === false ? ' (⚠️ ANOMALY FLAGGED)' : '') + '. Given commercial launch burn, when would they need to raise?\n' +
         '3. Is this a "shorting the launch" candidate — commercial launch costs exceeding cash?\n' +
         '4. Insider activity: ' + (d.insider_signal || 'NEUTRAL') + '.\n\n' +
         '**BUYOUT & PRICE SCENARIOS**\n' +
@@ -1416,6 +1660,32 @@ async function generateAISummary(d, netEdgeValue) {
         innovationContext += 'Captures route-of-admin upgrades, dosing frequency improvements, first-in-class status, and best-in-class head-to-head data. ';
       }
 
+      // v4.4 CMC / v4.5 market-signal context for the prompt
+      var cmcContext = '';
+      if ((Number(d.clinical_poa) || 0) > 0 && (Number(d.operational_poa) || 0) > 0) {
+        cmcContext = 'Split PoA: Clinical ' + Number(d.clinical_poa).toFixed(1) + '% → CMC haircut −' +
+                     Number(d.cmc_haircut_pct || 0).toFixed(1) + '% → Operational ' +
+                     Number(d.operational_poa).toFixed(1) + '%. Formulation: ' +
+                     (d.formulation_class || 'UNKNOWN') + '. CMC score: ' +
+                     (Number(d.cmc_score) || 0).toFixed(0) + '. ';
+      }
+      var marketContext = '';
+      if (d.rsi_14d != null || d.price_change_90d != null || d.volume_climax_flag || d.analyst_target_proximity_pct != null) {
+        marketContext = 'Market signals — ';
+        if (d.rsi_14d != null) marketContext += 'RSI(14d): ' + Number(d.rsi_14d).toFixed(0) + '. ';
+        if (d.price_change_90d != null) marketContext += '90D change: ' + (Number(d.price_change_90d) >= 0 ? '+' : '') + Number(d.price_change_90d).toFixed(1) + '%. ';
+        if (d.volume_climax_flag) marketContext += 'Volume climax flagged. ';
+        if (d.analyst_target_proximity_pct != null) marketContext += 'Trading at ' + Number(d.analyst_target_proximity_pct).toFixed(0) + '% of analyst avg target. ';
+      }
+      var pathwayContext = '';
+      if (d.first_time_approver || d.pdufa_is_friday_pm || d.is_nce || d.is_505b2) {
+        pathwayContext = 'Pathway flags — ';
+        if (d.first_time_approver) pathwayContext += 'FIRST-TIME APPROVER. ';
+        if (d.pdufa_is_friday_pm) pathwayContext += 'Friday PM PDUFA (weekend-digestion risk). ';
+        if (d.is_nce) pathwayContext += 'NCE. ';
+        if (d.is_505b2) pathwayContext += '505(b)(2). ';
+      }
+
       var netEdgeForPrompt = (typeof netEdgeValue === 'number') ? netEdgeValue : (Number(d.net_edge_score) || Number(d.score) || 0);
 
       prompt = roleContext + 'Analyze the ' + d.ticker + ' PDUFA setup. Provide THREE clearly separated sections using these exact headers:\n\n' +
@@ -1423,12 +1693,12 @@ async function generateAISummary(d, netEdgeValue) {
       'Drug: ' + (d.drug || 'unknown') + '. Indication: ' + (d.indication || 'unknown') + '. Application type: ' + (d.type || 'PDUFA') + '. PDUFA date: ' + d.date + '.\n' +
       (isRoyaltyTicker ? 'Ticker role: ' + d.ticker_role.toUpperCase() + '. Commercial owner: ' + (d.primary_ticker || d.partner_name || 'unknown') + '.\n' : '') +
       'Scanner data — PoA: ' + (d.poa || 0).toFixed(1) + '%. STN Risk: ' + stnRisk + '. Move Score: ' + (d.move_score || 0) + '/100. Dilution Risk: ' + (d.dilution_risk || 'UNKNOWN') + ' (' + (d.dilution_score || 0) + '/100). ' +
-      'Runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + '. ' +
+      'Runway: ' + (d.runway_months ? Math.round(d.runway_months) + ' months' : 'unknown') + (d.runway_trustworthy === false ? ' (⚠️ ANOMALY)' : '') + '. ' +
       'Insider signal: ' + (d.insider_signal || 'NEUTRAL') + '. Net insider buys (90d): ' + (d.insider_net_buys || 0) + '. ' +
       'Shelf active: ' + (d.shelf_active ? 'YES' : 'No') + '. ATM active: ' + (d.atm_active ? 'YES' : 'No') + '. ' +
       'Partnership detected: ' + (d.partnership_detected ? 'YES' : 'No') + '. ' +
       'Drug TAM: ' + (d.tam_label || 'Unknown') + '. TAM/Cap ratio: ' + (d.tam_ratio || 'Unknown') + 'x. ' +
-      innovationContext +
+      innovationContext + cmcContext + marketContext + pathwayContext +
       'Net Edge Score: ' + netEdgeForPrompt.toFixed(1) + '/100. Grade: ' + (d.grade || 'WATCH') + '.\n' +
       'Risk flags: ' + ((d.flags || []).filter(function(f){return !String(f).startsWith('AUTO-RESOLVED:');})).join(', ') + '.\n' +
       'Dilution flags: ' + (d.dilution_flags || []).join(', ') + '.\n' +
@@ -1545,25 +1815,14 @@ async function generateAISummary(d, netEdgeValue) {
 
   // ═══════════════════════════════════════════════════════════════════════
   // STEP 1 — Query pdufa_events directly for the best upcoming row.
-  //
-  // Why this runs FIRST instead of get-scanner-data:
-  // The edge function was returning synthetic APPROVED rows (from the
-  // biotech_universe approved_drug field) for tickers that ALSO have real
-  // upcoming PDUFA rows in pdufa_events. Every detail page was rendering
-  // "APPROVED · 100% PoA · drug name pending verification" regardless of
-  // whether a live PDUFA existed.
-  //
-  // Fix: go straight to pdufa_events. Pick the earliest future-dated row
-  // that is NOT type='APPROVED'. If found, that's the event. Only fall
-  // back to the edge function if pdufa_events has nothing live for this
-  // ticker (non-PDUFA tickers, already-resolved events, etc).
+  // Preferred over get-scanner-data because that edge function was
+  // returning synthetic APPROVED rows for tickers that ALSO have real
+  // upcoming PDUFA rows.
   // ═══════════════════════════════════════════════════════════════════════
   try {
     var sb = getSupabase();
     var todayIso = new Date().toISOString().split('T')[0];
 
-    // Pull all pdufa_events rows for this ticker. We sort client-side so
-    // we can prefer upcoming non-APPROVED first, then approved as fallback.
     var { data: pdufaRows, error: pdufaErr } = await sb
       .from('pdufa_events')
       .select('*')
@@ -1573,7 +1832,6 @@ async function generateAISummary(d, netEdgeValue) {
     if (pdufaErr) {
       console.warn('[SC] pdufa_events direct query failed:', pdufaErr);
     } else if (pdufaRows && pdufaRows.length > 0) {
-      // Prefer: non-APPROVED AND date >= today AND has a real date
       var upcoming = pdufaRows.find(function(r) {
         var t = String(r.type || '').toUpperCase();
         if (t === 'APPROVED') return false;
@@ -1581,7 +1839,6 @@ async function generateAISummary(d, netEdgeValue) {
         return r.date >= todayIso;
       });
 
-      // Second choice: any non-APPROVED row (past-dated but recent, still shows PDUFA setup)
       if (!upcoming) {
         upcoming = pdufaRows.find(function(r) {
           var t = String(r.type || '').toUpperCase();
@@ -1589,7 +1846,6 @@ async function generateAISummary(d, netEdgeValue) {
         });
       }
 
-      // Last choice: take whatever we have (will show as approved)
       var chosen = upcoming || pdufaRows[0];
 
       eventData = {
@@ -1647,6 +1903,25 @@ async function generateAISummary(d, netEdgeValue) {
         innovation_factor: Number(chosen.innovation_factor) || 1.0,
         innovation_flags: chosen.innovation_flags || [],
         appreciation_signals: chosen.appreciation_signals || [],
+        // ─── CMC v2 (v4.4) ─────────────────────────────────────────────
+        formulation_class: chosen.formulation_class || 'UNKNOWN',
+        cmc_score: Number(chosen.cmc_score) || 0,
+        clinical_poa: Number(chosen.clinical_poa) || 0,
+        operational_poa: Number(chosen.operational_poa) || 0,
+        cmc_haircut_pct: Number(chosen.cmc_haircut_pct) || 0,
+        runway_trustworthy: chosen.runway_trustworthy !== false,
+        // ─── STN v3 market signals (v4.5) ──────────────────────────────
+        rsi_14d: chosen.rsi_14d != null ? Number(chosen.rsi_14d) : null,
+        price_change_90d: chosen.price_change_90d != null ? Number(chosen.price_change_90d) : null,
+        volume_climax_flag: chosen.volume_climax_flag === true,
+        analyst_target_avg: chosen.analyst_target_avg != null ? Number(chosen.analyst_target_avg) : null,
+        analyst_target_proximity_pct: chosen.analyst_target_proximity_pct != null ? Number(chosen.analyst_target_proximity_pct) : null,
+        analyst_recommendation_mean: chosen.analyst_recommendation_mean != null ? Number(chosen.analyst_recommendation_mean) : null,
+        // ─── STN v3 pathway / calendar flags ───────────────────────────
+        pdufa_is_friday_pm: chosen.pdufa_is_friday_pm === true,
+        is_nce: chosen.is_nce === true,
+        is_505b2: chosen.is_505b2 === true,
+        first_time_approver: chosen.first_time_approver === true,
       };
 
       var chosenType = String(chosen.type || '').toUpperCase();
@@ -1661,8 +1936,6 @@ async function generateAISummary(d, netEdgeValue) {
 
   // ═══════════════════════════════════════════════════════════════════════
   // STEP 2 — Fall back to get-scanner-data edge function.
-  // Only runs if pdufa_events had zero rows for this ticker. This preserves
-  // the edge function's biotech_universe fallback for non-PDUFA tickers.
   // ═══════════════════════════════════════════════════════════════════════
   if (!eventData) {
     try {
@@ -1732,6 +2005,25 @@ async function generateAISummary(d, netEdgeValue) {
           innovation_factor: Number(e.innovation_factor) || 1.0,
           innovation_flags: e.innovation_flags || [],
           appreciation_signals: e.appreciation_signals || [],
+          // ─── CMC v2 (v4.4) ─────────────────────────────────────────────
+          formulation_class: e.formulation_class || 'UNKNOWN',
+          cmc_score: Number(e.cmc_score) || 0,
+          clinical_poa: Number(e.clinical_poa) || 0,
+          operational_poa: Number(e.operational_poa) || 0,
+          cmc_haircut_pct: Number(e.cmc_haircut_pct) || 0,
+          runway_trustworthy: e.runway_trustworthy !== false,
+          // ─── STN v3 market signals (v4.5) ──────────────────────────────
+          rsi_14d: e.rsi_14d != null ? Number(e.rsi_14d) : null,
+          price_change_90d: e.price_change_90d != null ? Number(e.price_change_90d) : null,
+          volume_climax_flag: e.volume_climax_flag === true,
+          analyst_target_avg: e.analyst_target_avg != null ? Number(e.analyst_target_avg) : null,
+          analyst_target_proximity_pct: e.analyst_target_proximity_pct != null ? Number(e.analyst_target_proximity_pct) : null,
+          analyst_recommendation_mean: e.analyst_recommendation_mean != null ? Number(e.analyst_recommendation_mean) : null,
+          // ─── STN v3 pathway / calendar flags ───────────────────────────
+          pdufa_is_friday_pm: e.pdufa_is_friday_pm === true,
+          is_nce: e.is_nce === true,
+          is_505b2: e.is_505b2 === true,
+          first_time_approver: e.first_time_approver === true,
         };
         if (result.isPaid === false) isPaid = false;
         console.log('[SC] Loaded from get-scanner-data edge function → ' + ticker);
@@ -1742,7 +2034,7 @@ async function generateAISummary(d, netEdgeValue) {
   }
 
   // ═══════════════════════════════════════════════════════════════════════
-  // STEP 3 — biotech_universe fallback (company-level deep dive, no PDUFA).
+  // STEP 3 — biotech_universe fallback.
   // ═══════════════════════════════════════════════════════════════════════
   if (!eventData) {
     try {
@@ -1792,6 +2084,22 @@ async function generateAISummary(d, netEdgeValue) {
           buyout_timeline_months: 0,
           months_since_approval: null,
           data_confidence: '',
+          formulation_class: 'UNKNOWN',
+          cmc_score: 0,
+          clinical_poa: 0,
+          operational_poa: 0,
+          cmc_haircut_pct: 0,
+          runway_trustworthy: true,
+          rsi_14d: null,
+          price_change_90d: null,
+          volume_climax_flag: false,
+          analyst_target_avg: null,
+          analyst_target_proximity_pct: null,
+          analyst_recommendation_mean: null,
+          pdufa_is_friday_pm: false,
+          is_nce: false,
+          is_505b2: false,
+          first_time_approver: false,
         };
       }
     } catch (err) {
@@ -1800,7 +2108,7 @@ async function generateAISummary(d, netEdgeValue) {
   }
 
   // ═══════════════════════════════════════════════════════════════════════
-  // STEP 4 — Hard fallback: ticker-only stub so the page still renders.
+  // STEP 4 — Hard fallback stub.
   // ═══════════════════════════════════════════════════════════════════════
   if (!eventData) {
     eventData = {
@@ -1842,12 +2150,27 @@ async function generateAISummary(d, netEdgeValue) {
       buyout_timeline_months: 0,
       months_since_approval: null,
       data_confidence: '',
+      formulation_class: 'UNKNOWN',
+      cmc_score: 0,
+      clinical_poa: 0,
+      operational_poa: 0,
+      cmc_haircut_pct: 0,
+      runway_trustworthy: true,
+      rsi_14d: null,
+      price_change_90d: null,
+      volume_climax_flag: false,
+      analyst_target_avg: null,
+      analyst_target_proximity_pct: null,
+      analyst_recommendation_mean: null,
+      pdufa_is_friday_pm: false,
+      is_nce: false,
+      is_505b2: false,
+      first_time_approver: false,
     };
   }
 
   // ═══════════════════════════════════════════════════════════════════════
   // STEP 5 — biotech_universe enrichment (cap, TAM, approval metadata).
-  // Fills in fields the pdufa_events row may be missing.
   // ═══════════════════════════════════════════════════════════════════════
   if (eventData) {
     try {
@@ -1870,11 +2193,6 @@ async function generateAISummary(d, netEdgeValue) {
         if (uniRow.last_approval_date && !eventData.last_approval_date) {
           eventData.last_approval_date = uniRow.last_approval_date;
         }
-        // Only use approved_drug as drug name if this is actually an APPROVED
-        // event. Do NOT overwrite drug names on upcoming PDUFA rows — the
-        // approved drug from biotech_universe may be a totally different
-        // historical asset (e.g. BMS has Keytruda approved but the PDUFA
-        // row might be for a new indication).
         var evTypeUpper = String(eventData.type || '').toUpperCase();
         if (uniRow.approved_drug && !eventData.drug && evTypeUpper === 'APPROVED') {
           eventData.drug = uniRow.approved_drug;
