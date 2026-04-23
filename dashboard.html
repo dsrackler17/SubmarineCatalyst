@@ -661,95 +661,78 @@ function fixIndication(d) {
 // Defensive filter: hide any row with a broken drug field OR unscored data.
 // Every pattern here corresponds to a real failure mode seen in the wild.
 function isBrokenRow(d) {
+  // Strict-minimal gate: if the DB shipped it with a ticker and a date, we
+  // show it. The dashboard is not the gatekeeper — score-events is. Garbage
+  // drug fields get cleaned at render time via cleanDrugDisplay, not hidden.
   if (!d) return true;
   var drug = String(d.drug || '').trim();
-  if (!drug) return true;
   var ticker = String(d.ticker || '').trim().toUpperCase();
-  var drugU  = drug.toUpperCase();
+  if (!ticker || !d.date) return true;                  // must have ticker + date
+  if (!drug) return true;                               // must have some drug field
 
-  // ─── LITERAL TICKER OR TICKER-DASH PLACEHOLDER ──────────────────────────
-  if (ticker && drugU === ticker) return true;
-  if (ticker && drugU.indexOf(ticker + ' —') === 0) return true;
-  if (ticker && drugU.indexOf(ticker + ' -') === 0) return true;
+  var drugU = drug.toUpperCase();
 
-  // ─── KNOWN PLACEHOLDER / DEBUG TEXT ─────────────────────────────────────
-  if (drug.indexOf('drug name needs update')     >= 0) return true;
-  if (drug.indexOf('AI_RESOLUTION_FAILED')       >= 0) return true;
-  if (drug.indexOf('AUTO-RESOLVED:')             >= 0) return true;
-  if (drug.indexOf('⚠️ DRUG NAME PLACEHOLDER')   >= 0) return true;
+  // Only truly-unusable drug fields get cut:
+  if (drugU === ticker) return true;                    // drug literally equals ticker
+  if (drug.indexOf('AI_RESOLUTION_FAILED') >= 0) return true;
+  if (drug.indexOf('⚠️ DRUG NAME PLACEHOLDER') >= 0) return true;
+  if (drug.indexOf('drug name needs update') >= 0) return true;
   if (/^(placeholder|tbd|unknown|pending|null)$/i.test(drug)) return true;
 
-  // ─── SENTENCE-AS-DRUG PATTERNS (boilerplate text leaked in) ─────────────
-  // Forward-Looking Statements (SEC filing boilerplate)
-  if (/forward.?looking\s+statement/i.test(drug)) return true;
-  // "The FDA ..." / "The PDUFA ..."
-  if (/^The\s+(FDA|PDUFA)/i.test(drug)) return true;
-  // "FDA set PDUFA date" / "FDA assigned" / "FDA has set" / "FDA approved"
-  if (/^(§\s*)?(the\s+)?FDA\s+(set|has|decision|target|accepted|assigned|approved|rejected|granted)/i.test(drug)) return true;
-  // "Sanofi has reported" / "Company reported that the FDA"
-  if (/has\s+reported\s+that/i.test(drug)) return true;
-  if (/reported\s+that\s+(the\s+)?FDA/i.test(drug)) return true;
-  // "The agency has" / "The agency granted"
-  if (/^The\s+agency\s+/i.test(drug)) return true;
-  // "target action date" / "action date of"
-  if (/target\s+action\s+date/i.test(drug)) return true;
-  if (/action\s+date\s+of/i.test(drug)) return true;
-  // "has granted" / "has set" / "has assigned" anywhere in a long string
-  if (/\b(has|is)\s+(granted|set|assigned|target)/i.test(drug) && drug.length > 40) return true;
-  // "priority review and set a PDUFA"
-  if (/priority\s+review.*PDUFA/i.test(drug)) return true;
-  // "PDUFA date of" / "PDUFA action date"
-  if (/PDUFA\s+(date|action\s+date)\s+of/i.test(drug)) return true;
-  // Section mark or footnote prefix (§ * †)
-  if (/^[§*†]\s/.test(drug)) return true;
-// Drug longer than 120 chars is definitely a sentence
-  if (drug.length > 120) return true;
-  // Contains "supplemental application" as a phrase (not a drug class)
-  if (/supplemental\s+application/i.test(drug)) return true;
-  // Year / month / long-period-ending are only "broken" when they COMBINE.
-  // "Tolebrutinib (Q2 2026)" has a year but is a real drug. A sentence will
-  // trip two of these at once, and the targeted regexes above already catch
-  // the explicit "The FDA / target action date / PDUFA date of" boilerplate.
-  var hasYear = /\b20(2[4-9]|3[0-9])\b/.test(drug);
-  var hasMonth = /\b(January|February|March|April|May|June|July|August|September|October|November|December)\b/i.test(drug);
-  var longEndsPeriod = drug.length > 80 && /\.\s*$/.test(drug);
-  if ((hasYear && hasMonth) || (hasYear && longEndsPeriod) || (hasMonth && longEndsPeriod)) return true;
-
-  // ─── OCR / SCRAPING GARBAGE ─────────────────────────────────────────────
-  // Starts with digits followed by uppercase, long string
-  if (/^\d+\s+[A-Z]/i.test(drug) && drug.length > 25) return true;
-
-  // ─── KNOWN WRONG TICKER-DRUG COMBOS ─────────────────────────────────────
+  // Known wrong ticker/drug pairs from ticker-drift incidents
   if (ticker === 'MGNX' && /tzield|teplizumab/i.test(drug)) return true;
   if (ticker === 'MRK'  && drugU === 'IDVYNSO') return true;
 
   return false;
 }
 
-// Dedupe: collapse rows with the same (ticker, drug_family) to one representative.
-// Rule: same ticker + same normalized drug keyword → keep the highest PoA,
-// then the earliest date on tiebreak. Matches the SQL dedupe logic.
+// Normalize the drug string for display — strip SEC/FDA boilerplate that
+// leaks in via scraping so cards render cleanly even when drug resolution
+// hasn't completed. Returns the cleaned string; if nothing usable remains,
+// returns an empty string and the card shows a fallback.
+function cleanDrugDisplay(raw) {
+  if (!raw) return '';
+  var drug = String(raw).trim();
+  // Strip leading section marks / footnote chars
+  drug = drug.replace(/^[§*†]\s*/, '');
+  // Strip "AUTO-RESOLVED:" prefix if present (resolver annotation, not drug name)
+  drug = drug.replace(/^AUTO-RESOLVED:\s*/i, '');
+  // If the string is a sentence (contains "FDA has set" / "target action date" /
+  // "PDUFA date of" / "forward-looking"), try to extract a drug-name noun phrase.
+  // If we can't, return empty and let the caller show a fallback.
+  var sentenceLike = (
+    /forward.?looking\s+statement/i.test(drug) ||
+    /^The\s+(FDA|PDUFA|agency)/i.test(drug) ||
+    /^(§\s*)?(the\s+)?FDA\s+(set|has|decision|target|accepted|assigned|approved|rejected|granted)/i.test(drug) ||
+    /target\s+action\s+date|action\s+date\s+of/i.test(drug) ||
+    /PDUFA\s+(date|action\s+date)\s+of/i.test(drug) ||
+    /has\s+reported\s+that|reported\s+that\s+(the\s+)?FDA/i.test(drug) ||
+    /priority\s+review.*PDUFA/i.test(drug) ||
+    (drug.length > 90 && /\./.test(drug))
+  );
+  if (sentenceLike) {
+    // Try to pull a drug name: look for the first word that looks like a drug
+    // (lowercase -inib/-mab/-nib/-gene/-tide/-ide/-zole endings, or proper-noun
+    // brand name in parens). Otherwise return empty.
+    var m = drug.match(/\b([A-Za-z][a-z]{3,}(?:inib|mab|nib|tide|gene|sen|stat|cel|parvovec|mide|zole|cept))\b/);
+    if (m) return m[1];
+    m = drug.match(/\(([A-Z][A-Za-z0-9\-]{2,})\)/);
+    if (m) return m[1];
+    return '';
+  }
+  return drug;
+}
+
+// Dedupe: only collapse TRUE duplicates — same ticker + same drug + same date.
+// The old keyword-based dedupe (ticker|first-word-of-drug) was collapsing
+// distinct events from the same ticker (multiple PDUFAs, different drugs,
+// different dates). We only want to suppress literal row duplicates.
 function dedupeEvents(events) {
   var out = [];
   var seen = {};
-  // Sort by net_edge DESC so the "best" row per group is seen first
-  var sorted = events.slice().sort(function(a, b) {
-    var poaDiff = (Number(b.poa) || 0) - (Number(a.poa) || 0);
-    if (Math.abs(poaDiff) > 0.01) return poaDiff;
-    // On tiebreak, earliest date wins
-    return new Date(a.date) - new Date(b.date);
-  });
-  for (var i = 0; i < sorted.length; i++) {
-    var d = sorted[i];
-    if (!d.drug) { out.push(d); continue; }
-    // Normalize drug to a short keyword for grouping
-    var keyword = String(d.drug).toLowerCase()
-      .replace(/\([^)]*\)/g, '')        // strip parenthetical
-      .replace(/[^a-z0-9\- ]/g, '')      // strip punctuation
-      .trim()
-      .split(/\s+/)[0] || '';            // first word
-    if (keyword.length < 4) { out.push(d); continue; }
-    var key = (d.ticker || '') + '|' + keyword;
+  for (var i = 0; i < events.length; i++) {
+    var d = events[i];
+    var key = (d.ticker || '') + '|' + String(d.drug || '').toLowerCase().trim() + '|' + (d.date || '');
     if (seen[key]) continue;
     seen[key] = true;
     out.push(d);
@@ -1038,7 +1021,7 @@ function renderScanner() {
           </div>
           ${gradeBadge(d.grade)}
         </div>
-        <div class="card-drug">${d.drug}</div>
+        <div class="card-drug">${cleanDrugDisplay(d.drug) || '<span style="color:var(--muted);font-style:italic;">Pipeline catalyst — name pending</span>'}</div>
         <div class="card-indication">${d.indication}</div>
         <div class="card-scores">
           <div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div></div>
@@ -1972,8 +1955,7 @@ async function loadPRData() {
   }
   var seen = {};
   PR_DATA = allPRs.filter(function(p) {
-    var key = p.ticker + '|' + p.headline.substring(0, 60);
-    if (seen[key]) return false;
+    var key = p.ticker + '|' + p.headline.substring(0, 60);    if (seen[key]) return false;
     seen[key] = true;
     return true;
   });
