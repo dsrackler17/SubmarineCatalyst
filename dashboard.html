@@ -690,16 +690,94 @@ function isBrokenRow(d) {
 // leaks in via scraping so cards render cleanly even when drug resolution
 // hasn't completed. Returns the cleaned string; if nothing usable remains,
 // returns an empty string and the card shows a fallback.
-function cleanDrugDisplay(raw) {
-  if (!raw) return '';
-  var drug = String(raw).trim();
-  // Strip leading section marks / footnote chars
-  drug = drug.replace(/^[§*†]\s*/, '');
-  // Strip "AUTO-RESOLVED:" prefix if present (resolver annotation, not drug name)
-  drug = drug.replace(/^AUTO-RESOLVED:\s*/i, '');
-  // If the string is a sentence (contains "FDA has set" / "target action date" /
-  // "PDUFA date of" / "forward-looking"), try to extract a drug-name noun phrase.
-  // If we can't, return empty and let the caller show a fallback.
+// Expanded generic-drug suffix regex. Biotech INN suffixes cover the vast
+// majority of real drug names. This is conservative enough to avoid matching
+// common English words, but much broader than before.
+var DRUG_SUFFIX_RE = /\b([A-Za-z][a-z]{3,}(?:inib|mab|nib|tide|tinib|citabine|lizumab|tuzumab|ciclib|parib|denib|rafenib|bulin|sertib|platin|mustine|rubicin|gene|sen|stat|cel|parvovec|mide|zole|cept|vir|dine|pine|pril|sartan|olol|profen|floxacin|triptan|rasen|grel|lukast|azepine|barbital|setron|vudine|caine|codone|morphone|prazole|glitazone|stat|xetine|olone|mycin|cycline|penem|cillin|estrant|gestrant|dostat|lisib|azib))\b/i;
+
+// Match any candidate drug-name-like token: CamelCase brand (≥5 chars),
+// all-caps code (≥3 chars, contains at least one digit OR ≥4 letters),
+// hyphenated code like MRNA-1345 or INO-3107.
+var BRAND_RE = /\b([A-Z][a-z]{3,}(?:[A-Z][a-z]+)*)\b/;
+var CODE_RE  = /\b([A-Z]{2,6}[-\s]?\d{2,5}[A-Z]?\d?)\b/;
+var PAREN_RE = /\(([A-Z][A-Za-z0-9\-]{2,})\)/;
+
+// Words that look like drug names but aren't — used to reject false positives.
+// This list is aggressive by design: any CamelCase word that commonly starts
+// sentences in SEC boilerplate or PDUFA press releases belongs here.
+var DRUG_STOPWORDS = {
+  'FDA':1,'PDUFA':1,'CRL':1,'NDA':1,'BLA':1,'SNDA':1,'SBLA':1,'NME':1,'API':1,
+  'EMA':1,'CDER':1,'CBER':1,'OTC':1,'CEO':1,'CFO':1,'CMO':1,'USA':1,'USP':1,
+  'March':1,'April':1,'June':1,'July':1,'August':1,'September':1,'October':1,
+  'November':1,'December':1,'January':1,'February':1,'May':1,
+  'Monday':1,'Tuesday':1,'Wednesday':1,'Thursday':1,'Friday':1,'Saturday':1,
+  'Phase':1,'Priority':1,'Breakthrough':1,'Orphan':1,'Fast':1,'Track':1,
+  'Company':1,'Corporation':1,'Incorporated':1,'Limited':1,'Sciences':1,
+  'Therapeutics':1,'Pharmaceuticals':1,'Biosciences':1,'Holdings':1,
+  // Common sentence-starters in SEC filings & press releases — HIGH FP risk
+  'Forward':1,'Target':1,'Reported':1,'Statement':1,'Statements':1,
+  'Following':1,'Regarding':1,'Current':1,'Future':1,'Updated':1,
+  'Additional':1,'Previous':1,'Including':1,'Related':1,'Based':1,
+  'Various':1,'Several':1,'Multiple':1,'Single':1,'Certain':1,
+  'Specific':1,'General':1,'Overall':1,'Potential':1,'Expected':1,
+  'Announced':1,'Announces':1,'Announcement':1,'Anticipated':1,
+  'Pending':1,'Ongoing':1,'Planned':1,'Submitted':1,'Granted':1,
+  'Accepted':1,'Received':1,'Approved':1,'Rejected':1,'Scheduled':1,
+  'Completed':1,'Initiated':1,'Started':1,'Reviewed':1,'Assigned':1,
+  'Evaluated':1,'Confirmed':1,'Positive':1,'Negative':1,'Mixed':1,
+  'Study':1,'Trial':1,'Cohort':1,'Patients':1,'Subjects':1,'Primary':1,
+  'Secondary':1,'Efficacy':1,'Safety':1,'Regulatory':1,'Commercial':1,
+  'Clinical':1,'Therapy':1,'Treatment':1,'Disease':1,'Patient':1,
+  'Update':1,'Progress':1,'Milestone':1,'Decision':1,'Action':1,
+  'Process':1,'Pathway':1,'Mechanism':1,'Evidence':1,'Results':1,
+};
+
+// Structured extraction. Reliable patterns (INN suffix, paren, hyphenated code)
+// run first on every text source. Unreliable pattern (BRAND_RE / CamelCase)
+// runs ONLY as last resort because it false-positives on sentence-start words.
+function extractReliable(text) {
+  if (!text) return '';
+  var m = text.match(DRUG_SUFFIX_RE);
+  if (m && !DRUG_STOPWORDS[m[1]] && m[1].length >= 5) return m[1];
+  m = text.match(PAREN_RE);
+  if (m && !DRUG_STOPWORDS[m[1]] && m[1].length >= 3) return m[1];
+  m = text.match(CODE_RE);
+  if (m) return m[1].replace(/\s+/g, '-');
+  return '';
+}
+function extractBrand(text) {
+  if (!text) return '';
+  // BRAND_RE is noise-prone — find ALL candidates and return the first that
+  // isn't a stopword AND isn't the first word of the sentence (most FPs
+  // come from sentence-initial words like "Forward-looking...").
+  var matches = [];
+  var re = /\b([A-Z][a-z]{3,}(?:[A-Z][a-z]+)*)\b/g;
+  var m;
+  while ((m = re.exec(text)) !== null) matches.push({ word: m[1], idx: m.index });
+  // Skip the first word of the text if it's within the first 3 chars
+  for (var k = 0; k < matches.length; k++) {
+    var cand = matches[k];
+    if (cand.idx <= 2) continue; // likely sentence-start stopword territory
+    if (DRUG_STOPWORDS[cand.word]) continue;
+    if (cand.word.length < 5) continue;
+    return cand.word;
+  }
+  return '';
+}
+
+// Full-event drug-name resolver. Strategy:
+//   1. If drug field is clean (no sentence markers), return it verbatim.
+//   2. Run RELIABLE extraction (INN suffix, paren, code) on drug field.
+//   3. Run RELIABLE extraction on flags, expected_move, appreciation_signals.
+//   4. LAST RESORT: run BRAND extraction on drug field (high FP risk).
+// Returns { name, confident }. confident=false → caller shows fallback.
+function resolveDrugName(d) {
+  if (!d) return { name: '', confident: false };
+  var raw = String(d.drug || '').trim();
+  var drug = raw
+    .replace(/^[§*†]\s*/, '')
+    .replace(/^AUTO-RESOLVED:\s*/i, '');
+
   var sentenceLike = (
     /forward.?looking\s+statement/i.test(drug) ||
     /^The\s+(FDA|PDUFA|agency)/i.test(drug) ||
@@ -710,17 +788,73 @@ function cleanDrugDisplay(raw) {
     /priority\s+review.*PDUFA/i.test(drug) ||
     (drug.length > 90 && /\./.test(drug))
   );
-  if (sentenceLike) {
-    // Try to pull a drug name: look for the first word that looks like a drug
-    // (lowercase -inib/-mab/-nib/-gene/-tide/-ide/-zole endings, or proper-noun
-    // brand name in parens). Otherwise return empty.
-    var m = drug.match(/\b([A-Za-z][a-z]{3,}(?:inib|mab|nib|tide|gene|sen|stat|cel|parvovec|mide|zole|cept))\b/);
-    if (m) return m[1];
-    m = drug.match(/\(([A-Z][A-Za-z0-9\-]{2,})\)/);
-    if (m) return m[1];
-    return '';
+
+  // Step 1: clean drug name already (not a sentence, reasonable length)
+  if (!sentenceLike && drug.length > 0 && drug.length < 120) {
+    return { name: drug, confident: true };
   }
-  return drug;
+
+  // Step 2: reliable extraction from drug field
+  var fromDrug = extractReliable(drug);
+  if (fromDrug) return { name: fromDrug, confident: true };
+
+  // Step 3a: scan flags for AUTO-RESOLVED hint (structured signal)
+  if (Array.isArray(d.flags)) {
+    for (var i = 0; i < d.flags.length; i++) {
+      var f = String(d.flags[i] || '');
+      var autoM = f.match(/AUTO-RESOLVED:\s*([A-Za-z0-9\-]+)/i);
+      if (autoM && !DRUG_STOPWORDS[autoM[1]] && autoM[1].length >= 4) {
+        return { name: autoM[1], confident: true };
+      }
+    }
+    // Step 3b: reliable extraction on each flag
+    for (var i2 = 0; i2 < d.flags.length; i2++) {
+      var fromFlag = extractReliable(String(d.flags[i2] || ''));
+      if (fromFlag) return { name: fromFlag, confident: true };
+    }
+  }
+
+  // Step 4: reliable extraction on expected_move text
+  var em = extractReliable(d.expected_move);
+  if (em) return { name: em, confident: true };
+
+  // Step 5: reliable extraction on appreciation_signals
+  if (Array.isArray(d.appreciation_signals)) {
+    for (var j = 0; j < d.appreciation_signals.length; j++) {
+      var sig = extractReliable(String(d.appreciation_signals[j] || ''));
+      if (sig) return { name: sig, confident: true };
+    }
+  }
+
+  // Step 6: LAST RESORT brand extraction (high FP risk, used only when
+  // reliable paths all failed).
+  var brandFromDrug = extractBrand(drug);
+  if (brandFromDrug) return { name: brandFromDrug, confident: true };
+
+  return { name: '', confident: false };
+}
+
+// Build the display name for the card. If we resolved a drug name, use it.
+// If not, build a differentiating label from indication + type so same-ticker
+// multi-PDUFA events never look identical.
+function buildCardDrugLabel(d) {
+  var resolved = resolveDrugName(d);
+  if (resolved.confident && resolved.name) return { html: resolved.name };
+  var ind = String(d.indication || '').trim();
+  var type = String(d.type || 'PDUFA').trim();
+  if (ind && ind !== 'Unknown' && ind !== 'Infectious' && ind.toLowerCase() !== 'null') {
+    return {
+      html: type + ' — ' + ind + ' <span style="color:var(--muted);font-style:italic;font-size:0.72rem;">(drug name pending)</span>'
+    };
+  }
+  return {
+    html: '<span style="color:var(--muted);font-style:italic;">' + type + ' ' + (d.date || '') + ' — name pending</span>'
+  };
+}
+
+// Backward-compat shim
+function cleanDrugDisplay(raw) {
+  return resolveDrugName({ drug: raw }).name || '';
 }
 
 // Dedupe: only collapse TRUE duplicates — same ticker + same drug + same date.
@@ -1045,7 +1179,7 @@ function renderScanner() {
           </div>
           ${gradeBadge(d.grade)}
         </div>
-        <div class="card-drug">${cleanDrugDisplay(d.drug) || '<span style="color:var(--muted);font-style:italic;">Pipeline catalyst — name pending</span>'}</div>
+        <div class="card-drug">${(() => { var lbl = buildCardDrugLabel(d); return lbl.html; })()}</div>
         <div class="card-indication">${d.indication}</div>
         <div class="card-scores">
           <div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div></div>
