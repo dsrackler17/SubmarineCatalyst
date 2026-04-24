@@ -506,8 +506,15 @@ function isBrokenRow(d) {
   if (drug.indexOf('AI_RESOLUTION_FAILED') >= 0) return true;
   if (drug.indexOf('⚠️ DRUG NAME PLACEHOLDER') >= 0) return true;
   if (drug.indexOf('drug name needs update') >= 0) return true;
-  if (/^(placeholder|tbd|unknown|pending|null)$/i.test(drug)) return true;
-  if (ticker === 'MGNX' && /tzield|teplizumab/i.test(drug)) return true;
+  if (/^(placeholder|tbd|unknown|pending|null|drug)$/i.test(drug)) return true;
+  if (/pending\s+resolution/i.test(drug)) return true;
+  if (/name\s+pending/i.test(drug)) return true;
+  // Garbled scrape/extraction noise (e.g. "5 TMS +11% QoQ Therapeutics 186 204 ...")
+  if (/^\d+\s+[A-Z]{2,5}\s+[+\-]?\d/.test(drug)) return true;
+  // Indication stuck at PENDING = resolve pipeline hasn't processed this row yet
+  var ind = String(d.indication || '').trim().toUpperCase();
+  if (ind === 'PENDING') return true;
+  if (ticker === 'MGNX' && /tzield|teplizumab|margenza/i.test(drug)) return true;
   if (ticker === 'MRK'  && drugU === 'IDVYNSO') return true;
   return false;
 }
