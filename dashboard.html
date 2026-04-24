@@ -452,69 +452,126 @@ function computeNetEdge(d) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// STN SCORE — pinpoint 1-100 for every event.
-// Uses server-side stn_score when present. Otherwise blends the signals we
-// already have on the card (30D run-up, dilution pressure, priced-in factors,
-// chart extension, TAM room) into a deterministic client-side score.
+// STN SCORE — pinpoint 0-100 for every event. v2 (matches score-events v4.8)
+// Server stn_score wins when present (including a server value of 0).
+// When server is null the client fallback mirrors the v4.8 inverted model:
+// start at 80 (biotech binary events are inherently risky), amplifiers
+// push up, de-riskers push down. Older v1 of this deriver started at 50,
+// which silently overrode v4.8 HIGH baselines with amber MED values on
+// any row the server hadn't re-scored yet.
 // ═══════════════════════════════════════════════════════════════════════════
 function deriveStnScore(d) {
-  if (!d) return 50;
+  if (!d) return 80;
+
+  // Trust server value unconditionally when present. 0 is a legitimate
+  // fully-de-risked score (e.g. $100B+ mega-cap supplement) and must
+  // not fall through to the client fallback.
   var server = d.stn_score != null ? Number(d.stn_score) : NaN;
-  if (isFinite(server) && server > 0) {
-    return Math.max(1, Math.min(100, Math.round(server)));
+  if (isFinite(server) && server >= 0) {
+    return Math.max(0, Math.min(100, Math.round(server)));
   }
 
-  var score = 50; // neutral baseline
+  // ─── Client fallback — mirrors score-events v4.8 STN v4 model ────────
+  var score = 80;
 
-  // 30-day run-up: the biggest single STN driver. Stocks up >30% into a
-  // PDUFA have the news front-run; >50% is the textbook STN setup.
+  var marketCap = Number(d.estimated_market_cap) || 0;
+  var capB = marketCap / 1e9;
+  var type = String(d.type || '').toUpperCase();
+  var isSupplement = type.indexOf('SNDA') >= 0 || type.indexOf('SUPPLEMENT') >= 0 || type.indexOf('SBLA') >= 0;
+
+  // ─── Amplifiers ──────────────────────────────────────────────────────
+  if (marketCap > 0 && marketCap < 200e6)      score += 10;
+  else if (marketCap > 0 && marketCap < 500e6) score += 6;
+
+  if (d.cmo_audit_flag) score += 10;
+
+  var fc = String(d.formulation_class || '');
+  if (fc === 'CELL_THERAPY' || fc === 'GENE_THERAPY') score += 8;
+  else if (fc === 'NANOPARTICLE')                      score += 6;
+  else if (fc === 'BIOLOGIC')                          score += 3;
+
+  if (marketCap > 0 && marketCap < 500e6 &&
+      (fc === 'NANOPARTICLE' || fc === 'CELL_THERAPY' || fc === 'GENE_THERAPY')) {
+    score += 5;
+  }
+
+  // 30D run-up — prefer live Polygon data, fall back to server column
   var p = (typeof PRICE_DATA !== 'undefined') ? PRICE_DATA[d.ticker] : null;
-  if (p && typeof p.change30d === 'number') {
-    if (p.change30d >= 50)      score += 25;
-    else if (p.change30d >= 30) score += 15;
-    else if (p.change30d >= 15) score += 7;
-    else if (p.change30d < -10) score -= 8;
+  var p30 = p && typeof p.change30d === 'number' ? p.change30d : Number(d.price_change_30d);
+  if (isFinite(p30)) {
+    if (p30 >= 50)      score += 15;
+    else if (p30 >= 30) score += 8;
+    else if (p30 >= 15) score += 4;
   }
 
-  // Dilution pressure: offering likely to hit on any approval pop.
-  if (d.dilution_risk === 'EXTREME')       score += 15;
-  else if (d.dilution_risk === 'HIGH')     score += 10;
-  else if (d.dilution_risk === 'MODERATE') score += 3;
-  else if (d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL') score -= 5;
+  var p90 = Number(d.price_change_90d);
+  if (isFinite(p90)) {
+    if (p90 >= 150)     score += 15;
+    else if (p90 >= 80) score += 8;
+  }
 
-  // Priced-in: high PoA means less room to surprise on approval.
-  var poa = Number(d.poa) || 0;
-  if (poa >= 85)      score += 10;
-  else if (poa >= 75) score += 5;
-  else if (poa < 50)  score -= 5;
+  if (d.atm_active)                   score += 8;
+  else if (d.shelf_active)            score += 4;
+  var rw = Number(d.runway_months);
+  if (isFinite(rw) && rw > 0 && rw < 12) score += 6;
+  if (d.runway_trustworthy === false)    score += 10;
 
-  // Technical exhaustion via RSI.
   var rsi = Number(d.rsi_14d);
   if (isFinite(rsi) && rsi > 0) {
-    if (rsi >= 75)      score += 10;
-    else if (rsi >= 70) score += 5;
-    else if (rsi <= 30) score -= 8;
+    if (rsi >= 85)      score += 12;
+    else if (rsi >= 75) score += 6;
   }
+  if (d.volume_climax_flag) score += 8;
 
-  // Analyst target proximity: already priced to perfection.
   var prox = Number(d.analyst_target_proximity_pct);
   if (isFinite(prox) && prox > 0) {
-    if (prox >= 100)     score += 8;
-    else if (prox >= 90) score += 4;
-    else if (prox <= 50) score -= 5;
+    if (prox >= 100)    score += 6;
+    else if (prox >= 95) score += 4;
   }
 
-  // TAM/Cap: drug market smaller than cap = limited upside room.
-  var tam = Number(d.tam_ratio) || 0;
-  if (tam > 0 && tam < 1) score += 8;
-  else if (tam >= 10)     score -= 5;
+  if (d.first_time_approver)  score += 8;
+  if (d.pdufa_is_friday_pm)   score += 5;
+  if (d.is_505b2)             score += 6;
 
-  // Half-weight categorical nudge from legacy sell_news_risk.
-  var snr = String(d.sell_news_risk || '').toUpperCase();
-  var catNudge = { 'HIGH': 10, 'ELEVATED': 5, 'MODERATE': 0, 'MOD': 0, 'LOW': -5, 'VERY LOW': -10 };
-  if (catNudge[snr] != null) score += catNudge[snr] * 0.5;
+  // ─── De-riskers ──────────────────────────────────────────────────────
+  if (capB >= 100 && isSupplement)      score -= 50;
+  else if (capB >= 50 && isSupplement)  score -= 35;
+  else if (capB >= 10 && isSupplement)  score -= 20;
 
-  return Math.max(1, Math.min(100, Math.round(score)));
+  var rev = Number(d.revenue_m) || 0;
+  if (marketCap > 0 && rev > 0) {
+    var revCap = rev / (marketCap / 1e6);
+    if (revCap >= 0.25)      score -= 10;
+    else if (revCap >= 0.15) score -= 5;
+  }
+
+  if (isFinite(p30) && p30 >= -5 && p30 <= 5 &&
+      isFinite(p90) && p90 >= -10 && p90 <= 10) score -= 6;
+  if (isFinite(p90) && p90 <= -20)              score -= 8;
+
+  if (isFinite(rsi) && rsi > 0 && rsi <= 35)    score -= 6;
+
+  if (isFinite(prox) && prox > 0) {
+    if (prox <= 55)      score -= 10;
+    else if (prox <= 70) score -= 5;
+  }
+
+  if (d.is_first_in_class) score -= 8;
+  var tamExp = Number(d.tam_expansion_pct) || 0;
+  if (tamExp >= 100)     score -= 10;
+  else if (tamExp >= 50) score -= 6;
+
+  var innScore = Number(d.innovation_score) || 0;
+  if (innScore >= 80)      score -= 12;
+  else if (innScore >= 65) score -= 8;
+  else if (innScore >= 55) score -= 4;
+
+  var recMean = Number(d.analyst_recommendation_mean);
+  if (isFinite(recMean) && recMean >= 3.5) score -= 4;
+
+  if (d.is_nce && !d.is_505b2) score -= 3;
+
+  return Math.max(0, Math.min(100, Math.round(score)));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -930,6 +987,16 @@ function renderScanner() {
     d.net_edge_adj = computeNetEdge(d);
   });
 
+  // Debug: how many rows have server STN vs client-derived?
+  if (typeof window !== 'undefined' && !window._stnCoverageLogged) {
+    var serverRows = SCANNER_DATA.filter(function(d) {
+      return d.stn_score != null && isFinite(Number(d.stn_score));
+    }).length;
+    var total = SCANNER_DATA.length;
+    console.log('[SC] STN coverage: ' + serverRows + '/' + total + ' rows have server stn_score (v4.8), ' + (total - serverRows) + ' falling back to client v4 deriver');
+    window._stnCoverageLogged = true;
+  }
+
   var sortEl = document.getElementById('scanner-sort');
   var gradeEl = document.getElementById('scanner-grade');
   var timeEl = document.getElementById('scanner-timeframe');
@@ -1009,7 +1076,7 @@ var auditBadge = d.cmo_audit_flag
     // the card's existing signals into a deterministic 1-100 value.
     // Category word (HIGH/MED/LOW) is no longer shown — the number is.
     var stnScoreNum = deriveStnScore(d);
-    var stnServer = d.stn_score != null && isFinite(Number(d.stn_score)) && Number(d.stn_score) > 0;
+    var stnServer = d.stn_score != null && isFinite(Number(d.stn_score));
     var stnBoxColor, stnPillColor;
     if (stnScoreNum >= 65)      { stnBoxColor = 'red';   stnPillColor = { border: 'rgba(255,68,68,0.6)',  bg: 'rgba(255,68,68,0.12)',  fg: 'var(--red)' }; }
     else if (stnScoreNum >= 35) { stnBoxColor = 'amber'; stnPillColor = { border: 'rgba(245,166,35,0.5)', bg: 'rgba(245,166,35,0.1)',  fg: 'var(--amber)' }; }
