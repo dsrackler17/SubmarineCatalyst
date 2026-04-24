@@ -1111,7 +1111,50 @@ function renderCMC(d) {
       '</div>';
   }
 
-  return badge + contextBox + splitPoaHTML + cmcScoreHTML + riskHTML + flagsHTML + runwayHTML;
+  // ─── v5.2 Recovery Prediction + Audit Status ─────────────────────────
+  // Predicts resubmission class based on formulation complexity and CMC
+  // score. Class 2 (~6mo) for complex formulations or material CMC burden,
+  // Class 1 (~2mo) otherwise. Factory history row surfaces cmo_audit_flag.
+  var fcUpper = String(d.formulation_class || '').toUpperCase();
+  var isComplexFormulation = (fcUpper === 'NANOPARTICLE' || fcUpper === 'CELL_THERAPY' ||
+                              fcUpper === 'GENE_THERAPY' || fcUpper === 'BIOLOGIC');
+  var hasMaterialCmc = (Number(d.cmc_score) || 0) >= 15;
+
+  var recoveryClass, recoveryMonths, recoveryColor, recoveryBorder;
+  if (isComplexFormulation || hasMaterialCmc) {
+    recoveryClass = 'Class 2 Resubmission';
+    recoveryMonths = '~6 months';
+    recoveryColor = 'var(--red)';
+    recoveryBorder = 'rgba(255,68,68,0.3)';
+  } else {
+    recoveryClass = 'Class 1 Resubmission';
+    recoveryMonths = '~2 months';
+    recoveryColor = 'var(--accent2)';
+    recoveryBorder = 'rgba(0,255,157,0.3)';
+  }
+
+  var auditFlag = d.cmo_audit_flag === true;
+  var auditText = auditFlag ? '🚨 Form 483 issued at CMO (&lt;18 months)' : '✓ No recent 483 on file';
+  var auditColor = auditFlag ? 'var(--red)' : 'var(--accent2)';
+  var auditBg = auditFlag ? 'rgba(255,68,68,0.06)' : 'rgba(0,255,157,0.04)';
+  var auditBorder = auditFlag ? 'rgba(255,68,68,0.3)' : 'rgba(0,255,157,0.2)';
+
+  var recoveryPanel =
+    '<hr class="bar-divider">' +
+    '<div style="font-family:var(--mono);font-size:0.65rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem;">Recovery Prediction</div>' +
+    '<div style="padding:0.85rem 1rem;background:rgba(0,212,255,0.04);border:1px solid ' + recoveryBorder + ';margin-bottom:0.6rem;">' +
+      '<div style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.35rem;">Est. Recovery Pathway</div>' +
+      '<div style="font-family:var(--serif);font-size:1.05rem;color:' + recoveryColor + ';line-height:1.2;">' + recoveryClass + '</div>' +
+      '<div style="font-family:var(--mono);font-size:0.7rem;color:var(--text);margin-top:0.3rem;letter-spacing:0.04em;">' + recoveryMonths + ' to resubmission' +
+        (isComplexFormulation ? ' · complex formulation' : hasMaterialCmc ? ' · material CMC burden' : ' · minor deficiency profile') +
+      '</div>' +
+    '</div>' +
+    '<div style="padding:0.7rem 1rem;background:' + auditBg + ';border:1px solid ' + auditBorder + ';">' +
+      '<div style="font-family:var(--mono);font-size:0.58rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem;">Factory History</div>' +
+      '<div style="font-family:var(--mono);font-size:0.72rem;color:' + auditColor + ';letter-spacing:0.03em;">' + auditText + '</div>' +
+    '</div>';
+
+  return badge + contextBox + splitPoaHTML + cmcScoreHTML + riskHTML + flagsHTML + runwayHTML + recoveryPanel;
 }
 
 // ─── POPULATE PAGE FROM DATABASE DATA ─────────────────────────────────────────
@@ -1922,6 +1965,9 @@ async function generateAISummary(d, netEdgeValue) {
         is_nce: chosen.is_nce === true,
         is_505b2: chosen.is_505b2 === true,
         first_time_approver: chosen.first_time_approver === true,
+        // ─── CMO / 483 audit forensics (v5.2) ──────────────────────────
+        cmo_audit_flag: chosen.cmo_audit_flag === true ||
+                        (window.MANUAL_CMC_OVERRIDES && window.MANUAL_CMC_OVERRIDES[chosen.ticker] && window.MANUAL_CMC_OVERRIDES[chosen.ticker].cmo_audit_flag === true),
       };
 
       var chosenType = String(chosen.type || '').toUpperCase();
@@ -2024,6 +2070,9 @@ async function generateAISummary(d, netEdgeValue) {
           is_nce: e.is_nce === true,
           is_505b2: e.is_505b2 === true,
           first_time_approver: e.first_time_approver === true,
+          // ─── CMO / 483 audit forensics (v5.2) ──────────────────────────
+          cmo_audit_flag: e.cmo_audit_flag === true ||
+                          (window.MANUAL_CMC_OVERRIDES && window.MANUAL_CMC_OVERRIDES[e.ticker] && window.MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true),
         };
         if (result.isPaid === false) isPaid = false;
         console.log('[SC] Loaded from get-scanner-data edge function → ' + ticker);
@@ -2100,6 +2149,7 @@ async function generateAISummary(d, netEdgeValue) {
           is_nce: false,
           is_505b2: false,
           first_time_approver: false,
+          cmo_audit_flag: false,
         };
       }
     } catch (err) {
