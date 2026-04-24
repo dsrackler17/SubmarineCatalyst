@@ -587,6 +587,74 @@ function riskColor(risk) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// STN SCORE — pinpoint 1-100 for every event.
+// Uses server-side stn_score when present. Otherwise blends the row's
+// existing signals (30D run-up via polygon enrichment, dilution, priced-in
+// PoA, RSI, analyst target proximity, TAM/Cap) into a deterministic score.
+// ═══════════════════════════════════════════════════════════════════════════
+function deriveStnScore(d) {
+  if (!d) return 50;
+  var server = d.stn_score != null ? Number(d.stn_score) : NaN;
+  if (isFinite(server) && server > 0) {
+    return Math.max(1, Math.min(100, Math.round(server)));
+  }
+
+  var score = 50; // neutral baseline
+
+  // 30-day run-up — biggest single STN driver. In calendar.html, polygon
+  // enrichment writes to e.price_change_30d directly on the event row.
+  var c30 = Number(d.price_change_30d);
+  if (isFinite(c30) && c30 !== 0) {
+    if (c30 >= 50)      score += 25;
+    else if (c30 >= 30) score += 15;
+    else if (c30 >= 15) score += 7;
+    else if (c30 < -10) score -= 8;
+  }
+
+  // Dilution pressure — offering likely on any approval pop.
+  if (d.dilution_risk === 'EXTREME')       score += 15;
+  else if (d.dilution_risk === 'HIGH')     score += 10;
+  else if (d.dilution_risk === 'MODERATE') score += 3;
+  else if (d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL') score -= 5;
+  if (d.atm_active === true)   score += 5;
+  if (d.shelf_active === true) score += 2;
+
+  // Priced-in: high PoA means less surprise value on approval.
+  var poa = Number(d.poa) || 0;
+  if (poa >= 85)      score += 10;
+  else if (poa >= 75) score += 5;
+  else if (poa > 0 && poa < 50) score -= 5;
+
+  // Technical exhaustion via RSI.
+  var rsi = Number(d.rsi_14d);
+  if (isFinite(rsi) && rsi > 0) {
+    if (rsi >= 75)      score += 10;
+    else if (rsi >= 70) score += 5;
+    else if (rsi <= 30) score -= 8;
+  }
+
+  // Analyst target proximity — already priced to perfection.
+  var prox = Number(d.analyst_target_proximity_pct);
+  if (isFinite(prox) && prox > 0) {
+    if (prox >= 100)     score += 8;
+    else if (prox >= 90) score += 4;
+    else if (prox <= 50) score -= 5;
+  }
+
+  // TAM/Cap — too small = limited upside room post-approval.
+  var tam = Number(d.tam_ratio) || 0;
+  if (tam > 0 && tam < 1) score += 8;
+  else if (tam >= 10)     score -= 5;
+
+  // Half-weight categorical nudge from legacy sell_news_risk.
+  var snr = String(d.sell_news_risk || '').toUpperCase();
+  var catNudge = { 'HIGH': 10, 'ELEVATED': 5, 'MODERATE': 0, 'MOD': 0, 'LOW': -5, 'VERY LOW': -10 };
+  if (catNudge[snr] != null) score += catNudge[snr] * 0.5;
+
+  return Math.max(1, Math.min(100, Math.round(score)));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 //  classifyEvent — rewritten to match the scorer's actual output vocabulary.
 //
 //  score-events writes structured columns (sell_news_risk, dilution_risk,
@@ -614,15 +682,16 @@ function classifyEvent(e) {
   if (t.includes('earning')) tags.push('earnings');
   if (t.includes('conference') || t.includes('abstract') || t.includes('asco') || t.includes('aacr')) tags.push('conference');
 
-  // STN Risk — MODERATE threshold. Column is often VERY LOW/LOW even when
-  // flags say MODERATE/ELEVATED, so check both.
-  if (e.sell_news_risk === 'HIGH' || e.sell_news_risk === 'ELEVATED' || e.sell_news_risk === 'MODERATE'
+// STN Risk — MED+ threshold on the pinpoint 1-100 score (>= 35).
+  // Falls back to categorical column + flag phrases for rows the deriver
+  // can't score (no PoA, no price data, no dilution signal).
+  if (deriveStnScore(e) >= 35
+      || e.sell_news_risk === 'HIGH' || e.sell_news_risk === 'ELEVATED' || e.sell_news_risk === 'MODERATE'
       || flags.indexOf('sell-the-news risk: high') >= 0
       || flags.indexOf('sell-the-news risk: elevated') >= 0
       || flags.indexOf('sell-the-news risk: moderate') >= 0) {
     tags.push('stn');
   }
-
   // Dilution Watch — column, booleans, OR flag phrases. Scorer emits
   // "ACTIVE ATM OFFERING" as a flag without setting atm_active=TRUE, so
   // surface the flag directly.
@@ -653,7 +722,8 @@ function classifyEvent(e) {
   // history in flags/notes — because complex formulations (nanoparticle,
   // cell, gene, biologic) carry structural manufacturing risk regardless
   // of resubmission status.
-var hasV44CmcTrigger = (
+var fcUp = String(e.formulation_class || '').toUpperCase();
+  var hasV44CmcTrigger = (
     fcUp === 'NANOPARTICLE' || fcUp === 'CELL_THERAPY' ||
     fcUp === 'GENE_THERAPY' || fcUp === 'BIOLOGIC'
     || (Number(e.cmc_score) || 0) >= 15
@@ -759,7 +829,7 @@ function renderTable() {
   var html = '<table class="cal-table"><thead><tr>';
   html += '<th>Ticker</th><th>Company</th><th>Type</th><th>Catalyst</th><th>Date</th><th>Cap</th>';
   if (isPaid) {
-    html += '<th>TAM</th><th>Score</th><th>Risk</th><th>Grade</th><th>30D</th><th>Vol</th><th>Chart</th><th>Setup</th>';
+   html += '<th>TAM</th><th>Score</th><th title="Sell-the-News score (1-100). >=35 MED, >=65 HIGH.">STN</th><th>Grade</th><th>30D</th><th>Vol</th><th>Chart</th><th>Setup</th>';
   }
   html += '<th style="text-align:center">Action</th>';
   html += '</tr></thead><tbody>';
@@ -860,8 +930,13 @@ function renderTable() {
         var poaVal = Number(e.poa) || 0;
         var poaColor = poaVal >= 75 ? 'var(--accent2)' : poaVal >= 60 ? 'var(--accent)' : poaVal > 0 ? 'var(--amber)' : 'var(--muted)';
         html += '<td class="score-cell" style="color:' + poaColor + '">' + (poaVal > 0 ? poaVal.toFixed(0) + '%' : '—') + '</td>';
-        var stnVal = e.sell_news_risk || '—';
-        html += '<td class="score-cell" style="color:' + riskColor(stnVal) + ';font-size:0.62rem;">' + stnVal + '</td>';
+       var stnNum = deriveStnScore(e);
+        var stnColor = stnNum >= 65 ? 'var(--red)' : stnNum >= 35 ? 'var(--amber)' : 'var(--accent2)';
+        var stnServer = e.stn_score != null && isFinite(Number(e.stn_score)) && Number(e.stn_score) > 0;
+        var stnTitle = stnServer
+          ? 'Sell-the-News score ' + stnNum + '/100 (server)'
+          : 'Sell-the-News score ' + stnNum + '/100 (derived: 30D run-up, dilution, PoA, RSI, target proximity, TAM/Cap)';
+        html += '<td class="score-cell" style="color:' + stnColor + ';font-size:0.72rem;font-weight:700;" title="' + stnTitle + '">' + stnNum + '</td>';
       } else {
         var bScore = Number(e.buyout_score) || 0;
         var bRisk = e.buyout_risk || '—';
@@ -888,11 +963,12 @@ function renderTable() {
       html += '<td class="score-cell" style="color:' + cpColor + ';font-size:0.62rem;">' + cp + '</td>';
 
       var signal = '';
-      if (e._source === 'pdufa' || e._source === 'catalyst') {
-        if (e.sell_news_risk === 'HIGH') signal = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 STN HIGH</span>';
-        else if (e.sell_news_risk === 'LOW' || e.sell_news_risk === 'VERY LOW') signal = '<span class="pattern-pill" style="background:rgba(0,255,157,0.1);color:var(--accent2);">📡 STN LOW</span>';
-        else if (e.sell_news_risk === 'ELEVATED') signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.1);color:var(--amber);">〰️ ELEVATED</span>';
-        else if (e.sell_news_risk !== '—') signal = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 MODERATE</span>';
+     if (e._source === 'pdufa' || e._source === 'catalyst') {
+        var stnPillNum = deriveStnScore(e);
+        if (stnPillNum >= 65)      signal = '<span class="pattern-pill" style="background:rgba(255,68,68,0.12);color:var(--red);">🔻 STN ' + stnPillNum + '</span>';
+        else if (stnPillNum >= 50) signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.1);color:var(--amber);">〰️ STN ' + stnPillNum + '</span>';
+        else if (stnPillNum >= 35) signal = '<span class="pattern-pill" style="background:rgba(0,212,255,0.08);color:var(--accent);">🔼 STN ' + stnPillNum + '</span>';
+        else                       signal = '<span class="pattern-pill" style="background:rgba(0,255,157,0.1);color:var(--accent2);">📡 STN ' + stnPillNum + '</span>';
       } else if (e.buyout_risk === 'HIGH' || e.buyout_risk === 'MODERATE') {
         signal = '<span class="pattern-pill" style="background:rgba(245,166,35,0.12);color:var(--amber);">🏷️ BUYOUT</span>';
       }
