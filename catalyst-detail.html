@@ -621,6 +621,75 @@ function computeNetEdge(d) {
   return Math.max(0, Math.min(100, rawScore + edge));
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// STN SCORE — pinpoint 1-100 for every event.
+// Server-side stn_score when populated; otherwise blends the row's existing
+// signals (30D run-up, dilution pressure, priced-in PoA, RSI, analyst target
+// proximity, TAM/Cap) into a deterministic 1-100 score.
+// ═══════════════════════════════════════════════════════════════════════════
+function deriveStnScore(d) {
+  if (!d) return 50;
+  var server = d.stn_score != null ? Number(d.stn_score) : NaN;
+  if (isFinite(server) && server > 0) {
+    return Math.max(1, Math.min(100, Math.round(server)));
+  }
+
+  var score = 50; // neutral baseline
+
+  // 30-day run-up — biggest STN driver. In catalyst-detail, polygon bars
+  // populate d.live_30d_pct. Fall back to price_change_30d if present.
+  var c30 = Number(d.live_30d_pct);
+  if (!isFinite(c30) || c30 === 0) c30 = Number(d.price_change_30d);
+  if (isFinite(c30) && c30 !== 0) {
+    if (c30 >= 50)      score += 25;
+    else if (c30 >= 30) score += 15;
+    else if (c30 >= 15) score += 7;
+    else if (c30 < -10) score -= 8;
+  }
+
+  // Dilution pressure.
+  if (d.dilution_risk === 'EXTREME')       score += 15;
+  else if (d.dilution_risk === 'HIGH')     score += 10;
+  else if (d.dilution_risk === 'MODERATE') score += 3;
+  else if (d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL') score -= 5;
+  if (d.atm_active === true)   score += 5;
+  if (d.shelf_active === true) score += 2;
+
+  // Priced-in — high PoA means less room to surprise.
+  var poa = Number(d.poa) || 0;
+  if (poa >= 85)      score += 10;
+  else if (poa >= 75) score += 5;
+  else if (poa > 0 && poa < 50) score -= 5;
+
+  // Technical exhaustion via RSI.
+  var rsi = Number(d.rsi_14d);
+  if (isFinite(rsi) && rsi > 0) {
+    if (rsi >= 75)      score += 10;
+    else if (rsi >= 70) score += 5;
+    else if (rsi <= 30) score -= 8;
+  }
+
+  // Analyst target proximity — priced to perfection.
+  var prox = Number(d.analyst_target_proximity_pct);
+  if (isFinite(prox) && prox > 0) {
+    if (prox >= 100)     score += 8;
+    else if (prox >= 90) score += 4;
+    else if (prox <= 50) score -= 5;
+  }
+
+  // TAM/Cap — too small = limited upside room post-approval.
+  var tam = Number(d.tam_ratio) || 0;
+  if (tam > 0 && tam < 1) score += 8;
+  else if (tam >= 10)     score -= 5;
+
+  // Half-weight categorical nudge from legacy sell_news_risk.
+  var snr = String(d.sell_news_risk || '').toUpperCase();
+  var catNudge = { 'HIGH': 10, 'ELEVATED': 5, 'MODERATE': 0, 'MOD': 0, 'LOW': -5, 'VERY LOW': -10 };
+  if (catNudge[snr] != null) score += catNudge[snr] * 0.5;
+
+  return Math.max(1, Math.min(100, Math.round(score)));
+}
+
 function classifyChart(change30d, volRatio, bars) {
   var consolidating = false;
   if (bars && bars.length >= 20) {
@@ -1241,11 +1310,15 @@ function populatePage(d, isPaid) {
     document.getElementById('countdown-date').textContent = d.date;
   }
 
-  document.getElementById('stat-poa').textContent       = (d.poa || 0).toFixed(1) + '%';
+ document.getElementById('stat-poa').textContent       = (d.poa || 0).toFixed(1) + '%';
   var stnRisk = d.sell_news_risk || 'MODERATE';
+  var stnScoreNum = deriveStnScore(d);
   var stnEl = document.getElementById('stat-stn');
-  stnEl.textContent = stnRisk;
-  stnEl.style.color = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[stnRisk] || 'var(--muted)';
+  stnEl.textContent = stnScoreNum;
+  stnEl.style.color = stnScoreNum >= 65 ? 'var(--red)' : stnScoreNum >= 35 ? 'var(--amber)' : 'var(--accent2)';
+  stnEl.title = (d.stn_score != null && isFinite(Number(d.stn_score)) && Number(d.stn_score) > 0
+    ? 'Sell-the-News score ' + stnScoreNum + '/100 (server)'
+    : 'Sell-the-News score ' + stnScoreNum + '/100 (derived — server score not yet populated for this row)');
   var dilRisk = d.dilution_risk || 'UNKNOWN';
   var dilEl = document.getElementById('stat-dilution');
   dilEl.textContent = dilRisk;
@@ -1318,7 +1391,7 @@ function populatePage(d, isPaid) {
     ['Indication',    d.indication || 'Unknown'],
     ['Grade',         d.grade || 'WATCH'],
     ['PoA',           (d.poa || 0).toFixed(1) + '%'],
-    ['STN Risk',      d.sell_news_risk || 'MODERATE'],
+    ['STN Score',     stnScoreNum + '/100 · ' + (stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 35 ? 'MED' : 'LOW'), stnScoreNum >= 65 ? 'red' : stnScoreNum >= 35 ? 'amber' : 'green'],
     ['Move Score',    (d.move_score || 0) + '/100'],
     ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
     ['Dilution Score', (d.dilution_score || 0) + '/100'],
@@ -1335,7 +1408,7 @@ function populatePage(d, isPaid) {
     ['Indication',    d.indication || 'Unknown'],
     ['Grade',         d.grade || 'WATCH'],
     ['PoA',           (d.poa || 0).toFixed(1) + '%'],
-    ['STN Risk',      d.sell_news_risk || 'MODERATE'],
+    ['STN Score',     stnScoreNum + '/100 · ' + (stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 35 ? 'MED' : 'LOW'), stnScoreNum >= 65 ? 'red' : stnScoreNum >= 35 ? 'amber' : 'green'],
     ['Move Score',    (d.move_score || 0) + '/100'],
     ['Dilution Risk', d.dilution_risk || 'UNKNOWN'],
     ['Dilution Score', (d.dilution_score || 0) + '/100'],
@@ -1510,20 +1583,24 @@ function populatePage(d, isPaid) {
 
   document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
 
-  var stnColor = {'HIGH':'var(--red)','ELEVATED':'var(--amber)','MODERATE':'var(--amber)','LOW':'var(--accent2)','VERY LOW':'var(--accent2)'}[stnRisk] || 'var(--muted)';
-  var stnEmoji = {'HIGH':'🚨','ELEVATED':'⚠️','MODERATE':'🟡','LOW':'✅','VERY LOW':'✅'}[stnRisk] || '🟡';
+var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' : stnScoreNum >= 35 ? 'MODERATE' : 'LOW';
+  var stnColor = stnScoreNum >= 65 ? 'var(--red)' : stnScoreNum >= 50 ? 'var(--amber)' : stnScoreNum >= 35 ? 'var(--amber)' : 'var(--accent2)';
+  var stnEmoji = stnScoreNum >= 65 ? '🚨' : stnScoreNum >= 50 ? '⚠️' : stnScoreNum >= 35 ? '🟡' : '✅';
+  var stnSourceLabel = (d.stn_score != null && isFinite(Number(d.stn_score)) && Number(d.stn_score) > 0) ? 'server' : 'derived';
   document.getElementById('stn-badge').innerHTML = DOMPurify.sanitize(
     '<div style="text-align:center;padding:1rem 0;">' +
-    '<div style="font-family:var(--serif);font-size:1.8rem;color:' + stnColor + ';">' + stnEmoji + ' ' + stnRisk + '</div>' +
-    '<div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.5rem;">Sell-The-News Risk Level</div>' +
-    (d.expected_move ? '<div style="font-family:var(--sans);font-size:0.78rem;color:var(--text);margin-top:0.75rem;line-height:1.6;">' + escapeHtml(d.expected_move) + '</div>' : '') +
+      '<div style="font-family:var(--serif);font-size:3rem;font-weight:700;color:' + stnColor + ';line-height:1;">' + stnScoreNum + '</div>' +
+      '<div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);letter-spacing:0.15em;margin-top:0.35rem;text-transform:uppercase;">Sell-the-News Score · 1-100</div>' +
+      '<div style="font-family:var(--mono);font-size:0.72rem;color:' + stnColor + ';margin-top:0.75rem;letter-spacing:0.08em;">' + stnEmoji + ' ' + stnTierLabel + '</div>' +
+      '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);margin-top:0.25rem;letter-spacing:0.08em;">source: ' + stnSourceLabel + '</div>' +
+      (d.expected_move ? '<div style="font-family:var(--sans);font-size:0.78rem;color:var(--text);margin-top:0.85rem;padding-top:0.75rem;border-top:1px solid var(--border);line-height:1.6;">' + escapeHtml(d.expected_move) + '</div>' : '') +
     '</div>'
   );
 
   var mFlags = d.move_flags || [];
   if (mFlags.length > 0) {
     document.getElementById('stn-content').innerHTML = DOMPurify.sanitize(
-      '<div style="margin-bottom:1rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);letter-spacing:0.06em;">Move Score: <strong style="color:' + stnColor + ';">' + (d.move_score || 0) + '/100</strong> (higher = more sell-the-news risk)</div>' +
+      '<div style="margin-bottom:1rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);letter-spacing:0.06em;">STN Score: <strong style="color:' + stnColor + ';">' + stnScoreNum + '/100</strong> · Move Score (legacy): <strong style="color:' + stnColor + ';">' + (d.move_score || 0) + '/100</strong> · higher = more sell-the-news risk</div>' +
       mFlags.map(function(f) { return '<div class="flag-item">' + escapeHtml(f) + '</div>'; }).join('')
     );
   } else {
@@ -1960,6 +2037,8 @@ async function generateAISummary(d, netEdgeValue) {
         analyst_target_avg: chosen.analyst_target_avg != null ? Number(chosen.analyst_target_avg) : null,
         analyst_target_proximity_pct: chosen.analyst_target_proximity_pct != null ? Number(chosen.analyst_target_proximity_pct) : null,
         analyst_recommendation_mean: chosen.analyst_recommendation_mean != null ? Number(chosen.analyst_recommendation_mean) : null,
+        // ─── STN pinpoint score (server-written when present) ──────────
+        stn_score: chosen.stn_score != null && isFinite(Number(chosen.stn_score)) ? Number(chosen.stn_score) : null,
         // ─── STN v3 pathway / calendar flags ───────────────────────────
         pdufa_is_friday_pm: chosen.pdufa_is_friday_pm === true,
         is_nce: chosen.is_nce === true,
@@ -2065,6 +2144,8 @@ async function generateAISummary(d, netEdgeValue) {
           analyst_target_avg: e.analyst_target_avg != null ? Number(e.analyst_target_avg) : null,
           analyst_target_proximity_pct: e.analyst_target_proximity_pct != null ? Number(e.analyst_target_proximity_pct) : null,
           analyst_recommendation_mean: e.analyst_recommendation_mean != null ? Number(e.analyst_recommendation_mean) : null,
+          // ─── STN pinpoint score (server-written when present) ──────────
+          stn_score: e.stn_score != null && isFinite(Number(e.stn_score)) ? Number(e.stn_score) : null,
           // ─── STN v3 pathway / calendar flags ───────────────────────────
           pdufa_is_friday_pm: e.pdufa_is_friday_pm === true,
           is_nce: e.is_nce === true,
