@@ -1091,23 +1091,86 @@ function normalizeInnovation(d) {
   }
 }
 
-// Returns the Net Edge score with innovation folded in.
-// Contribution: (innovation_score - 50) × 0.15 → range -7.5…+7.5 points
-// `d.score` is the raw pre-innovation score from score-events.
-// `d.net_edge_score` is whatever the server sent as the headline metric.
-// We prefer server net_edge_score if it looks like it already includes innovation,
-// otherwise we derive from `score` + innovation_edge.
-function computeNetEdge(d) {
-  var base = Number(d.net_edge_score) || Number(d.score) || 0;
-  var inn = Number(d.innovation_score) || 0;
-  if (inn <= 0) return base;
-  // If server already folded innovation into net_edge_score (detected by
-  // net_edge_score ≠ score), trust it. Otherwise apply the fold-in here.
-  var rawScore = Number(d.score) || 0;
-  var serverFolded = Math.abs(base - rawScore) > 0.5;
-  if (serverFolded) return base;
-  var edge = (inn - 50) * 0.15;
-  return Math.max(0, Math.min(100, rawScore + edge));
+// ─── CLIENT-SIDE INNOVATION HEURISTIC ──────────────────────────────────────
+// When the server ships no innovation_score, compute one from signals we
+// already have: flag strings, indication, application type, TAM ratio.
+// This replaces the blanket "40 for every drug" default that was masking
+// the real data. Returns { score: 0-100, signals: [...] }.
+function computeInnovationHeuristic(d) {
+  var score = 0;
+  var signals = [];
+  var flagsBlob = (d.flags || []).concat(d.appreciation_signals || [], d.innovation_flags || []).join(' ').toLowerCase();
+  var drug = String(d.drug || '').toLowerCase();
+  var indication = String(d.indication || '').toLowerCase();
+  var type = String(d.type || '').toLowerCase();
+
+  // First-in-class (highest weight — biggest appreciation driver)
+  if (/first.?in.?class|first.?to.?reach|no approved treatments|novel mechanism|novel moa/.test(flagsBlob)) {
+    score += 32; signals.push('First-in-class mechanism');
+  }
+  // Best-in-class / head-to-head superiority
+  if (/best.?in.?class|superior to|head.?to.?head/.test(flagsBlob)) {
+    score += 20; signals.push('Best-in-class data');
+  }
+  // Disease-modifying vs symptomatic
+  if (/disease.?modifying/.test(flagsBlob)) {
+    score += 15; signals.push('Disease-modifying therapy');
+  }
+  // Label expansion / platform asset
+  if (/label expansion|platform|multiple indications/.test(flagsBlob)) {
+    score += 12; signals.push('Label expansion setup');
+  }
+  // Priority review pathway
+  if (/priority review/.test(flagsBlob) || type.indexOf('priority') >= 0) {
+    score += 8; signals.push('Priority review');
+  }
+  // Orphan / rare disease designation
+  if (/orphan|rare disease|ultra.?rare/.test(flagsBlob)) {
+    score += 10; signals.push('Orphan designation');
+  }
+  // Route-of-admin upgrade — IV→SC, oral→LA injectable, etc
+  if (/subcutaneous|once.?weekly|once.?monthly|long.?acting/.test(flagsBlob)) {
+    score += 10; signals.push('Improved route of administration');
+  }
+  // Significant TAM runway (market size × pricing leverage)
+  var tam = Number(d.tam_ratio) || 0;
+  if (tam >= 10) { score += 10; signals.push('TAM/Cap ' + tam + 'x — large market relative to cap'); }
+  else if (tam >= 5) { score += 6; }
+  else if (tam >= 3) { score += 3; }
+  // High-value therapeutic area
+  if (/alzheimer|oncology|myeloma|breast cancer|nsclc|gene therapy|cell therapy/.test(indication)) {
+    score += 6;
+  }
+  // Unknown/infectious defaults get a floor so non-drug rows don't zero out,
+  // but never enough to look like a real signal.
+  if (score === 0 && d.drug && d.drug.trim()) score = 20;
+
+  return { score: Math.min(100, score), signals: signals };
+}
+
+function normalizeInnovation(d) {
+  var raw = Number(d.innovation_score);
+  var hasServerScore = isFinite(raw) && raw > 0;
+
+  if (hasServerScore) {
+    // Legacy /25 scale rescale to /100 (unchanged)
+    if (raw <= 25) d.innovation_score = raw * 4;
+  } else {
+    // No server score — compute client-side heuristic from available signals
+    // instead of defaulting everyone to 40.
+    var computed = computeInnovationHeuristic(d);
+    d.innovation_score = computed.score;
+    // Only seed appreciation_signals if server didn't ship any
+    if (computed.signals.length > 0 && (!d.appreciation_signals || d.appreciation_signals.length === 0)) {
+      d.appreciation_signals = computed.signals;
+    }
+  }
+
+  // Recompute factor: 1.0 + (score - 50) / 200 → range 0.75…1.25
+  var s = Number(d.innovation_score) || 0;
+  if (s > 0) {
+    d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
+  }
 }
 
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
@@ -1257,17 +1320,44 @@ function renderScanner() {
           if (d.is_nce) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">NCE</span>');
           if (d.is_505b2) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(90,122,153,0.5);background:rgba(90,122,153,0.1);color:var(--muted);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">505(b)(2)</span>');
           if (d.volume_climax_flag) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🔊 VOL CLIMAX</span>');
+      
+// v5.3 — null guard. Number(null)===0 was triggering "RSI 0" and
+          // "TGT 0%" pills on every card with missing analyst data. Require
+          // the raw field to be non-null AND the numeric value > 0 before
+          // deciding the pill.
           var rsi = Number(d.rsi_14d);
-          if (isFinite(rsi) && rsi >= 70) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
-          else if (isFinite(rsi) && rsi <= 30) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
+          var rsiValid = d.rsi_14d != null && isFinite(rsi) && rsi > 0;
+          if (rsiValid && rsi >= 70) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
+          else if (rsiValid && rsi <= 30) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
           var prox = Number(d.analyst_target_proximity_pct);
-          if (isFinite(prox) && prox >= 95) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg target — priced in risk">TGT ' + prox.toFixed(0) + '%</span>');
-          else if (isFinite(prox) && prox <= 50) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg — heavily discounted">TGT ' + prox.toFixed(0) + '%</span>');
+          var proxValid = d.analyst_target_proximity_pct != null && isFinite(prox) && prox > 0;
+          if (proxValid && prox >= 95) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg target — priced in risk">TGT ' + prox.toFixed(0) + '%</span>');
+          else if (proxValid && prox <= 50) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg — heavily discounted">TGT ' + prox.toFixed(0) + '%</span>');
           if (pills.length === 0) return '';
           return '<div style="margin-bottom:0.4rem;line-height:1.8;">' + pills.join('') + '</div>';
         })()}
         ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
-        <div class="card-flags">${(d.flags || []).filter(f => !f.includes('TAM/CAP') && !f.includes('TAM/Cap') && !f.includes('Drug market') && !String(f).startsWith('AUTO-RESOLVED:')).map(f=>`<div class="card-flag">${f}</div>`).join('')}</div>
+       <div class="card-flags">${(() => {
+          // v5.3 — strip provenance/ingestion markers, dedupe, cap at 6 lines.
+          // Server writes SC_AUTORESOLVED: (100+ dupes on GSK, 16 on IONS)
+          // and INGESTED:seed markers that have no business on the card.
+          var seen = {};
+          return (d.flags || [])
+            .filter(f => {
+              var s = String(f);
+              if (s.includes('TAM/CAP') || s.includes('TAM/Cap') || s.includes('Drug market')) return false;
+              if (s.startsWith('AUTO-RESOLVED:')) return false;
+              if (s.startsWith('SC_AUTORESOLVED:')) return false;
+              if (s.startsWith('INGESTED:')) return false;
+              if (s.startsWith('AI_RESOLUTION_FAILED')) return false;
+              if (seen[s]) return false;
+              seen[s] = true;
+              return true;
+            })
+            .slice(0, 6)
+            .map(f => `<div class="card-flag">${f}</div>`)
+            .join('');
+        })()}</div>
         <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
       </div>`;
   }).join('');
