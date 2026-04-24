@@ -205,6 +205,16 @@ footer a:hover{color:var(--accent);}
 
 <script>
 var ALL_EVENTS = [];
+// ─── MANUAL CMO / 483 OVERRIDES (v5.2) ────────────────────────────────────
+// Mirrors the override object in dashboard.html. Until OII Inspections &
+// Citations API is wired into score-events, I maintain 483 flags manually.
+// Set cmo_audit_flag=true for any ticker whose CMO has received a Form 483
+// within the last 18 months. Exposed on window so Block 2B/2C can see it.
+window.MANUAL_CMC_OVERRIDES = {
+  'GRCE': { cmo_audit_flag: true },
+  // Example — uncomment as I find new 483s:
+  // 'XYZ':  { cmo_audit_flag: true },
+};
 var currentTab = 'all';
 var isPaid = false;
 
@@ -643,12 +653,12 @@ function classifyEvent(e) {
   // history in flags/notes — because complex formulations (nanoparticle,
   // cell, gene, biologic) carry structural manufacturing risk regardless
   // of resubmission status.
-  var fcUp = String(e.formulation_class || '').toUpperCase();
-  var hasV44CmcTrigger = (
+var hasV44CmcTrigger = (
     fcUp === 'NANOPARTICLE' || fcUp === 'CELL_THERAPY' ||
     fcUp === 'GENE_THERAPY' || fcUp === 'BIOLOGIC'
     || (Number(e.cmc_score) || 0) >= 15
     || (Number(e.cmc_haircut_pct) || 0) >= 5
+    || e.cmo_audit_flag === true                // v5.2 — 483 at CMO = CMC Recovery
   );
   if (hasV44CmcTrigger && tags.indexOf('cmc') < 0) tags.push('cmc');
 
@@ -809,6 +819,12 @@ function renderTable() {
       // First-time approver pill — sponsor with no prior FDA approvals
       if (e.first_time_approver === true) {
         catalyst += ' <span style="font-size:0.52rem;padding:0.1rem 0.3rem;background:rgba(0,212,255,0.08);color:var(--accent);border:1px solid rgba(0,212,255,0.4);letter-spacing:0.04em;margin-left:0.15rem;" title="Sponsor has no prior FDA approval">🆕 1ST</span>';
+      }
+      // v5.2 — 483 FLAG pill. Hardest signal in the row. Placed last so it
+      // sits at the end of the catalyst string, adjacent to the next column
+      // for maximum visual weight on scan.
+      if (e.cmo_audit_flag === true) {
+        catalyst += ' <span style="font-size:0.52rem;font-weight:700;padding:0.1rem 0.35rem;background:rgba(255,68,68,0.12);color:var(--red);border:1px solid rgba(255,68,68,0.6);letter-spacing:0.06em;margin-left:0.15rem;" title="FDA Form 483 issued at manufacturing site within last 18 months — elevated CMC CRL risk">483 FLAG</span>';
       }
     } else {
       catalyst = (e.drug || e.notes || 'Catalyst Event').substring(0, 50);
@@ -1306,7 +1322,7 @@ async function loadFederalRegisterAdcom(drugMap) {
       });
       var result = await res.json();
       if (result.events) {
-        ALL_EVENTS = result.events.map(function(e) {
+ALL_EVENTS = result.events.map(function(e) {
           if (e.poa > 0 || (e.type && e.type.toUpperCase().includes('PDUFA'))) {
             e._source = 'pdufa';
           } else if (e.event_type === 'CLINICAL' || e.event_type === 'EARNINGS' || e.event_type === 'CONFERENCE') {
@@ -1314,6 +1330,9 @@ async function loadFederalRegisterAdcom(drugMap) {
           } else {
             e._source = 'pdufa';
           }
+          // v5.2 — merge manual override on top of API value
+          e.cmo_audit_flag = e.cmo_audit_flag === true ||
+                             (window.MANUAL_CMC_OVERRIDES && window.MANUAL_CMC_OVERRIDES[e.ticker] && window.MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true);
           e._tags = classifyEvent(e);
           return e;
         });
@@ -1325,7 +1344,7 @@ async function loadFederalRegisterAdcom(drugMap) {
 
   if (ALL_EVENTS.length === 0) {
     var { data: pdufaEvents } = await sb.from('pdufa_events')
-      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, estimated_market_cap, tam_ratio, formulation_class, cmc_score, clinical_poa, operational_poa, cmc_haircut_pct, runway_trustworthy, rsi_14d, price_change_90d, volume_climax_flag, analyst_target_avg, analyst_target_proximity_pct, analyst_recommendation_mean, pdufa_is_friday_pm, is_nce, is_505b2, first_time_approver')
+      .select('ticker, drug, indication, type, date, grade, poa, score, flags, notes, sell_news_risk, dilution_risk, net_edge_score, atm_active, shelf_active, partnership_detected, company_name, market_cap_tier, event_type, estimated_market_cap, tam_ratio, formulation_class, cmc_score, clinical_poa, operational_poa, cmc_haircut_pct, runway_trustworthy, rsi_14d, price_change_90d, volume_climax_flag, analyst_target_avg, analyst_target_proximity_pct, analyst_recommendation_mean, pdufa_is_friday_pm, is_nce, is_505b2, first_time_approver, cmo_audit_flag')
       .gte('date', new Date().toISOString().split('T')[0])
       .order('date', { ascending: true });
 
@@ -1354,6 +1373,9 @@ async function loadFederalRegisterAdcom(drugMap) {
         e.is_nce = e.is_nce === true;
         e.is_505b2 = e.is_505b2 === true;
         e.first_time_approver = e.first_time_approver === true;
+        // v5.2 CMC forensics — API value OR manual override from window.MANUAL_CMC_OVERRIDES
+        e.cmo_audit_flag = e.cmo_audit_flag === true ||
+                           (window.MANUAL_CMC_OVERRIDES && window.MANUAL_CMC_OVERRIDES[e.ticker] && window.MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true);
         e._tags = classifyEvent(e);
         e._source = 'pdufa';
         if (!isPaid) {
