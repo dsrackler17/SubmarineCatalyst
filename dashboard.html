@@ -316,6 +316,8 @@
       </div>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
         <select id="scanner-sort" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="cmc_score">Sort: CMC Score ↓</option>
+          <option value="stn_risk">Sort: STN Risk ↓</option>
           <option value="score">Sort: Net Edge ↓</option>
           <option value="date_asc">Sort: Soonest First</option>
           <option value="date_desc">Sort: Furthest First</option>
@@ -560,6 +562,17 @@
 <script>
 // ─── LIVE SCANNER DATA — fetched from Supabase ───────────────────────────────
 let SCANNER_DATA = [];
+// ─── MANUAL CMO / 483 OVERRIDES (v5.2) ────────────────────────────────────
+// Until OII Inspections & Citations API is wired into score-events, I maintain
+// 483 flags manually from FDA Data Dashboard research. Set cmo_audit_flag=true
+// for any ticker whose CMO has received a Form 483 within the last 18 months.
+// Merged into SCANNER_DATA at mapping time — wins over (or fills in for) the
+// API value whenever set to true.
+var MANUAL_CMC_OVERRIDES = {
+  'GRCE': { cmo_audit_flag: true },
+  // Example — uncomment & edit as I find new 483s:
+  // 'XYZ':  { cmo_audit_flag: true },
+};
 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 function daysUntil(dateStr) {
@@ -1142,6 +1155,12 @@ function renderScanner() {
       case 'trend30d':  return ((PRICE_DATA[b.ticker]||{}).change30d||0) - ((PRICE_DATA[a.ticker]||{}).change30d||0);
       case 'trend90d':  return (Number(b.price_change_90d)||-999) - (Number(a.price_change_90d)||-999);
       case 'cmc_haircut': return (Number(b.cmc_haircut_pct)||0) - (Number(a.cmc_haircut_pct)||0);
+      case 'cmc_score':   return (Number(b.cmc_score) || 0) - (Number(a.cmc_score) || 0);
+      case 'stn_risk': {
+        // String → rank so HIGH sorts above ELEVATED above MODERATE above LOW
+        var stnRank = { 'HIGH': 4, 'ELEVATED': 3, 'MODERATE': 2, 'MOD': 2, 'LOW': 1, 'VERY LOW': 0 };
+        return (stnRank[b.sell_news_risk] || 2) - (stnRank[a.sell_news_risk] || 2);
+      }
       case 'rsi':       return (Number(b.rsi_14d)||0) - (Number(a.rsi_14d)||0);
       default:          return (b.net_edge_adj || 0) - (a.net_edge_adj || 0);
     }
@@ -1178,6 +1197,11 @@ function renderScanner() {
     const royaltyBadge = isRoyalty
       ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);margin-left:0.4rem;vertical-align:middle;" title="${d.ticker} exposure to this PDUFA is via ${d.ticker_role} arrangement with ${d.primary_ticker || 'commercial partner'}">${d.ticker_role.toUpperCase()}</span>`
       : '';
+    // ─── 483 FLAG pill (v5.2) ───────────────────────────────────────────
+    // Hard-red — Form 483 at manufacturing site = elevated CMC CRL risk
+    const auditBadge = d.cmo_audit_flag
+      ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.6);background:rgba(255,68,68,0.12);color:var(--red);margin-left:0.4rem;vertical-align:middle;" title="FDA Form 483 issued at CMO within last 18 months — elevated CMC CRL risk">483 FLAG</span>`
+      : '';
     // ─── Innovation (/100 scale) ──────────────────────────────────────────
     const innScore = Number(d.innovation_score) || 0;
     const innFactor = Number(d.innovation_factor) || 1.0;
@@ -1191,7 +1215,7 @@ function renderScanner() {
            title="View ${d.ticker} deep dive →">
         <div class="card-top">
           <div>
-            <div class="card-ticker">${d.ticker} ${daysPill(days)}${royaltyBadge}${multiBadge}</div>
+            <div class="card-ticker">${d.ticker} ${daysPill(days)}${auditBadge}${royaltyBadge}${multiBadge}</div>
             <div class="card-date">${d.date} · ${d.type}${isRoyalty && d.primary_ticker ? ' · via ' + d.primary_ticker : ''}</div>
           </div>
           ${gradeBadge(d.grade)}
@@ -1797,7 +1821,11 @@ function switchTab(btn, id) {
           pdufa_is_friday_pm: e.pdufa_is_friday_pm === true,
           is_nce: e.is_nce === true,
           is_505b2: e.is_505b2 === true,
-          first_time_approver: e.first_time_approver === true,
+          first_time_approver: e.first_time_approver === true, 
+          // ─── CMO / 483 audit forensics (v5.2) ──────────────────────────
+          // True if API returns it OR if manually overridden above
+          cmo_audit_flag: e.cmo_audit_flag === true ||
+                          (MANUAL_CMC_OVERRIDES[e.ticker] && MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true),
         };
       });
     }
