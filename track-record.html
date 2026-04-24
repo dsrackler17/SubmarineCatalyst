@@ -646,7 +646,7 @@ async function loadTrackRecord() {
     if (stn === 'HIGH')          correctDir = mv <= 10;
     else if (stn === 'ELEVATED') correctDir = mv <= 15;
     else if (stn === 'MODERATE') correctDir = mv >= -10 && mv <= 25;
-    else if (stn === 'LOW' || stn === 'VERY LOW') correctDir = mv > 20;
+    else if (stn === 'LOW' || stn === 'VERY LOW') correctDir = mv >= -5;
     if (correctDir === null) return;
     stnScored.push({ ticker: r.ticker, stn, mv, correctDir });
   });
