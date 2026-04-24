@@ -344,6 +344,12 @@
 <script src="/js/config.js"></script>
 <script>
 var CRL_DATA = [];
+// ─── MANUAL CMO / 483 OVERRIDES (v5.2) ────────────────────────────────────
+// Mirrors dashboard.html / calendar.html. Drives the cmo_audit_flag merge
+// below, which promotes CRL recovery items when a recent 483 is on file.
+window.MANUAL_CMC_OVERRIDES = {
+  'GRCE': { cmo_audit_flag: true },
+};
 
 // ── CRL RECOVERY SCORING ─────────────────────────────────────────────────────
 function scoreCRL(item) {
@@ -376,6 +382,14 @@ function scoreCRL(item) {
   if ((item.crl_number || 1) >= 2) {
     score -= 10;
     flags.push('🚨 This is CRL #' + item.crl_number + ' — repeat rejection significantly reduces recovery odds');
+  }
+  // v5.2 — 483 FLAG penalty (-8 pts). Active Form 483 at the CMO means
+  // the next resubmission inherits an open inspection problem. Historical
+  // base-rate for resubmission approval drops sharply when the root cause
+  // factory is still under 483 observation at time of refile.
+  if (item.cmo_audit_flag === true) {
+    score -= 8;
+    flags.push('🚨 483 FLAG — Form 483 at CMO within 18mo, resubmission inherits unresolved inspection risk');
   }
 
   // Cash Runway (25 pts)
@@ -567,6 +581,44 @@ function renderCRLGrid() {
   var sb = getSupabase();
 
   try {
+    // ─── v5.2 MANUAL CRL SEED ROW ─────────────────────────────────────────
+  // GRCE manual entry — until crl_events row is inserted via SQL, this
+  // surfaces it in the scanner directly from the frontend. Delete this
+  // block once a proper crl_events row exists for GRCE.
+  var hasGRCE = CRL_DATA.some(function(d) { return d.ticker === 'GRCE'; });
+  if (!hasGRCE) {
+    var grceItem = {
+      ticker: 'GRCE',
+      company_name: 'Grace Therapeutics',
+      drug: 'GTX-104 (Nimodipine IV)',
+      indication: 'Subarachnoid Hemorrhage',
+      crl_date: '2026-04-24',  
+      crl_type: 'CMC',
+      crl_type_category: 'CMC',
+      crl_number: 1,
+      crl_details: 'CMC deficiency at contract manufacturing organization. Form 483 issued at CMO within last 18 months. Facility inspection findings drive resubmission class.',
+      months_since_crl: Math.max(0, Math.round((new Date() - new Date('2025-12-30')) / (30 * 86400000))),
+      runway_months: null,
+      shelf_active: false,
+      atm_active: false,
+      market_cap: 0,
+      revenue: 0,
+      cash_m: 0,
+      resub_status: 'NOT_FILED',
+      resub_pdufa: null,
+      fda_meeting: 'NONE',
+      notes: 'Manual entry — awaiting crl_events row.',
+      is_active: true,
+      resolution: null,
+      cmo_audit_flag: true,
+    };
+    var scored = scoreCRL(grceItem);
+    grceItem.recovery_score = scored.score;
+    grceItem.recovery_level = scored.recovery_level;
+    grceItem.recovery_flags = scored.flags;
+    CRL_DATA.push(grceItem);
+    console.log('[SC] GRCE manually seeded into CRL_DATA (v5.2)');
+  }
     // Query the dedicated crl_events table
     var { data: crlRows, error } = await sb.from('crl_events')
       .select('*')
@@ -619,6 +671,9 @@ function renderCRLGrid() {
           resub_pdufa: e.resub_pdufa || null,
           fda_meeting: e.fda_meeting || 'NONE',
           notes: e.notes || '',
+          // v5.2 — cmo_audit_flag: API value OR manual override
+          cmo_audit_flag: e.cmo_audit_flag === true ||
+                          (window.MANUAL_CMC_OVERRIDES && window.MANUAL_CMC_OVERRIDES[e.ticker] && window.MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true),
           is_active: e.is_active,
           resolution: e.resolution,
         };
