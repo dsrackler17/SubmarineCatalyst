@@ -1174,7 +1174,23 @@ function normalizeInnovation(d) {
 }
 
 // ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
+// ─── NET EDGE CLIENT FOLD-IN ─────────────────────────────────────────────────
+// Server ships net_edge_score already adjusted for STN/dilution. Client adds
+// the innovation ±7.5 fold so the displayed value matches the card tooltip
+// ("base score + innovation fold-in ±7.5 pts"). If innovation is 0/missing,
+// returns the base server score unchanged.
+function computeNetEdge(d) {
+  var base = Number(d.net_edge_score) || Number(d.score) || 0;
+  var inn = Number(d.innovation_score) || 0;
+  if (inn > 0) {
+    base += (inn - 50) * 0.15;  // matches server-side formula in score-events.ts
+  }
+  return Math.max(0, Math.min(100, Math.round(base * 10) / 10));
+}
+
+// ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
 function renderScanner() {
+  
   if (SCANNER_DATA.length === 0) {
     document.getElementById('scanner-grid').innerHTML = `
       <div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">
