@@ -481,6 +481,11 @@ var DRUG_INDICATION_OVERRIDE = {
 
 function fixIndication(d) {
   if (!d || !d.drug) return;
+  // Normalize PENDING / null / empty to an em-dash so the card looks clean
+  var indRaw = String(d.indication || '').trim();
+  if (!indRaw || /^(pending|null|unknown)$/i.test(indRaw)) {
+    d.indication = '—';
+  }
   var drugLower = String(d.drug).toLowerCase();
   var keys = Object.keys(DRUG_INDICATION_OVERRIDE).sort(function(a, b) { return b.length - a.length; });
   for (var i = 0; i < keys.length; i++) {
@@ -491,7 +496,7 @@ function fixIndication(d) {
   }
   if (d.indication === 'Infectious') {
     var infectiousLike = /mrna|vaccine|tebipenem|clesrovimab|enflonsia|antibiotic|antiviral|bacteri|viral|flu|covid|rsv|hpv|hiv|sepsis|pneumon|infect/i;
-    if (!infectiousLike.test(d.drug)) d.indication = 'Unknown';
+    if (!infectiousLike.test(d.drug)) d.indication = '—';
   }
 }
 
@@ -503,19 +508,27 @@ function isBrokenRow(d) {
   if (!drug) return true;
   var drugU = drug.toUpperCase();
   if (drugU === ticker) return true;
+  // Truly broken / unrecoverable strings
   if (drug.indexOf('AI_RESOLUTION_FAILED') >= 0) return true;
   if (drug.indexOf('⚠️ DRUG NAME PLACEHOLDER') >= 0) return true;
   if (drug.indexOf('drug name needs update') >= 0) return true;
-  if (/^(placeholder|tbd|unknown|pending|null|drug)$/i.test(drug)) return true;
-  if (/pending\s+resolution/i.test(drug)) return true;
-  if (/name\s+pending/i.test(drug)) return true;
   // Garbled scrape/extraction noise (e.g. "5 TMS +11% QoQ Therapeutics 186 204 ...")
   if (/^\d+\s+[A-Z]{2,5}\s+[+\-]?\d/.test(drug)) return true;
-  // Indication stuck at PENDING = resolve pipeline hasn't processed this row yet
-  var ind = String(d.indication || '').trim().toUpperCase();
-  if (ind === 'PENDING') return true;
+  // Known bad ticker/drug pairings
   if (ticker === 'MGNX' && /tzield|teplizumab|margenza/i.test(drug)) return true;
   if (ticker === 'MRK'  && drugU === 'IDVYNSO') return true;
+  return false;
+}
+
+// NEW helper — identifies placeholder drug strings so the card can render them
+// as "resolving" rather than filtering them out or showing the raw placeholder.
+function isPlaceholderDrug(s) {
+  if (!s) return true;
+  var t = String(s).trim();
+  if (!t) return true;
+  if (/^(placeholder|tbd|unknown|pending|null|drug)$/i.test(t)) return true;
+  if (/pending\s+resolution/i.test(t)) return true;
+  if (/name\s+pending/i.test(t)) return true;
   return false;
 }
 
@@ -620,11 +633,19 @@ function resolveDrugName(d) {
 }
 
 function buildCardDrugLabel(d) {
-  var resolved = resolveDrugName(d);
-  if (resolved.confident && resolved.name) return { html: resolved.name };
-  var ind = String(d.indication || '').trim();
+  var raw = String(d.drug || '').trim();
   var type = String(d.type || 'PDUFA').trim();
-  if (ind && ind !== 'Unknown' && ind !== 'Infectious' && ind.toLowerCase() !== 'null') {
+  // Placeholder drug string — render as resolving state, skip resolution
+  if (isPlaceholderDrug(raw)) {
+    return { html: '<span style="color:var(--muted);font-style:italic;">' + type + ' ' + (d.date || '') + ' — drug name resolving</span>' };
+  }
+  var resolved = resolveDrugName(d);
+  if (resolved.confident && resolved.name && !isPlaceholderDrug(resolved.name)) {
+    return { html: resolved.name };
+  }
+  var ind = String(d.indication || '').trim();
+  var indU = ind.toUpperCase();
+  if (ind && indU !== 'UNKNOWN' && indU !== 'INFECTIOUS' && indU !== 'NULL' && indU !== 'PENDING') {
     return { html: type + ' — ' + ind + ' <span style="color:var(--muted);font-style:italic;font-size:0.72rem;">(drug name pending)</span>' };
   }
   return { html: '<span style="color:var(--muted);font-style:italic;">' + type + ' ' + (d.date || '') + ' — name pending</span>' };
