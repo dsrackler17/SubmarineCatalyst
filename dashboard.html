@@ -871,9 +871,11 @@ function renderScanner() {
       case 'trend90d':  return (Number(b.price_change_90d)||-999) - (Number(a.price_change_90d)||-999);
       case 'cmc_haircut': return (Number(b.cmc_haircut_pct)||0) - (Number(a.cmc_haircut_pct)||0);
       case 'cmc_score':   return (Number(b.cmc_score) || 0) - (Number(a.cmc_score) || 0);
-      case 'stn_risk':
-        var stnRank = { 'HIGH': 4, 'ELEVATED': 3, 'MODERATE': 2, 'MOD': 2, 'LOW': 1, 'VERY LOW': 0 };
-        return (stnRank[b.sell_news_risk] || 2) - (stnRank[a.sell_news_risk] || 2);
+case 'stn_risk':
+        var stnRank = { 'HIGH': 100, 'ELEVATED': 75, 'MODERATE': 50, 'MOD': 50, 'LOW': 25, 'VERY LOW': 10 };
+        var aStn = a.stn_score != null ? Number(a.stn_score) : (stnRank[a.sell_news_risk] != null ? stnRank[a.sell_news_risk] : 50);
+        var bStn = b.stn_score != null ? Number(b.stn_score) : (stnRank[b.sell_news_risk] != null ? stnRank[b.sell_news_risk] : 50);
+        return bStn - aStn;
       case 'rsi':       return (Number(b.rsi_14d)||0) - (Number(a.rsi_14d)||0);
       default:          return (b.net_edge_adj || 0) - (a.net_edge_adj || 0);
     }
@@ -907,9 +909,30 @@ function renderScanner() {
     var royaltyBadge = isRoyalty
       ? '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);margin-left:0.4rem;vertical-align:middle;" title="' + d.ticker + ' exposure to this PDUFA is via ' + d.ticker_role + ' arrangement with ' + (d.primary_ticker || 'commercial partner') + '">' + d.ticker_role.toUpperCase() + '</span>'
       : '';
-    var auditBadge = d.cmo_audit_flag
+var auditBadge = d.cmo_audit_flag
       ? '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.6);background:rgba(255,68,68,0.12);color:var(--red);margin-left:0.4rem;vertical-align:middle;" title="FDA Form 483 issued at CMO within last 18 months — elevated CMC CRL risk">483 FLAG</span>'
       : '';
+
+    // ─── STN Risk: unified pill + score-box category ──────────────────────
+    // Prefer numeric stn_score (0-100) when present; fall back to categorical sell_news_risk.
+    // Weighted: (30D Run-up * 0.3) + (Dilution * 0.3) + (IV Crush * 0.2) + (Retail Divergence * 0.2)
+    var stnScoreNum = d.stn_score != null ? Number(d.stn_score) : null;
+    var stnCategory, stnBoxColor, stnPillColor;
+    if (stnScoreNum != null && isFinite(stnScoreNum)) {
+      if (stnScoreNum >= 65)      { stnCategory = 'HIGH'; stnBoxColor = 'red';   stnPillColor = { border: 'rgba(255,68,68,0.6)',  bg: 'rgba(255,68,68,0.12)',  fg: 'var(--red)' }; }
+      else if (stnScoreNum >= 35) { stnCategory = 'MED';  stnBoxColor = 'amber'; stnPillColor = { border: 'rgba(245,166,35,0.5)', bg: 'rgba(245,166,35,0.1)',  fg: 'var(--amber)' }; }
+      else                        { stnCategory = 'LOW';  stnBoxColor = 'green'; stnPillColor = { border: 'rgba(0,255,157,0.4)',  bg: 'rgba(0,255,157,0.08)',  fg: 'var(--accent2)' }; }
+    } else {
+      var snr = String(d.sell_news_risk || 'MOD').toUpperCase();
+      if (snr === 'HIGH' || snr === 'ELEVATED')        { stnCategory = 'HIGH'; stnBoxColor = 'red';   stnPillColor = { border: 'rgba(255,68,68,0.6)',  bg: 'rgba(255,68,68,0.12)',  fg: 'var(--red)' }; }
+      else if (snr === 'LOW' || snr === 'VERY LOW')    { stnCategory = 'LOW';  stnBoxColor = 'green'; stnPillColor = { border: 'rgba(0,255,157,0.4)',  bg: 'rgba(0,255,157,0.08)',  fg: 'var(--accent2)' }; }
+      else                                             { stnCategory = 'MED';  stnBoxColor = 'amber'; stnPillColor = { border: 'rgba(245,166,35,0.5)', bg: 'rgba(245,166,35,0.1)',  fg: 'var(--amber)' }; }
+    }
+    var stnPillLabel = 'STN ' + stnCategory + (stnScoreNum != null && isFinite(stnScoreNum) ? ' ' + Math.round(stnScoreNum) : '');
+    var stnPillTitle = stnScoreNum != null && isFinite(stnScoreNum)
+      ? 'Sell-the-News score ' + Math.round(stnScoreNum) + '/100 · weighted: 30D run-up 30%, dilution 30%, IV crush 20%, retail divergence 20%'
+      : 'Sell-the-News risk: ' + (d.sell_news_risk || 'MOD') + ' (categorical — no numeric score yet)';
+    var stnPill = '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid ' + stnPillColor.border + ';background:' + stnPillColor.bg + ';color:' + stnPillColor.fg + ';margin-left:0.4rem;vertical-align:middle;" title="' + stnPillTitle + '">' + stnPillLabel + '</span>';
 
     var innScore = Number(d.innovation_score) || 0;
     var innFactor = Number(d.innovation_factor) || 1.0;
@@ -956,7 +979,7 @@ function renderScanner() {
 
     var cmcBlock = '';
     var hasCMC = (d.formulation_class && d.formulation_class !== 'UNKNOWN' && d.formulation_class !== 'SMALL_MOLECULE') || (Number(d.cmc_score)||0) >= 15 || (Number(d.cmc_haircut_pct)||0) >= 5 || d.runway_trustworthy === false;
-    if (hasCMC) {
+if (hasCMC) {
       var fc = d.formulation_class || '';
       var emoji = fc === 'NANOPARTICLE' ? '🧪' : fc === 'CELL_THERAPY' ? '🧫' : fc === 'GENE_THERAPY' ? '🧬' : fc === 'BIOLOGIC' ? '🔬' : '';
       var label = fc && fc !== 'UNKNOWN' && fc !== 'SMALL_MOLECULE' ? fc.replace(/_/g,' ') : '';
@@ -967,6 +990,29 @@ function renderScanner() {
         cmcBlock = '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.4rem 0.55rem;background:rgba(245,166,35,0.05);border-left:2px solid var(--amber);margin-bottom:0.4rem;color:var(--text);line-height:1.5;">' +
           (label ? emoji + ' ' + label : '') + (label && splitStr ? ' · ' : '') + (splitStr ? '<span style="color:var(--amber);">' + splitStr + '</span>' : '') + runwayFlag + '</div>';
       }
+    }
+
+    // ─── CRL Forensics: leachables + CMO audit status + ICH Q3E compliance ─
+    var crlForensicsBlock = '';
+    var leachNum = d.leachable_risk_score != null ? Number(d.leachable_risk_score) : null;
+    var hasLeach = leachNum != null && isFinite(leachNum) && leachNum > 0;
+    var auditStatusRaw = d.cmo_audit_status ? String(d.cmo_audit_status).trim() : '';
+    var auditStatusU = auditStatusRaw.toUpperCase();
+    var hasAuditStatus = auditStatusRaw !== '' && auditStatusU !== 'CLEAN' && auditStatusU !== 'NONE' && auditStatusU !== 'NULL';
+    var hasIchFail = d.ich_q3e_compliance === false;
+    if (hasLeach || hasAuditStatus || hasIchFail) {
+      var crlItems = [];
+      if (hasLeach) {
+        var leachFg = leachNum >= 60 ? 'var(--red)' : leachNum >= 35 ? 'var(--amber)' : 'var(--accent)';
+        crlItems.push('<span style="color:' + leachFg + ';" title="Leachable/extractable risk. Nanoparticle/micelle formulations carry +35 baseline under ICH Q3E.">💧 Leachable ' + Math.round(leachNum) + '/100</span>');
+      }
+      if (hasAuditStatus) {
+        crlItems.push('<span style="color:var(--red);" title="CMO audit status from FDA inspection history (Form 483 / Warning Letter).">🏭 ' + auditStatusRaw + '</span>');
+      }
+      if (hasIchFail) {
+        crlItems.push('<span style="color:var(--amber);" title="ICH Q3E extractables/leachables — non-compliant with 2026 packaging standards.">⚠️ ICH Q3E non-compliant</span>');
+      }
+      crlForensicsBlock = '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.4rem 0.55rem;background:rgba(255,68,68,0.04);border-left:2px solid var(--red);margin-bottom:0.4rem;color:var(--text);line-height:1.6;"><span style="color:var(--muted);letter-spacing:0.08em;">CRL FORENSICS · </span>' + crlItems.join(' · ') + '</div>';
     }
 
     var pills = [];
@@ -1015,7 +1061,7 @@ function renderScanner() {
     return '<div class="scanner-card ' + gradeClass(d.grade) + '" style="animation-delay:' + (i * 0.05) + 's" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" title="View ' + d.ticker + ' deep dive →">' +
       '<div class="card-top">' +
         '<div>' +
-          '<div class="card-ticker">' + d.ticker + ' ' + daysPill(days) + auditBadge + royaltyBadge + multiBadge + '</div>' +
+          '<div class="card-ticker">' + d.ticker + ' ' + daysPill(days) + stnPill + auditBadge + royaltyBadge + multiBadge + '</div>' +
           '<div class="card-date">' + d.date + ' · ' + d.type + (isRoyalty && d.primary_ticker ? ' · via ' + d.primary_ticker : '') + '</div>' +
         '</div>' +
         gradeBadge(d.grade) +
@@ -1024,7 +1070,7 @@ function renderScanner() {
       '<div class="card-indication">' + d.indication + '</div>' +
       '<div class="card-scores">' +
         '<div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">' + (d.poa || 0).toFixed(1) + '%</div></div>' +
-        '<div class="score-box"><div class="score-box-label">STN Risk</div><div class="score-box-val ' + (d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : (d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW') ? 'green' : 'amber') + '">' + (d.sell_news_risk || 'MOD') + '</div></div>' +
+        '<div class="score-box" title="' + stnPillTitle + '"><div class="score-box-label">STN Risk</div><div class="score-box-val ' + stnBoxColor + '">' + stnCategory + (stnScoreNum != null && isFinite(stnScoreNum) ? ' ' + Math.round(stnScoreNum) : '') + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + (d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : (d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL') ? 'green' : 'white') + '">' + (d.dilution_risk || '—') + '</div></div>' +
         '<div class="score-box" title="Net Edge = base score + innovation fold-in (±7.5 pts)"><div class="score-box-label">Net Edge</div><div class="score-box-val ' + (netEdge >= 72 ? 'green' : netEdge >= 58 ? 'cyan' : netEdge >= 42 ? 'amber' : 'red') + '">' + netEdge.toFixed(1) + '</div></div>' +
       '</div>' +
@@ -1034,7 +1080,7 @@ function renderScanner() {
         '<div class="score-box" title="Innovation & Appreciation Factor (0-100 scale)."><div class="score-box-label" style="color:' + innStarColor + ';">⭐ Innov</div><div class="score-box-val ' + innColor + '" style="color:' + innStarColor + ';">' + innDisplay + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">30D</div>' + trend30Cell + '</div>' +
       '</div>' +
-      liveBlock + appreciationBlock + cmcBlock + pillsBlock + expectedMoveBlock +
+      liveBlock + appreciationBlock + cmcBlock + crlForensicsBlock + pillsBlock + expectedMoveBlock +
       '<div class="card-flags">' + flagsList + '</div>' +
       '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>' +
     '</div>';
@@ -1579,8 +1625,12 @@ function switchTab(btn, id) {
           is_nce: e.is_nce === true,
           is_505b2: e.is_505b2 === true,
           first_time_approver: e.first_time_approver === true,
-          cmo_audit_flag: e.cmo_audit_flag === true ||
-                          (MANUAL_CMC_OVERRIDES[e.ticker] && MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true)
+cmo_audit_flag: e.cmo_audit_flag === true ||
+                          (MANUAL_CMC_OVERRIDES[e.ticker] && MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true),
+          stn_score: e.stn_score != null && isFinite(Number(e.stn_score)) ? Number(e.stn_score) : null,
+          leachable_risk_score: e.leachable_risk_score != null && isFinite(Number(e.leachable_risk_score)) ? Number(e.leachable_risk_score) : null,
+          cmo_audit_status: e.cmo_audit_status || null,
+          ich_q3e_compliance: e.ich_q3e_compliance === true ? true : (e.ich_q3e_compliance === false ? false : null)
         };
       });
     }
