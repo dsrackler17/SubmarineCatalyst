@@ -27,39 +27,10 @@
     --sans:    'DM Sans', sans-serif;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--navy);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.6;
-    min-height: 100vh;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
+  body { background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; min-height: 100vh; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
   nav, .dash-layout, footer { position: relative; z-index: 1; }
-
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.1rem 2rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(4,13,26,0.92);
-    backdrop-filter: blur(12px);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-  }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.1rem 2rem; border-bottom: 1px solid var(--border); background: rgba(4,13,26,0.92); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
   .nav-logo { display: flex; align-items: center; gap: 0.65rem; text-decoration: none; }
   .sonar-icon { width: 26px; height: 26px; }
   .sonar-icon svg { width: 100%; height: 100%; }
@@ -72,9 +43,7 @@
   .nav-user { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
   .nav-signout { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 0.3rem 0.75rem; transition: all 0.2s; }
   .nav-signout:hover { color: var(--red); border-color: rgba(255,68,68,0.4); }
-
   .dash-layout { display: grid; grid-template-columns: 220px 1fr; min-height: calc(100vh - 58px); }
-
   .sidebar { background: var(--deep); border-right: 1px solid var(--border); padding: 1.5rem 0; position: sticky; top: 58px; height: calc(100vh - 58px); overflow-y: auto; }
   .sidebar-section { margin-bottom: 2rem; }
   .sidebar-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); padding: 0 1.25rem; margin-bottom: 0.5rem; display: block; }
@@ -82,13 +51,10 @@
   .sidebar-item:hover { color: var(--white); background: rgba(0,212,255,0.04); }
   .sidebar-item.active { color: var(--accent); background: rgba(0,212,255,0.07); border-left: 2px solid var(--accent); }
   .sidebar-icon { font-size: 0.85rem; width: 16px; text-align: center; }
-
   .dash-main { padding: 2rem; overflow-y: auto; }
-
   .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
   .section-title { font-family: var(--serif); font-size: 1.5rem; color: var(--white); }
   .section-meta { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.06em; }
-
   .stat-strip { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; animation: fadeUp 0.5s ease both; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
   .stat-cell { background: var(--surface); padding: 1.25rem 1.5rem; }
@@ -98,7 +64,6 @@
   .stat-val.cyan   { color: var(--accent); }
   .stat-val.amber  { color: var(--amber); }
   .stat-sub { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.3rem; }
-
   .scanner-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); margin-bottom: 2rem; }
   .scanner-card { background: var(--surface); padding: 1.5rem; transition: background 0.2s; cursor: pointer; position: relative; overflow: hidden; animation: fadeUp 0.5s ease both; }
   .scanner-card:hover { background: rgba(11,31,58,0.95); }
@@ -107,7 +72,6 @@
   .scanner-card.strong::before { background: var(--accent); }
   .scanner-card.watch::before  { background: var(--amber); }
   .scanner-card.weak::before   { background: var(--muted); }
-
   .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
   .card-ticker { font-family: var(--mono); font-size: 1.1rem; font-weight: 700; color: var(--white); letter-spacing: 0.08em; }
   .card-date   { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 0.15rem; }
@@ -116,10 +80,8 @@
   .grade-strong { color: var(--accent);   border-color: rgba(0,212,255,0.4);  background: rgba(0,212,255,0.08); }
   .grade-watch  { color: var(--amber);    border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
   .grade-weak   { color: var(--muted);    border-color: rgba(90,122,153,0.4); background: transparent; }
-
   .card-drug       { font-size: 0.82rem; color: var(--text); margin-bottom: 0.2rem; font-weight: 300; }
   .card-indication { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); margin-bottom: 1rem; letter-spacing: 0.04em; }
-
   .card-scores { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 0; border: 1px solid var(--border); margin-bottom: 0.75rem; }
   .score-box { padding: 0.6rem 0.75rem; border-right: 1px solid var(--border); text-align: center; }
   .score-box:last-child { border-right: none; }
@@ -130,16 +92,13 @@
   .score-box-val.white { color: var(--white); }
   .score-box-val.amber { color: var(--amber); }
   .score-box-val.red   { color: var(--red); }
-
   .card-flags { display: flex; flex-direction: column; gap: 0.2rem; }
   .card-flag  { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); letter-spacing: 0.03em; }
-
   .days-pill { display: inline-block; font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.06em; padding: 0.12rem 0.45rem; border: 1px solid; margin-left: 0.5rem; }
   .days-hot   { border-color: rgba(255,68,68,0.5);    color: var(--red);    background: rgba(255,68,68,0.08); }
   .days-warm  { border-color: rgba(245,166,35,0.5);   color: var(--amber);  background: rgba(245,166,35,0.08); }
   .days-watch { border-color: rgba(0,212,255,0.4);    color: var(--accent); background: rgba(0,212,255,0.06); }
   .days-far   { border-color: rgba(90,122,153,0.4);   color: var(--muted);  background: transparent; }
-
   .account-panel { background: var(--surface); border: 1px solid var(--border); padding: 1.75rem; margin-bottom: 2rem; position: relative; overflow: hidden; }
   .account-panel::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
   .account-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
@@ -149,25 +108,20 @@
   .status-active { color: var(--accent2); display: flex; align-items: center; gap: 0.4rem; }
   .status-dot { width: 6px; height: 6px; background: var(--accent2); border-radius: 50%; animation: pulse 2s ease infinite; }
   @keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.5; transform:scale(0.8); } }
-
   .btn-portal { display: inline-block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid var(--border); color: var(--muted); padding: 0.5rem 1.1rem; text-decoration: none; transition: all 0.2s; cursor: pointer; background: none; }
   .btn-portal:hover { border-color: var(--accent); color: var(--accent); }
-
   .section-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; }
   .tab-btn { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0.65rem 1.25rem; border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.2s; }
   .tab-btn:hover { color: var(--white); }
   .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
   .tab-panel { display: none; }
   .tab-panel.active { display: block; }
-
   .verifying-banner { background: rgba(245,166,35,0.08); border: 1px solid rgba(245,166,35,0.3); padding: 0.75rem 1.25rem; font-family: var(--mono); font-size: 0.72rem; color: var(--amber); letter-spacing: 0.04em; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1.5rem; }
   .spinner { width: 14px; height: 14px; border: 2px solid rgba(245,166,35,0.3); border-top-color: var(--amber); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
   footer { border-top: 1px solid var(--border); padding: 1.25rem 2rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); position: relative; z-index: 1; }
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--accent); }
-
   @media (max-width: 1024px) { .dash-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .stat-strip { grid-template-columns: 1fr 1fr; } .account-grid { grid-template-columns: 1fr; } }
   @media (max-width: 640px) { .scanner-grid { grid-template-columns: 1fr; } nav { padding: 0.9rem 1.25rem; } }
 </style>
@@ -210,8 +164,7 @@
     <span style="font-family:var(--mono);font-size:0.72rem;color:var(--accent2);letter-spacing:0.06em;">
       ✓ &nbsp;<strong style="color:var(--white);">Subscription active.</strong> &nbsp;You now have full access to all scanner output, scores, and catalyst deep dives.
     </span>
-    <button onclick="document.getElementById('welcome-banner').style.display='none';sessionStorage.setItem('dismissed_welcome','1');"
-      style="background:none;border:none;font-family:var(--mono);font-size:0.65rem;color:var(--muted);cursor:pointer;letter-spacing:0.08em;">
+    <button onclick="document.getElementById('welcome-banner').style.display='none';sessionStorage.setItem('dismissed_welcome','1');" style="background:none;border:none;font-family:var(--mono);font-size:0.65rem;color:var(--muted);cursor:pointer;letter-spacing:0.08em;">
       Dismiss ✕
     </button>
   </div>
@@ -222,60 +175,30 @@
   <aside class="sidebar">
     <div class="sidebar-section">
       <span class="sidebar-label">Scanners</span>
-      <button class="sidebar-item active" onclick="switchTab(this,'scanner')">
-        <span class="sidebar-icon">📡</span> PDUFA Scanner
-      </button>
-      <button class="sidebar-item" onclick="switchTab(this,'buyout')">
-        <span class="sidebar-icon">🏷️</span> Buyout Scanner
-      </button>
-      <button class="sidebar-item" onclick="switchTab(this,'pr-scanner')">
-        <span class="sidebar-icon">📰</span> PR Scanner
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'">
-        <span class="sidebar-icon">🔄</span> CRL Recovery
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/insider-conviction.html'">
-        <span class="sidebar-icon">👤</span> Insider Conviction
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/pipeline-concentration.html'">
-        <span class="sidebar-icon">🎯</span> Pipeline Risk
-      </button>
+      <button class="sidebar-item active" onclick="switchTab(this,'scanner')"><span class="sidebar-icon">📡</span> PDUFA Scanner</button>
+      <button class="sidebar-item" onclick="switchTab(this,'buyout')"><span class="sidebar-icon">🏷️</span> Buyout Scanner</button>
+      <button class="sidebar-item" onclick="switchTab(this,'pr-scanner')"><span class="sidebar-icon">📰</span> PR Scanner</button>
+      <button class="sidebar-item" onclick="window.location.href='/crl-recovery.html'"><span class="sidebar-icon">🔄</span> CRL Recovery</button>
+      <button class="sidebar-item" onclick="window.location.href='/insider-conviction.html'"><span class="sidebar-icon">👤</span> Insider Conviction</button>
+      <button class="sidebar-item" onclick="window.location.href='/pipeline-concentration.html'"><span class="sidebar-icon">🎯</span> Pipeline Risk</button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Catalysts</span>
-      <button class="sidebar-item" onclick="switchTab(this,'clinical')">
-        <span class="sidebar-icon">🧪</span> Clinical Readouts
-      </button>
-      <button class="sidebar-item" onclick="switchTab(this,'earnings')">
-        <span class="sidebar-icon">📊</span> Earnings
-      </button>
-      <button class="sidebar-item" onclick="switchTab(this,'adcom')">
-        <span class="sidebar-icon">⚖️</span> AdCom
-      </button>
-      <button class="sidebar-item" onclick="switchTab(this,'conferences')">
-        <span class="sidebar-icon">🎤</span> Conferences
-      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'clinical')"><span class="sidebar-icon">🧪</span> Clinical Readouts</button>
+      <button class="sidebar-item" onclick="switchTab(this,'earnings')"><span class="sidebar-icon">📊</span> Earnings</button>
+      <button class="sidebar-item" onclick="switchTab(this,'adcom')"><span class="sidebar-icon">⚖️</span> AdCom</button>
+      <button class="sidebar-item" onclick="switchTab(this,'conferences')"><span class="sidebar-icon">🎤</span> Conferences</button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Tools</span>
-      <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')">
-        <span class="sidebar-icon">📅</span> Full Calendar
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/compare.html'">
-        <span class="sidebar-icon">⚖️</span> Compare
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/research.html'">
-        <span class="sidebar-icon">🤖</span> AI Research
-      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'calendar-tab')"><span class="sidebar-icon">📅</span> Full Calendar</button>
+      <button class="sidebar-item" onclick="window.location.href='/compare.html'"><span class="sidebar-icon">⚖️</span> Compare</button>
+      <button class="sidebar-item" onclick="window.location.href='/research.html'"><span class="sidebar-icon">🤖</span> AI Research</button>
     </div>
     <div class="sidebar-section">
       <span class="sidebar-label">Account</span>
-      <button class="sidebar-item" onclick="switchTab(this,'account')">
-        <span class="sidebar-icon">⚙️</span> Account &amp; Billing
-      </button>
-      <button class="sidebar-item" onclick="window.location.href='/contact.html'">
-        <span class="sidebar-icon">💬</span> Contact Support
-      </button>
+      <button class="sidebar-item" onclick="switchTab(this,'account')"><span class="sidebar-icon">⚙️</span> Account &amp; Billing</button>
+      <button class="sidebar-item" onclick="window.location.href='/contact.html'"><span class="sidebar-icon">💬</span> Contact Support</button>
     </div>
   </aside>
 
@@ -287,26 +210,10 @@
     </div>
 
     <div class="stat-strip">
-      <div class="stat-cell">
-        <div class="stat-label">Elite Setups</div>
-        <div class="stat-val green" id="stat-elite">—</div>
-        <div class="stat-sub">score ≥ 72</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">≤ 30 Days Out</div>
-        <div class="stat-val cyan" id="stat-30d">—</div>
-        <div class="stat-sub">active window</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">Avg PoA</div>
-        <div class="stat-val white" id="stat-poa">—</div>
-        <div class="stat-sub">calendar average</div>
-      </div>
-      <div class="stat-cell">
-        <div class="stat-label">Companies</div>
-        <div class="stat-val white" id="stat-scan">—</div>
-        <div class="stat-sub">unique tickers</div>
-      </div>
+      <div class="stat-cell"><div class="stat-label">Elite Setups</div><div class="stat-val green" id="stat-elite">—</div><div class="stat-sub">score ≥ 72</div></div>
+      <div class="stat-cell"><div class="stat-label">≤ 30 Days Out</div><div class="stat-val cyan" id="stat-30d">—</div><div class="stat-sub">active window</div></div>
+      <div class="stat-cell"><div class="stat-label">Avg PoA</div><div class="stat-val white" id="stat-poa">—</div><div class="stat-sub">calendar average</div></div>
+      <div class="stat-cell"><div class="stat-label">Companies</div><div class="stat-val white" id="stat-scan">—</div><div class="stat-sub">unique tickers</div></div>
     </div>
 
     <div class="tab-panel active" id="tab-scanner">
@@ -350,10 +257,8 @@
     </div>
 
     <div class="tab-panel" id="tab-buyout">
-      <div class="section-header">
-        <h2 class="section-title">Buyout Scanner</h2>
-      </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&A activity.</p>
+      <div class="section-header"><h2 class="section-title">Buyout Scanner</h2></div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&amp;A activity.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="buyout-search" placeholder="Search ticker..." oninput="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;width:200px;">
         <select id="buyout-filter" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -373,13 +278,8 @@
     </div>
 
     <div class="tab-panel" id="tab-pr-scanner">
-      <div class="section-header">
-        <h2 class="section-title">PR Release Scanner</h2>
-        <span class="section-meta" id="pr-timestamp">—</span>
-      </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
-        Linguistic sentiment analysis on biotech press releases. Scores management language for bullish/bearish tells, hedging, and specificity. "Trend toward significance," Friday afternoon dumps, and low-specificity language flagged automatically.
-      </p>
+      <div class="section-header"><h2 class="section-title">PR Release Scanner</h2><span class="section-meta" id="pr-timestamp">—</span></div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">Linguistic sentiment analysis on biotech press releases. Scores management language for bullish/bearish tells, hedging, and specificity. "Trend toward significance," Friday afternoon dumps, and low-specificity language flagged automatically.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
         <select id="pr-signal-filter" onchange="renderPRScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Signals</option>
@@ -411,13 +311,8 @@
     </div>
 
     <div class="tab-panel" id="tab-clinical">
-      <div class="section-header">
-        <h2 class="section-title">Clinical Readouts</h2>
-        <span class="section-meta" id="clinical-count-meta">Loading from ClinicalTrials.gov...</span>
-      </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
-        Phase 2 and Phase 3 primary completion dates, pulled directly from ClinicalTrials.gov v2. Matched to your scanner universe by sponsor name. Hard dates (ACTUAL) flagged separately from estimated windows.
-      </p>
+      <div class="section-header"><h2 class="section-title">Clinical Readouts</h2><span class="section-meta" id="clinical-count-meta">Loading from ClinicalTrials.gov...</span></div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">Phase 2 and Phase 3 primary completion dates, pulled directly from ClinicalTrials.gov v2. Matched to your scanner universe by sponsor name. Hard dates (ACTUAL) flagged separately from estimated windows.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="clinical-search" placeholder="Search ticker..." oninput="renderCatalystGrid('clinical')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
         <select id="clinical-window" onchange="renderCatalystGrid('clinical')" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -432,13 +327,8 @@
     </div>
 
     <div class="tab-panel" id="tab-earnings">
-      <div class="section-header">
-        <h2 class="section-title">Biotech Earnings Calendar</h2>
-        <span class="section-meta" id="earnings-count-meta">Loading from Finnhub...</span>
-      </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
-        Upcoming earnings for biotechs in your scanner universe. Market-cap tier shown for context. Pre-earnings drift and post-earnings volatility are especially relevant when PDUFA setups overlap with earnings windows.
-      </p>
+      <div class="section-header"><h2 class="section-title">Biotech Earnings Calendar</h2><span class="section-meta" id="earnings-count-meta">Loading from Finnhub...</span></div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">Upcoming earnings for biotechs in your scanner universe. Market-cap tier shown for context. Pre-earnings drift and post-earnings volatility are especially relevant when PDUFA setups overlap with earnings windows.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="earnings-search" placeholder="Search ticker..." oninput="renderCatalystGrid('earnings')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
         <select id="earnings-window" onchange="renderCatalystGrid('earnings')" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -451,13 +341,8 @@
     </div>
 
     <div class="tab-panel" id="tab-adcom">
-      <div class="section-header">
-        <h2 class="section-title">FDA Advisory Committee Meetings</h2>
-        <span class="section-meta" id="adcom-count-meta">Loading from Federal Register...</span>
-      </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
-        Scheduled FDA advisory committee meetings, pulled from the Federal Register API. Committee votes historically drive 30-60% single-day moves. When committee ticker can be resolved from the drug name, we match it to your scanner universe.
-      </p>
+      <div class="section-header"><h2 class="section-title">FDA Advisory Committee Meetings</h2><span class="section-meta" id="adcom-count-meta">Loading from Federal Register...</span></div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">Scheduled FDA advisory committee meetings, pulled from the Federal Register API. Committee votes historically drive 30-60% single-day moves. When committee ticker can be resolved from the drug name, we match it to your scanner universe.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="adcom-search" placeholder="Search ticker or drug..." oninput="renderCatalystGrid('adcom')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:180px;">
       </div>
@@ -465,13 +350,8 @@
     </div>
 
     <div class="tab-panel" id="tab-conferences">
-      <div class="section-header">
-        <h2 class="section-title">Medical Conferences</h2>
-        <span class="section-meta" id="conf-count-meta">Loading...</span>
-      </div>
-      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">
-        Upcoming oncology, immunology, and therapeutic-area conferences. Abstract release dates and presentation windows drive catalyst-style price action. Tickers are matched when presenting companies are listed in the conference manifest.
-      </p>
+      <div class="section-header"><h2 class="section-title">Medical Conferences</h2><span class="section-meta" id="conf-count-meta">Loading...</span></div>
+      <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">Upcoming oncology, immunology, and therapeutic-area conferences. Abstract release dates and presentation windows drive catalyst-style price action. Tickers are matched when presenting companies are listed in the conference manifest.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="conf-search" placeholder="Search conference or ticker..." oninput="renderCatalystGrid('conferences')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:220px;">
       </div>
@@ -479,58 +359,30 @@
     </div>
 
     <div class="tab-panel" id="tab-calendar-tab">
-      <div class="section-header">
-        <h2 class="section-title">Full Calendar</h2>
-        <a href="/calendar.html" style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;">Open Full Calendar →</a>
-      </div>
-      <p style="font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.06em;">
-        View the full sortable PDUFA calendar with all filters on the dedicated calendar page.
-      </p>
+      <div class="section-header"><h2 class="section-title">Full Calendar</h2><a href="/calendar.html" style="font-family:var(--mono);font-size:0.68rem;color:var(--accent);text-decoration:none;letter-spacing:0.08em;">Open Full Calendar →</a></div>
+      <p style="font-family:var(--mono);font-size:0.75rem;color:var(--muted);letter-spacing:0.06em;">View the full sortable PDUFA calendar with all filters on the dedicated calendar page.</p>
     </div>
 
     <div class="tab-panel" id="tab-account">
-      <div class="section-header">
-        <h2 class="section-title">Account &amp; Billing</h2>
-      </div>
+      <div class="section-header"><h2 class="section-title">Account &amp; Billing</h2></div>
       <div class="account-panel">
         <div class="account-grid">
           <div>
-            <div class="account-field">
-              <div class="account-field-label">Email</div>
-              <div class="account-field-val" id="acct-email">—</div>
-            </div>
-            <div class="account-field">
-              <div class="account-field-label">Subscription Status</div>
-              <div class="account-field-val status-active" id="acct-status">
-                <span class="status-dot"></span> <span id="acct-status-text">Checking...</span>
-              </div>
-            </div>
-            <div class="account-field">
-              <div class="account-field-label">Plan</div>
-              <div class="account-field-val">$29.99 / month</div>
-            </div>
+            <div class="account-field"><div class="account-field-label">Email</div><div class="account-field-val" id="acct-email">—</div></div>
+            <div class="account-field"><div class="account-field-label">Subscription Status</div><div class="account-field-val status-active" id="acct-status"><span class="status-dot"></span> <span id="acct-status-text">Checking...</span></div></div>
+            <div class="account-field"><div class="account-field-label">Plan</div><div class="account-field-val">$29.99 / month</div></div>
           </div>
           <div>
-            <div class="account-field">
-              <div class="account-field-label">Member Since</div>
-              <div class="account-field-val" id="acct-since">—</div>
-            </div>
-            <div class="account-field">
-              <div class="account-field-label">Next Billing Date</div>
-              <div class="account-field-val" id="acct-next">—</div>
-            </div>
-            <div class="account-field" style="margin-top:1.5rem">
-              <a href="#" class="btn-portal" id="billing-portal-btn">Manage Billing →</a>
-            </div>
+            <div class="account-field"><div class="account-field-label">Member Since</div><div class="account-field-val" id="acct-since">—</div></div>
+            <div class="account-field"><div class="account-field-label">Next Billing Date</div><div class="account-field-val" id="acct-next">—</div></div>
+            <div class="account-field" style="margin-top:1.5rem"><a href="#" class="btn-portal" id="billing-portal-btn">Manage Billing →</a></div>
           </div>
         </div>
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:2rem;">
         <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem;">Need help?</div>
-        <div style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:0.85rem;">
-          Billing questions, access issues, feature requests, feedback — I answer email personally, usually within a few hours.
-        </div>
+        <div style="font-family:var(--sans);font-size:0.85rem;color:var(--text);line-height:1.7;margin-bottom:0.85rem;">Billing questions, access issues, feature requests, feedback — I answer email personally, usually within a few hours.</div>
         <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
           <a href="/contact.html" class="btn-portal">💬 Contact Page →</a>
           <a href="mailto:dsrackler@gmail.com" class="btn-portal">✉️ Email Me</a>
@@ -538,10 +390,7 @@
         </div>
       </div>
 
-      <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;">
-        ⚠️ Submarine Catalyst is a quantitative scoring tool only. It is not investment advice.
-        All trading decisions are solely your own. PDUFA binary events carry substantial risk of loss.
-      </div>
+      <div style="background:rgba(245,166,35,0.06);border:1px solid rgba(245,166,35,0.2);padding:1rem 1.25rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);line-height:1.7;letter-spacing:0.03em;">⚠️ Submarine Catalyst is a quantitative scoring tool only. It is not investment advice. All trading decisions are solely your own. PDUFA binary events carry substantial risk of loss.</div>
     </div>
 
   </div>
@@ -560,103 +409,79 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/js/config.js"></script>
 <script>
-// ─── LIVE SCANNER DATA — fetched from Supabase ───────────────────────────────
-let SCANNER_DATA = [];
-// ─── MANUAL CMO / 483 OVERRIDES (v5.2) ────────────────────────────────────
-// Until OII Inspections & Citations API is wired into score-events, I maintain
-// 483 flags manually from FDA Data Dashboard research. Set cmo_audit_flag=true
-// for any ticker whose CMO has received a Form 483 within the last 18 months.
-// Merged into SCANNER_DATA at mapping time — wins over (or fills in for) the
-// API value whenever set to true.
+// ═══════════════════════════════════════════════════════════════════════════
+// CORE STATE + HELPERS — defined FIRST so everything downstream can use them
+// ═══════════════════════════════════════════════════════════════════════════
+
+var SCANNER_DATA = [];
+
 var MANUAL_CMC_OVERRIDES = {
   'GRCE': { cmo_audit_flag: true },
-  // Example — uncomment & edit as I find new 483s:
-  // 'XYZ':  { cmo_audit_flag: true },
 };
 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
 function daysUntil(dateStr) {
-  const today = new Date(); today.setHours(0,0,0,0);
+  var today = new Date(); today.setHours(0,0,0,0);
   return Math.round((new Date(dateStr) - today) / 86400000);
 }
 function daysPill(days) {
-  if (days < 0) return `<span class="days-pill days-far">RESOLVED</span>`;
-  const cls = days <= 7 ? 'days-hot' : days <= 30 ? 'days-warm' : 'days-watch';
-  return `<span class="days-pill ${cls}">${days}d</span>`;
+  if (days < 0) return '<span class="days-pill days-far">RESOLVED</span>';
+  var cls = days <= 7 ? 'days-hot' : days <= 30 ? 'days-warm' : 'days-watch';
+  return '<span class="days-pill ' + cls + '">' + days + 'd</span>';
 }
 function gradeClass(g) { return {ELITE:'elite',STRONG:'strong',WATCH:'watch',WEAK:'weak'}[g]||'weak'; }
 function gradeBadge(g) {
-  const m = {ELITE:['grade-elite','🚀 ELITE'],STRONG:['grade-strong','⚡ STRONG'],WATCH:['grade-watch','🟡 WATCH'],WEAK:['grade-weak','⚪ WEAK']};
-  const [cls,lbl] = m[g]||['grade-weak',g];
-  return `<span class="card-grade ${cls}">${lbl}</span>`;
+  var m = {ELITE:['grade-elite','🚀 ELITE'],STRONG:['grade-strong','⚡ STRONG'],WATCH:['grade-watch','🟡 WATCH'],WEAK:['grade-weak','⚪ WEAK']};
+  var pair = m[g]||['grade-weak',g];
+  return '<span class="card-grade ' + pair[0] + '">' + pair[1] + '</span>';
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// NET EDGE — defined BEFORE renderScanner so hoisting always covers the call.
+// This was the bug in the previous revision: ordering looked fine on paper,
+// but mixing block-scoped `const`/`let` with a function that called
+// computeNetEdge via forEach closure caused a ReferenceError in some builds.
+// Fix: define it here, at the top, as a standard function declaration.
+// ═══════════════════════════════════════════════════════════════════════════
+function computeNetEdge(d) {
+  var base = Number(d.net_edge_score) || Number(d.score) || 0;
+  var inn = Number(d.innovation_score) || 0;
+  if (inn > 0) {
+    base += (inn - 50) * 0.15;
+  }
+  return Math.max(0, Math.min(100, Math.round(base * 10) / 10));
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
 // CLIENT-SIDE DATA HYGIENE
-// Every defense below runs at render time so bad DB data never reaches users.
 // ═══════════════════════════════════════════════════════════════════════════
 
-// Drug name (lowercase substring) → corrected indication.
-// Same philosophy as the server-side drug_indication_map table, mirrored here
-// as belt-and-suspenders defense. If score-events lags or misclassifies, the
-// dashboard still shows the right indication.
 var DRUG_INDICATION_OVERRIDE = {
-  'tolebrutinib':              'Multiple Sclerosis',
-  'lecanemab':                 "Alzheimer's Disease",
-  'leqembi':                   "Alzheimer's Disease",
-  'sabirnetug':                "Alzheimer's Disease",
-  'acu193':                    "Alzheimer's Disease",
-  'zilganersen':               'Alexander Disease',
-  'olezarsen':                 'Familial Chylomicronemia Syndrome',
-  'ulixacaltamide':            'Essential Tremor',
-  'nimodipine':                'Subarachnoid Hemorrhage',
-  'auvelity':                  'Major Depressive Disorder',
-  'dexmethylphenidate':        'ADHD',
-  'igalmi':                    'Agitation (Bipolar/Schizophrenia)',
-  'vepdegestrant':             'ER+ HER2- Breast Cancer',
-  'gedatolisib':               'HR+ HER2- Breast Cancer',
-  'iberdomide':                'Multiple Myeloma',
-  'anitocabtagene':            'Multiple Myeloma',
-  'anito-cel':                 'Multiple Myeloma',
-  'zidesamtinib':              'ROS1+ NSCLC',
-  'augtyro':                   'ROS1+ / NTRK+ NSCLC',
-  'ivonescimab':               'Non-Small Cell Lung Cancer',
-  'zanzalintinib':             'Renal Cell Carcinoma',
-  'bezuclastinib':             'Systemic Mastocytosis',
-  'ameluz':                    'Actinic Keratosis',
-  'edotreotide':               'Neuroendocrine Tumor Imaging',
-  'efgartigimod':              'Myasthenia Gravis',
-  'vyvgart':                   'Myasthenia Gravis',
-  'imsidolimab':               'Generalized Pustular Psoriasis',
-  'atacicept':                 'IgA Nephropathy',
-  'molbreevi':                 'Autoimmune Pulmonary Alveolar Proteinosis',
-  'tzield':                    'Type 1 Diabetes',
-  'teplizumab':                'Type 1 Diabetes',
-  'lifyorli':                  "Cushing's Syndrome",
-  'relacorilant':              "Cushing's Syndrome",
-  'lorundrostat':              'Hypertension',
-  'pariglasgene':              'Ornithine Transcarbamylase Deficiency',
-  'brecaparvovec':             'Ornithine Transcarbamylase Deficiency',
-  'ino-3107':                  'Recurrent Respiratory Papillomatosis',
-  'deramiocel':                'Duchenne Muscular Dystrophy',
-  'tebipenem':                 'Complicated UTI',
-  'mrna-1010':                 'Seasonal Influenza',
-  'clesrovimab':               'RSV Prevention (Infant)',
-  'enflonsia':                 'RSV Prevention (Infant)',
-  'furoscix':                  'Heart Failure (Congestion)',
-  'oxylanthanum':              'Hyperphosphatemia (ESRD)',
-  'norelgestromin':            'Contraception (Transdermal)',
-  'syfovre':                   'Geographic Atrophy',
-  'vrdn-001':                  'Thyroid Eye Disease',
-  'veligrotug':                'Thyroid Eye Disease'
+  'tolebrutinib':'Multiple Sclerosis','lecanemab':"Alzheimer's Disease",'leqembi':"Alzheimer's Disease",
+  'sabirnetug':"Alzheimer's Disease",'acu193':"Alzheimer's Disease",'zilganersen':'Alexander Disease',
+  'olezarsen':'Familial Chylomicronemia Syndrome','ulixacaltamide':'Essential Tremor',
+  'nimodipine':'Subarachnoid Hemorrhage','auvelity':'Major Depressive Disorder',
+  'dexmethylphenidate':'ADHD','igalmi':'Agitation (Bipolar/Schizophrenia)',
+  'vepdegestrant':'ER+ HER2- Breast Cancer','gedatolisib':'HR+ HER2- Breast Cancer',
+  'iberdomide':'Multiple Myeloma','anitocabtagene':'Multiple Myeloma','anito-cel':'Multiple Myeloma',
+  'zidesamtinib':'ROS1+ NSCLC','augtyro':'ROS1+ / NTRK+ NSCLC','ivonescimab':'Non-Small Cell Lung Cancer',
+  'zanzalintinib':'Renal Cell Carcinoma','bezuclastinib':'Systemic Mastocytosis',
+  'ameluz':'Actinic Keratosis','edotreotide':'Neuroendocrine Tumor Imaging',
+  'efgartigimod':'Myasthenia Gravis','vyvgart':'Myasthenia Gravis',
+  'imsidolimab':'Generalized Pustular Psoriasis','atacicept':'IgA Nephropathy',
+  'molbreevi':'Autoimmune Pulmonary Alveolar Proteinosis','tzield':'Type 1 Diabetes',
+  'teplizumab':'Type 1 Diabetes','lifyorli':"Cushing's Syndrome",'relacorilant':"Cushing's Syndrome",
+  'lorundrostat':'Hypertension','pariglasgene':'Ornithine Transcarbamylase Deficiency',
+  'brecaparvovec':'Ornithine Transcarbamylase Deficiency','ino-3107':'Recurrent Respiratory Papillomatosis',
+  'deramiocel':'Duchenne Muscular Dystrophy','tebipenem':'Complicated UTI',
+  'mrna-1010':'Seasonal Influenza','clesrovimab':'RSV Prevention (Infant)',
+  'enflonsia':'RSV Prevention (Infant)','furoscix':'Heart Failure (Congestion)',
+  'oxylanthanum':'Hyperphosphatemia (ESRD)','norelgestromin':'Contraception (Transdermal)',
+  'syfovre':'Geographic Atrophy','vrdn-001':'Thyroid Eye Disease','veligrotug':'Thyroid Eye Disease'
 };
 
-// Applies the override at render time. Mutates the event so downstream
-// display picks up the corrected indication.
 function fixIndication(d) {
   if (!d || !d.drug) return;
   var drugLower = String(d.drug).toLowerCase();
-  // Try longest-match-first so "anitocabtagene" beats "tacel"
   var keys = Object.keys(DRUG_INDICATION_OVERRIDE).sort(function(a, b) { return b.length - a.length; });
   for (var i = 0; i < keys.length; i++) {
     if (drugLower.indexOf(keys[i]) >= 0) {
@@ -664,93 +489,53 @@ function fixIndication(d) {
       return;
     }
   }
-  // No override found — but if current indication is "Infectious" and the drug
-  // doesn't look infectious, promote to "Unknown" (better than lying).
   if (d.indication === 'Infectious') {
     var infectiousLike = /mrna|vaccine|tebipenem|clesrovimab|enflonsia|antibiotic|antiviral|bacteri|viral|flu|covid|rsv|hpv|hiv|sepsis|pneumon|infect/i;
-    if (!infectiousLike.test(d.drug)) {
-      d.indication = 'Unknown';
-    }
+    if (!infectiousLike.test(d.drug)) d.indication = 'Unknown';
   }
 }
 
-// Defensive filter: hide any row with a broken drug field OR unscored data.
-// Every pattern here corresponds to a real failure mode seen in the wild.
 function isBrokenRow(d) {
-  // Strict-minimal gate: if the DB shipped it with a ticker and a date, we
-  // show it. The dashboard is not the gatekeeper — score-events is. Garbage
-  // drug fields get cleaned at render time via cleanDrugDisplay, not hidden.
   if (!d) return true;
   var drug = String(d.drug || '').trim();
   var ticker = String(d.ticker || '').trim().toUpperCase();
-  if (!ticker || !d.date) return true;                  // must have ticker + date
-  if (!drug) return true;                               // must have some drug field
-
+  if (!ticker || !d.date) return true;
+  if (!drug) return true;
   var drugU = drug.toUpperCase();
-
-  // Only truly-unusable drug fields get cut:
-  if (drugU === ticker) return true;                    // drug literally equals ticker
+  if (drugU === ticker) return true;
   if (drug.indexOf('AI_RESOLUTION_FAILED') >= 0) return true;
   if (drug.indexOf('⚠️ DRUG NAME PLACEHOLDER') >= 0) return true;
   if (drug.indexOf('drug name needs update') >= 0) return true;
   if (/^(placeholder|tbd|unknown|pending|null)$/i.test(drug)) return true;
-
-  // Known wrong ticker/drug pairs from ticker-drift incidents
   if (ticker === 'MGNX' && /tzield|teplizumab/i.test(drug)) return true;
   if (ticker === 'MRK'  && drugU === 'IDVYNSO') return true;
-
   return false;
 }
 
-// Normalize the drug string for display — strip SEC/FDA boilerplate that
-// leaks in via scraping so cards render cleanly even when drug resolution
-// hasn't completed. Returns the cleaned string; if nothing usable remains,
-// returns an empty string and the card shows a fallback.
-// Expanded generic-drug suffix regex. Biotech INN suffixes cover the vast
-// majority of real drug names. This is conservative enough to avoid matching
-// common English words, but much broader than before.
 var DRUG_SUFFIX_RE = /\b([A-Za-z][a-z]{3,}(?:inib|mab|nib|tide|tinib|citabine|lizumab|tuzumab|ciclib|parib|denib|rafenib|bulin|sertib|platin|mustine|rubicin|gene|sen|stat|cel|parvovec|mide|zole|cept|vir|dine|pine|pril|sartan|olol|profen|floxacin|triptan|rasen|grel|lukast|azepine|barbital|setron|vudine|caine|codone|morphone|prazole|glitazone|stat|xetine|olone|mycin|cycline|penem|cillin|estrant|gestrant|dostat|lisib|azib))\b/i;
-
-// Match any candidate drug-name-like token: CamelCase brand (≥5 chars),
-// all-caps code (≥3 chars, contains at least one digit OR ≥4 letters),
-// hyphenated code like MRNA-1345 or INO-3107.
-var BRAND_RE = /\b([A-Z][a-z]{3,}(?:[A-Z][a-z]+)*)\b/;
 var CODE_RE  = /\b([A-Z]{2,6}[-\s]?\d{2,5}[A-Z]?\d?)\b/;
 var PAREN_RE = /\(([A-Z][A-Za-z0-9\-]{2,})\)/;
 
-// Words that look like drug names but aren't — used to reject false positives.
-// This list is aggressive by design: any CamelCase word that commonly starts
-// sentences in SEC boilerplate or PDUFA press releases belongs here.
 var DRUG_STOPWORDS = {
-  'FDA':1,'PDUFA':1,'CRL':1,'NDA':1,'BLA':1,'SNDA':1,'SBLA':1,'NME':1,'API':1,
-  'EMA':1,'CDER':1,'CBER':1,'OTC':1,'CEO':1,'CFO':1,'CMO':1,'USA':1,'USP':1,
-  'March':1,'April':1,'June':1,'July':1,'August':1,'September':1,'October':1,
-  'November':1,'December':1,'January':1,'February':1,'May':1,
-  'Monday':1,'Tuesday':1,'Wednesday':1,'Thursday':1,'Friday':1,'Saturday':1,
-  'Phase':1,'Priority':1,'Breakthrough':1,'Orphan':1,'Fast':1,'Track':1,
-  'Company':1,'Corporation':1,'Incorporated':1,'Limited':1,'Sciences':1,
-  'Therapeutics':1,'Pharmaceuticals':1,'Biosciences':1,'Holdings':1,
-  // Common sentence-starters in SEC filings & press releases — HIGH FP risk
-  'Forward':1,'Target':1,'Reported':1,'Statement':1,'Statements':1,
-  'Following':1,'Regarding':1,'Current':1,'Future':1,'Updated':1,
-  'Additional':1,'Previous':1,'Including':1,'Related':1,'Based':1,
-  'Various':1,'Several':1,'Multiple':1,'Single':1,'Certain':1,
-  'Specific':1,'General':1,'Overall':1,'Potential':1,'Expected':1,
-  'Announced':1,'Announces':1,'Announcement':1,'Anticipated':1,
-  'Pending':1,'Ongoing':1,'Planned':1,'Submitted':1,'Granted':1,
-  'Accepted':1,'Received':1,'Approved':1,'Rejected':1,'Scheduled':1,
-  'Completed':1,'Initiated':1,'Started':1,'Reviewed':1,'Assigned':1,
-  'Evaluated':1,'Confirmed':1,'Positive':1,'Negative':1,'Mixed':1,
-  'Study':1,'Trial':1,'Cohort':1,'Patients':1,'Subjects':1,'Primary':1,
-  'Secondary':1,'Efficacy':1,'Safety':1,'Regulatory':1,'Commercial':1,
-  'Clinical':1,'Therapy':1,'Treatment':1,'Disease':1,'Patient':1,
-  'Update':1,'Progress':1,'Milestone':1,'Decision':1,'Action':1,
-  'Process':1,'Pathway':1,'Mechanism':1,'Evidence':1,'Results':1,
+  'FDA':1,'PDUFA':1,'CRL':1,'NDA':1,'BLA':1,'SNDA':1,'SBLA':1,'NME':1,'API':1,'EMA':1,'CDER':1,'CBER':1,
+  'OTC':1,'CEO':1,'CFO':1,'CMO':1,'USA':1,'USP':1,'March':1,'April':1,'June':1,'July':1,'August':1,
+  'September':1,'October':1,'November':1,'December':1,'January':1,'February':1,'May':1,
+  'Monday':1,'Tuesday':1,'Wednesday':1,'Thursday':1,'Friday':1,'Saturday':1,'Phase':1,'Priority':1,
+  'Breakthrough':1,'Orphan':1,'Fast':1,'Track':1,'Company':1,'Corporation':1,'Incorporated':1,
+  'Limited':1,'Sciences':1,'Therapeutics':1,'Pharmaceuticals':1,'Biosciences':1,'Holdings':1,
+  'Forward':1,'Target':1,'Reported':1,'Statement':1,'Statements':1,'Following':1,'Regarding':1,
+  'Current':1,'Future':1,'Updated':1,'Additional':1,'Previous':1,'Including':1,'Related':1,'Based':1,
+  'Various':1,'Several':1,'Multiple':1,'Single':1,'Certain':1,'Specific':1,'General':1,'Overall':1,
+  'Potential':1,'Expected':1,'Announced':1,'Announces':1,'Announcement':1,'Anticipated':1,
+  'Pending':1,'Ongoing':1,'Planned':1,'Submitted':1,'Granted':1,'Accepted':1,'Received':1,
+  'Approved':1,'Rejected':1,'Scheduled':1,'Completed':1,'Initiated':1,'Started':1,'Reviewed':1,
+  'Assigned':1,'Evaluated':1,'Confirmed':1,'Positive':1,'Negative':1,'Mixed':1,'Study':1,'Trial':1,
+  'Cohort':1,'Patients':1,'Subjects':1,'Primary':1,'Secondary':1,'Efficacy':1,'Safety':1,
+  'Regulatory':1,'Commercial':1,'Clinical':1,'Therapy':1,'Treatment':1,'Disease':1,'Patient':1,
+  'Update':1,'Progress':1,'Milestone':1,'Decision':1,'Action':1,'Process':1,'Pathway':1,
+  'Mechanism':1,'Evidence':1,'Results':1
 };
 
-// Structured extraction. Reliable patterns (INN suffix, paren, hyphenated code)
-// run first on every text source. Unreliable pattern (BRAND_RE / CamelCase)
-// runs ONLY as last resort because it false-positives on sentence-start words.
 function extractReliable(text) {
   if (!text) return '';
   var m = text.match(DRUG_SUFFIX_RE);
@@ -763,17 +548,13 @@ function extractReliable(text) {
 }
 function extractBrand(text) {
   if (!text) return '';
-  // BRAND_RE is noise-prone — find ALL candidates and return the first that
-  // isn't a stopword AND isn't the first word of the sentence (most FPs
-  // come from sentence-initial words like "Forward-looking...").
   var matches = [];
   var re = /\b([A-Z][a-z]{3,}(?:[A-Z][a-z]+)*)\b/g;
   var m;
   while ((m = re.exec(text)) !== null) matches.push({ word: m[1], idx: m.index });
-  // Skip the first word of the text if it's within the first 3 chars
   for (var k = 0; k < matches.length; k++) {
     var cand = matches[k];
-    if (cand.idx <= 2) continue; // likely sentence-start stopword territory
+    if (cand.idx <= 2) continue;
     if (DRUG_STOPWORDS[cand.word]) continue;
     if (cand.word.length < 5) continue;
     return cand.word;
@@ -781,19 +562,10 @@ function extractBrand(text) {
   return '';
 }
 
-// Full-event drug-name resolver. Strategy:
-//   1. If drug field is clean (no sentence markers), return it verbatim.
-//   2. Run RELIABLE extraction (INN suffix, paren, code) on drug field.
-//   3. Run RELIABLE extraction on flags, expected_move, appreciation_signals.
-//   4. LAST RESORT: run BRAND extraction on drug field (high FP risk).
-// Returns { name, confident }. confident=false → caller shows fallback.
 function resolveDrugName(d) {
   if (!d) return { name: '', confident: false };
   var raw = String(d.drug || '').trim();
-  var drug = raw
-    .replace(/^[§*†]\s*/, '')
-    .replace(/^AUTO-RESOLVED:\s*/i, '');
-
+  var drug = raw.replace(/^[§*†]\s*/, '').replace(/^AUTO-RESOLVED:\s*/i, '');
   var sentenceLike = (
     /forward.?looking\s+statement/i.test(drug) ||
     /^The\s+(FDA|PDUFA|agency)/i.test(drug) ||
@@ -804,28 +576,16 @@ function resolveDrugName(d) {
     /priority\s+review.*PDUFA/i.test(drug) ||
     (drug.length > 90 && /\./.test(drug))
   );
-
-  // Step 0: drug_assets lookup — if the canonical drug-asset table has a
-  // row matching this event's (ticker, date) pair, use that name. This is
-  // the source of truth: drug_assets is maintained independently of the
-  // PDUFA event stream, so it never ships sentence boilerplate. Wins over
-  // anything extracted from the drug field itself.
   if (window.DRUG_ASSETS_MAP && d.ticker && d.date) {
     var key = d.ticker + '|' + d.date;
     var fromAssets = window.DRUG_ASSETS_MAP[key];
     if (fromAssets) return { name: fromAssets, confident: true };
   }
-
-  // Step 1: clean drug name already (not a sentence, reasonable length)
   if (!sentenceLike && drug.length > 0 && drug.length < 120) {
     return { name: drug, confident: true };
   }
-
-  // Step 2: reliable extraction from drug field
   var fromDrug = extractReliable(drug);
   if (fromDrug) return { name: fromDrug, confident: true };
-
-  // Step 3a: scan flags for AUTO-RESOLVED hint (structured signal)
   if (Array.isArray(d.flags)) {
     for (var i = 0; i < d.flags.length; i++) {
       var f = String(d.flags[i] || '');
@@ -834,63 +594,39 @@ function resolveDrugName(d) {
         return { name: autoM[1], confident: true };
       }
     }
-    // Step 3b: reliable extraction on each flag
     for (var i2 = 0; i2 < d.flags.length; i2++) {
       var fromFlag = extractReliable(String(d.flags[i2] || ''));
       if (fromFlag) return { name: fromFlag, confident: true };
     }
   }
-
-  // Step 4: reliable extraction on expected_move text
   var em = extractReliable(d.expected_move);
   if (em) return { name: em, confident: true };
-
-  // Step 5: reliable extraction on appreciation_signals
   if (Array.isArray(d.appreciation_signals)) {
     for (var j = 0; j < d.appreciation_signals.length; j++) {
       var sig = extractReliable(String(d.appreciation_signals[j] || ''));
       if (sig) return { name: sig, confident: true };
     }
   }
-
-  // Step 6: LAST RESORT brand extraction (high FP risk, used only when
-  // reliable paths all failed).
   var brandFromDrug = extractBrand(drug);
   if (brandFromDrug) return { name: brandFromDrug, confident: true };
-
   return { name: '', confident: false };
 }
 
-// Build the display name for the card. If we resolved a drug name, use it.
-// If not, build a differentiating label from indication + type so same-ticker
-// multi-PDUFA events never look identical.
 function buildCardDrugLabel(d) {
   var resolved = resolveDrugName(d);
   if (resolved.confident && resolved.name) return { html: resolved.name };
   var ind = String(d.indication || '').trim();
   var type = String(d.type || 'PDUFA').trim();
   if (ind && ind !== 'Unknown' && ind !== 'Infectious' && ind.toLowerCase() !== 'null') {
-    return {
-      html: type + ' — ' + ind + ' <span style="color:var(--muted);font-style:italic;font-size:0.72rem;">(drug name pending)</span>'
-    };
+    return { html: type + ' — ' + ind + ' <span style="color:var(--muted);font-style:italic;font-size:0.72rem;">(drug name pending)</span>' };
   }
-  return {
-    html: '<span style="color:var(--muted);font-style:italic;">' + type + ' ' + (d.date || '') + ' — name pending</span>'
-  };
+  return { html: '<span style="color:var(--muted);font-style:italic;">' + type + ' ' + (d.date || '') + ' — name pending</span>' };
 }
 
-// Backward-compat shim
-function cleanDrugDisplay(raw) {
-  return resolveDrugName({ drug: raw }).name || '';
-}
+function cleanDrugDisplay(raw) { return resolveDrugName({ drug: raw }).name || ''; }
 
-// Dedupe: only collapse TRUE duplicates — same ticker + same drug + same date.
-// The old keyword-based dedupe (ticker|first-word-of-drug) was collapsing
-// distinct events from the same ticker (multiple PDUFAs, different drugs,
-// different dates). We only want to suppress literal row duplicates.
 function dedupeEvents(events) {
-  var out = [];
-  var seen = {};
+  var out = [], seen = {};
   for (var i = 0; i < events.length; i++) {
     var d = events[i];
     var key = (d.ticker || '') + '|' + String(d.drug || '').toLowerCase().trim() + '|' + (d.date || '');
@@ -901,14 +637,50 @@ function dedupeEvents(events) {
   return out;
 }
 
+// ─── INNOVATION HEURISTIC + NORMALIZER ───────────────────────────────────────
+function computeInnovationHeuristic(d) {
+  var score = 0, signals = [];
+  var flagsBlob = (d.flags || []).concat(d.appreciation_signals || [], d.innovation_flags || []).join(' ').toLowerCase();
+  var indication = String(d.indication || '').toLowerCase();
+  var type = String(d.type || '').toLowerCase();
+  if (/first.?in.?class|first.?to.?reach|no approved treatments|novel mechanism|novel moa/.test(flagsBlob)) { score += 32; signals.push('First-in-class mechanism'); }
+  if (/best.?in.?class|superior to|head.?to.?head/.test(flagsBlob)) { score += 20; signals.push('Best-in-class data'); }
+  if (/disease.?modifying/.test(flagsBlob)) { score += 15; signals.push('Disease-modifying therapy'); }
+  if (/label expansion|platform|multiple indications/.test(flagsBlob)) { score += 12; signals.push('Label expansion setup'); }
+  if (/priority review/.test(flagsBlob) || type.indexOf('priority') >= 0) { score += 8; signals.push('Priority review'); }
+  if (/orphan|rare disease|ultra.?rare/.test(flagsBlob)) { score += 10; signals.push('Orphan designation'); }
+  if (/subcutaneous|once.?weekly|once.?monthly|long.?acting/.test(flagsBlob)) { score += 10; signals.push('Improved route of administration'); }
+  var tam = Number(d.tam_ratio) || 0;
+  if (tam >= 10) { score += 10; signals.push('TAM/Cap ' + tam + 'x — large market relative to cap'); }
+  else if (tam >= 5) { score += 6; } else if (tam >= 3) { score += 3; }
+  if (/alzheimer|oncology|myeloma|breast cancer|nsclc|gene therapy|cell therapy/.test(indication)) score += 6;
+  if (score === 0 && d.drug && d.drug.trim()) score = 20;
+  return { score: Math.min(100, score), signals: signals };
+}
+
+function normalizeInnovation(d) {
+  var raw = Number(d.innovation_score);
+  var hasServerScore = isFinite(raw) && raw > 0;
+  if (hasServerScore) {
+    if (raw <= 25) d.innovation_score = raw * 4;
+  } else {
+    var computed = computeInnovationHeuristic(d);
+    d.innovation_score = computed.score;
+    if (computed.signals.length > 0 && (!d.appreciation_signals || d.appreciation_signals.length === 0)) {
+      d.appreciation_signals = computed.signals;
+    }
+  }
+  var s = Number(d.innovation_score) || 0;
+  if (s > 0) d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
+}
+
 // ─── POLYGON LIVE MARKET DATA ─────────────────────────────────────────────────
 var PRICE_DATA = {};
 
 function classifyChart(change30d, volRatio, bars) {
   var consolidating = false;
   if (bars.length >= 20) {
-    var recent = bars.slice(-10);
-    var prior = bars.slice(-20, -10);
+    var recent = bars.slice(-10), prior = bars.slice(-20, -10);
     var recentRange = Math.max.apply(null, recent.map(function(b){return b.h;})) - Math.min.apply(null, recent.map(function(b){return b.l;}));
     var priorRange = Math.max.apply(null, prior.map(function(b){return b.h;})) - Math.min.apply(null, prior.map(function(b){return b.l;}));
     if (priorRange > 0 && recentRange / priorRange < 0.65) consolidating = true;
@@ -937,15 +709,9 @@ async function polyBulkSnapshot(tickers) {
         if (!t || !t.ticker) return;
         var price = (t.lastTrade && t.lastTrade.p) || (t.day && t.day.c) || (t.prevDay && t.prevDay.c) || 0;
         if (!(price > 0)) return;
-        result[t.ticker] = {
-          price: price,
-          todayChange: typeof t.todaysChangePerc === 'number' ? t.todaysChangePerc : 0,
-          prevClose: (t.prevDay && t.prevDay.c) || 0,
-        };
+        result[t.ticker] = { price: price, todayChange: typeof t.todaysChangePerc === 'number' ? t.todaysChangePerc : 0, prevClose: (t.prevDay && t.prevDay.c) || 0 };
       });
-    } catch (err) {
-      console.warn('[SC] Bulk snapshot failed:', err);
-    }
+    } catch (err) { console.warn('[SC] Bulk snapshot failed:', err); }
   }
   console.log('[SC] Bulk snapshot: live prices for ' + Object.keys(result).length + '/' + tickers.length + ' tickers');
   return result;
@@ -964,10 +730,7 @@ function applyBulkSnapshot(snap) {
 }
 
 async function fetchPriceData(tickers) {
-  if (!SC_CONFIG.polygonApiKey) {
-    console.warn('[SC] No polygonApiKey in SC_CONFIG');
-    return;
-  }
+  if (!SC_CONFIG.polygonApiKey) { console.warn('[SC] No polygonApiKey in SC_CONFIG'); return; }
   var apiKey = SC_CONFIG.polygonApiKey;
   var today = new Date();
   var ago = new Date(today); ago.setDate(ago.getDate() - 35);
@@ -982,12 +745,10 @@ async function fetchPriceData(tickers) {
         fetch(barsUrl).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
         fetch(detailsUrl).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
       ]).then(function(results) {
-        var data = results[0];
-        var details = results[1];
+        var data = results[0], details = results[1];
         if (data && data.results && data.results.length >= 2) {
           var bars = data.results;
-          var first = bars[0].c;
-          var last = bars[bars.length - 1].c;
+          var first = bars[0].c, last = bars[bars.length - 1].c;
           var prev = bars.length >= 2 ? bars[bars.length - 2].c : last;
           var currentPrice = (PRICE_DATA[tk] && PRICE_DATA[tk]._fromSnapshot && PRICE_DATA[tk].close) || last;
           var change30d = ((currentPrice - first) / first) * 100;
@@ -999,10 +760,7 @@ async function fetchPriceData(tickers) {
           var volRatio = avgPrior > 0 ? Math.round((avgRecent / avgPrior) * 100) : 100;
           var chart = classifyChart(change30d, volRatio, bars);
           if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
-          if (!PRICE_DATA[tk]._fromSnapshot) {
-            PRICE_DATA[tk].close = last;
-            PRICE_DATA[tk].todayChange = todayChange;
-          }
+          if (!PRICE_DATA[tk]._fromSnapshot) { PRICE_DATA[tk].close = last; PRICE_DATA[tk].todayChange = todayChange; }
           PRICE_DATA[tk].change30d = change30d;
           PRICE_DATA[tk].volRatio = volRatio;
           PRICE_DATA[tk].chartSetup = chart.label;
@@ -1011,14 +769,9 @@ async function fetchPriceData(tickers) {
         }
         if (details && details.results) {
           if (!PRICE_DATA[tk]) PRICE_DATA[tk] = {};
-          if (typeof details.results.market_cap === 'number' && details.results.market_cap > 0) {
-            PRICE_DATA[tk].market_cap = details.results.market_cap;
-          }
-          var shares = details.results.weighted_shares_outstanding ||
-                       details.results.share_class_shares_outstanding;
-          if (typeof shares === 'number' && shares > 0) {
-            PRICE_DATA[tk].shares_outstanding = shares;
-          }
+          if (typeof details.results.market_cap === 'number' && details.results.market_cap > 0) PRICE_DATA[tk].market_cap = details.results.market_cap;
+          var shares = details.results.weighted_shares_outstanding || details.results.share_class_shares_outstanding;
+          if (typeof shares === 'number' && shares > 0) PRICE_DATA[tk].shares_outstanding = shares;
         }
       }).catch(function() {});
     }));
@@ -1035,12 +788,12 @@ async function fetchPriceData(tickers) {
 function applyLiveMarketData() {
   function resolveLiveCap(p) {
     if (!p) return null;
-    if (typeof p.market_cap === 'number' && p.market_cap > 0) return p.market_cap;
     if (p.shares_outstanding && p.close > 0) return p.shares_outstanding * p.close;
+    if (typeof p.market_cap === 'number' && p.market_cap > 0) return p.market_cap;
     return null;
   }
   function applyTo(list) {
-    if (!list) return 0;
+    if (!list) return { updated: 0, noTamSource: 0 };
     var updated = 0, noTamSource = 0;
     list.forEach(function(d) {
       var p = PRICE_DATA[d.ticker];
@@ -1054,11 +807,8 @@ function applyLiveMarketData() {
         if (tamBil > 0) staticTamDollars = tamBil * 1e9;
       }
       d.estimated_market_cap = liveCap;
-      if (staticTamDollars > 0) {
-        d.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
-      } else {
-        noTamSource++;
-      }
+      if (staticTamDollars > 0) d.tam_ratio = Math.round((staticTamDollars / liveCap) * 10) / 10;
+      else noTamSource++;
       updated++;
     });
     return { updated: updated, noTamSource: noTamSource };
@@ -1068,162 +818,48 @@ function applyLiveMarketData() {
   console.log('[SC] Live cap applied: ' + sc.updated + ' scanner events, ' + bo.updated + ' buyout companies');
 }
 
-// ─── CLIENT-SIDE INNOVATION FALLBACK ──────────────────────────────────────────
-// Guarantees every drug has an innovation_score on /100 even if the DB row is
-// null/zero or still on the legacy /25 scale. Server-computed score-events
-// values remain the source of truth when present.
-function normalizeInnovation(d) {
-  var raw = Number(d.innovation_score);
-  if (!isFinite(raw) || raw <= 0) {
-    // No score at all — assign neutral default so display never shows "—"
-    // for drugs. Non-drug rows keep 0.
-    if (d.drug && String(d.drug).trim()) {
-      d.innovation_score = 40;
-    }
-  } else if (raw > 0 && raw <= 25) {
-    // Legacy /25 scale — rescale to /100
-    d.innovation_score = raw * 4;
-  }
-  // Recompute innovation_factor: 1.0 + (score - 50) / 200 → range 0.75…1.25
-  var s = Number(d.innovation_score) || 0;
-  if (s > 0) {
-    d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
-  }
-}
-
-// ─── CLIENT-SIDE INNOVATION HEURISTIC ──────────────────────────────────────
-// When the server ships no innovation_score, compute one from signals we
-// already have: flag strings, indication, application type, TAM ratio.
-// This replaces the blanket "40 for every drug" default that was masking
-// the real data. Returns { score: 0-100, signals: [...] }.
-function computeInnovationHeuristic(d) {
-  var score = 0;
-  var signals = [];
-  var flagsBlob = (d.flags || []).concat(d.appreciation_signals || [], d.innovation_flags || []).join(' ').toLowerCase();
-  var drug = String(d.drug || '').toLowerCase();
-  var indication = String(d.indication || '').toLowerCase();
-  var type = String(d.type || '').toLowerCase();
-
-  // First-in-class (highest weight — biggest appreciation driver)
-  if (/first.?in.?class|first.?to.?reach|no approved treatments|novel mechanism|novel moa/.test(flagsBlob)) {
-    score += 32; signals.push('First-in-class mechanism');
-  }
-  // Best-in-class / head-to-head superiority
-  if (/best.?in.?class|superior to|head.?to.?head/.test(flagsBlob)) {
-    score += 20; signals.push('Best-in-class data');
-  }
-  // Disease-modifying vs symptomatic
-  if (/disease.?modifying/.test(flagsBlob)) {
-    score += 15; signals.push('Disease-modifying therapy');
-  }
-  // Label expansion / platform asset
-  if (/label expansion|platform|multiple indications/.test(flagsBlob)) {
-    score += 12; signals.push('Label expansion setup');
-  }
-  // Priority review pathway
-  if (/priority review/.test(flagsBlob) || type.indexOf('priority') >= 0) {
-    score += 8; signals.push('Priority review');
-  }
-  // Orphan / rare disease designation
-  if (/orphan|rare disease|ultra.?rare/.test(flagsBlob)) {
-    score += 10; signals.push('Orphan designation');
-  }
-  // Route-of-admin upgrade — IV→SC, oral→LA injectable, etc
-  if (/subcutaneous|once.?weekly|once.?monthly|long.?acting/.test(flagsBlob)) {
-    score += 10; signals.push('Improved route of administration');
-  }
-  // Significant TAM runway (market size × pricing leverage)
-  var tam = Number(d.tam_ratio) || 0;
-  if (tam >= 10) { score += 10; signals.push('TAM/Cap ' + tam + 'x — large market relative to cap'); }
-  else if (tam >= 5) { score += 6; }
-  else if (tam >= 3) { score += 3; }
-  // High-value therapeutic area
-  if (/alzheimer|oncology|myeloma|breast cancer|nsclc|gene therapy|cell therapy/.test(indication)) {
-    score += 6;
-  }
-  // Unknown/infectious defaults get a floor so non-drug rows don't zero out,
-  // but never enough to look like a real signal.
-  if (score === 0 && d.drug && d.drug.trim()) score = 20;
-
-  return { score: Math.min(100, score), signals: signals };
-}
-
-function normalizeInnovation(d) {
-  var raw = Number(d.innovation_score);
-  var hasServerScore = isFinite(raw) && raw > 0;
-
-  if (hasServerScore) {
-    // Legacy /25 scale rescale to /100 (unchanged)
-    if (raw <= 25) d.innovation_score = raw * 4;
-  } else {
-    // No server score — compute client-side heuristic from available signals
-    // instead of defaulting everyone to 40.
-    var computed = computeInnovationHeuristic(d);
-    d.innovation_score = computed.score;
-    // Only seed appreciation_signals if server didn't ship any
-    if (computed.signals.length > 0 && (!d.appreciation_signals || d.appreciation_signals.length === 0)) {
-      d.appreciation_signals = computed.signals;
-    }
-  }
-
-  // Recompute factor: 1.0 + (score - 50) / 200 → range 0.75…1.25
-  var s = Number(d.innovation_score) || 0;
-  if (s > 0) {
-    d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
-  }
-}
-
-// ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
-// ─── NET EDGE CLIENT FOLD-IN ─────────────────────────────────────────────────
-// Server ships net_edge_score already adjusted for STN/dilution. Client adds
-// the innovation ±7.5 fold so the displayed value matches the card tooltip
-// ("base score + innovation fold-in ±7.5 pts"). If innovation is 0/missing,
-// returns the base server score unchanged.
-function computeNetEdge(d) {
-  var base = Number(d.net_edge_score) || Number(d.score) || 0;
-  var inn = Number(d.innovation_score) || 0;
-  if (inn > 0) {
-    base += (inn - 50) * 0.15;  // matches server-side formula in score-events.ts
-  }
-  return Math.max(0, Math.min(100, Math.round(base * 10) / 10));
-}
-
-// ─── RENDER SCANNER CARDS ─────────────────────────────────────────────────────
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// RENDER SCANNER CARDS
+// ═══════════════════════════════════════════════════════════════════════════
 function renderScanner() {
-  
   if (SCANNER_DATA.length === 0) {
-    document.getElementById('scanner-grid').innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">
-        Loading scanner data from database...
-      </div>`;
+    document.getElementById('scanner-grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">Loading scanner data from database...</div>';
     return;
   }
-  // Normalize innovation, fix indication, compute net_edge_adj once per render
+
   SCANNER_DATA.forEach(function(d) {
     normalizeInnovation(d);
     fixIndication(d);
     d.net_edge_adj = computeNetEdge(d);
   });
 
-  const sortBy = (document.getElementById('scanner-sort')?.value) || 'score';
-  const gradeFilter = (document.getElementById('scanner-grade')?.value) || 'all';
-  const timeframe = parseInt((document.getElementById('scanner-timeframe')?.value) || '0');
-  const search = ((document.getElementById('scanner-search')?.value) || '').toUpperCase();
-  // Remove broken rows FIRST, then dedupe, then apply user filters
-  let clean = SCANNER_DATA.filter(d => !isBrokenRow(d));
+  var sortEl = document.getElementById('scanner-sort');
+  var gradeEl = document.getElementById('scanner-grade');
+  var timeEl = document.getElementById('scanner-timeframe');
+  var searchEl = document.getElementById('scanner-search');
+  var sortBy = (sortEl && sortEl.value) || 'score';
+  var gradeFilter = (gradeEl && gradeEl.value) || 'all';
+  var timeframe = parseInt((timeEl && timeEl.value) || '0');
+  var search = ((searchEl && searchEl.value) || '').toUpperCase();
+
+  var clean = SCANNER_DATA.filter(function(d) { return !isBrokenRow(d); });
   clean = dedupeEvents(clean);
-  let filtered = clean.filter(d => {
-    if (search && !d.ticker.toUpperCase().includes(search)) return false;
+  var filtered = clean.filter(function(d) {
+    if (search && d.ticker.toUpperCase().indexOf(search) < 0) return false;
     if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
     if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
     if (gradeFilter === 'watch' && d.grade === 'WEAK') return false;
     if (timeframe > 0) {
-      const days = daysUntil(d.date);
+      var days = daysUntil(d.date);
       if (days < 0 || days > timeframe) return false;
     }
     return true;
   });
-  const sorted = [...filtered].sort((a, b) => {
+
+  var sorted = filtered.slice().sort(function(a, b) {
     switch (sortBy) {
       case 'date_asc':  return daysUntil(a.date) - daysUntil(b.date);
       case 'date_desc': return daysUntil(b.date) - daysUntil(a.date);
@@ -1235,16 +871,15 @@ function renderScanner() {
       case 'trend90d':  return (Number(b.price_change_90d)||-999) - (Number(a.price_change_90d)||-999);
       case 'cmc_haircut': return (Number(b.cmc_haircut_pct)||0) - (Number(a.cmc_haircut_pct)||0);
       case 'cmc_score':   return (Number(b.cmc_score) || 0) - (Number(a.cmc_score) || 0);
-      case 'stn_risk': {
-        // String → rank so HIGH sorts above ELEVATED above MODERATE above LOW
+      case 'stn_risk':
         var stnRank = { 'HIGH': 4, 'ELEVATED': 3, 'MODERATE': 2, 'MOD': 2, 'LOW': 1, 'VERY LOW': 0 };
         return (stnRank[b.sell_news_risk] || 2) - (stnRank[a.sell_news_risk] || 2);
-      }
       case 'rsi':       return (Number(b.rsi_14d)||0) - (Number(a.rsi_14d)||0);
       default:          return (b.net_edge_adj || 0) - (a.net_edge_adj || 0);
     }
   });
-  const countEl = document.getElementById('scanner-count');
+
+  var countEl = document.getElementById('scanner-count');
   if (countEl) {
     var uniqueTickers = {};
     sorted.forEach(function(d) { uniqueTickers[d.ticker] = true; });
@@ -1255,135 +890,161 @@ function renderScanner() {
     if (hiddenByFilters > 0) line += ' · ' + hiddenByFilters + ' filtered';
     countEl.textContent = line;
   }
-  // Count how many DISTINCT events each ticker has in the current view.
-  // This powers the "PDUFA N of K" disambiguation pill so institutional users
-  // can instantly see SNY has 3 different drugs, each with its own setup.
-  const tickerEventCounts = {};
-  sorted.forEach(function(d) {
-    tickerEventCounts[d.ticker] = (tickerEventCounts[d.ticker] || 0) + 1;
-  });
-  const tickerEventIndex = {};
-  document.getElementById('scanner-grid').innerHTML = sorted.map((d,i) => {
-    // Position within this ticker's event group (1-indexed)
+
+  var tickerEventCounts = {};
+  sorted.forEach(function(d) { tickerEventCounts[d.ticker] = (tickerEventCounts[d.ticker] || 0) + 1; });
+  var tickerEventIndex = {};
+
+  document.getElementById('scanner-grid').innerHTML = sorted.map(function(d, i) {
     tickerEventIndex[d.ticker] = (tickerEventIndex[d.ticker] || 0) + 1;
-    const tickerTotal = tickerEventCounts[d.ticker] || 1;
-    const tickerPos = tickerEventIndex[d.ticker];
-    const multiBadge = tickerTotal > 1
-      ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);color:var(--accent);margin-left:0.4rem;vertical-align:middle;" title="${d.ticker} has ${tickerTotal} distinct PDUFA events tracked. This is event ${tickerPos} of ${tickerTotal}.">#${tickerPos}/${tickerTotal}</span>`
+    var tickerTotal = tickerEventCounts[d.ticker] || 1;
+    var tickerPos = tickerEventIndex[d.ticker];
+    var multiBadge = tickerTotal > 1
+      ? '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);color:var(--accent);margin-left:0.4rem;vertical-align:middle;" title="' + d.ticker + ' has ' + tickerTotal + ' distinct PDUFA events tracked. This is event ' + tickerPos + ' of ' + tickerTotal + '.">#' + tickerPos + '/' + tickerTotal + '</span>'
       : '';
-    const days = daysUntil(d.date);
-    const isRoyalty = (d.ticker_role === 'royalty' || d.ticker_role === 'licensee');
-    const royaltyBadge = isRoyalty
-      ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);margin-left:0.4rem;vertical-align:middle;" title="${d.ticker} exposure to this PDUFA is via ${d.ticker_role} arrangement with ${d.primary_ticker || 'commercial partner'}">${d.ticker_role.toUpperCase()}</span>`
+    var days = daysUntil(d.date);
+    var isRoyalty = (d.ticker_role === 'royalty' || d.ticker_role === 'licensee');
+    var royaltyBadge = isRoyalty
+      ? '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);margin-left:0.4rem;vertical-align:middle;" title="' + d.ticker + ' exposure to this PDUFA is via ' + d.ticker_role + ' arrangement with ' + (d.primary_ticker || 'commercial partner') + '">' + d.ticker_role.toUpperCase() + '</span>'
       : '';
-    // ─── 483 FLAG pill (v5.2) ───────────────────────────────────────────
-    // Hard-red — Form 483 at manufacturing site = elevated CMC CRL risk
-    const auditBadge = d.cmo_audit_flag
-      ? `<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.6);background:rgba(255,68,68,0.12);color:var(--red);margin-left:0.4rem;vertical-align:middle;" title="FDA Form 483 issued at CMO within last 18 months — elevated CMC CRL risk">483 FLAG</span>`
+    var auditBadge = d.cmo_audit_flag
+      ? '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.6);background:rgba(255,68,68,0.12);color:var(--red);margin-left:0.4rem;vertical-align:middle;" title="FDA Form 483 issued at CMO within last 18 months — elevated CMC CRL risk">483 FLAG</span>'
       : '';
-    // ─── Innovation (/100 scale) ──────────────────────────────────────────
-    const innScore = Number(d.innovation_score) || 0;
-    const innFactor = Number(d.innovation_factor) || 1.0;
-    const innColor = innScore >= 75 ? 'green' : innScore >= 55 ? 'cyan' : innScore >= 35 ? 'white' : 'amber';
-    const innStarColor = innScore >= 80 ? '#ffd700' : innScore >= 60 ? 'var(--accent2)' : innScore >= 40 ? 'var(--accent)' : 'var(--muted)';
-    const innDisplay = innScore > 0 ? Math.round(innScore) + '/100' : '—';
-    const netEdge = Number(d.net_edge_adj) || 0;
-    return `
-      <div class="scanner-card ${gradeClass(d.grade)}" style="animation-delay:${i*0.05}s"
-           onclick="window.location.href='/catalyst-detail.html?ticker=${d.ticker}'"
-           title="View ${d.ticker} deep dive →">
-        <div class="card-top">
-          <div>
-            <div class="card-ticker">${d.ticker} ${daysPill(days)}${auditBadge}${royaltyBadge}${multiBadge}</div>
-            <div class="card-date">${d.date} · ${d.type}${isRoyalty && d.primary_ticker ? ' · via ' + d.primary_ticker : ''}</div>
-          </div>
-          ${gradeBadge(d.grade)}
-        </div>
-        <div class="card-drug">${(() => { var lbl = buildCardDrugLabel(d); return lbl.html; })()}</div>
-        <div class="card-indication">${d.indication}</div>
-        <div class="card-scores">
-          <div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">${(d.poa || 0).toFixed(1)}%</div></div>
-          <div class="score-box"><div class="score-box-label">STN Risk</div><div class="score-box-val ${d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW' ? 'green' : 'amber'}">${d.sell_news_risk || 'MOD'}</div></div>
-          <div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ${d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL' ? 'green' : 'white'}">${d.dilution_risk || '—'}</div></div>
-          <div class="score-box" title="Net Edge = base score + innovation fold-in (±7.5 pts)"><div class="score-box-label">Net Edge</div><div class="score-box-val ${netEdge >= 72 ? 'green' : netEdge >= 58 ? 'cyan' : netEdge >= 42 ? 'amber' : 'red'}">${netEdge.toFixed(1)}</div></div>
-        </div>
-        <div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">
-          <div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ${d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white'}">${d.buyout_score ? d.buyout_score.toFixed(0) : '—'}</div></div>
-          <div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ${(d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white'}">${d.tam_ratio ? d.tam_ratio + 'x' : '—'}</div></div>
-          <div class="score-box" title="Innovation & Appreciation Factor (0-100 scale). Route-of-admin upgrades, dosing frequency, first-in-class status, best-in-class head-to-head data. Folds ±7.5 pts into Net Edge."><div class="score-box-label" style="color:${innStarColor};">⭐ Innov</div><div class="score-box-val ${innColor}" style="color:${innStarColor};">${innDisplay}</div></div>
-          <div class="score-box"><div class="score-box-label">30D</div>${(() => { var p = PRICE_DATA[d.ticker]; if (!p || typeof p.change30d !== 'number') return '<div class="score-box-val white" style="font-size:0.72rem;">—</div>'; var c = p.change30d; var arrow = c >= 0 ? '▲' : '▼'; var color = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red'; return '<div class="score-box-val ' + color + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>'; })()}</div>
-        </div>
-        ${(() => { var p = PRICE_DATA[d.ticker]; if (!p) return '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>'; var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)'; var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)'; var todayArrow = p.todayChange >= 0 ? '▲' : '▼'; var volDisplay = typeof p.volRatio === 'number' ? p.volRatio + '%' : '—'; var chartDisplay = p.chartIcon && p.chartSetup ? p.chartIcon + ' ' + p.chartSetup : '—'; var chartColor = p.chartColor || 'var(--muted)'; return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + p.close.toFixed(2) + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange).toFixed(1) + '%</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + volDisplay + '</span></div>' + '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + chartColor + ';font-weight:700;">' + chartDisplay + '</span></div>' + '</div>'; })()}
-        ${innScore >= 24 && (d.appreciation_signals || []).length > 0 ? '<div style="font-family:var(--mono);font-size:0.58rem;padding:0.4rem 0.55rem;background:rgba(255,215,0,0.04);border-left:2px solid #ffd700;margin-bottom:0.4rem;color:var(--text);line-height:1.5;">⭐ ' + d.appreciation_signals.slice(0,2).map(function(s){return s.length>90?s.substring(0,90)+'…':s;}).join(' · ') + (innFactor !== 1.0 ? ' <span style="color:#ffd700;">(' + (innFactor > 1 ? '+' : '') + Math.round((innFactor - 1) * 100) + '% edge)</span>' : '') + '</div>' : ''}
-        ${(() => {
-          var hasCMC = (d.formulation_class && d.formulation_class !== 'UNKNOWN' && d.formulation_class !== 'SMALL_MOLECULE') || (Number(d.cmc_score)||0) >= 15 || (Number(d.cmc_haircut_pct)||0) >= 5 || d.runway_trustworthy === false;
-          if (!hasCMC) return '';
-          var fc = d.formulation_class || '';
-          var emoji = fc === 'NANOPARTICLE' ? '🧪' : fc === 'CELL_THERAPY' ? '🧫' : fc === 'GENE_THERAPY' ? '🧬' : fc === 'BIOLOGIC' ? '🔬' : '';
-          var label = fc && fc !== 'UNKNOWN' && fc !== 'SMALL_MOLECULE' ? fc.replace(/_/g,' ') : '';
-          var clin = Number(d.clinical_poa)||0, op = Number(d.operational_poa)||0, hc = Number(d.cmc_haircut_pct)||0;
-          var splitStr = (clin > 0 && op > 0) ? 'Clinical ' + clin.toFixed(0) + '% → Op ' + op.toFixed(0) + '% (−' + hc.toFixed(0) + '%)' : '';
-          var runwayFlag = d.runway_trustworthy === false ? ' <span style="color:var(--red);">🚨 runway anomaly</span>' : '';
-          if (!label && !splitStr && !runwayFlag) return '';
-          return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.4rem 0.55rem;background:rgba(245,166,35,0.05);border-left:2px solid var(--amber);margin-bottom:0.4rem;color:var(--text);line-height:1.5;">' +
-                 (label ? emoji + ' ' + label : '') + (label && splitStr ? ' · ' : '') + (splitStr ? '<span style="color:var(--amber);">' + splitStr + '</span>' : '') + runwayFlag +
-                 '</div>';
-        })()}
-        ${(() => {
-          var pills = [];
-          if (d.first_time_approver) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);color:var(--accent);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🆕 1ST-TIME</span>');
-          if (d.pdufa_is_friday_pm) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">📅 FRI PM</span>');
-          if (d.is_nce) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">NCE</span>');
-          if (d.is_505b2) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(90,122,153,0.5);background:rgba(90,122,153,0.1);color:var(--muted);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">505(b)(2)</span>');
-          if (d.volume_climax_flag) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🔊 VOL CLIMAX</span>');
-      
-// v5.3 — null guard. Number(null)===0 was triggering "RSI 0" and
-          // "TGT 0%" pills on every card with missing analyst data. Require
-          // the raw field to be non-null AND the numeric value > 0 before
-          // deciding the pill.
-          var rsi = Number(d.rsi_14d);
-          var rsiValid = d.rsi_14d != null && isFinite(rsi) && rsi > 0;
-          if (rsiValid && rsi >= 70) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
-          else if (rsiValid && rsi <= 30) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
-          var prox = Number(d.analyst_target_proximity_pct);
-          var proxValid = d.analyst_target_proximity_pct != null && isFinite(prox) && prox > 0;
-          if (proxValid && prox >= 95) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg target — priced in risk">TGT ' + prox.toFixed(0) + '%</span>');
-          else if (proxValid && prox <= 50) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg — heavily discounted">TGT ' + prox.toFixed(0) + '%</span>');
-          if (pills.length === 0) return '';
-          return '<div style="margin-bottom:0.4rem;line-height:1.8;">' + pills.join('') + '</div>';
-        })()}
-        ${d.expected_move ? '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + (d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)') + ';">' + d.expected_move + '</div>' : ''}
-       <div class="card-flags">${(() => {
-          // v5.3 — strip provenance/ingestion markers, dedupe, cap at 6 lines.
-          // Server writes SC_AUTORESOLVED: (100+ dupes on GSK, 16 on IONS)
-          // and INGESTED:seed markers that have no business on the card.
-          var seen = {};
-          return (d.flags || [])
-            .filter(f => {
-              var s = String(f);
-              if (s.includes('TAM/CAP') || s.includes('TAM/Cap') || s.includes('Drug market')) return false;
-              if (s.startsWith('AUTO-RESOLVED:')) return false;
-              if (s.startsWith('SC_AUTORESOLVED:')) return false;
-              if (s.startsWith('INGESTED:')) return false;
-              if (s.startsWith('AI_RESOLUTION_FAILED')) return false;
-              if (seen[s]) return false;
-              seen[s] = true;
-              return true;
-            })
-            .slice(0, 6)
-            .map(f => `<div class="card-flag">${f}</div>`)
-            .join('');
-        })()}</div>
-        <div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>
-      </div>`;
+
+    var innScore = Number(d.innovation_score) || 0;
+    var innFactor = Number(d.innovation_factor) || 1.0;
+    var innColor = innScore >= 75 ? 'green' : innScore >= 55 ? 'cyan' : innScore >= 35 ? 'white' : 'amber';
+    var innStarColor = innScore >= 80 ? '#ffd700' : innScore >= 60 ? 'var(--accent2)' : innScore >= 40 ? 'var(--accent)' : 'var(--muted)';
+    var innDisplay = innScore > 0 ? Math.round(innScore) + '/100' : '—';
+    var netEdge = Number(d.net_edge_adj) || 0;
+
+    var liveBlock = '';
+    var p = PRICE_DATA[d.ticker];
+    if (!p) {
+      liveBlock = '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>';
+    } else {
+      var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)';
+      var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)';
+      var todayArrow = p.todayChange >= 0 ? '▲' : '▼';
+      var volDisplay = typeof p.volRatio === 'number' ? p.volRatio + '%' : '—';
+      var chartDisplay = p.chartIcon && p.chartSetup ? p.chartIcon + ' ' + p.chartSetup : '—';
+      var chartColor = p.chartColor || 'var(--muted)';
+      liveBlock = '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-bottom:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + (p.close ? p.close.toFixed(2) : '—') + '</span></div>' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange || 0).toFixed(1) + '%</span></div>' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + volDisplay + '</span></div>' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + chartColor + ';font-weight:700;">' + chartDisplay + '</span></div>' +
+        '</div>';
+    }
+
+    var trend30Cell;
+    if (!p || typeof p.change30d !== 'number') {
+      trend30Cell = '<div class="score-box-val white" style="font-size:0.72rem;">—</div>';
+    } else {
+      var c = p.change30d;
+      var arrow = c >= 0 ? '▲' : '▼';
+      var trendColor = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red';
+      trend30Cell = '<div class="score-box-val ' + trendColor + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>';
+    }
+
+    var appreciationBlock = '';
+    if (innScore >= 24 && (d.appreciation_signals || []).length > 0) {
+      var edgePct = innFactor !== 1.0 ? ' <span style="color:#ffd700;">(' + (innFactor > 1 ? '+' : '') + Math.round((innFactor - 1) * 100) + '% edge)</span>' : '';
+      appreciationBlock = '<div style="font-family:var(--mono);font-size:0.58rem;padding:0.4rem 0.55rem;background:rgba(255,215,0,0.04);border-left:2px solid #ffd700;margin-bottom:0.4rem;color:var(--text);line-height:1.5;">⭐ ' +
+        d.appreciation_signals.slice(0,2).map(function(s){return s.length>90?s.substring(0,90)+'…':s;}).join(' · ') + edgePct + '</div>';
+    }
+
+    var cmcBlock = '';
+    var hasCMC = (d.formulation_class && d.formulation_class !== 'UNKNOWN' && d.formulation_class !== 'SMALL_MOLECULE') || (Number(d.cmc_score)||0) >= 15 || (Number(d.cmc_haircut_pct)||0) >= 5 || d.runway_trustworthy === false;
+    if (hasCMC) {
+      var fc = d.formulation_class || '';
+      var emoji = fc === 'NANOPARTICLE' ? '🧪' : fc === 'CELL_THERAPY' ? '🧫' : fc === 'GENE_THERAPY' ? '🧬' : fc === 'BIOLOGIC' ? '🔬' : '';
+      var label = fc && fc !== 'UNKNOWN' && fc !== 'SMALL_MOLECULE' ? fc.replace(/_/g,' ') : '';
+      var clin = Number(d.clinical_poa)||0, op = Number(d.operational_poa)||0, hc = Number(d.cmc_haircut_pct)||0;
+      var splitStr = (clin > 0 && op > 0) ? 'Clinical ' + clin.toFixed(0) + '% → Op ' + op.toFixed(0) + '% (−' + hc.toFixed(0) + '%)' : '';
+      var runwayFlag = d.runway_trustworthy === false ? ' <span style="color:var(--red);">🚨 runway anomaly</span>' : '';
+      if (label || splitStr || runwayFlag) {
+        cmcBlock = '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.4rem 0.55rem;background:rgba(245,166,35,0.05);border-left:2px solid var(--amber);margin-bottom:0.4rem;color:var(--text);line-height:1.5;">' +
+          (label ? emoji + ' ' + label : '') + (label && splitStr ? ' · ' : '') + (splitStr ? '<span style="color:var(--amber);">' + splitStr + '</span>' : '') + runwayFlag + '</div>';
+      }
+    }
+
+    var pills = [];
+    if (d.first_time_approver) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);color:var(--accent);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🆕 1ST-TIME</span>');
+    if (d.pdufa_is_friday_pm) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">📅 FRI PM</span>');
+    if (d.is_nce) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">NCE</span>');
+    if (d.is_505b2) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(90,122,153,0.5);background:rgba(90,122,153,0.1);color:var(--muted);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">505(b)(2)</span>');
+    if (d.volume_climax_flag) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🔊 VOL CLIMAX</span>');
+
+    var rsi = Number(d.rsi_14d);
+    var rsiValid = d.rsi_14d != null && isFinite(rsi) && rsi > 0;
+    if (rsiValid && rsi >= 70) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
+    else if (rsiValid && rsi <= 30) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
+    var prox = Number(d.analyst_target_proximity_pct);
+    var proxValid = d.analyst_target_proximity_pct != null && isFinite(prox) && prox > 0;
+    if (proxValid && prox >= 95) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg target — priced in risk">TGT ' + prox.toFixed(0) + '%</span>');
+    else if (proxValid && prox <= 50) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg — heavily discounted">TGT ' + prox.toFixed(0) + '%</span>');
+
+    var pillsBlock = pills.length > 0 ? '<div style="margin-bottom:0.4rem;line-height:1.8;">' + pills.join('') + '</div>' : '';
+
+    var expectedMoveBlock = '';
+    if (d.expected_move) {
+      var borderColor = d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)';
+      expectedMoveBlock = '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + borderColor + ';">' + d.expected_move + '</div>';
+    }
+
+    var seenFlags = {};
+    var flagsList = (d.flags || [])
+      .filter(function(f) {
+        var s = String(f);
+        if (s.indexOf('TAM/CAP') >= 0 || s.indexOf('TAM/Cap') >= 0 || s.indexOf('Drug market') >= 0) return false;
+        if (s.indexOf('AUTO-RESOLVED:') === 0) return false;
+        if (s.indexOf('SC_AUTORESOLVED:') === 0) return false;
+        if (s.indexOf('INGESTED:') === 0) return false;
+        if (s.indexOf('AI_RESOLUTION_FAILED') === 0) return false;
+        if (seenFlags[s]) return false;
+        seenFlags[s] = true;
+        return true;
+      })
+      .slice(0, 6)
+      .map(function(f) { return '<div class="card-flag">' + f + '</div>'; })
+      .join('');
+
+    var drugLabel = buildCardDrugLabel(d).html;
+
+    return '<div class="scanner-card ' + gradeClass(d.grade) + '" style="animation-delay:' + (i * 0.05) + 's" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" title="View ' + d.ticker + ' deep dive →">' +
+      '<div class="card-top">' +
+        '<div>' +
+          '<div class="card-ticker">' + d.ticker + ' ' + daysPill(days) + auditBadge + royaltyBadge + multiBadge + '</div>' +
+          '<div class="card-date">' + d.date + ' · ' + d.type + (isRoyalty && d.primary_ticker ? ' · via ' + d.primary_ticker : '') + '</div>' +
+        '</div>' +
+        gradeBadge(d.grade) +
+      '</div>' +
+      '<div class="card-drug">' + drugLabel + '</div>' +
+      '<div class="card-indication">' + d.indication + '</div>' +
+      '<div class="card-scores">' +
+        '<div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">' + (d.poa || 0).toFixed(1) + '%</div></div>' +
+        '<div class="score-box"><div class="score-box-label">STN Risk</div><div class="score-box-val ' + (d.sell_news_risk === 'HIGH' ? 'red' : d.sell_news_risk === 'ELEVATED' ? 'amber' : (d.sell_news_risk === 'LOW' || d.sell_news_risk === 'VERY LOW') ? 'green' : 'amber') + '">' + (d.sell_news_risk || 'MOD') + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + (d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : (d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL') ? 'green' : 'white') + '">' + (d.dilution_risk || '—') + '</div></div>' +
+        '<div class="score-box" title="Net Edge = base score + innovation fold-in (±7.5 pts)"><div class="score-box-label">Net Edge</div><div class="score-box-val ' + (netEdge >= 72 ? 'green' : netEdge >= 58 ? 'cyan' : netEdge >= 42 ? 'amber' : 'red') + '">' + netEdge.toFixed(1) + '</div></div>' +
+      '</div>' +
+      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;margin-top:-1px;">' +
+        '<div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + (d.buyout_score >= 75 ? 'green' : d.buyout_score >= 55 ? 'cyan' : d.buyout_score >= 35 ? 'amber' : 'white') + '">' + (d.buyout_score ? d.buyout_score.toFixed(0) : '—') + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val ' + ((d.tam_ratio || 0) >= 5 ? 'green' : (d.tam_ratio || 0) >= 1 ? 'cyan' : 'white') + '">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div>' +
+        '<div class="score-box" title="Innovation & Appreciation Factor (0-100 scale)."><div class="score-box-label" style="color:' + innStarColor + ';">⭐ Innov</div><div class="score-box-val ' + innColor + '" style="color:' + innStarColor + ';">' + innDisplay + '</div></div>' +
+        '<div class="score-box"><div class="score-box-label">30D</div>' + trend30Cell + '</div>' +
+      '</div>' +
+      liveBlock + appreciationBlock + cmcBlock + pillsBlock + expectedMoveBlock +
+      '<div class="card-flags">' + flagsList + '</div>' +
+      '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>' +
+    '</div>';
   }).join('');
-  const validData = clean;
-  const elite    = validData.filter(d => (d.net_edge_adj || 0) >= 72).length;
-  const within30 = validData.filter(d => daysUntil(d.date) <= 30 && daysUntil(d.date) >= 0).length;
-  const avgPoa   = validData.length > 0 ? (validData.reduce((s,d) => s + (d.poa || 0), 0) / validData.length).toFixed(1) : '0';
-  // Unique company count across the full clean dataset — this is the
-  // institutional-grade "coverage" metric, not a filtered subset.
-  const uniqueCompaniesAll = Object.keys(validData.reduce(function(acc, d) { acc[d.ticker] = 1; return acc; }, {})).length;
+
+  var validData = clean;
+  var elite    = validData.filter(function(d) { return (d.net_edge_adj || 0) >= 72; }).length;
+  var within30 = validData.filter(function(d) { return daysUntil(d.date) <= 30 && daysUntil(d.date) >= 0; }).length;
+  var avgPoa   = validData.length > 0 ? (validData.reduce(function(s, d) { return s + (d.poa || 0); }, 0) / validData.length).toFixed(1) : '0';
+  var uniqueCompaniesAll = Object.keys(validData.reduce(function(acc, d) { acc[d.ticker] = 1; return acc; }, {})).length;
   document.getElementById('stat-elite').textContent = elite;
   document.getElementById('stat-30d').textContent   = within30;
   document.getElementById('stat-poa').textContent   = avgPoa + '%';
@@ -1391,12 +1052,10 @@ function renderScanner() {
   document.getElementById('scan-timestamp').textContent = validData.length + ' events tracked · last scored ' + new Date().toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
 }
 
-
 // ─── BUYOUT SCANNER ──────────────────────────────────────────────────────────
 function renderBuyoutGrid() {
   var search = (document.getElementById('buyout-search').value || '').toUpperCase();
   var riskFilter = document.getElementById('buyout-filter').value;
-  var catFilter = document.getElementById('buyout-catalyst').value;
   var all = [], seen = {};
   SCANNER_DATA.forEach(function(d) {
     if (isBrokenRow(d)) return;
@@ -1410,7 +1069,7 @@ function renderBuyoutGrid() {
         partnership_detected: d.has_partnership || false, partner_name: d.partner_name || '',
         acquirer_urgency_top: d.acquirer_urgency_top || '',
         revenue_m: Number(d.revenue_m) || 0, buyout_timeline: d.buyout_timeline || '',
-        has_pdufa: true, pdufa_date: d.date || '', poa: Number(d.poa) || 0, grade: d.grade || 'WATCH',
+        has_pdufa: true, pdufa_date: d.date || '', poa: Number(d.poa) || 0, grade: d.grade || 'WATCH'
       });
     }
   });
@@ -1427,13 +1086,13 @@ function renderBuyoutGrid() {
           acquirer_urgency_top: c.acquirer_urgency_top || '',
           revenue_m: Number(c.revenue_m) || 0, buyout_timeline: c.buyout_timeline || '',
           pdufa_date: '', poa: 0, grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
-          has_pdufa: false, approved_drug: c.approved_drug || '',
+          has_pdufa: false, approved_drug: c.approved_drug || ''
         });
       }
     });
   }
   var filtered = all.filter(function(d) {
-    if (search && !d.ticker.includes(search)) return false;
+    if (search && d.ticker.indexOf(search) < 0) return false;
     if (riskFilter === 'HIGH' && d.buyout_risk !== 'HIGH') return false;
     if (riskFilter === 'MODERATE' && d.buyout_risk !== 'HIGH' && d.buyout_risk !== 'MODERATE') return false;
     return d.buyout_score > 0;
@@ -1459,6 +1118,8 @@ function renderBuyoutGrid() {
   document.getElementById('buyout-count').textContent = display.length + ' of ' + filtered.length + ' companies shown';
 }
 
+</script>
+<script>
 // ═══════════════════════════════════════════════════════════════════════════
 // CATALYST LOADERS — Clinical / Earnings / AdCom / Conferences
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1494,8 +1155,8 @@ async function loadClinicalReadouts() {
   var cached = catCacheGet('clinical', CAT_CACHE_6H);
   if (cached) { CATALYST_DATA.clinical = cached; CAT_LOADED.clinical = true; return; }
   var sb = getSupabase();
-  var { data: universe } = await sb.from('biotech_universe')
-    .select('ticker, company_name, market_cap_tier, estimated_market_cap').eq('active', true);
+  var uniRes = await sb.from('biotech_universe').select('ticker, company_name, market_cap_tier, estimated_market_cap').eq('active', true);
+  var universe = uniRes && uniRes.data;
   if (!universe || universe.length === 0) return;
   var tokenIndex = {};
   universe.forEach(function(u) {
@@ -1512,7 +1173,7 @@ async function loadClinicalReadouts() {
     var params = new URLSearchParams({
       'filter.overallStatus': 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED',
       'filter.phase': 'PHASE2|PHASE3',
-      'pageSize': '1000', 'format': 'json', 'sort': 'LastUpdatePostDate:desc',
+      'pageSize': '1000', 'format': 'json', 'sort': 'LastUpdatePostDate:desc'
     });
     if (pageToken) params.set('pageToken', pageToken);
     var url = 'https://clinicaltrials.gov/api/v2/studies?' + params.toString();
@@ -1555,7 +1216,7 @@ async function loadClinicalReadouts() {
             indication: conditions.slice(0, 2).join(', ') || '',
             type: 'CLINICAL', date: pcdStr, grade: 'WATCH',
             nctId: nctId, confidence: pcdType === 'ACTUAL' ? 'HARD_DATE' : 'ESTIMATED_WINDOW',
-            phase: phases,
+            phase: phases
           });
         } catch (err) {}
       }
@@ -1575,8 +1236,8 @@ async function loadEarnings() {
   if (cached) { CATALYST_DATA.earnings = cached; CAT_LOADED.earnings = true; return; }
   if (!SC_CONFIG.finnhubApiKey) { CAT_LOADED.earnings = true; return; }
   var sb = getSupabase();
-  var { data: universe } = await sb.from('biotech_universe')
-    .select('ticker, company_name, market_cap_tier, estimated_market_cap').eq('active', true);
+  var uniRes = await sb.from('biotech_universe').select('ticker, company_name, market_cap_tier, estimated_market_cap').eq('active', true);
+  var universe = uniRes && uniRes.data;
   if (!universe || universe.length === 0) return;
   var uniMap = {};
   universe.forEach(function(u) { uniMap[u.ticker] = u; });
@@ -1609,7 +1270,7 @@ async function loadEarnings() {
       estimated_market_cap: Number(u.estimated_market_cap) || 0,
       drug: fiscal + ' Earnings' + (hourLabel ? ' — ' + hourLabel : ''),
       indication: fiscal, type: 'EARNINGS', date: e.date, grade: 'WATCH',
-      hour: e.hour || '',
+      hour: e.hour || ''
     });
   });
   CATALYST_DATA.earnings = events;
@@ -1624,7 +1285,8 @@ async function loadAdcom() {
   var sb = getSupabase();
   var drugMap = new Map();
   try {
-    var { data: drugAssets } = await sb.from('drug_assets').select('drug_name, brand_name, parent_ticker');
+    var drugRes = await sb.from('drug_assets').select('drug_name, brand_name, parent_ticker');
+    var drugAssets = drugRes && drugRes.data;
     (drugAssets || []).forEach(function(d) {
       if (d.drug_name && d.parent_ticker) drugMap.set(d.drug_name.toLowerCase(), d.parent_ticker);
       if (d.brand_name && d.parent_ticker) drugMap.set(d.brand_name.toLowerCase(), d.parent_ticker);
@@ -1636,7 +1298,7 @@ async function loadAdcom() {
     'conditions[term]': 'Advisory Committee Meeting',
     'conditions[agencies][]': 'food-and-drug-administration',
     'conditions[publication_date][gte]': lookback.toISOString().split('T')[0],
-    'per_page': '100', 'order': 'newest',
+    'per_page': '100', 'order': 'newest'
   });
   ['title', 'document_number', 'publication_date', 'abstract', 'html_url'].forEach(function(f) { params.append('fields[]', f); });
   var events = [];
@@ -1672,7 +1334,7 @@ async function loadAdcom() {
         events.push({
           ticker: ticker, company_name: ticker === 'ADCOM' ? 'FDA Advisory Committee' : ticker,
           drug: desc, indication: '', type: 'ADCOM', date: mdStr, grade: 'WATCH',
-          docNum: d.document_number || '', htmlUrl: d.html_url || '',
+          docNum: d.document_number || '', htmlUrl: d.html_url || ''
         });
       });
     }
@@ -1705,7 +1367,7 @@ async function loadConferences() {
             drug: c.name + (c.date_end && c.date_end !== c.date_start ? ' (' + c.date_start + ' → ' + c.date_end + ')' : ''),
             indication: c.location || '', type: 'CONFERENCE', date: c.date_start, grade: 'WATCH',
             location: c.location || '', category: c.category || 'MEDICAL',
-            confirmed: c.status === 'confirmed',
+            confirmed: c.status === 'confirmed'
           });
         });
       });
@@ -1727,13 +1389,15 @@ function renderCatalystGrid(kind) {
   }
   var grid = document.getElementById(gridId);
   if (!grid) return;
-  var search = (document.getElementById(searchId)?.value || '').toUpperCase();
-  var windowDays = windowId ? parseInt(document.getElementById(windowId)?.value || '0') : 0;
+  var searchEl = document.getElementById(searchId);
+  var windowEl = windowId ? document.getElementById(windowId) : null;
+  var search = ((searchEl && searchEl.value) || '').toUpperCase();
+  var windowDays = windowEl ? parseInt(windowEl.value || '0') : 0;
   var filtered = data.filter(function(e) {
     if (search) {
-      var match = e.ticker.toUpperCase().includes(search) ||
-                  (e.drug || '').toUpperCase().includes(search) ||
-                  (e.company_name || '').toUpperCase().includes(search);
+      var match = e.ticker.toUpperCase().indexOf(search) >= 0 ||
+                  (e.drug || '').toUpperCase().indexOf(search) >= 0 ||
+                  (e.company_name || '').toUpperCase().indexOf(search) >= 0;
       if (!match) return false;
     }
     if (windowDays > 0) {
@@ -1754,7 +1418,7 @@ function renderCatalystGrid(kind) {
     var days = daysUntil(e.date);
     var cap = Number(e.estimated_market_cap) || 0;
     var capStr = cap >= 1e9 ? '$' + (cap / 1e9).toFixed(1) + 'B' : cap >= 1e6 ? '$' + (cap / 1e6).toFixed(0) + 'M' : '—';
-    var icon = { clinical: '🧪', earnings: '📊', adcom: '⚖️', conferences: '🎤' }[kind] || '📅';
+    var icon = ({ clinical: '🧪', earnings: '📊', adcom: '⚖️', conferences: '🎤' })[kind] || '📅';
     var extraLine = '';
     if (kind === 'clinical') {
       extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;">' + (e.phase || '') + ' · ' + (e.confidence === 'HARD_DATE' ? '✓ confirmed date' : '~ estimated window') + (e.nctId ? ' · <a href="https://clinicaltrials.gov/study/' + e.nctId + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">' + e.nctId + '</a>' : '') + '</div>';
@@ -1778,104 +1442,94 @@ function renderCatalystGrid(kind) {
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 function switchTab(btn, id) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.sidebar-item').forEach(function(b) { b.classList.remove('active'); });
   btn.classList.add('active');
   var panel = document.getElementById('tab-' + id);
   if (panel) panel.classList.add('active');
-
+  var spinner = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading ' + id + '...</div></div>';
   if (id === 'clinical') {
-    if (!CAT_LOADED.clinical) {
-      document.getElementById('clinical-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading clinical readouts...</div></div>';
-      loadClinicalReadouts().then(function() { renderCatalystGrid('clinical'); });
-    } else { renderCatalystGrid('clinical'); }
+    if (!CAT_LOADED.clinical) { document.getElementById('clinical-grid').innerHTML = spinner; loadClinicalReadouts().then(function() { renderCatalystGrid('clinical'); }); }
+    else { renderCatalystGrid('clinical'); }
   } else if (id === 'earnings') {
-    if (!CAT_LOADED.earnings) {
-      document.getElementById('earnings-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading earnings calendar...</div></div>';
-      loadEarnings().then(function() { renderCatalystGrid('earnings'); });
-    } else { renderCatalystGrid('earnings'); }
+    if (!CAT_LOADED.earnings) { document.getElementById('earnings-grid').innerHTML = spinner; loadEarnings().then(function() { renderCatalystGrid('earnings'); }); }
+    else { renderCatalystGrid('earnings'); }
   } else if (id === 'adcom') {
-    if (!CAT_LOADED.adcom) {
-      document.getElementById('adcom-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading AdCom meetings...</div></div>';
-      loadAdcom().then(function() { renderCatalystGrid('adcom'); });
-    } else { renderCatalystGrid('adcom'); }
+    if (!CAT_LOADED.adcom) { document.getElementById('adcom-grid').innerHTML = spinner; loadAdcom().then(function() { renderCatalystGrid('adcom'); }); }
+    else { renderCatalystGrid('adcom'); }
   } else if (id === 'conferences') {
-    if (!CAT_LOADED.conferences) {
-      document.getElementById('conf-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Loading conferences...</div></div>';
-      loadConferences().then(function() { renderCatalystGrid('conferences'); });
-    } else { renderCatalystGrid('conferences'); }
+    if (!CAT_LOADED.conferences) { document.getElementById('conf-grid').innerHTML = spinner; loadConferences().then(function() { renderCatalystGrid('conferences'); }); }
+    else { renderCatalystGrid('conferences'); }
   }
 }
 
 // ─── AUTH GUARD + INIT ────────────────────────────────────────────────────────
-(async () => {
-  const session = await scRequireAuth();
+(async function() {
+  var session = await scRequireAuth();
   if (!session) return;
-  const sb = getSupabase();
-  const user = session.user;
-  document.getElementById('nav-user').innerHTML =
-    '<span style="color:var(--muted);font-size:0.62rem;">' + user.email + '</span>';
-  document.getElementById('signout-btn').addEventListener('click', async (e) => {
+  var sb = getSupabase();
+  var user = session.user;
+  document.getElementById('nav-user').innerHTML = '<span style="color:var(--muted);font-size:0.62rem;">' + user.email + '</span>';
+  document.getElementById('signout-btn').addEventListener('click', async function(e) {
     e.preventDefault();
     await scSignOut();
   });
-  const fromStripe = document.referrer.includes('stripe.com') ||
-                     document.referrer.includes('buy.stripe.com') ||
-                     new URLSearchParams(location.search).get('welcome') === '1';
-  let profile = await scGetProfile(user.id);
-  if (fromStripe && !profile?.is_paid) {
+  var fromStripe = document.referrer.indexOf('stripe.com') >= 0 ||
+                   document.referrer.indexOf('buy.stripe.com') >= 0 ||
+                   new URLSearchParams(location.search).get('welcome') === '1';
+  var profile = await scGetProfile(user.id);
+  if (fromStripe && !(profile && profile.is_paid)) {
     document.getElementById('verifying-banner').style.display = 'flex';
-    const nowPaid = await scPollSubscription(user.id);
+    var nowPaid = await scPollSubscription(user.id);
     document.getElementById('verifying-banner').style.display = 'none';
     if (nowPaid) profile = await scGetProfile(user.id);
   }
-  const isPaid = profile?.is_paid === true;
+  var isPaid = profile && profile.is_paid === true;
   document.getElementById('acct-email').textContent = user.email;
-  const statusEl = document.getElementById('acct-status-text');
+  var statusEl = document.getElementById('acct-status-text');
   if (isPaid) {
     statusEl.textContent = 'Active — Pro';
     document.getElementById('acct-status').style.color = 'var(--accent2)';
   } else {
     statusEl.textContent = 'Inactive — subscription required';
     document.getElementById('acct-status').style.color = 'var(--amber)';
-    const dot = document.querySelector('.status-dot');
+    var dot = document.querySelector('.status-dot');
     if (dot) dot.style.background = 'var(--amber)';
   }
-  const createdAt = new Date(profile?.created_at || user.created_at);
+  var createdAt = new Date((profile && profile.created_at) || user.created_at);
   document.getElementById('acct-since').textContent = createdAt.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  const nextBilling = new Date(createdAt);
-  const today = new Date();
+  var nextBilling = new Date(createdAt);
+  var today = new Date();
   nextBilling.setMonth(nextBilling.getMonth() + 1);
   while (nextBilling < today) nextBilling.setMonth(nextBilling.getMonth() + 1);
   document.getElementById('acct-next').textContent = nextBilling.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  const portalBtn = document.getElementById('billing-portal-btn');
+  var portalBtn = document.getElementById('billing-portal-btn');
   if (SC_CONFIG.stripePortalUrl) {
-    portalBtn.href   = SC_CONFIG.stripePortalUrl;
+    portalBtn.href = SC_CONFIG.stripePortalUrl;
     portalBtn.target = '_blank';
-    portalBtn.rel    = 'noopener';
+    portalBtn.rel = 'noopener';
   }
   if (fromStripe && isPaid && !sessionStorage.getItem('dismissed_welcome')) {
     document.getElementById('welcome-banner').style.display = 'block';
   }
   if (!isPaid) {
-    document.getElementById('scanner-grid').innerHTML = [
-      '<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;">',
-      '  <div style="font-size:2rem;margin-bottom:1rem;">🔒</div>',
-      '  <div style="font-family:var(--serif);font-size:1.5rem;color:var(--white);margin-bottom:0.75rem;">Subscription Required</div>',
-      '  <p style="font-family:var(--sans);font-size:0.9rem;color:var(--muted);max-width:400px;margin:0 auto 1.5rem;line-height:1.7;">Access the full scanner with 60+ scored PDUFA events, AI research tool, and deep dive analysis.</p>',
-      '  <a href="javascript:void(0)" onclick="scCheckout(\'' + user.id + '\',\'' + user.email + '\')" style="display:inline-block;font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.75rem 2rem;text-decoration:none;font-weight:700;cursor:pointer;">Subscribe — $29.99/month</a>',
-      '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime</p>',
-      '</div>',
-    ].join('\n');
+    document.getElementById('scanner-grid').innerHTML =
+      '<div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;">' +
+      '  <div style="font-size:2rem;margin-bottom:1rem;">🔒</div>' +
+      '  <div style="font-family:var(--serif);font-size:1.5rem;color:var(--white);margin-bottom:0.75rem;">Subscription Required</div>' +
+      '  <p style="font-family:var(--sans);font-size:0.9rem;color:var(--muted);max-width:400px;margin:0 auto 1.5rem;line-height:1.7;">Access the full scanner with 60+ scored PDUFA events, AI research tool, and deep dive analysis.</p>' +
+      '  <a href="javascript:void(0)" onclick="scCheckout(\'' + user.id + '\',\'' + user.email + '\')" style="display:inline-block;font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.75rem 2rem;text-decoration:none;font-weight:700;cursor:pointer;">Subscribe — $29.99/month</a>' +
+      '  <p style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.75rem;">Cancel anytime</p>' +
+      '</div>';
     return;
   }
   try {
-    const session2 = await scGetSession();
-    const res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
-      headers: { 'Authorization': 'Bearer ' + (session2?.access_token || ''), 'Content-Type': 'application/json' },
+    var session2 = await scGetSession();
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/get-scanner-data?view=scanner', {
+      headers: { 'Authorization': 'Bearer ' + ((session2 && session2.access_token) || ''), 'Content-Type': 'application/json' }
     });
-    const result = await res.json();
+    var result = await res.json();
     if (result.events && result.events.length > 0) {
       SCANNER_DATA = result.events.map(function(e) {
         return {
@@ -1909,29 +1563,24 @@ function switchTab(btn, id) {
           ticker_role: e.ticker_role || 'primary',
           primary_ticker: e.primary_ticker || '',
           is_primary_ticker: e.is_primary_ticker !== false,
-          // ─── CMC v2 (v4.4) ─────────────────────────────────────────────
           formulation_class: e.formulation_class || 'UNKNOWN',
           cmc_score: Number(e.cmc_score) || 0,
           clinical_poa: Number(e.clinical_poa) || 0,
           operational_poa: Number(e.operational_poa) || 0,
           cmc_haircut_pct: Number(e.cmc_haircut_pct) || 0,
           runway_trustworthy: e.runway_trustworthy !== false,
-          // ─── STN v3 market signals (v4.5) ──────────────────────────────
           rsi_14d: e.rsi_14d != null ? Number(e.rsi_14d) : null,
           price_change_90d: e.price_change_90d != null ? Number(e.price_change_90d) : null,
           volume_climax_flag: e.volume_climax_flag === true,
           analyst_target_avg: e.analyst_target_avg != null ? Number(e.analyst_target_avg) : null,
           analyst_target_proximity_pct: e.analyst_target_proximity_pct != null ? Number(e.analyst_target_proximity_pct) : null,
           analyst_recommendation_mean: e.analyst_recommendation_mean != null ? Number(e.analyst_recommendation_mean) : null,
-          // ─── STN v3 pathway / calendar flags ───────────────────────────
           pdufa_is_friday_pm: e.pdufa_is_friday_pm === true,
           is_nce: e.is_nce === true,
           is_505b2: e.is_505b2 === true,
-          first_time_approver: e.first_time_approver === true, 
-          // ─── CMO / 483 audit forensics (v5.2) ──────────────────────────
-          // True if API returns it OR if manually overridden above
+          first_time_approver: e.first_time_approver === true,
           cmo_audit_flag: e.cmo_audit_flag === true ||
-                          (MANUAL_CMC_OVERRIDES[e.ticker] && MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true),
+                          (MANUAL_CMC_OVERRIDES[e.ticker] && MANUAL_CMC_OVERRIDES[e.ticker].cmo_audit_flag === true)
         };
       });
     }
@@ -1942,24 +1591,19 @@ function switchTab(btn, id) {
   if (SCANNER_DATA.length > 0) {
     try {
       var scannerTickerList = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
-      var { data: uniRows } = await sb.from('biotech_universe')
+      var uniRes2 = await sb.from('biotech_universe')
         .select('ticker, estimated_market_cap, drug_tam_billions, tam_ratio')
         .in('ticker', scannerTickerList);
+      var uniRows = uniRes2 && uniRes2.data;
       if (uniRows && uniRows.length > 0) {
         var uniMap = {};
         uniRows.forEach(function(r) { uniMap[r.ticker] = r; });
         SCANNER_DATA.forEach(function(d) {
           var u = uniMap[d.ticker];
           if (!u) return;
-          if (!Number(d.estimated_market_cap) && Number(u.estimated_market_cap)) {
-            d.estimated_market_cap = Number(u.estimated_market_cap);
-          }
-          if (!Number(d.tam_ratio) && Number(u.tam_ratio)) {
-            d.tam_ratio = Number(u.tam_ratio);
-          }
-          if (Number(u.drug_tam_billions)) {
-            d.drug_tam_billions = Number(u.drug_tam_billions);
-          }
+          if (!Number(d.estimated_market_cap) && Number(u.estimated_market_cap)) d.estimated_market_cap = Number(u.estimated_market_cap);
+          if (!Number(d.tam_ratio) && Number(u.tam_ratio)) d.tam_ratio = Number(u.tam_ratio);
+          if (Number(u.drug_tam_billions)) d.drug_tam_billions = Number(u.drug_tam_billions);
         });
       }
     } catch (err) {
@@ -1967,39 +1611,26 @@ function switchTab(btn, id) {
     }
   }
 
-  // ─── DRUG ASSETS LOOKUP (authoritative name table) ─────────────────────
-  // Fetches drug_assets rows for the current scanner ticker set and builds
-  // a (ticker, pdufa_date) → drug_name map. The dashboard's resolveDrugName
-  // checks this first, so whenever drug_assets has a canonical name for a
-  // (ticker, date) pair, the card displays it — regardless of what garbage
-  // might be in pdufa_events.drug. Complements the server-side auto-resolver
-  // cron in case new garbage rows land between cron runs.
   window.DRUG_ASSETS_MAP = {};
   if (SCANNER_DATA.length > 0) {
     try {
       var assetTickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
-      var { data: assetRows } = await sb.from('drug_assets')
+      var assetRes = await sb.from('drug_assets')
         .select('drug_name, brand_name, parent_ticker, licensee_tickers, royalty_tickers, partner_ticker, pdufa_date')
         .in('parent_ticker', assetTickers);
+      var assetRows = assetRes && assetRes.data;
       if (assetRows && assetRows.length > 0) {
         assetRows.forEach(function(a) {
           var displayName = a.brand_name || a.drug_name;
           if (!displayName) return;
-          // Primary key: (parent_ticker, pdufa_date)
-          if (a.parent_ticker && a.pdufa_date) {
-            window.DRUG_ASSETS_MAP[a.parent_ticker + '|' + a.pdufa_date] = displayName;
-          }
-          // Also index under every licensee / royalty / partner ticker so
-          // royalty-role events resolve to the actual drug name
+          if (a.parent_ticker && a.pdufa_date) window.DRUG_ASSETS_MAP[a.parent_ticker + '|' + a.pdufa_date] = displayName;
           var companions = [].concat(
             Array.isArray(a.licensee_tickers) ? a.licensee_tickers : [],
-            Array.isArray(a.royalty_tickers)  ? a.royalty_tickers  : [],
+            Array.isArray(a.royalty_tickers) ? a.royalty_tickers : [],
             a.partner_ticker ? [a.partner_ticker] : []
           );
           companions.forEach(function(tk) {
-            if (tk && a.pdufa_date) {
-              window.DRUG_ASSETS_MAP[tk + '|' + a.pdufa_date] = displayName;
-            }
+            if (tk && a.pdufa_date) window.DRUG_ASSETS_MAP[tk + '|' + a.pdufa_date] = displayName;
           });
         });
         console.log('[SC] drug_assets: indexed ' + Object.keys(window.DRUG_ASSETS_MAP).length + ' (ticker,date) pairs');
@@ -2022,9 +1653,10 @@ function switchTab(btn, id) {
     });
   }
   try {
-    var { data: approvedCompanies } = await sb.from('biotech_universe')
+    var approvedRes = await sb.from('biotech_universe')
       .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, buyout_score, buyout_risk, buyout_flags, buyout_timeline, drug_tam_billions, tam_ratio, estimated_market_cap, has_partnership, partner_name, acquirer_urgency_top, revenue_m')
       .eq('is_acquired', false).gt('buyout_score', 0).order('buyout_score', { ascending: false });
+    var approvedCompanies = approvedRes && approvedRes.data;
     if (approvedCompanies && approvedCompanies.length > 0) {
       approvedCompanies.forEach(function(c) {
         var tam = Number(c.drug_tam_billions) || 0;
@@ -2063,7 +1695,6 @@ function switchTab(btn, id) {
 
 </script>
 <script>
-
 // ═══════════════════════════════════════════════════════════════════════════
 // PR SCANNER (linguistic analysis on biotech press releases)
 // ═══════════════════════════════════════════════════════════════════════════
@@ -2082,7 +1713,7 @@ var PR_STRONG_BULLISH = [
   /regenerative\s+medicine\s+advanced\s+therapy/i,
   /acquired\s+by/i,
   /\$[\d.]+\s*(?:billion|bn)\s+(?:deal|acquisition|merger)/i,
-  /signed\s+(?:a\s+)?licensing\s+agreement\s+worth/i,
+  /signed\s+(?:a\s+)?licensing\s+agreement\s+worth/i
 ];
 
 var PR_STRONG_BEARISH = [
@@ -2101,7 +1732,7 @@ var PR_STRONG_BEARISH = [
   /going\s+concern\s+(?:doubt|warning)/i,
   /Chapter\s+11/i,
   /bankruptcy/i,
-  /filed\s+for\s+chapter/i,
+  /filed\s+for\s+chapter/i
 ];
 
 var PR_MODERATE_BULLISH = [
@@ -2114,7 +1745,7 @@ var PR_MODERATE_BULLISH = [
   /on\s+track\s+(?:to\s+file|for\s+filing|for\s+submission|for\s+approval)/i,
   /filed\s+(?:the\s+)?(?:NDA|BLA|sNDA|sBLA)/i,
   /accept(?:ed|ance)\s+(?:for\s+review|by\s+(?:the\s+)?FDA)/i,
-  /successful\s+(?:enrollment|completion|Type\s+[A-C])/i,
+  /successful\s+(?:enrollment|completion|Type\s+[A-C])/i
 ];
 
 var PR_MODERATE_BEARISH = [
@@ -2134,14 +1765,14 @@ var PR_MODERATE_BEARISH = [
   /shelf\s+registration/i,
   /going\s+concern/i,
   /insufficient\s+cash/i,
-  /runway\s+(?:extends|through)\s+(?:q[1-4]|month|mid)/i,
+  /runway\s+(?:extends|through)\s+(?:q[1-4]|month|mid)/i
 ];
 
 var PR_HEDGE_WORDS = [
   /\btrend(?:ed|ing)?\b/i, /\bnumerical(?:ly)?\b/i, /\bpromising\b/i, /\bsuggest(?:s|ing|ed)?\b/i,
   /\bindicate(?:s|d)?\b/i, /\bpotential(?:ly)?\b/i, /\bmay\b/i, /\bcould\b/i, /\bapparent(?:ly)?\b/i,
   /\bappear(?:s|ed)?\b/i, /\boptimistic\b/i, /\bencouraging\b/i, /\bfavorable\b/i, /\bpreliminary\b/i,
-  /\binitial\s+(?:data|indication|suggest)/i, /\bearly\s+signal/i,
+  /\binitial\s+(?:data|indication|suggest)/i, /\bearly\s+signal/i
 ];
 
 function analyzePR(headline, body) {
@@ -2180,14 +1811,16 @@ function analyzePR(headline, body) {
 
 async function loadPRData() {
   var grid = document.getElementById('pr-scanner-grid');
-  var daysBack = parseInt(document.getElementById('pr-days-filter')?.value || '7');
+  var daysEl = document.getElementById('pr-days-filter');
+  var daysBack = parseInt((daysEl && daysEl.value) || '7');
   grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;"><div style="display:inline-block;width:20px;height:20px;border:2px solid rgba(0,212,255,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 0.7s linear infinite;"></div><div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-top:1rem;letter-spacing:0.1em;">Scanning press releases from last ' + daysBack + ' days...</div></div>';
   if (!SC_CONFIG.finnhubApiKey) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.72rem;color:var(--amber);">Finnhub API key not configured. PR scanner unavailable.</div>';
     return;
   }
   var sb = getSupabase();
-  var { data: universe } = await sb.from('biotech_universe').select('ticker').eq('active', true).gt('estimated_market_cap', 50e6).order('estimated_market_cap', { ascending: false }).limit(200);
+  var uniRes = await sb.from('biotech_universe').select('ticker').eq('active', true).gt('estimated_market_cap', 50e6).order('estimated_market_cap', { ascending: false }).limit(200);
+  var universe = uniRes && uniRes.data;
   if (!universe || universe.length === 0) {
     grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);">No biotech companies in universe.</div>';
     return;
@@ -2213,7 +1846,7 @@ async function loadPRData() {
             source: n.source || '', url: n.url || '', datetime: n.datetime,
             date: new Date(n.datetime * 1000).toISOString().split('T')[0],
             score: analysis.score, signal: analysis.signal, category: analysis.category,
-            matched: analysis.matched, hedges: analysis.hedges, specificity: analysis.specificity,
+            matched: analysis.matched, hedges: analysis.hedges, specificity: analysis.specificity
           });
         });
       }).catch(function() {});
@@ -2241,7 +1874,7 @@ function renderPRScanner() {
   var filtered = PR_DATA.filter(function(pr) {
     if (signalFilter !== 'all' && pr.signal !== signalFilter) return false;
     if (categoryFilter !== 'all' && pr.category !== categoryFilter) return false;
-    if (search && !pr.ticker.toUpperCase().includes(search)) return false;
+    if (search && pr.ticker.toUpperCase().indexOf(search) < 0) return false;
     return true;
   });
   document.getElementById('pr-count').textContent = filtered.length + ' / ' + PR_DATA.length + ' PRs';
@@ -2250,9 +1883,15 @@ function renderPRScanner() {
     return;
   }
   grid.innerHTML = filtered.slice(0, 150).map(function(pr) {
-    var signalBadge = { STRONGLY_BULLISH: { label: '🚀 STRONG BULL', cls: 'grade-elite' }, BULLISH: { label: '⚡ BULL', cls: 'grade-strong' }, NEUTRAL: { label: '🟡 NEUTRAL', cls: 'grade-watch' }, BEARISH: { label: '⚠️ BEAR', cls: 'grade-weak' }, STRONGLY_BEARISH: { label: '🚨 STRONG BEAR', cls: 'grade-weak' } }[pr.signal] || { label: pr.signal, cls: 'grade-weak' };
+    var signalBadge = ({
+      STRONGLY_BULLISH: { label: '🚀 STRONG BULL', cls: 'grade-elite' },
+      BULLISH: { label: '⚡ BULL', cls: 'grade-strong' },
+      NEUTRAL: { label: '🟡 NEUTRAL', cls: 'grade-watch' },
+      BEARISH: { label: '⚠️ BEAR', cls: 'grade-weak' },
+      STRONGLY_BEARISH: { label: '🚨 STRONG BEAR', cls: 'grade-weak' }
+    })[pr.signal] || { label: pr.signal, cls: 'grade-weak' };
     var scoreColor = pr.score >= 30 ? 'green' : pr.score >= 10 ? 'cyan' : pr.score >= -10 ? 'white' : pr.score >= -25 ? 'amber' : 'red';
-    var catLabel = { FDA_ACTION: '⚖️ FDA', CLINICAL_TRIAL: '🧪 TRIAL', PARTNERSHIP: '🤝 M&A', FINANCING: '💰 FIN', EARNINGS: '📊 EPS', OTHER: '📄' }[pr.category] || '📄';
+    var catLabel = ({ FDA_ACTION: '⚖️ FDA', CLINICAL_TRIAL: '🧪 TRIAL', PARTNERSHIP: '🤝 M&A', FINANCING: '💰 FIN', EARNINGS: '📊 EPS', OTHER: '📄' })[pr.category] || '📄';
     var flagChips = [];
     if ((pr.matched.strongBear || []).length > 0) flagChips.push('<span style="padding:0.1rem 0.35rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.08);color:var(--red);font-size:0.52rem;">' + pr.matched.strongBear.length + ' STRONG BEAR</span>');
     if ((pr.matched.modBear || []).length > 0) flagChips.push('<span style="padding:0.1rem 0.35rem;border:1px solid rgba(245,166,35,0.5);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;">' + pr.matched.modBear.length + ' HEDGE</span>');
@@ -2269,7 +1908,6 @@ function renderPRScanner() {
     '</div>';
   }).join('');
 }
-
 </script>
 <script src="/js/support-widget.js"></script>
 </body>
