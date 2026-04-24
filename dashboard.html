@@ -415,6 +415,18 @@
 
 var SCANNER_DATA = [];
 
+// ─── Ticker validator — strips CIKs, numerics, and malformed symbols ────
+// before they hit Polygon's per-ticker endpoints (which 404 loudly).
+// Accepts 1-5 uppercase letters, optionally followed by a single digit
+// or a dot-class marker (e.g. BRK.A). Rejects anything starting with a
+// digit (CIKs like "4568" or "6446") or containing spaces/garbage.
+function isValidTicker(t) {
+  if (!t) return false;
+  var s = String(t).trim().toUpperCase();
+  if (!s || s.length > 6) return false;
+  return /^[A-Z]{1,5}(?:[.-][A-Z]{1,2}|\d)?$/.test(s);
+}
+
 var MANUAL_CMC_OVERRIDES = {
   'GRCE': { cmo_audit_flag: true },
 };
@@ -846,6 +858,8 @@ function classifyChart(change30d, volRatio, bars) {
 
 async function polyBulkSnapshot(tickers) {
   if (!SC_CONFIG.polygonApiKey || !tickers || tickers.length === 0) return {};
+  tickers = tickers.filter(isValidTicker);
+  if (tickers.length === 0) return {};
   var apiKey = SC_CONFIG.polygonApiKey;
   var result = {};
   for (var i = 0; i < tickers.length; i += 250) {
@@ -882,6 +896,14 @@ function applyBulkSnapshot(snap) {
 
 async function fetchPriceData(tickers) {
   if (!SC_CONFIG.polygonApiKey) { console.warn('[SC] No polygonApiKey in SC_CONFIG'); return; }
+  // v4.8 — strip obviously-invalid symbols before per-ticker fetches.
+  // Polygon 404s on CIKs (e.g. 4568), delisted names, and junk tokens.
+  var originalLen = tickers.length;
+  tickers = tickers.filter(isValidTicker);
+  if (tickers.length < originalLen) {
+    console.log('[SC] Polygon: skipped ' + (originalLen - tickers.length) + ' invalid ticker symbols');
+  }
+  if (tickers.length === 0) return;
   var apiKey = SC_CONFIG.polygonApiKey;
   var today = new Date();
   var ago = new Date(today); ago.setDate(ago.getDate() - 35);
