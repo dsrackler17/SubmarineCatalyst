@@ -452,6 +452,72 @@ function computeNetEdge(d) {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
+// STN SCORE — pinpoint 1-100 for every event.
+// Uses server-side stn_score when present. Otherwise blends the signals we
+// already have on the card (30D run-up, dilution pressure, priced-in factors,
+// chart extension, TAM room) into a deterministic client-side score.
+// ═══════════════════════════════════════════════════════════════════════════
+function deriveStnScore(d) {
+  if (!d) return 50;
+  var server = d.stn_score != null ? Number(d.stn_score) : NaN;
+  if (isFinite(server) && server > 0) {
+    return Math.max(1, Math.min(100, Math.round(server)));
+  }
+
+  var score = 50; // neutral baseline
+
+  // 30-day run-up: the biggest single STN driver. Stocks up >30% into a
+  // PDUFA have the news front-run; >50% is the textbook STN setup.
+  var p = (typeof PRICE_DATA !== 'undefined') ? PRICE_DATA[d.ticker] : null;
+  if (p && typeof p.change30d === 'number') {
+    if (p.change30d >= 50)      score += 25;
+    else if (p.change30d >= 30) score += 15;
+    else if (p.change30d >= 15) score += 7;
+    else if (p.change30d < -10) score -= 8;
+  }
+
+  // Dilution pressure: offering likely to hit on any approval pop.
+  if (d.dilution_risk === 'EXTREME')       score += 15;
+  else if (d.dilution_risk === 'HIGH')     score += 10;
+  else if (d.dilution_risk === 'MODERATE') score += 3;
+  else if (d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL') score -= 5;
+
+  // Priced-in: high PoA means less room to surprise on approval.
+  var poa = Number(d.poa) || 0;
+  if (poa >= 85)      score += 10;
+  else if (poa >= 75) score += 5;
+  else if (poa < 50)  score -= 5;
+
+  // Technical exhaustion via RSI.
+  var rsi = Number(d.rsi_14d);
+  if (isFinite(rsi) && rsi > 0) {
+    if (rsi >= 75)      score += 10;
+    else if (rsi >= 70) score += 5;
+    else if (rsi <= 30) score -= 8;
+  }
+
+  // Analyst target proximity: already priced to perfection.
+  var prox = Number(d.analyst_target_proximity_pct);
+  if (isFinite(prox) && prox > 0) {
+    if (prox >= 100)     score += 8;
+    else if (prox >= 90) score += 4;
+    else if (prox <= 50) score -= 5;
+  }
+
+  // TAM/Cap: drug market smaller than cap = limited upside room.
+  var tam = Number(d.tam_ratio) || 0;
+  if (tam > 0 && tam < 1) score += 8;
+  else if (tam >= 10)     score -= 5;
+
+  // Half-weight categorical nudge from legacy sell_news_risk.
+  var snr = String(d.sell_news_risk || '').toUpperCase();
+  var catNudge = { 'HIGH': 10, 'ELEVATED': 5, 'MODERATE': 0, 'MOD': 0, 'LOW': -5, 'VERY LOW': -10 };
+  if (catNudge[snr] != null) score += catNudge[snr] * 0.5;
+
+  return Math.max(1, Math.min(100, Math.round(score)));
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
 // CLIENT-SIDE DATA HYGIENE
 // ═══════════════════════════════════════════════════════════════════════════
 
@@ -900,10 +966,7 @@ function renderScanner() {
       case 'cmc_haircut': return (Number(b.cmc_haircut_pct)||0) - (Number(a.cmc_haircut_pct)||0);
       case 'cmc_score':   return (Number(b.cmc_score) || 0) - (Number(a.cmc_score) || 0);
 case 'stn_risk':
-        var stnRank = { 'HIGH': 100, 'ELEVATED': 75, 'MODERATE': 50, 'MOD': 50, 'LOW': 25, 'VERY LOW': 10 };
-        var aStn = a.stn_score != null ? Number(a.stn_score) : (stnRank[a.sell_news_risk] != null ? stnRank[a.sell_news_risk] : 50);
-        var bStn = b.stn_score != null ? Number(b.stn_score) : (stnRank[b.sell_news_risk] != null ? stnRank[b.sell_news_risk] : 50);
-        return bStn - aStn;
+        return deriveStnScore(b) - deriveStnScore(a);
       case 'rsi':       return (Number(b.rsi_14d)||0) - (Number(a.rsi_14d)||0);
       default:          return (b.net_edge_adj || 0) - (a.net_edge_adj || 0);
     }
@@ -941,25 +1004,20 @@ var auditBadge = d.cmo_audit_flag
       ? '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.6);background:rgba(255,68,68,0.12);color:var(--red);margin-left:0.4rem;vertical-align:middle;" title="FDA Form 483 issued at CMO within last 18 months — elevated CMC CRL risk">483 FLAG</span>'
       : '';
 
-    // ─── STN Risk: unified pill + score-box category ──────────────────────
-    // Prefer numeric stn_score (0-100) when present; fall back to categorical sell_news_risk.
-    // Weighted: (30D Run-up * 0.3) + (Dilution * 0.3) + (IV Crush * 0.2) + (Retail Divergence * 0.2)
-    var stnScoreNum = d.stn_score != null ? Number(d.stn_score) : null;
-    var stnCategory, stnBoxColor, stnPillColor;
-    if (stnScoreNum != null && isFinite(stnScoreNum)) {
-      if (stnScoreNum >= 65)      { stnCategory = 'HIGH'; stnBoxColor = 'red';   stnPillColor = { border: 'rgba(255,68,68,0.6)',  bg: 'rgba(255,68,68,0.12)',  fg: 'var(--red)' }; }
-      else if (stnScoreNum >= 35) { stnCategory = 'MED';  stnBoxColor = 'amber'; stnPillColor = { border: 'rgba(245,166,35,0.5)', bg: 'rgba(245,166,35,0.1)',  fg: 'var(--amber)' }; }
-      else                        { stnCategory = 'LOW';  stnBoxColor = 'green'; stnPillColor = { border: 'rgba(0,255,157,0.4)',  bg: 'rgba(0,255,157,0.08)',  fg: 'var(--accent2)' }; }
-    } else {
-      var snr = String(d.sell_news_risk || 'MOD').toUpperCase();
-      if (snr === 'HIGH' || snr === 'ELEVATED')        { stnCategory = 'HIGH'; stnBoxColor = 'red';   stnPillColor = { border: 'rgba(255,68,68,0.6)',  bg: 'rgba(255,68,68,0.12)',  fg: 'var(--red)' }; }
-      else if (snr === 'LOW' || snr === 'VERY LOW')    { stnCategory = 'LOW';  stnBoxColor = 'green'; stnPillColor = { border: 'rgba(0,255,157,0.4)',  bg: 'rgba(0,255,157,0.08)',  fg: 'var(--accent2)' }; }
-      else                                             { stnCategory = 'MED';  stnBoxColor = 'amber'; stnPillColor = { border: 'rgba(245,166,35,0.5)', bg: 'rgba(245,166,35,0.1)',  fg: 'var(--amber)' }; }
-    }
-    var stnPillLabel = 'STN ' + stnCategory + (stnScoreNum != null && isFinite(stnScoreNum) ? ' ' + Math.round(stnScoreNum) : '');
-    var stnPillTitle = stnScoreNum != null && isFinite(stnScoreNum)
-      ? 'Sell-the-News score ' + Math.round(stnScoreNum) + '/100 · weighted: 30D run-up 30%, dilution 30%, IV crush 20%, retail divergence 20%'
-      : 'Sell-the-News risk: ' + (d.sell_news_risk || 'MOD') + ' (categorical — no numeric score yet)';
+// ─── STN Risk: pinpoint 1-100 score (always). ─────────────────────────
+    // Server stn_score used when present; otherwise deriveStnScore() blends
+    // the card's existing signals into a deterministic 1-100 value.
+    // Category word (HIGH/MED/LOW) is no longer shown — the number is.
+    var stnScoreNum = deriveStnScore(d);
+    var stnServer = d.stn_score != null && isFinite(Number(d.stn_score)) && Number(d.stn_score) > 0;
+    var stnBoxColor, stnPillColor;
+    if (stnScoreNum >= 65)      { stnBoxColor = 'red';   stnPillColor = { border: 'rgba(255,68,68,0.6)',  bg: 'rgba(255,68,68,0.12)',  fg: 'var(--red)' }; }
+    else if (stnScoreNum >= 35) { stnBoxColor = 'amber'; stnPillColor = { border: 'rgba(245,166,35,0.5)', bg: 'rgba(245,166,35,0.1)',  fg: 'var(--amber)' }; }
+    else                        { stnBoxColor = 'green'; stnPillColor = { border: 'rgba(0,255,157,0.4)',  bg: 'rgba(0,255,157,0.08)',  fg: 'var(--accent2)' }; }
+    var stnPillTitle = stnServer
+      ? 'Sell-the-News score ' + stnScoreNum + '/100 (server) · weighted: 30D run-up 30%, dilution 30%, IV crush 20%, retail divergence 20%'
+      : 'Sell-the-News score ' + stnScoreNum + '/100 (derived from 30D run-up, dilution, PoA, RSI, analyst target proximity, TAM/Cap) · server score not yet available for this row';
+    var stnPillLabel = 'STN ' + stnScoreNum;
     var stnPill = '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid ' + stnPillColor.border + ';background:' + stnPillColor.bg + ';color:' + stnPillColor.fg + ';margin-left:0.4rem;vertical-align:middle;" title="' + stnPillTitle + '">' + stnPillLabel + '</span>';
 
     var innScore = Number(d.innovation_score) || 0;
@@ -1098,7 +1156,7 @@ if (hasCMC) {
       '<div class="card-indication">' + d.indication + '</div>' +
       '<div class="card-scores">' +
         '<div class="score-box"><div class="score-box-label">PoA</div><div class="score-box-val green">' + (d.poa || 0).toFixed(1) + '%</div></div>' +
-        '<div class="score-box" title="' + stnPillTitle + '"><div class="score-box-label">STN Risk</div><div class="score-box-val ' + stnBoxColor + '">' + stnCategory + (stnScoreNum != null && isFinite(stnScoreNum) ? ' ' + Math.round(stnScoreNum) : '') + '</div></div>' +
+        '<div class="score-box" title="' + stnPillTitle + '"><div class="score-box-label">STN Risk</div><div class="score-box-val ' + stnBoxColor + '">' + stnScoreNum + '</div></div>' +
         '<div class="score-box"><div class="score-box-label">Dilution</div><div class="score-box-val ' + (d.dilution_risk === 'EXTREME' || d.dilution_risk === 'HIGH' ? 'red' : d.dilution_risk === 'MODERATE' ? 'amber' : (d.dilution_risk === 'LOW' || d.dilution_risk === 'MINIMAL') ? 'green' : 'white') + '">' + (d.dilution_risk || '—') + '</div></div>' +
         '<div class="score-box" title="Net Edge = base score + innovation fold-in (±7.5 pts)"><div class="score-box-label">Net Edge</div><div class="score-box-val ' + (netEdge >= 72 ? 'green' : netEdge >= 58 ? 'cyan' : netEdge >= 42 ? 'amber' : 'red') + '">' + netEdge.toFixed(1) + '</div></div>' +
       '</div>' +
@@ -1809,8 +1867,17 @@ var PR_STRONG_BEARISH = [
   /Going\s+Concern/i,
   /going\s+concern\s+(?:doubt|warning)/i,
   /Chapter\s+11/i,
-  /bankruptcy/i,
-  /filed\s+for\s+chapter/i
+/bankruptcy/i,
+  /filed\s+for\s+chapter/i,
+  // CMC + enforcement action red flags (rejection-level severity)
+  /\bwarning\s+letter\b/i,
+  /\bimport\s+alert\b/i,
+  /(?:significant|major|serious)\s+(?:CMC|manufacturing)\s+(?:issue|deficienc|concern|observ)/i,
+  /boxed\s+warning\s+(?:required|mandated|added\s+to\s+label)/i,
+  /black.?box\s+warning\s+(?:required|mandated|added)/i,
+  /plant\s+(?:shutdown|closure|suspension)/i,
+  /(?:production|manufacturing)\s+halt/i,
+  /class\s+[I1]\s+recall/i
 ];
 
 var PR_MODERATE_BULLISH = [
@@ -1843,7 +1910,33 @@ var PR_MODERATE_BEARISH = [
   /shelf\s+registration/i,
   /going\s+concern/i,
   /insufficient\s+cash/i,
-  /runway\s+(?:extends|through)\s+(?:q[1-4]|month|mid)/i
+  /runway\s+(?:extends|through)\s+(?:q[1-4]|month|mid)/i,
+  // Label / approval condition degradation (Soft CRL triggers)
+  /restrict(?:ed|ive)\s+label/i,
+  /narrow(?:er)?\s+(?:label|approval|indication)/i,
+  /label\s+(?:restriction|carve.?out|limitation)/i,
+  /(?:narrower|restricted)\s+than\s+(?:expected|anticipated|sought)/i,
+  // Post-approval burden
+  /post.?marketing\s+(?:requirement|commitment)s?/i,
+  /\bPMR\b/i,
+  /\bPMC\b/i,
+  /additional\s+(?:trial|stud(?:y|ies))\s+(?:required|mandated|requested)/i,
+  /confirmatory\s+trial\s+(?:required|mandated)/i,
+  /post.?approval\s+stud(?:y|ies)\s+required/i,
+  // CMC warning signals (not yet rejection-level)
+  /\bForm\s+483\b/i,
+  /inspection(?:al)?\s+observations?/i,
+  /\b483\s+(?:observation|response|finding)/i,
+  // Clinical data muddiness (barely-cleared p-values, new AE signals)
+  /\bp\s*=\s*0\.0[345]\d?\b/,
+  /barely\s+(?:met|achieved|cleared)\s+(?:statistical\s+)?significance/i,
+  /just\s+(?:met|cleared)\s+(?:the\s+)?(?:p.?value|significance)/i,
+  /new\s+safety\s+signal/i,
+  /previously\s+(?:unobserved|unseen|undetected)\s+(?:adverse|safety)/i,
+  /safety\s+signal\s+not\s+(?:seen|observed|present)\s+in\s+phase\s+[12]/i,
+  // Enrollment stalls
+  /enrollment\s+(?:paused|halted|slowed|delayed)/i,
+  /recruitment\s+(?:paused|halted|slowed)/i
 ];
 
 var PR_HEDGE_WORDS = [
