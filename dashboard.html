@@ -431,6 +431,46 @@ var MANUAL_CMC_OVERRIDES = {
   'GRCE': { cmo_audit_flag: true },
 };
 
+// ─── STN OVERRIDES — keyed on ticker+date ─────────────────────────────────
+// Manual classifications for events score-events misclassifies. Each entry
+// can specify any subset of the fields that feed deriveStnScore(). Server
+// values still win when present and >= 0; these only apply when server is
+// null. Will be deprecated once classify-pdufa-events backfills the
+// pdufa_classifications table.
+//
+// Pattern: 'TICKER|YYYY-MM-DD': { field: value, ... }
+//
+// Common patterns:
+// · Mega-cap label expansion → cap_tier: 'MEGA', is_label_expansion: true
+// · Approved drug pediatric extension → is_supplement: true, asset_maturity: 'APPROVED'
+// · Repeat approver (any large pharma) → first_time_approver: false
+var MANUAL_STN_OVERRIDES = {
+  // SNY mega-cap supplements on Tzield (already approved 2022)
+  'SNY|2026-04-27':  { stn_score: 8,  first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
+  'SNY|2026-04-29':  { stn_score: 8,  first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
+  'SNY|2026-07-23':  { stn_score: 12, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
+  // MRK supplements (Welireg+Keytruda, doravirine/islatravir all repeat approvers)
+  'MRK|2026-04-28':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
+  'MRK|2026-06-19':  { stn_score: 18, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
+  'MRK|2026-08-17':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
+  'MRK|2026-09-21':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
+  'MRK|2026-10-04':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
+  'MRK|2026-10-10':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
+  // Other large-cap repeat approvers
+  'AZN|2026-04-30':  { first_time_approver: false, cap_tier: 'MEGA' },
+  'BIIB|2026-05-24': { first_time_approver: false, cap_tier: 'LARGE' },
+  'PFE|2026-08-17':  { first_time_approver: false, cap_tier: 'MEGA' },
+  'BMY|2026-08-17':  { first_time_approver: false, cap_tier: 'MEGA' },
+  'GILD|2026-12-23': { first_time_approver: false, cap_tier: 'MEGA' },
+  'GSK|2026-06-18':  { first_time_approver: false, cap_tier: 'MEGA' },
+  'RHHBY|2026-12-18':{ first_time_approver: false, cap_tier: 'MEGA' },
+  'IONS|2026-06-30': { first_time_approver: false, cap_tier: 'LARGE' },
+  'IONS|2026-09-22': { first_time_approver: false, cap_tier: 'LARGE' },
+  'EXEL|2026-12-03': { first_time_approver: false, cap_tier: 'MID' },
+  'AXSM|2026-04-30': { first_time_approver: false, cap_tier: 'MID' },
+  'ARGX|2026-05-10': { first_time_approver: false, cap_tier: 'LARGE' },
+};
+
 function daysUntil(dateStr) {
   var today = new Date(); today.setHours(0,0,0,0);
   return Math.round((new Date(dateStr) - today) / 86400000);
@@ -483,13 +523,24 @@ function deriveStnScore(d) {
     return Math.max(0, Math.min(100, Math.round(server)));
   }
 
+  // Manual ticker+date override. If the override defines a hard stn_score,
+  // we return it now and skip the whole derivation. Otherwise individual
+  // override fields (first_time_approver, is_label_expansion, etc.) get
+  // consulted further down where those signals are evaluated.
+  var stnKey = d.ticker + '|' + d.date;
+  var ovr = MANUAL_STN_OVERRIDES[stnKey];
+  if (ovr && typeof ovr.stn_score === 'number') {
+    return Math.max(0, Math.min(100, Math.round(ovr.stn_score)));
+  }
+
   // ─── Client fallback — mirrors score-events v4.8 STN v4 model ────────
   var score = 80;
 
   var marketCap = Number(d.estimated_market_cap) || 0;
   var capB = marketCap / 1e9;
   var type = String(d.type || '').toUpperCase();
-  var isSupplement = type.indexOf('SNDA') >= 0 || type.indexOf('SUPPLEMENT') >= 0 || type.indexOf('SBLA') >= 0;
+  var isSupplement = type.indexOf('SNDA') >= 0 || type.indexOf('SUPPLEMENT') >= 0 || type.indexOf('SBLA') >= 0
+                  || (ovr && ovr.is_label_expansion === true);
 
   // ─── Amplifiers ──────────────────────────────────────────────────────
   if (marketCap > 0 && marketCap < 200e6)      score += 10;
@@ -541,7 +592,8 @@ function deriveStnScore(d) {
     else if (prox >= 95) score += 4;
   }
 
-  if (d.first_time_approver)  score += 8;
+  var firstTimer = ovr && typeof ovr.first_time_approver === 'boolean' ? ovr.first_time_approver : d.first_time_approver;
+  if (firstTimer)  score += 8;
   if (d.pdufa_is_friday_pm)   score += 5;
   if (d.is_505b2)             score += 6;
 
