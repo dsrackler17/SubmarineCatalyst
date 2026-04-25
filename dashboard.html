@@ -431,44 +431,57 @@ var MANUAL_CMC_OVERRIDES = {
   'GRCE': { cmo_audit_flag: true },
 };
 
-// ─── STN OVERRIDES — keyed on ticker+date ─────────────────────────────────
-// Manual classifications for events score-events misclassifies. Each entry
-// can specify any subset of the fields that feed deriveStnScore(). Server
-// values still win when present and >= 0; these only apply when server is
-// null. Will be deprecated once classify-pdufa-events backfills the
-// pdufa_classifications table.
-//
-// Pattern: 'TICKER|YYYY-MM-DD': { field: value, ... }
-//
-// Common patterns:
-// · Mega-cap label expansion → cap_tier: 'MEGA', is_label_expansion: true
-// · Approved drug pediatric extension → is_supplement: true, asset_maturity: 'APPROVED'
-// · Repeat approver (any large pharma) → first_time_approver: false
 var MANUAL_STN_OVERRIDES = {
-  // SNY mega-cap supplements on Tzield (already approved 2022)
+  // SNY supplements on Tzield/Sarclisa/Dupixent (already approved)
+  'SNY|2026-04-23':  { stn_score: 12, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
   'SNY|2026-04-27':  { stn_score: 8,  first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
   'SNY|2026-04-29':  { stn_score: 8,  first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
   'SNY|2026-07-23':  { stn_score: 12, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
-  // MRK supplements (Welireg+Keytruda, doravirine/islatravir all repeat approvers)
-  'MRK|2026-04-28':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
+
+  // MRK supplements (Welireg+Keytruda blockbusters; mega-cap)
+  'MRK|2026-04-28':  { stn_score: 15, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
   'MRK|2026-06-19':  { stn_score: 18, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
-  'MRK|2026-08-17':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
+  'MRK|2026-08-17':  { stn_score: 15, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
   'MRK|2026-09-21':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
   'MRK|2026-10-04':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
-  'MRK|2026-10-10':  { stn_score: 15, first_time_approver: false, cap_tier: 'MEGA' },
-  // Other large-cap repeat approvers
-  'AZN|2026-04-30':  { first_time_approver: false, cap_tier: 'MEGA' },
-  'BIIB|2026-05-24': { first_time_approver: false, cap_tier: 'LARGE' },
-  'PFE|2026-08-17':  { first_time_approver: false, cap_tier: 'MEGA' },
-  'BMY|2026-08-17':  { first_time_approver: false, cap_tier: 'MEGA' },
-  'GILD|2026-12-23': { first_time_approver: false, cap_tier: 'MEGA' },
-  'GSK|2026-06-18':  { first_time_approver: false, cap_tier: 'MEGA' },
-  'RHHBY|2026-12-18':{ first_time_approver: false, cap_tier: 'MEGA' },
-  'IONS|2026-06-30': { first_time_approver: false, cap_tier: 'LARGE' },
-  'IONS|2026-09-22': { first_time_approver: false, cap_tier: 'LARGE' },
-  'EXEL|2026-12-03': { first_time_approver: false, cap_tier: 'MID' },
-  'AXSM|2026-04-30': { first_time_approver: false, cap_tier: 'MID' },
-  'ARGX|2026-05-10': { first_time_approver: false, cap_tier: 'LARGE' },
+  'MRK|2026-10-10':  { stn_score: 15, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
+
+  // Other large/mega-cap repeat approvers — hard scores
+  'AZN|2026-04-30':  { stn_score: 22, first_time_approver: false, cap_tier: 'MEGA' },
+  'BIIB|2026-05-24': { stn_score: 25, first_time_approver: false, is_label_expansion: true, cap_tier: 'LARGE' },
+  'PFE|2026-08-17':  { stn_score: 18, first_time_approver: false, is_label_expansion: true, cap_tier: 'MEGA' },
+  'BMY|2026-08-17':  { stn_score: 22, first_time_approver: false, cap_tier: 'MEGA' },
+  'GILD|2026-12-23': { stn_score: 22, first_time_approver: false, cap_tier: 'MEGA' },
+  'GSK|2026-06-18':  { stn_score: 20, first_time_approver: false, cap_tier: 'MEGA' },
+  'RHHBY|2026-12-18':{ stn_score: 20, first_time_approver: false, cap_tier: 'MEGA' },
+  'IONS|2026-06-30': { stn_score: 35, first_time_approver: false, cap_tier: 'LARGE' },
+  'IONS|2026-09-22': { stn_score: 35, first_time_approver: false, cap_tier: 'LARGE' },
+
+  // Mid-cap repeat approvers
+  'EXEL|2026-12-03': { stn_score: 35, first_time_approver: false, cap_tier: 'MID' },
+  'AXSM|2026-04-30': { stn_score: 28, first_time_approver: false, is_label_expansion: true, cap_tier: 'MID' },
+  'ARGX|2026-05-10': { stn_score: 30, first_time_approver: false, is_label_expansion: true, cap_tier: 'LARGE' },
+
+  // Zai Lab Augtyro = China license of approved BMS drug
+  'ZLAB|2026-05-10': { stn_score: 35, first_time_approver: false, is_label_expansion: true, cap_tier: 'MID' },
+
+  // VTRS supplements
+  'VTRS|2026-07-30': { stn_score: 18, first_time_approver: false, is_label_expansion: true, cap_tier: 'LARGE' },
+  'VTRS|2026-10-17': { stn_score: 18, first_time_approver: false, is_label_expansion: true, cap_tier: 'LARGE' },
+
+  // MannKind FUROSCIX/Tyvaso — already approved drugs
+  'MNKD|2026-05-29': { stn_score: 38, first_time_approver: false, is_label_expansion: true, cap_tier: 'SMALL' },
+  'MNKD|2026-07-26': { stn_score: 38, first_time_approver: false, is_label_expansion: true, cap_tier: 'SMALL' },
+
+  // Lantheus repeat approver
+  'LNTH|2026-06-29': { stn_score: 42, first_time_approver: false, cap_tier: 'MID' },
+  'LNTH|2026-08-13': { stn_score: 42, first_time_approver: false, cap_tier: 'MID' },
+
+  // Moderna repeat approver
+  'MRNA|2026-08-05': { first_time_approver: false, cap_tier: 'LARGE' },
+
+  // Opus Genetics IRD — Ryzumvi label expansion
+  'IRD|2026-10-17':  { stn_score: 32, first_time_approver: false, is_label_expansion: true, cap_tier: 'SMALL' }
 };
 
 function daysUntil(dateStr) {
@@ -865,39 +878,189 @@ function dedupeEvents(events) {
   return out;
 }
 
-// ─── INNOVATION HEURISTIC + NORMALIZER ───────────────────────────────────────
+// ─── INNOVATION HEURISTIC + NORMALIZER (v2 — calibrated) ────────────────────
+// v1 had two failure modes:
+//   1. normalizeInnovation upscaled raw <= 25 to *4, mapping any maxed
+//      server score (25/25 on the 5-dim 5-pt system) → 100. Result:
+//      Keytruda, Padcev, Auvelity, Ortho Evra all showing 100/100.
+//   2. computeInnovationHeuristic had no concept of "already-approved drug" —
+//      every flag-rich event hit the +32 first-in-class gate.
+//
+// v2 fix: detect approved drug names, sNDA/sBLA event types, and mega-cap
+// repeat approvers, then cap innovation accordingly. Server scores are
+// still trusted within their event's cap.
+
+var INNOVATION_CAP_APPROVED_DRUGS = {
+  // Recently approved (cap 50-55 — preserve some innovation credit)
+  'leqembi':           { cap: 55 },
+  'lecanemab':         { cap: 55 },
+  'vyvgart':           { cap: 50 },
+  'efgartigimod':      { cap: 50 },
+  'tzield':            { cap: 50 },
+  'teplizumab':        { cap: 50 },
+  // Approved 2-5 years ago (cap 30-35)
+  'auvelity':          { cap: 35 },
+  'welireg':           { cap: 35 },
+  'ryzumvi':           { cap: 30 },
+  'sarclisa':          { cap: 30 },
+  'padcev':            { cap: 30 },
+  'enfortumab':        { cap: 30 },
+  // Established blockbusters (cap 25)
+  'keytruda':          { cap: 25 },
+  'pembrolizumab':     { cap: 25 },
+  'dupixent':          { cap: 25 },
+  'dupilumab':         { cap: 25 },
+  'imbruvica':         { cap: 25 },
+  'ibrutinib':         { cap: 25 },
+  'opdivo':            { cap: 25 },
+  'nivolumab':         { cap: 25 },
+  'eylea':             { cap: 25 },
+  'aflibercept':       { cap: 25 },
+  'augtyro':           { cap: 25 },
+  'repotrectinib':     { cap: 25 },
+  // Generic / repackaged / well-established API (cap 12-22)
+  'norelgestromin':    { cap: 12 },
+  'ethinyl estradiol': { cap: 12 },
+  'nimodipine':        { cap: 18 },
+  'dexmethylphenidate':{ cap: 18 },
+  'tebipenem':         { cap: 22 },
+  'oxylanthanum':      { cap: 22 },
+  'ameluz':            { cap: 22 },
+  'igalmi':            { cap: 22 },
+  'molbreevi':         { cap: 30 },
+  'tyvaso':            { cap: 30 },
+  'furoscix':          { cap: 25 }
+};
+
+var INNOVATION_MEGA_CAP_TICKERS = {
+  'PFE': true, 'MRK': true, 'BMY': true, 'JNJ': true, 'ABBV': true,
+  'LLY': true, 'GILD': true, 'AMGN': true, 'AZN': true, 'NVS': true,
+  'GSK': true, 'SNY': true, 'RHHBY': true, 'NVO': true, 'TAK': true
+};
+
+var INNOVATION_BONUS_AREAS = /alzheimer|amyotrophic|huntington|fragile.?x|rett|prion|als|spinal\s+muscular|duchenne|dmd|cystic\s+fibrosis|sickle\s+cell|beta.?thalassemia|familial\s+chylomicronemia/;
+
+function getInnovationCap(d) {
+  if (!d) return null;
+  var drugLower = String(d.drug || '').toLowerCase();
+  var brand = String(d.brand_name || '').toLowerCase();
+  var keys = Object.keys(INNOVATION_CAP_APPROVED_DRUGS).sort(function(a, b) { return b.length - a.length; });
+  for (var i = 0; i < keys.length; i++) {
+    var k = keys[i];
+    if (drugLower.indexOf(k) >= 0 || brand.indexOf(k) >= 0) {
+      return { cap: INNOVATION_CAP_APPROVED_DRUGS[k].cap };
+    }
+  }
+  var type = String(d.type || '').toUpperCase();
+  var isSupplement = type.indexOf('SNDA') >= 0 || type.indexOf('SBLA') >= 0 ||
+                     type.indexOf('SUPPLEMENT') >= 0 || type.indexOf('LABEL') >= 0;
+  var capB = (Number(d.estimated_market_cap) || 0) / 1e9;
+  if (INNOVATION_MEGA_CAP_TICKERS[d.ticker] && capB >= 50) {
+    if (isSupplement) return { cap: 25 };
+    if (d.first_time_approver === false) return { cap: 35 };
+    return { cap: 45 };
+  }
+  if (isSupplement) {
+    if (capB >= 10) return { cap: 35 };
+    if (capB >= 2)  return { cap: 50 };
+    return { cap: 65 };
+  }
+  if (d.is_505b2 === true) return { cap: 35 };
+  return null;
+}
+
 function computeInnovationHeuristic(d) {
   var score = 0, signals = [];
   var flagsBlob = (d.flags || []).concat(d.appreciation_signals || [], d.innovation_flags || []).join(' ').toLowerCase();
   var indication = String(d.indication || '').toLowerCase();
-  var type = String(d.type || '').toLowerCase();
-  if (/first.?in.?class|first.?to.?reach|no approved treatments|novel mechanism|novel moa/.test(flagsBlob)) { score += 32; signals.push('First-in-class mechanism'); }
-  if (/best.?in.?class|superior to|head.?to.?head/.test(flagsBlob)) { score += 20; signals.push('Best-in-class data'); }
-  if (/disease.?modifying/.test(flagsBlob)) { score += 15; signals.push('Disease-modifying therapy'); }
-  if (/label expansion|platform|multiple indications/.test(flagsBlob)) { score += 12; signals.push('Label expansion setup'); }
-  if (/priority review/.test(flagsBlob) || type.indexOf('priority') >= 0) { score += 8; signals.push('Priority review'); }
-  if (/orphan|rare disease|ultra.?rare/.test(flagsBlob)) { score += 10; signals.push('Orphan designation'); }
-  if (/subcutaneous|once.?weekly|once.?monthly|long.?acting/.test(flagsBlob)) { score += 10; signals.push('Improved route of administration'); }
+
+  // Mechanism novelty (0-28)
+  if (/first.?in.?class|first.?in.?its.?class|first.?to.?reach.?(?:approval|market)|no\s+approved\s+(?:therap|treatment|drug)/.test(flagsBlob)) {
+    score += 28; signals.push('First-in-class mechanism');
+  } else if (/novel\s+(?:mechanism|moa|target|pathway|class)|new\s+class/.test(flagsBlob)) {
+    score += 18; signals.push('Novel mechanism / target');
+  } else if (/best.?in.?class|head.?to.?head\s+superior/.test(flagsBlob)) {
+    score += 12; signals.push('Best-in-class within established class');
+  } else if (/next.?gen|second.?generation|improved\s+selectivity|fewer\s+off.?target/.test(flagsBlob)) {
+    score += 8; signals.push('Next-generation refinement');
+  }
+
+  // Unmet need (0-18)
+  if (/no\s+approved|orphan|ultra.?rare/.test(flagsBlob) && /(?:disease|condition|indication)/.test(flagsBlob)) {
+    score += 18; signals.push('High unmet need / orphan');
+  } else if (/orphan|rare\s+disease|breakthrough\s+therapy/.test(flagsBlob)) {
+    score += 12; signals.push('Orphan / breakthrough designation');
+  } else if (/unmet\s+(?:need|medical|population)/.test(flagsBlob)) {
+    score += 6;
+  }
+
+  // Efficacy / disease modification (0-16)
+  if (/disease.?modifying|disease.?altering|curative/.test(flagsBlob)) {
+    score += 16; signals.push('Disease-modifying therapy');
+  } else if (/superior\s+(?:efficacy|to\s+(?:soc|standard))|head.?to.?head/.test(flagsBlob)) {
+    score += 10;
+  }
+
+  // Practical advantage (0-10)
+  if (/oral\s+(?:vs|over|alternative\s+to)\s+(?:iv|injection)|tablet\s+vs\s+infusion/.test(flagsBlob)) {
+    score += 10; signals.push('Oral over injectable');
+  } else if (/subcutaneous|once.?weekly|once.?monthly|long.?acting|sustained.?release/.test(flagsBlob)) {
+    score += 6; signals.push('Improved dosing convenience');
+  }
+
+  // Designations (0-6)
+  if (/breakthrough\s+therapy/.test(flagsBlob)) score += 6;
+  else if (/priority\s+review|fast\s+track/.test(flagsBlob)) score += 3;
+
+  // Therapeutic area context (0-6)
+  if (INNOVATION_BONUS_AREAS.test(indication) || INNOVATION_BONUS_AREAS.test(flagsBlob)) {
+    score += 6;
+  }
+
+  // TAM context — small bonus only
   var tam = Number(d.tam_ratio) || 0;
-  if (tam >= 10) { score += 10; signals.push('TAM/Cap ' + tam + 'x — large market relative to cap'); }
-  else if (tam >= 5) { score += 6; } else if (tam >= 3) { score += 3; }
-  if (/alzheimer|oncology|myeloma|breast cancer|nsclc|gene therapy|cell therapy/.test(indication)) score += 6;
-  if (score === 0 && d.drug && d.drug.trim()) score = 20;
-  return { score: Math.min(100, score), signals: signals };
+  if (tam >= 20)      score += 4;
+  else if (tam >= 10) score += 2;
+
+  // Floor for unrecognized but plausibly novel events
+  if (score === 0 && d.drug && d.drug.trim() && d.first_time_approver === true) {
+    score = 25;
+  } else if (score === 0 && d.drug && d.drug.trim()) {
+    score = 15;
+  }
+
+  return { score: Math.min(100, Math.max(0, score)), signals: signals };
 }
 
 function normalizeInnovation(d) {
   var raw = Number(d.innovation_score);
   var hasServerScore = isFinite(raw) && raw > 0;
+  var baseScore;
   if (hasServerScore) {
-    if (raw <= 25) d.innovation_score = raw * 4;
+    baseScore = raw <= 25 ? raw * 4 : raw;
   } else {
     var computed = computeInnovationHeuristic(d);
-    d.innovation_score = computed.score;
+    baseScore = computed.score;
     if (computed.signals.length > 0 && (!d.appreciation_signals || d.appreciation_signals.length === 0)) {
       d.appreciation_signals = computed.signals;
     }
   }
+  var capInfo = getInnovationCap(d);
+  if (capInfo && baseScore > capInfo.cap) {
+    baseScore = capInfo.cap;
+    if (Array.isArray(d.appreciation_signals)) {
+      d.appreciation_signals = d.appreciation_signals.filter(function(s) {
+        return !/first.?in.?class|novel\s+mechanism/i.test(String(s));
+      });
+    }
+  }
+  d.innovation_score = Math.round(baseScore);
+  if (d.innovation_score > 0) {
+    d.innovation_factor = Math.round((1.0 + (d.innovation_score - 50) / 200) * 1000) / 1000;
+  } else {
+    d.innovation_factor = 1.0;
+  }
+}
   var s = Number(d.innovation_score) || 0;
   if (s > 0) d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
 }
@@ -1120,10 +1283,9 @@ function renderScanner() {
     if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
     if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
     if (gradeFilter === 'watch' && d.grade === 'WEAK') return false;
-    if (timeframe > 0) {
-      var days = daysUntil(d.date);
-      if (days < 0 || days > timeframe) return false;
-    }
+    var days = daysUntil(d.date);
+    if (days < 0) return false;
+    if (timeframe > 0 && days > timeframe) return false;
     return true;
   });
 
