@@ -1061,9 +1061,6 @@ function normalizeInnovation(d) {
     d.innovation_factor = 1.0;
   }
 }
-  var s = Number(d.innovation_score) || 0;
-  if (s > 0) d.innovation_factor = Math.round((1.0 + (s - 50) / 200) * 1000) / 1000;
-}
 
 // ─── POLYGON LIVE MARKET DATA ─────────────────────────────────────────────────
 var PRICE_DATA = {};
