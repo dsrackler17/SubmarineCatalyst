@@ -513,7 +513,7 @@ function computeNetEdge(d) {
 // any row the server hadn't re-scored yet.
 // ═══════════════════════════════════════════════════════════════════════════
 function deriveStnScore(d) {
-  if (!d) return 80;
+  if (!d) return 70;
 
   // Manual ticker+date override OUTRANKS server. Server STN values can be
   // stale or written by buggy versions of score-events; the override map
@@ -535,7 +535,7 @@ function deriveStnScore(d) {
   }
 
   // ─── Client fallback — mirrors score-events v4.8 STN v4 model ────────
-  var score = 80;
+  var score = 70;
 
   var marketCap = Number(d.estimated_market_cap) || 0;
   var capB = marketCap / 1e9;
@@ -613,6 +613,13 @@ function deriveStnScore(d) {
   if (isFinite(p30) && p30 >= -5 && p30 <= 5 &&
       isFinite(p90) && p90 >= -10 && p90 <= 10) score -= 6;
   if (isFinite(p90) && p90 <= -20)              score -= 8;
+
+  // p30 crash de-risker — already-crashed stocks have unwound the run-up risk
+  if (isFinite(p30)) {
+    if (p30 <= -40)      score -= 20;
+    else if (p30 <= -25) score -= 12;
+    else if (p30 <= -15) score -= 6;
+  }
 
   if (isFinite(rsi) && rsi > 0 && rsi <= 35)    score -= 6;
 
