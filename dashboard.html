@@ -657,6 +657,7 @@ var DRUG_INDICATION_OVERRIDE = {
   'nimodipine':'Subarachnoid Hemorrhage','auvelity':'Major Depressive Disorder',
   'dexmethylphenidate':'ADHD','igalmi':'Agitation (Bipolar/Schizophrenia)',
   'vepdegestrant':'ER+ HER2- Breast Cancer','gedatolisib':'HR+ HER2- Breast Cancer',
+  'camizestrant':'ER+ HER2- Breast Cancer','giredestrant':'ER+ HER2- Breast Cancer',
   'iberdomide':'Multiple Myeloma','anitocabtagene':'Multiple Myeloma','anito-cel':'Multiple Myeloma',
   'zidesamtinib':'ROS1+ NSCLC','augtyro':'ROS1+ / NTRK+ NSCLC','ivonescimab':'Non-Small Cell Lung Cancer',
   'zanzalintinib':'Renal Cell Carcinoma','bezuclastinib':'Systemic Mastocytosis',
@@ -676,9 +677,9 @@ var DRUG_INDICATION_OVERRIDE = {
 
 function fixIndication(d) {
   if (!d || !d.drug) return;
-  // Normalize PENDING / null / empty to an em-dash so the card looks clean
+  // Normalize PENDING / null / empty / Other to an em-dash so the card looks clean
   var indRaw = String(d.indication || '').trim();
-  if (!indRaw || /^(pending|null|unknown)$/i.test(indRaw)) {
+  if (!indRaw || /^(pending|null|unknown|other)$/i.test(indRaw)) {
     d.indication = '—';
   }
   var drugLower = String(d.drug).toLowerCase();
@@ -724,6 +725,8 @@ function isPlaceholderDrug(s) {
   if (/^(placeholder|tbd|unknown|pending|null|drug)$/i.test(t)) return true;
   if (/pending\s+resolution/i.test(t)) return true;
   if (/name\s+pending/i.test(t)) return true;
+  // STN-NN style scoring placeholder leaking into drug field (e.g. "STN-88")
+  if (/^STN[\s-]?\d+$/i.test(t)) return true;
   return false;
 }
 
@@ -781,6 +784,8 @@ function resolveDrugName(d) {
   if (!d) return { name: '', confident: false };
   var raw = String(d.drug || '').trim();
   var drug = raw.replace(/^[§*†]\s*/, '').replace(/^AUTO-RESOLVED:\s*/i, '');
+  // Strip parenthetical regulatory commentary (e.g. "(approved for MDD; not yet approved for this indication)")
+  drug = drug.replace(/\s*\([^)]*\b(?:approved\s+for|not\s+yet\s+approved|this\s+indication|FDA-approved\s+for)[^)]*\)\s*$/i, '').trim();
   var sentenceLike = (
     /forward.?looking\s+statement/i.test(drug) ||
     /^The\s+(FDA|PDUFA|agency)/i.test(drug) ||
@@ -1053,6 +1058,26 @@ function applyLiveMarketData() {
 
 </script>
 <script>
+// ─── Sanitize stale narrative blobs from server expected_move/flags ─────
+// Strips STN narrative regenerated against an older scoring pass, and any
+// prescriptive trade-signal language (research tool, not advice).
+function sanitizeNarrative(text) {
+  if (!text) return '';
+  return String(text)
+    .split(/\n|<br\s*\/?>/i)
+    .map(function(line) { return line.trim(); })
+    .filter(function(line) {
+      if (!line) return false;
+      if (/STN\s+\d+\/100/i.test(line)) return false;
+      if (/STN\s+(VERY\s+)?(LOW|HIGH|MOD|MED)/i.test(line)) return false;
+      if (/TRADE\s+SIGNAL/i.test(line)) return false;
+      if (/\bSELL\s+BEFORE\b|\bHOLD\s+THROUGH\b|\bLEAN\s+HOLD\b/i.test(line)) return false;
+      if (/reduce\s+size|exit\s+pre-event/i.test(line)) return false;
+      return true;
+    })
+    .join('<br>');
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // RENDER SCANNER CARDS
 // ═══════════════════════════════════════════════════════════════════════════
@@ -1269,9 +1294,10 @@ if (hasCMC) {
     var pillsBlock = pills.length > 0 ? '<div style="margin-bottom:0.4rem;line-height:1.8;">' + pills.join('') + '</div>' : '';
 
     var expectedMoveBlock = '';
-    if (d.expected_move) {
+    var cleanMove = sanitizeNarrative(d.expected_move);
+    if (cleanMove) {
       var borderColor = d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)';
-      expectedMoveBlock = '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + borderColor + ';">' + d.expected_move + '</div>';
+      expectedMoveBlock = '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + borderColor + ';">' + cleanMove + '</div>';
     }
 
     var seenFlags = {};
@@ -1283,6 +1309,12 @@ if (hasCMC) {
         if (s.indexOf('SC_AUTORESOLVED:') === 0) return false;
         if (s.indexOf('INGESTED:') === 0) return false;
         if (s.indexOf('AI_RESOLUTION_FAILED') === 0) return false;
+        if (s.indexOf('RESET_FOR_RERESOLUTION') >= 0) return false;
+        if (/STN\s+\d+\/100/i.test(s)) return false;
+        if (/STN\s+(VERY\s+)?(LOW|HIGH|MOD|MED)/i.test(s)) return false;
+        if (/TRADE\s+SIGNAL/i.test(s)) return false;
+        if (/\bSELL\s+BEFORE\b|\bHOLD\s+THROUGH\b|\bLEAN\s+HOLD\b/i.test(s)) return false;
+        if (/reduce\s+size|exit\s+pre-event/i.test(s)) return false;
         if (seenFlags[s]) return false;
         seenFlags[s] = true;
         return true;
