@@ -1149,9 +1149,19 @@ async function fetchPriceData(tickers) {
     await Promise.all(batch.map(function(tk) {
       var barsUrl = 'https://api.polygon.io/v2/aggs/ticker/' + tk + '/range/1/day/' + fromDate + '/' + toDate + '?adjusted=true&sort=asc&limit=40&apiKey=' + apiKey;
       var detailsUrl = 'https://api.polygon.io/v3/reference/tickers/' + tk + '?apiKey=' + apiKey;
+      // Only fetch reference data for tickers the bulk snapshot already
+      // priced. The /v3/reference/tickers/{tk} endpoint hard-404s on
+      // delisted/renamed tickers (BGNE→BONE, AFMD deficiency, CUBTD
+      // suffix, etc.) which clutters the console with red errors even
+      // though we handle them. If bulk snapshot returned a price, the
+      // ticker is alive and reference is probably available; if not,
+      // skip it entirely.
+      var hasSnapshotPrice = PRICE_DATA[tk] && PRICE_DATA[tk]._fromSnapshot;
       return Promise.all([
         fetch(barsUrl).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; }),
-        fetch(detailsUrl).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
+        hasSnapshotPrice
+          ? fetch(detailsUrl).then(function(r) { return r.ok ? r.json() : null; }).catch(function() { return null; })
+          : Promise.resolve(null)
       ]).then(function(results) {
         var data = results[0], details = results[1];
         if (data && data.results && data.results.length >= 2) {
