@@ -524,6 +524,8 @@ function computeNetEdge(d) {
   if (stnNum > 50) {
     base += Math.min(8, (stnNum - 50) * 0.20);
   }
+  return Math.max(0, Math.min(100, Math.round(base * 10) / 10));
+}
 
 // ═══════════════════════════════════════════════════════════════════════════
 // STN SCORE — pinpoint 0-100 for every event. v2 (matches score-events v4.8)
