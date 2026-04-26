@@ -223,17 +223,17 @@
       </div>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center;">
         <select id="scanner-sort" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
-          <option value="cmc_score">Sort: CMC Score ↓</option>
-          <option value="stn_risk">Sort: STN Risk ↓</option>
-          <option value="score">Sort: Net Edge ↓</option>
-          <option value="date_asc">Sort: Soonest First</option>
-          <option value="date_desc">Sort: Furthest First</option>
+          <option value="score" selected>Sort: Net Edge ↓ (best setups)</option>
           <option value="poa">Sort: PoA ↓</option>
+          <option value="date_asc">Sort: Soonest First</option>
+          <option value="innovation">Sort: Innovation ↓</option>
           <option value="buyout">Sort: Buyout Score ↓</option>
           <option value="tam">Sort: TAM/Cap ↓</option>
-          <option value="innovation">Sort: Innovation ↓</option>
           <option value="trend30d">Sort: 30D Trend ↓</option>
           <option value="trend90d">Sort: 90D Trend ↓</option>
+          <option value="date_desc">Sort: Furthest First</option>
+          <option value="stn_risk">Sort: STN Risk ↓ (riskiest first)</option>
+          <option value="cmc_score">Sort: CMC Score ↓ (riskiest first)</option>
           <option value="cmc_haircut">Sort: CMC Haircut ↓</option>
           <option value="rsi">Sort: RSI ↓</option>
         </select>
