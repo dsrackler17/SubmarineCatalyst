@@ -1634,7 +1634,27 @@ function populatePage(d, isPaid) {
   document.querySelectorAll('.locked-block').forEach(function(el) { el.classList.remove('locked-block'); });
   document.querySelectorAll('.lockable').forEach(function(el) { el.style.filter='none'; el.style.userSelect='auto'; el.style.pointerEvents='auto'; });
 
-  document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
+  // Only run AI summary when ticker_role is unambiguous AND drug name is verified.
+  // For royalty/licensee rows, the AI keeps hallucinating commercial-owner narrative
+  // for the wrong ticker. Suppress until the prompt handles this cleanly.
+  var skipAi = false;
+  var skipReason = '';
+  if (d.ticker_role === 'royalty' || d.ticker_role === 'licensee') {
+    if (!d.primary_ticker) {
+      skipAi = true;
+      skipReason = 'This is a ' + d.ticker_role + ' ticker but no commercial owner has been mapped yet. AI summary suppressed to prevent attribution errors. The scores and risk flags above are from the live scanner.';
+    }
+  }
+  var drugRaw = String(d.drug || '').trim().toLowerCase();
+  if (/margenza/i.test(drugRaw) && d.ticker === 'MGNX' && d.date === '2026-04-29') {
+    skipAi = true;
+    skipReason = 'Drug field on this row is being reconciled. The April 29 PDUFA is the TZIELD pediatric expansion sponsored by Sanofi (SNY); MGNX exposure is via the 2018 Provention royalty license. AI summary suppressed until drug_assets resolution completes.';
+  }
+  if (skipAi) {
+    document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber);font-family:var(--mono);font-size:0.78rem;line-height:1.7;">⚠️ ' + escapeHtml(skipReason) + '</span>';
+  } else {
+    document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
+  }
 
 var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' : stnScoreNum >= 35 ? 'MODERATE' : 'LOW';
   var stnColor = stnScoreNum >= 65 ? 'var(--red)' : stnScoreNum >= 50 ? 'var(--amber)' : stnScoreNum >= 35 ? 'var(--amber)' : 'var(--accent2)';
@@ -1738,11 +1758,29 @@ var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' :
       '<div class="timeline-item"><div class="timeline-dot amber"></div><div class="timeline-content"><div class="timeline-date">' + d.date + '</div><div class="timeline-event">FDA PDUFA Action Date</div><div class="timeline-note">' + (d.type || 'PDUFA') + ' decision expected — ' + escapeHtml(d.drug || d.ticker) + '</div></div></div>';
   }
 
-  generateAISummary(d, netEdge);
+  if (!skipAi) {
+    generateAISummary(d, netEdge);
+  } else {
+    // Targets and STN sections also lean on AI text; replace those with
+    // a static notice so the page doesn't show "Generating..." forever.
+    var targetsEl = document.getElementById('targets-content');
+    if (targetsEl) targetsEl.innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Price target analysis suppressed for this row. See scores and metrics above.</span>';
+  }
 }
 
 async function generateAISummary(d, netEdgeValue) {
   try {
+    // Same guard as in populatePage — don't fire ai-research for known
+    // reconciliation issues. Saves Anthropic API spend and prevents the
+    // hallucinated narrative from overwriting the suppression message.
+    if (d.ticker_role === 'royalty' || d.ticker_role === 'licensee') {
+      if (!d.primary_ticker) return;
+    }
+    var drugRaw = String(d.drug || '').trim().toLowerCase();
+    if (/margenza/i.test(drugRaw) && d.ticker === 'MGNX' && d.date === '2026-04-29') {
+      return;
+    }
+
     var session = await scGetSession();
     if (!session) return;
 
