@@ -1653,7 +1653,24 @@ function populatePage(d, isPaid) {
   if (skipAi) {
     document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber);font-family:var(--mono);font-size:0.78rem;line-height:1.7;">⚠️ ' + escapeHtml(skipReason) + '</span>';
   } else {
+    // White-list of royalty/licensee (ticker, date) pairs where the AI prompt
+  // has verified facts injected. Other royalty rows skip AI to prevent
+  // hedging hallucination from the model not knowing the asset specifics.
+  var ROYALTY_AI_WHITELIST = {
+    'MGNX|2026-04-29': true
+  };
+  var rowKey = d.ticker + '|' + d.date;
+  var skipAi = false;
+  var skipReason = '';
+  if ((d.ticker_role === 'royalty' || d.ticker_role === 'licensee') && !ROYALTY_AI_WHITELIST[rowKey]) {
+    skipAi = true;
+    skipReason = d.ticker + ' is a ' + d.ticker_role + ' ticker for this PDUFA. AI executive summary suppressed until verified asset facts are injected into the prompt for this specific event. Scores, metrics, and risk flags above are from the live scanner.';
+  }
+  if (skipAi) {
+    document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber);font-family:var(--mono);font-size:0.78rem;line-height:1.7;">⚠️ ' + escapeHtml(skipReason) + '</span>';
+  } else {
     document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
+  }
   }
 
 var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' : stnScoreNum >= 35 ? 'MODERATE' : 'LOW';
@@ -1759,8 +1776,13 @@ var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' :
   }
 
   if (!skipAi) {
+    if (!skipAi) {
     generateAISummary(d, netEdge);
   } else {
+    var targetsEl = document.getElementById('targets-content');
+    if (targetsEl) targetsEl.innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Price target analysis suppressed — see scores and metrics above.</span>';
+  }
+} else {
     // Targets and STN sections also lean on AI text; replace those with
     // a static notice so the page doesn't show "Generating..." forever.
     var targetsEl = document.getElementById('targets-content');
@@ -1770,15 +1792,20 @@ var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' :
 
 async function generateAISummary(d, netEdgeValue) {
   try {
-    // Same guard as in populatePage — don't fire ai-research for known
-    // reconciliation issues. Saves Anthropic API spend and prevents the
-    // hallucinated narrative from overwriting the suppression message.
-    if (d.ticker_role === 'royalty' || d.ticker_role === 'licensee') {
-      if (!d.primary_ticker) return;
-    }
-    var drugRaw = String(d.drug || '').trim().toLowerCase();
-    if (/margenza/i.test(drugRaw) && d.ticker === 'MGNX' && d.date === '2026-04-29') {
+    // White-list of royalty/licensee (ticker, date) pairs where the AI prompt
+    // has verified asset facts injected upstream. Royalty rows NOT in this
+    // list skip AI entirely — the model hedges with "could not verify" /
+    // "appears speculative" hallucinations when it doesn't know the asset
+    // specifics, which directly contradicts the platform's own data.
+    var ROYALTY_AI_WHITELIST = {
+      'MGNX|2026-04-29': true
+    };
+    if ((d.ticker_role === 'royalty' || d.ticker_role === 'licensee') &&
+        !ROYALTY_AI_WHITELIST[d.ticker + '|' + d.date]) {
       return;
+    }
+    var session = await scGetSession();
+    if (!session) return;
     }
 
     var session = await scGetSession();
@@ -1853,7 +1880,31 @@ async function generateAISummary(d, netEdgeValue) {
           'royalty/milestone exposure — NOT as if ' + d.ticker + ' is the filer. Do NOT invent ' +
           'pipeline narrative or commercial strategy for ' + d.ticker + ' in this analysis; ' +
           'stick to what is publicly disclosed about ' + d.ticker + '\'s license terms and ' +
-          'milestone ladder for this specific asset.\n\n';
+          'milestone ladder for this specific asset.\n\n' +
+          'CRITICAL: This PDUFA date and indication HAVE been verified by the platform operator ' +
+          'against public filings. Do NOT hedge with statements like "could not verify," "appears ' +
+          'speculative," "data quality issue," "AI resolution failed," or "may reflect algorithmic ' +
+          'error." Those statements are factually wrong — the verification has already happened ' +
+          'upstream of this prompt. If you do not have specific information about a sub-question, ' +
+          'say "specific milestone tier amounts are not publicly disclosed" or similar precise ' +
+          'language. NEVER question whether the catalyst itself is real.\n\n';
+
+        // Asset-specific verified facts so the AI doesn't fabricate uncertainty
+        // about catalysts that are publicly documented. Add new entries here when
+        // new royalty/licensee rows are added.
+        if (d.ticker === 'MGNX' && d.date === '2026-04-29') {
+          roleContext +=
+            'VERIFIED PUBLIC FACTS FOR THIS SPECIFIC EVENT:\n' +
+            '- Drug: TZIELD (teplizumab-mzwv), anti-CD3 monoclonal antibody for Type 1 Diabetes.\n' +
+            '- April 29, 2026 PDUFA: pediatric age expansion from ages 8+ down to ages 1+ for Stage 2 T1D.\n' +
+            '- Pivotal trial: PETITE-T1D, Phase 4, n=23, open-label. 89.6% no progression to Stage 3 at 1 year, no new safety signals.\n' +
+            '- FDA granted Priority Review in January 2026.\n' +
+            '- EU approval for the same expansion was granted in January 2026 (commercialized as Teizeild in EU).\n' +
+            '- Sanofi (SNY) is the commercial sponsor of the sNDA. Sanofi acquired Provention Bio in 2023; Provention had licensed teplizumab from MacroGenics in 2018.\n' +
+            '- MGNX retained royalty + milestone rights from the original 2018 license. Per MGNX FY25 10-K, up to ~$330M remains in regulatory and commercial milestones on TZIELD, paid out as sales tiers hit. The specific April 29 milestone tier amount is not publicly disclosed.\n' +
+            '- TZIELD was originally approved by the FDA in November 2022 for delaying onset of Stage 3 T1D in at-risk patients ages 8 and older.\n' +
+            'Use these facts as ground truth. Do not contradict them.\n\n';
+        }
       }
 
       var innovationContext = '';
