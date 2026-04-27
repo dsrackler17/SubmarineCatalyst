@@ -472,7 +472,7 @@ footer a:hover { color: var(--accent); }
       </div>
       <div class="terminal-body">
         <div class="t-dim">══════════════════════════════════════════════════</div>
-        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">72% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+33.29%</span></div>
+        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">74.2% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+33.29%</span></div>
         <div><span class="t-grn">✅ LGND</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">71.5% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+14%</span></div>
         <div><span class="t-grn">✅ VNDA</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">78% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+45%</span></div>
         <div><span class="t-grn">✅ SNY</span><span class="t-dim"> Sarclisa APPROVED · called </span><span class="t-grn">74% PoA</span><span class="t-dim"> · STN VERY LOW ✓ · move </span><span class="t-grn">+2%</span></div>
@@ -482,7 +482,7 @@ footer a:hover { color: var(--accent); }
         <div><span class="t-red">❌ GRCE</span><span class="t-dim"> CRL on nimodipine · called </span><span class="t-red">72% PoA</span><span class="t-dim"> — manufacturing CRL</span></div>
         <div><span class="t-dim"> STN VERY LOW missed </span><span class="t-red">-52%</span><span class="t-dim"> · double loss logged</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div class="t-dim"> 📊 Live: <span id="hero-live-count">8/9</span> Resolved · <span id="hero-miss-count">1</span> Miss Logged (<span id="hero-miss-tickers">REPL</span>)</div>
+        <div class="t-dim"> 📊 Live: <span id="hero-live-count">9/11</span> Resolved · <span id="hero-miss-count">2</span> <span id="hero-miss-word">Misses</span> Logged (<span id="hero-miss-tickers">REPL, GRCE</span>)</div>
         <div><span class="t-dim"> RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️ · DNLI </span><span class="t-grn">+8%</span><span class="t-dim"> · BIIB </span><span class="t-red">-5%</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
         <div><span class="t-dim"> 🧪 Backtest: </span><span class="t-acc" id="hero-bt-scored">102</span><span class="t-dim"> scored · </span><span class="t-acc" id="hero-bt-tradable">73</span><span class="t-dim"> with real IRR data</span></div>
@@ -719,6 +719,62 @@ footer a:hover { color: var(--accent); }
     return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   }
   </script>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════════════════════
+     PRODUCT PREVIEW — what subscribers actually see
+     ═══════════════════════════════════════════════════════════════════════════ -->
+<section id="product-preview" style="background:var(--deep);border-top:1px solid var(--border);">
+  <div class="section reveal">
+    <div class="section-label">Inside the platform</div>
+    <h2 class="section-heading">What you actually get for $29.99.</h2>
+    <p class="section-sub">No demo videos. No mockups. This is the live product. Subscribers see this for every ticker, every day.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:1.5rem;margin-top:3rem;">
+
+      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">01 · Scanner</div>
+          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Every PDUFA scored daily.</div>
+          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">56 events tracked at last refresh. Sort by Net Edge. Filter by grade. Search any ticker. ELITE setups flagged at the top.</div>
+        </div>
+        <img src="/images/scanner-dashboard.png" alt="Submarine Catalyst PDUFA Scanner showing 56 tracked events, ARVN and NUVL with PoA, STN Risk, Dilution and Net Edge scores" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.5rem;">02 · Detail page</div>
+          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Every ticker. Eight layers on one screen.</div>
+          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">PoA, STN Risk, Dilution, Innovation, Net Edge — plus market cap, price, 30-day change, and realized volatility.</div>
+        </div>
+        <img src="/images/catalyst-detail.png" alt="ARVN catalyst detail page showing 81.9% PoA, STN Risk 66, MINIMAL dilution, 82/100 Innovation score, market cap $667.8M, 30-day change -16.3%" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);margin-bottom:0.5rem;">03 · AI Research</div>
+          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Specific clinical detail, not generic filler.</div>
+          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">Drug class, comparators, mechanism, first-in-class implications. Written for traders who already know what a PROTAC is.</div>
+        </div>
+        <img src="/images/ai-summary.png" alt="AI executive summary on ARVN vepdegestrant explaining first-in-class PROTAC SERD mechanism, first-time approver caveat, 9x TAM-to-Cap ratio implications" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
+      </div>
+
+      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
+        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
+          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">04 · Transparency</div>
+          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Every score, fully documented.</div>
+          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">Indication base rate, review pathway, CMC haircut. STN amplifiers itemized. No black boxes — audit any classification.</div>
+        </div>
+        <img src="/images/scoring-breakdown.png" alt="Approval probability breakdown showing 81.9% Indication PoA, PDUFA review pathway, 0% CMC haircut, with HIGH STN risk amplifiers itemized" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
+      </div>
+
+    </div>
+
+    <div style="margin-top:2.75rem;text-align:center;">
+      <a href="#pricing" style="display:inline-block;font-family:var(--mono);font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:1rem 2.5rem;text-decoration:none;font-weight:700;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));">Get Inside — $29.99/mo →</a>
+      <p style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.75rem;letter-spacing:0.06em;">Cancel any time · Access in 60 seconds</p>
+    </div>
+  </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════════════════════════════
