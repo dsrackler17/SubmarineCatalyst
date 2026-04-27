@@ -529,8 +529,9 @@ footer a:hover { color: var(--accent); }
       <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative classifications from public data. Not investment advice. Past accuracy does not guarantee future results.</p>
     </div>
 
-    <div style="margin-top:1.5rem;">
-      <a href="#pricing" style="display:inline-block;font-family:var(--mono);font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:0.65rem 2rem;text-decoration:none;font-weight:700;">Access the Scanner →</a>
+    <div style="margin-top:2.25rem;display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
+      <a href="#pricing" style="display:inline-block;font-family:var(--mono);font-size:0.9rem;letter-spacing:0.12em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:1.1rem 2.75rem;text-decoration:none;font-weight:700;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));">See Today's Live Classifications — $29.99/mo →</a>
+      <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.06em;">Cancel any time · Access in 60 seconds</span>
     </div>
   </div>
 
@@ -1164,7 +1165,7 @@ footer a:hover { color: var(--accent); }
               I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent);text-decoration:none;">Terms</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent);text-decoration:none;">Privacy Policy</a>. I understand this is a quantitative tool, not investment advice, and trading biotech carries substantial risk of loss.
             </label>
           </div>
-          <button id="checkout-btn" class="pricing-cta" disabled>Get Instant Access →</button>
+          <button id="checkout-btn" class="pricing-cta">Get Instant Access →</button>
           <p class="pricing-note">Billed monthly via Stripe · Access within 60 seconds</p>
         </div>
       </div>
@@ -1330,13 +1331,25 @@ footer a:hover { color: var(--accent); }
   const checkoutBtn = document.getElementById('checkout-btn');
   const tosCheckbox = document.getElementById('tos-agree');
 
-  signupBtn.addEventListener('click', () => { window.location.href = '/signup.html'; });
-  tosCheckbox.addEventListener('change', () => { checkoutBtn.disabled = !tosCheckbox.checked; });
+  signupBtn.addEventListener('click', () => {
+    document.getElementById('pricing').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   checkoutBtn.addEventListener('click', async () => {
-    if (checkoutBtn.disabled) return;
     if (checkoutBtn.textContent.includes('Dashboard')) {
       window.location.href = '/dashboard.html';
+      return;
+    }
+    if (!tosCheckbox.checked) {
+      const tosLabel = document.querySelector('label[for="tos-agree"]');
+      tosCheckbox.style.outline = '2px solid var(--red)';
+      tosCheckbox.style.outlineOffset = '3px';
+      if (tosLabel) tosLabel.style.color = 'var(--red)';
+      tosCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => {
+        tosCheckbox.style.outline = '';
+        if (tosLabel) tosLabel.style.color = '';
+      }, 2500);
       return;
     }
     try {
