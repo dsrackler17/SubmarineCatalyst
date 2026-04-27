@@ -1634,35 +1634,17 @@ function populatePage(d, isPaid) {
   document.querySelectorAll('.locked-block').forEach(function(el) { el.classList.remove('locked-block'); });
   document.querySelectorAll('.lockable').forEach(function(el) { el.style.filter='none'; el.style.userSelect='auto'; el.style.pointerEvents='auto'; });
 
-  // Only run AI summary when ticker_role is unambiguous AND drug name is verified.
-  // For royalty/licensee rows, the AI keeps hallucinating commercial-owner narrative
-  // for the wrong ticker. Suppress until the prompt handles this cleanly.
-  var skipAi = false;
-  var skipReason = '';
-  if (d.ticker_role === 'royalty' || d.ticker_role === 'licensee') {
-    if (!d.primary_ticker) {
-      skipAi = true;
-      skipReason = 'This is a ' + d.ticker_role + ' ticker but no commercial owner has been mapped yet. AI summary suppressed to prevent attribution errors. The scores and risk flags above are from the live scanner.';
-    }
-  }
-  var drugRaw = String(d.drug || '').trim().toLowerCase();
-  if (/margenza/i.test(drugRaw) && d.ticker === 'MGNX' && d.date === '2026-04-29') {
-    skipAi = true;
-    skipReason = 'Drug field on this row is being reconciled. The April 29 PDUFA is the TZIELD pediatric expansion sponsored by Sanofi (SNY); MGNX exposure is via the 2018 Provention royalty license. AI summary suppressed until drug_assets resolution completes.';
-  }
-  if (skipAi) {
-    document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber);font-family:var(--mono);font-size:0.78rem;line-height:1.7;">⚠️ ' + escapeHtml(skipReason) + '</span>';
-  } else {
-    // White-list of royalty/licensee (ticker, date) pairs where the AI prompt
-  // has verified facts injected. Other royalty rows skip AI to prevent
-  // hedging hallucination from the model not knowing the asset specifics.
+  // White-list of (ticker, date) pairs where verified asset facts are injected
+  // upstream into the AI prompt. Royalty/licensee rows NOT in this list skip
+  // AI entirely to prevent the model from hedging with "could not verify" or
+  // "appears speculative" hallucinations when it has no asset specifics.
   var ROYALTY_AI_WHITELIST = {
     'MGNX|2026-04-29': true
   };
-  var rowKey = d.ticker + '|' + d.date;
   var skipAi = false;
   var skipReason = '';
-  if ((d.ticker_role === 'royalty' || d.ticker_role === 'licensee') && !ROYALTY_AI_WHITELIST[rowKey]) {
+  if ((d.ticker_role === 'royalty' || d.ticker_role === 'licensee') &&
+      !ROYALTY_AI_WHITELIST[d.ticker + '|' + d.date]) {
     skipAi = true;
     skipReason = d.ticker + ' is a ' + d.ticker_role + ' ticker for this PDUFA. AI executive summary suppressed until verified asset facts are injected into the prompt for this specific event. Scores, metrics, and risk flags above are from the live scanner.';
   }
@@ -1670,7 +1652,6 @@ function populatePage(d, isPaid) {
     document.getElementById('summary-text').innerHTML = '<span style="color:var(--amber);font-family:var(--mono);font-size:0.78rem;line-height:1.7;">⚠️ ' + escapeHtml(skipReason) + '</span>';
   } else {
     document.getElementById('summary-text').innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Generating AI analysis for ' + d.ticker + '...</span>';
-  }
   }
 
 var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' : stnScoreNum >= 35 ? 'MODERATE' : 'LOW';
@@ -1776,17 +1757,10 @@ var stnTierLabel = stnScoreNum >= 65 ? 'HIGH' : stnScoreNum >= 50 ? 'ELEVATED' :
   }
 
   if (!skipAi) {
-    if (!skipAi) {
     generateAISummary(d, netEdge);
   } else {
     var targetsEl = document.getElementById('targets-content');
     if (targetsEl) targetsEl.innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Price target analysis suppressed — see scores and metrics above.</span>';
-  }
-} else {
-    // Targets and STN sections also lean on AI text; replace those with
-    // a static notice so the page doesn't show "Generating..." forever.
-    var targetsEl = document.getElementById('targets-content');
-    if (targetsEl) targetsEl.innerHTML = '<span style="color:var(--muted);font-family:var(--mono);font-size:0.78rem;">Price target analysis suppressed for this row. See scores and metrics above.</span>';
   }
 }
 
@@ -1803,9 +1777,6 @@ async function generateAISummary(d, netEdgeValue) {
     if ((d.ticker_role === 'royalty' || d.ticker_role === 'licensee') &&
         !ROYALTY_AI_WHITELIST[d.ticker + '|' + d.date]) {
       return;
-    }
-    var session = await scGetSession();
-    if (!session) return;
     }
 
     var session = await scGetSession();
