@@ -784,8 +784,8 @@ footer a:hover { color: var(--accent); }
   <div class="sim-wrap reveal">
     <div class="sim-head">
       <div class="section-label">Portfolio Simulation</div>
-      <h2 class="section-heading" style="margin-bottom:1rem;">$1M, compounded through every call.</h2>
-      <p class="sim-sub">What $1,000,000 would have done sized through every resolved live call at a fixed 7.5% of equity per trade, in chronological order. LONG and SHORT follow the classification's <code style="font-family:var(--mono);color:var(--accent);background:rgba(0,212,255,0.08);padding:1px 4px;font-size:0.85em;">trade_type</code>. No leverage. No overlap. No fee model. Since PDUFA events don't overlap at the portfolio level, IRR collapses to CAGR.</p>
+      <h2 class="section-heading" style="margin-bottom:1rem;">$1M baseline — fixed 7.5% sizing on every call.</h2>
+      <p class="sim-sub">Conservative baseline: a fixed 7.5% of equity on every resolved live call, no concentration on the highest-conviction setups. LONG and SHORT follow the classification's <code style="font-family:var(--mono);color:var(--accent);background:rgba(0,212,255,0.08);padding:1px 4px;font-size:0.85em;">trade_type</code>. No leverage, no overlap, no fee model. The point isn't the dollar return at uniform sizing — it's that with only 11 resolved events the sample is still small, and the equity curve is dominated by the two CRL misses (REPL, GRCE) sized identically to the +45% VNDA win. The <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">full track record page</a> shows the same simulation with concentration toggles and the 73-event Polygon backtest.</p>
     </div>
 
     <div class="sim-stats">
@@ -1159,7 +1159,7 @@ footer a:hover { color: var(--accent); }
         <p>I got medically separated and enrolled at Texas Tech for a BBA in IT Systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker — FDA history, EDGAR filings, clinical trial data, cash runway math — and still miss the one thing that tanked the trade. So I started building a tool to do the research for me.</p>
         <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across <strong>300+ biotechs I actually track</strong>, plus every company with an upcoming PDUFA — updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
         <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this from a basic PDUFA calendar.</p>
-        <p>REPL on April 10, 2026 was the only PoA miss in the live record. The model called 84%. FDA issued a 2nd CRL. The stock dropped 64%. The STN HIGH flag had correctly flagged severe downside before the decision — the risk layer was right even when the probability layer was wrong. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
+        <p>The two misses are in the record too. REPL on April 10, 2026 — model called 84%, FDA issued a 2nd CRL, stock dropped 64%. STN HIGH had correctly flagged severe downside before the decision. GRCE on April 23, 2026 — model called 72%, FDA issued a manufacturing CRL on nimodipine, stock dropped 52%. STN missed that one. Both losses logged the day they resolved, not after I cherry-picked which to publish. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
       </div>
       <div class="origin-stats">
         <div class="stat-cell"><span class="stat-val">300+</span><span class="stat-label">Biotechs Tracked</span></div>
@@ -1252,7 +1252,7 @@ footer a:hover { color: var(--accent); }
         <div class="faq-a">Full access to everything. 300+ biotechs worth tracking plus every company with an upcoming PDUFA — small, mid, large cap. Every PDUFA event scored with approval probability (PoA), Sell-The-News Risk, Dilution Radar (EDGAR scans every 6 hours), Buyout Probability, TAM/Cap ratio, Net Edge Score, and ELITE/STRONG/WATCH/WEAK grading. The AI Research Tool for any ticker. The Compare Tool for 2-4 companies side-by-side. 10-tab catalyst calendar covering PDUFAs, earnings, clinical readouts, AdComs, dilution watch, conferences. Post-catalyst behavioral patterns. The full education section. The transparent track record. Updated daily. No feature gates, no data delays.</div>
       </div>
 
-      <div class="faq-item">
+      <div class="faq-item open">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
           <span>Is this investment advice?</span>
           <span class="faq-arrow">+</span>
@@ -1260,7 +1260,7 @@ footer a:hover { color: var(--accent); }
         <div class="faq-a">No. It's a quantitative scoring tool. Every output is a data classification from public sources — FDA filings, SEC EDGAR, clinical trial status, market data. It does not tell you what to buy or sell. All position sizing, risk management, and final trade decisions are yours. Biotech binary events carry substantial risk of total loss. I am not a registered investment adviser, broker-dealer, or financial planner.</div>
       </div>
 
-      <div class="faq-item">
+      <div class="faq-item open">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
           <span>How accurate is the PoA score, really?</span>
           <span class="faq-arrow">+</span>
@@ -1308,7 +1308,7 @@ footer a:hover { color: var(--accent); }
         <div class="faq-a">TAM (Total Addressable Market) is the estimated annual peak revenue of the drug's indication. TAM/Cap ratio compares that market to the company's current market cap. 10x = drug market is 10 times company value (significant upside). Below 1x = drug market is smaller than company (limited upside even on good news). RCKT had 0.04x (gene therapy for ~30 patients). VNDA had 5x (gastroparesis, ~$1.5B market). Ratio predicted which approval was worth trading.</div>
       </div>
 
-      <div class="faq-item">
+      <div class="faq-item open">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
           <span>Can I cancel?</span>
           <span class="faq-arrow">+</span>
@@ -1513,6 +1513,9 @@ footer a:hover { color: var(--accent); }
 
           const heroMissCount = document.getElementById('hero-miss-count');
           if (heroMissCount) heroMissCount.textContent = misses.length;
+
+          const heroMissWord = document.getElementById('hero-miss-word');
+          if (heroMissWord) heroMissWord.textContent = misses.length === 1 ? 'Miss' : 'Misses';
 
           const heroMissTickers = document.getElementById('hero-miss-tickers');
           if (heroMissTickers) {
