@@ -1548,8 +1548,10 @@ if (hasCMC) {
 
 // ─── BUYOUT SCANNER ──────────────────────────────────────────────────────────
 function renderBuyoutGrid() {
-  var search = (document.getElementById('buyout-search').value || '').toUpperCase();
-  var riskFilter = document.getElementById('buyout-filter').value;
+  var searchEl   = document.getElementById('buyout-search');
+  var catalystEl = document.getElementById('buyout-catalyst');
+  var search          = ((searchEl   && searchEl.value)   || '').toUpperCase();
+  var catalystFilter  = (catalystEl  && catalystEl.value) || 'all';
   var all = [], seen = {};
   SCANNER_DATA.forEach(function(d) {
     if (isBrokenRow(d)) return;
@@ -1600,8 +1602,10 @@ function renderBuyoutGrid() {
   }
   var filtered = all.filter(function(d) {
     if (search && d.ticker.indexOf(search) < 0) return false;
-    if (riskFilter === 'HIGH' && d.buyout_risk !== 'HIGH') return false;
-    if (riskFilter === 'MODERATE' && d.buyout_risk !== 'HIGH' && d.buyout_risk !== 'MODERATE') return false;
+    // catalyst filter — buyout-catalyst select: all | approved | pdufa | both
+    if (catalystFilter === 'approved' && d.has_pdufa) return false;
+    if (catalystFilter === 'pdufa'    && !d.has_pdufa) return false;
+    if (catalystFilter === 'both'     && !d.has_pdufa && !d.approved_drug) return false;
     return d.buyout_score > 0;
   });
   var sortBy = (document.getElementById('buyout-sort') || {}).value || 'score';
