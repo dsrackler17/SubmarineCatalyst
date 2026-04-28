@@ -261,10 +261,11 @@
       <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;">Companies with the highest probability of being acquired. Scored across 12 factors: first-in-class status, orphan designation, PRV eligibility, partnerships, and M&amp;A activity.</p>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="buyout-search" placeholder="Search ticker..." oninput="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.5rem 1rem;width:200px;">
-        <select id="buyout-filter" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
-          <option value="all">All Risk Levels</option>
-          <option value="HIGH">HIGH Only</option>
-          <option value="MODERATE">MODERATE+</option>
+        <select id="buyout-sort" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
+          <option value="score">Sort: Buyout Score ↓</option>
+          <option value="ma_signals">Sort: M&amp;A Signals ↓ (insider+banker+fit)</option>
+          <option value="insider">Sort: Insider Clusters ↓</option>
+          <option value="patent_fit">Sort: Patent Cliff Fit ↓</option>
         </select>
         <select id="buyout-catalyst" onchange="renderBuyoutGrid()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Companies</option>
@@ -1579,7 +1580,20 @@ function renderBuyoutGrid() {
           acquirer_urgency_top: c.acquirer_urgency_top || '',
           revenue_m: Number(c.revenue_m) || 0, buyout_timeline: c.buyout_timeline || '',
           pdufa_date: '', poa: 0, grade: c.buyout_score >= 70 ? 'STRONG' : 'WATCH',
-          has_pdufa: false, approved_drug: c.approved_drug || ''
+          has_pdufa: false, approved_drug: c.approved_drug || '',
+          insider_cluster_score: Number(c.insider_cluster_score) || 0,
+          insider_cluster_count: Number(c.insider_cluster_count) || 0,
+          insider_cluster_total_usd: Number(c.insider_cluster_total_usd) || 0,
+          insider_cluster_last_buy: c.insider_cluster_last_buy || '',
+          banker_hire_active: c.banker_hire_active === true,
+          banker_hire_date: c.banker_hire_date || '',
+          banker_hire_advisors: Array.isArray(c.banker_hire_advisors) ? c.banker_hire_advisors : [],
+          patent_cliff_fit_score: Number(c.patent_cliff_fit_score) || 0,
+          patent_cliff_acquirers: Array.isArray(c.patent_cliff_acquirers) ? c.patent_cliff_acquirers : [],
+          patent_cliff_summary: c.patent_cliff_summary || '',
+          options_unusual_score: Number(c.options_unusual_score) || 0,
+          options_unusual_detail: c.options_unusual_detail || '',
+          options_call_put_ratio: Number(c.options_call_put_ratio) || 0
         });
       }
     });
@@ -1590,7 +1604,17 @@ function renderBuyoutGrid() {
     if (riskFilter === 'MODERATE' && d.buyout_risk !== 'HIGH' && d.buyout_risk !== 'MODERATE') return false;
     return d.buyout_score > 0;
   });
-  filtered.sort(function(a, b) { return (b.buyout_score || 0) - (a.buyout_score || 0); });
+  var sortBy = (document.getElementById('buyout-sort') || {}).value || 'score';
+  filtered.sort(function(a, b) {
+    if (sortBy === 'ma_signals') {
+      var aMA = (Number(a.insider_cluster_score)||0) + (a.banker_hire_active?15:0) + (Number(a.patent_cliff_fit_score)||0) + (Number(a.options_unusual_score)||0);
+      var bMA = (Number(b.insider_cluster_score)||0) + (b.banker_hire_active?15:0) + (Number(b.patent_cliff_fit_score)||0) + (Number(b.options_unusual_score)||0);
+      return bMA - aMA;
+    }
+    if (sortBy === 'insider') return (Number(b.insider_cluster_score)||0) - (Number(a.insider_cluster_score)||0);
+    if (sortBy === 'patent_fit') return (Number(b.patent_cliff_fit_score)||0) - (Number(a.patent_cliff_fit_score)||0);
+    return (b.buyout_score || 0) - (a.buyout_score || 0);
+  });
   var display = filtered.slice(0, 50);
   if (display.length === 0) {
     document.getElementById('buyout-grid').innerHTML = '<div style="padding:2rem;text-align:center;font-family:var(--mono);font-size:0.75rem;color:var(--muted);grid-column:1/-1;">No companies match filters.</div>';
@@ -1601,9 +1625,55 @@ function renderBuyoutGrid() {
     var mcap = d.market_cap >= 1e9 ? '$' + (d.market_cap / 1e9).toFixed(1) + 'B' : d.market_cap >= 1e6 ? '$' + (d.market_cap / 1e6).toFixed(0) + 'M' : '—';
     var scoreColor = d.buyout_score >= 70 ? 'green' : d.buyout_score >= 50 ? 'cyan' : d.buyout_score >= 30 ? 'amber' : 'white';
     var riskColor = d.buyout_risk === 'HIGH' ? 'grade-elite' : d.buyout_risk === 'ELEVATED' ? 'grade-strong' : d.buyout_risk === 'MODERATE' ? 'grade-watch' : 'grade-weak';
+
+    // ─── M&A predictive signals block ──────────────────────────────────────
+    // Insider clusters, banker hire, patent cliff fit, options unusual.
+    // Each renders as its own line with a colored left-border by signal type.
+    var maSignals = [];
+    if (Number(d.insider_cluster_score) >= 5 && Number(d.insider_cluster_count) >= 3) {
+      var usdLabel = d.insider_cluster_total_usd >= 1e6
+        ? '$' + (d.insider_cluster_total_usd / 1e6).toFixed(1) + 'M'
+        : '$' + Math.round(d.insider_cluster_total_usd / 1000) + 'K';
+      maSignals.push({
+        text: '🎯 INSIDER CLUSTER: ' + d.insider_cluster_count + ' open-market buys 30d, ' + usdLabel,
+        color: 'var(--accent2)',
+        bg: 'rgba(0,255,157,0.05)'
+      });
+    }
+    if (d.banker_hire_active) {
+      var advisorLabel = (d.banker_hire_advisors || []).slice(0, 2).join(', ') || 'engaged';
+      maSignals.push({
+        text: '💼 BANKER HIRE: ' + advisorLabel + (d.banker_hire_date ? ' (' + d.banker_hire_date + ')' : ''),
+        color: 'var(--red)',
+        bg: 'rgba(255,68,68,0.06)'
+      });
+    }
+    if (Array.isArray(d.patent_cliff_acquirers) && d.patent_cliff_acquirers.length > 0 && Number(d.patent_cliff_fit_score) >= 8) {
+      maSignals.push({
+        text: '🏥 FIT FOR: ' + d.patent_cliff_acquirers.slice(0, 2).join('/') + (d.patent_cliff_summary ? ' — ' + d.patent_cliff_summary.split(';')[0] : ''),
+        color: 'var(--accent)',
+        bg: 'rgba(0,212,255,0.05)'
+      });
+    }
+    if (Number(d.options_unusual_score) >= 5 && d.options_unusual_detail) {
+      maSignals.push({
+        text: '📞 OPTIONS RAMP: ' + d.options_unusual_detail,
+        color: 'var(--amber)',
+        bg: 'rgba(245,166,35,0.06)'
+      });
+    }
+    var maBlock = maSignals.length > 0
+      ? '<div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.25rem;">' +
+        maSignals.map(function(s) {
+          return '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.4rem 0.55rem;background:' + s.bg + ';border-left:2px solid ' + s.color + ';color:var(--text);line-height:1.5;">' + s.text + '</div>';
+        }).join('') +
+        '</div>'
+      : '';
+
     return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;">' +
       '<div class="card-top"><div><div class="card-ticker">' + d.ticker + '</div><div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);">' + (d.company_name || '') + '</div></div><span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span></div>' +
       '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;"><div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div><div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + mcap + '</div></div><div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val cyan">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div></div>' +
+      maBlock +
       (d.buyout_timeline ? '<div style="font-family:var(--mono);font-size:0.6rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid var(--accent2);color:var(--text);">' + d.buyout_timeline + '</div>' : '') +
       '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
     '</div>';
@@ -2151,7 +2221,7 @@ cmo_audit_flag: e.cmo_audit_flag === true ||
   }
   try {
     var approvedRes = await sb.from('biotech_universe')
-      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, buyout_score, buyout_risk, buyout_flags, buyout_timeline, drug_tam_billions, tam_ratio, estimated_market_cap, has_partnership, partner_name, acquirer_urgency_top, revenue_m')
+      .select('ticker, company_name, market_cap_tier, last_approval_date, approved_drug, buyout_score, buyout_risk, buyout_flags, buyout_timeline, drug_tam_billions, tam_ratio, estimated_market_cap, has_partnership, partner_name, acquirer_urgency_top, revenue_m, insider_cluster_score, insider_cluster_count, insider_cluster_total_usd, insider_cluster_last_buy, banker_hire_active, banker_hire_date, banker_hire_advisors, patent_cliff_fit_score, patent_cliff_acquirers, patent_cliff_summary, options_unusual_score, options_unusual_detail, options_call_put_ratio')
       .eq('is_acquired', false).gt('buyout_score', 0).order('buyout_score', { ascending: false });
     var approvedCompanies = approvedRes && approvedRes.data;
     if (approvedCompanies && approvedCompanies.length > 0) {
