@@ -3,52 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Submarine Catalyst — Biotech PDUFA Scanner Built Solo</title>
-<meta name="description" content="Biotech PDUFA scanner built by a Navy veteran working solo. 300+ biotechs tracked plus every PDUFA filer each year. Eight risk layers scored daily. Live track record: 8/9 pre-decision calls correct. 102-event retrospective backtest. $1M portfolio IRR on real Polygon data. $29.99/mo, cancel anytime.">
-<meta name="keywords" content="PDUFA scanner, biotech FDA calendar, sell the news risk, dilution radar, SEC EDGAR biotech, buyout probability, TAM biotech, ClinicalTrials.gov API, openFDA FAERS, Federal Register FDA">
-<meta name="author" content="Davis Rackler · Submarine Catalyst">
-<link rel="canonical" href="https://submarinecatalyst.com/">
+<title>OriginFlow LOS · Built for closers. Not clickers.</title>
+<meta name="description" content="The web native LOS for loan officers who got into mortgages for the closings, not for files that take a minute to open. AI reads every PDF. Live collaboration. No $100k Encompass admin required. Pay only when you close.">
+<meta name="keywords" content="loan origination system, LOS for loan officers, Encompass alternative, AI mortgage software, mortgage software for LOs, independent mortgage branch, Texas loan officer software">
+<meta name="author" content="Davis Rackler · OriginFlow LOS">
 
-<!-- Open Graph / Social -->
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://submarinecatalyst.com/">
-<meta property="og:title" content="Submarine Catalyst — Biotech PDUFA Scanner Built Solo">
-<meta property="og:description" content="300+ biotechs tracked plus every PDUFA filer each year. Eight risk layers. Built by a Navy vet because the tools I needed didn't exist. 8/9 live resolved calls correct. Every outcome logged — wins and losses. $29.99/mo.">
-<meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-<meta property="og:site_name" content="Submarine Catalyst">
+<meta property="og:title" content="OriginFlow LOS · Built for closers. Not clickers.">
+<meta property="og:description" content="You got into mortgages for the closings, not the file uploads. I rebuilt the LOS on a live database with Claude Vision reading every paystub, W2, and bank statement. So your day goes back to talking to borrowers.">
 
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:site" content="@DRackler">
-<meta name="twitter:creator" content="@DRackler">
-<meta name="twitter:title" content="Submarine Catalyst — Biotech PDUFA Scanner Built Solo">
-<meta name="twitter:description" content="Scanner caught TVTX +33%, VNDA +45%, REPL -64% CRL all before resolution. 300+ biotechs + every PDUFA filer, 8 layers, $29.99/mo. Solo builder, full track record public.">
-<meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="/js/config.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 
 <style>
 :root {
-  --navy: #040d1a;
-  --deep: #07152b;
+  --navy:    #040d1a;
+  --deep:    #07152b;
   --surface: #0b1f3a;
-  --panel: #0f2647;
-  --border: #1a3a5c;
-  --accent: #00d4ff;
+  --panel:   #0f2647;
+  --border:  #1a3a5c;
+  --accent:  #00d4ff;
   --accent2: #00ff9d;
-  --amber: #f5a623;
-  --red: #ff4444;
-  --text: #c8dff0;
-  --muted: #5a7a99;
-  --white: #eaf4ff;
-  --mono: 'Space Mono', monospace;
-  --serif: 'DM Serif Display', serif;
-  --sans: 'DM Sans', sans-serif;
+  --amber:   #f5a623;
+  --red:     #ff4444;
+  --text:    #c8dff0;
+  --muted:   #5a7a99;
+  --white:   #eaf4ff;
+  --mono:    'Space Mono', ui-monospace, monospace;
+  --serif:   'DM Serif Display', Georgia, serif;
+  --sans:    'DM Sans', system-ui, sans-serif;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
@@ -62,240 +46,74 @@ body {
 }
 body::before {
   content: '';
-  position: fixed;
-  inset: 0;
-  background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
   background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
+  pointer-events: none; z-index: 0;
 }
 body::after {
   content: '';
-  position: fixed;
-  inset: 0;
+  position: fixed; inset: 0;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-  opacity: 0.4;
-  pointer-events: none;
-  z-index: 0;
+  opacity: 0.4; pointer-events: none; z-index: 0;
 }
 section, nav, footer { position: relative; z-index: 1; }
+a { color: inherit; }
+
+/* ─── NAV ──────────────────────────────────────────────────────────── */
 nav {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  display: flex; align-items: center; justify-content: space-between;
   padding: 1.25rem 3rem;
   border-bottom: 1px solid var(--border);
   background: rgba(4,13,26,0.85);
   backdrop-filter: blur(12px);
-  position: sticky;
-  top: 0;
-  z-index: 100;
+  position: sticky; top: 0; z-index: 100;
 }
 .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
-.sonar-icon { width: 32px; height: 32px; position: relative; }
+.sonar-icon { width: 32px; height: 32px; }
 .sonar-icon svg { width: 100%; height: 100%; }
-.nav-wordmark { font-family: var(--mono); font-size: 0.85rem; font-weight: 700; color: var(--white); letter-spacing: 0.12em; text-transform: uppercase; }
+.nav-wordmark {
+  font-family: var(--mono); font-size: 0.85rem; font-weight: 700;
+  color: var(--white); letter-spacing: 0.12em; text-transform: uppercase;
+}
 .nav-wordmark span { color: var(--accent); }
 .nav-links { display: flex; align-items: center; gap: 2rem; list-style: none; }
-.nav-links a { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.2s; }
-.nav-links a:hover { color: var(--accent); }
-.nav-cta { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 0.5rem 1.25rem; cursor: pointer; text-decoration: none; transition: background 0.2s, color 0.2s; }
-.nav-cta:hover { background: var(--accent); color: var(--navy); }
-.hero {
-  min-height: 92vh;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: center;
-  gap: 4rem;
-  padding: 6rem 3rem 4rem;
-  max-width: 1300px;
-  margin: 0 auto;
+.nav-links a {
+  font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted); text-decoration: none;
+  transition: color 0.2s;
 }
-.hero-eyebrow { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem; }
-.hero-eyebrow::before { content: ''; display: block; width: 2rem; height: 1px; background: var(--accent); }
-.hero-headline { font-family: var(--serif); font-size: clamp(2.8rem, 5vw, 4.5rem); line-height: 1.05; color: var(--white); margin-bottom: 1.5rem; }
-.hero-headline em { color: var(--accent); font-style: normal; }
-.hero-headline .hl-red { color: var(--red); font-style: normal; }
-.hero-sub { font-size: 1.1rem; color: var(--text); max-width: 500px; margin-bottom: 2.5rem; line-height: 1.7; font-weight: 300; }
-.hero-sub strong { color: var(--white); font-weight: 400; }
-.hero-actions { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1rem; }
-.btn-primary { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.9rem 2rem; cursor: pointer; font-weight: 700; text-decoration: none; display: inline-block; transition: opacity 0.2s, transform 0.2s; clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px)); }
-.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
-.btn-secondary { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); text-decoration: none; border-bottom: 1px solid rgba(200,223,240,0.3); padding-bottom: 3px; transition: color 0.2s, border-color 0.2s; }
-.btn-secondary:hover { color: var(--accent); border-bottom-color: var(--accent); }
-.hero-note { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); letter-spacing: 0.06em; line-height: 1.7; }
-.hero-note span { color: var(--accent2); }
-.hero-terminal { background: var(--surface); border: 1px solid var(--border); font-family: var(--mono); font-size: 0.78rem; overflow: hidden; position: relative; animation: fadeUp 0.8s ease both 0.3s; }
-@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-.terminal-bar { background: var(--panel); border-bottom: 1px solid var(--border); padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem; }
-.dot { width: 10px; height: 10px; border-radius: 50%; }
-.dot-r { background: #ff5f57; }
-.dot-y { background: #febc2e; }
-.dot-g { background: #28c840; }
-.terminal-title { margin-left: auto; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; }
-.terminal-body { padding: 1.25rem 1.5rem; line-height: 1.9; }
-.t-dim { color: var(--muted); }
-.t-acc { color: var(--accent); }
-.t-grn { color: var(--accent2); }
-.t-amb { color: var(--amber); }
-.t-red { color: var(--red); }
-.t-wht { color: var(--white); }
-.cursor::after { content: '█'; animation: blink 1s step-end infinite; color: var(--accent); }
-@keyframes blink { 50% { opacity: 0; } }
-.section { max-width: 1200px; margin: 0 auto; padding: 5rem 3rem; }
-.section-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
-.section-label::after { content: ''; flex: 1; height: 1px; background: var(--border); max-width: 80px; }
-.section-heading { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); color: var(--white); margin-bottom: 1rem; line-height: 1.15; }
-.section-sub { color: var(--muted); max-width: 580px; font-weight: 300; font-size: 1.05rem; }
+.nav-links a:hover { color: var(--accent); }
+.nav-auth { display: flex; align-items: center; gap: 0.5rem; }
+.nav-login {
+  font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text); text-decoration: none;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  background: transparent;
+  transition: border-color 0.2s, color 0.2s;
+}
+.nav-login:hover { color: var(--accent); border-color: var(--accent); }
+.nav-cta {
+  font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em;
+  text-transform: uppercase; background: var(--accent); color: var(--navy);
+  border: 1px solid var(--accent);
+  padding: 0.5rem 1.25rem; cursor: pointer; text-decoration: none;
+  font-weight: 700;
+  transition: opacity 0.2s;
+}
+.nav-cta:hover { opacity: 0.85; }
 
-/* Comparison table */
-.compare-wrap { margin-top: 3rem; border: 1px solid var(--border); overflow-x: auto; }
-.compare-table { width: 100%; border-collapse: collapse; min-width: 760px; font-family: var(--mono); }
-.compare-table th, .compare-table td { padding: 0.9rem 1rem; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.78rem; }
-.compare-table thead th { background: var(--panel); color: var(--muted); font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
-.compare-table thead th.col-sc { color: var(--accent); background: rgba(0,212,255,0.08); border-bottom: 2px solid var(--accent); }
-.compare-table tbody tr:hover td { background: rgba(0,212,255,0.02); }
-.compare-table td.col-sc { color: var(--white); background: rgba(0,212,255,0.04); border-right: 1px solid rgba(0,212,255,0.15); border-left: 1px solid rgba(0,212,255,0.15); }
-.compare-table td.feature { color: var(--text); font-family: var(--sans); font-size: 0.85rem; font-weight: 400; }
-.compare-table td.muted { color: var(--muted); }
-.compare-check { color: var(--accent2); font-weight: 700; }
-.compare-x { color: var(--red); opacity: 0.6; }
-.compare-tilde { color: var(--amber); }
-
-/* Feature buckets */
-.buckets-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-top: 3rem; }
-.bucket { background: var(--surface); border: 1px solid var(--border); padding: 2rem 1.75rem; position: relative; }
-.bucket::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent); }
-.bucket:nth-child(2)::before { background: var(--accent2); }
-.bucket:nth-child(3)::before { background: var(--amber); }
-.bucket-eyebrow { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
-.bucket:nth-child(2) .bucket-eyebrow { color: var(--accent2); }
-.bucket:nth-child(3) .bucket-eyebrow { color: var(--amber); }
-.bucket-title { font-family: var(--serif); font-size: 1.5rem; color: var(--white); margin-bottom: 1rem; line-height: 1.2; }
-.bucket-desc { font-size: 0.92rem; color: var(--muted); line-height: 1.7; font-weight: 300; margin-bottom: 1.5rem; }
-.bucket-list { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
-.bucket-list li { display: flex; align-items: flex-start; gap: 0.5rem; font-family: var(--mono); font-size: 0.72rem; color: var(--text); line-height: 1.6; }
-.bucket-list li::before { content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 0.1rem; }
-.bucket:nth-child(2) .bucket-list li::before { color: var(--accent2); }
-.bucket:nth-child(3) .bucket-list li::before { color: var(--amber); }
-.bucket-source { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); letter-spacing: 0.06em; margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border); }
-
-/* Signals section */
-.signals-section { background: var(--deep); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.signals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; margin-top: 3rem; }
-.signal-list { display: flex; flex-direction: column; gap: 0; }
-.signal-item { display: grid; grid-template-columns: 2rem 1fr auto; align-items: start; gap: 1rem; padding: 1.1rem 0; border-bottom: 1px solid rgba(26,58,92,0.5); }
-.signal-item:last-child { border-bottom: none; }
-.signal-icon { font-size: 0.9rem; margin-top: 0.1rem; }
-.signal-name { font-family: var(--mono); font-size: 0.78rem; color: var(--white); letter-spacing: 0.05em; margin-bottom: 0.2rem; }
-.signal-desc { font-size: 0.82rem; color: var(--muted); font-weight: 300; }
-.signal-source { font-family: var(--mono); font-size: 0.62rem; color: rgba(0,212,255,0.4); white-space: nowrap; }
-.score-panel { background: var(--surface); border: 1px solid var(--border); padding: 1.75rem; font-family: var(--mono); font-size: 0.78rem; }
-.score-panel-title { color: var(--muted); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 1.5rem; }
-.score-bar-row { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem; }
-.score-bar-label { width: 11rem; color: var(--text); font-size: 0.72rem; }
-.score-bar-track { flex: 1; height: 6px; background: var(--panel); position: relative; overflow: hidden; }
-.score-bar-fill { height: 100%; background: var(--accent); transition: width 1.5s cubic-bezier(0.16,1,0.3,1); animation: barGrow 1.5s cubic-bezier(0.16,1,0.3,1) both; }
-@keyframes barGrow { from { width: 0 !important; } }
-.score-bar-val { width: 2.5rem; text-align: right; color: var(--accent); font-size: 0.72rem; }
-.score-divider { border: none; border-top: 1px solid var(--border); margin: 1rem 0; }
-.score-total-row { display: flex; justify-content: space-between; align-items: center; }
-.score-total-label { color: var(--muted); font-size: 0.72rem; letter-spacing: 0.1em; }
-.score-total-val { font-size: 1.8rem; font-weight: 700; color: var(--accent2); }
-
-/* Pricing */
-.pricing-wrapper { display: grid; grid-template-columns: 1fr 440px 1fr; gap: 1.5rem; margin-top: 3.5rem; align-items: center; }
-.pricing-context { color: var(--muted); font-size: 0.9rem; font-weight: 300; line-height: 1.9; }
-.pricing-context strong { display: block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
-.pricing-context li { list-style: none; padding-left: 1.25rem; position: relative; margin-bottom: 0.4rem; }
-.pricing-context li::before { content: '—'; position: absolute; left: 0; color: var(--border); }
-.pricing-card { background: var(--surface); border: 1px solid var(--accent); position: relative; overflow: hidden; }
-.pricing-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
-.pricing-badge { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; background: var(--accent); color: var(--navy); padding: 0.25rem 0.75rem; display: inline-block; margin: 1.5rem 1.5rem 0; font-weight: 700; }
-.pricing-body { padding: 1.5rem; }
-.pricing-price { display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.3rem; }
-.price-dollar { font-family: var(--mono); font-size: 1rem; color: var(--muted); }
-.price-amount { font-family: var(--serif); font-size: 3.5rem; color: var(--white); line-height: 1; }
-.price-period { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; }
-.pricing-tagline { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.75rem; font-weight: 300; }
-.pricing-features { list-style: none; margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.6rem; }
-.pricing-features li { display: flex; align-items: flex-start; gap: 0.75rem; font-size: 0.88rem; color: var(--text); font-weight: 300; }
-.pricing-features li::before { content: '✓'; font-family: var(--mono); font-size: 0.7rem; color: var(--accent2); flex-shrink: 0; margin-top: 0.15rem; }
-.pricing-cta { display: block; width: 100%; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 1rem; cursor: pointer; font-weight: 700; text-decoration: none; text-align: center; transition: opacity 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
-.pricing-cta:hover { opacity: 0.85; }
-.pricing-cta:disabled { opacity: 0.4; cursor: not-allowed; }
-.pricing-note { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); text-align: center; margin-top: 0.75rem; letter-spacing: 0.06em; }
-.pricing-right { color: var(--muted); font-size: 0.9rem; font-weight: 300; line-height: 1.9; padding-left: 1rem; border-left: 1px solid var(--border); }
-.pricing-right strong { display: block; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent2); margin-bottom: 0.75rem; }
-.risk-reversal { margin-top: 1rem; font-family: var(--mono); font-size: 0.68rem; color: var(--text); background: rgba(0,255,157,0.05); border: 1px solid rgba(0,255,157,0.2); padding: 0.75rem 1rem; line-height: 1.7; }
-.risk-reversal strong { color: var(--accent2); letter-spacing: 0.04em; }
-
-/* Origin */
-.origin-section { background: var(--deep); border-top: 1px solid var(--border); }
-.origin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6rem; align-items: center; }
-.origin-text p { font-size: 1rem; color: var(--muted); font-weight: 300; line-height: 1.85; margin-bottom: 1.25rem; }
-.origin-text p strong { color: var(--text); font-weight: 400; }
-.origin-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
-.stat-cell { background: var(--surface); padding: 1.75rem; text-align: center; }
-.stat-val { font-family: var(--serif); font-size: 2.8rem; color: var(--accent); line-height: 1; display: block; margin-bottom: 0.3rem; }
-.stat-label { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
-
-/* Coverage */
-.coverage-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; margin-top: 3rem; border: 1px solid var(--border); }
-.coverage-card { padding: 2rem 1.75rem; border-right: 1px solid var(--border); position: relative; transition: background 0.3s; }
-.coverage-card:last-child { border-right: none; }
-.coverage-card:hover { background: rgba(0,212,255,0.03); }
-.coverage-num { font-family: var(--mono); font-size: 2.5rem; font-weight: 700; line-height: 1; margin-bottom: 1rem; display: block; }
-.coverage-title { font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem; }
-.coverage-desc { font-size: 0.9rem; color: var(--muted); line-height: 1.65; font-weight: 300; }
-
-/* Footer */
-footer { border-top: 1px solid var(--border); padding: 2rem 3rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); }
-footer a { color: var(--muted); text-decoration: none; }
-footer a:hover { color: var(--accent); }
-.footer-disclaimer { max-width: 600px; text-align: center; line-height: 1.7; }
-
-/* Reveal */
-.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
-.reveal.visible { opacity: 1; transform: none; }
-.auth-status { font-family: var(--mono); font-size: 0.9rem; padding: 0.5rem 1rem; border-radius: 4px; margin: 1rem 0; text-align: center; }
-.auth-success { background: rgba(0,255,157,0.15); color: var(--accent2); }
-.auth-error { background: rgba(255,68,68,0.15); color: var(--red); }
-.hidden { display: none !important; }
-
-/* Email */
-.email-capture { display: flex; max-width: 460px; margin: 0 auto; gap: 0; }
-.email-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-right: none; color: var(--white); font-family: var(--mono); font-size: 0.82rem; padding: 0.85rem 1rem; outline: none; transition: border-color 0.2s; }
-.email-input::placeholder { color: var(--muted); }
-.email-input:focus { border-color: var(--accent); }
-.email-btn { font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.85rem 1.5rem; cursor: pointer; font-weight: 700; transition: opacity 0.2s; white-space: nowrap; }
-.email-btn:hover { opacity: 0.85; }
-.email-note { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); margin-top: 0.75rem; letter-spacing: 0.06em; }
-.email-success { color: var(--accent2); }
-.social-row { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; }
-.social-link { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: none; border: 1px solid var(--border); padding: 0.4rem 1rem; transition: all 0.2s; }
-.social-link:hover { color: var(--white); border-color: var(--white); }
-
-/* FAQ */
-.faq-list { display: flex; flex-direction: column; gap: 0; }
-.faq-item { border-bottom: 1px solid var(--border); }
-.faq-item:first-child { border-top: 1px solid var(--border); }
-.faq-q { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 1.25rem 0; background: none; border: none; cursor: pointer; text-align: left; font-family: var(--mono); font-size: 0.82rem; color: var(--white); letter-spacing: 0.03em; line-height: 1.5; transition: color 0.2s; }
-.faq-q:hover { color: var(--accent); }
-.faq-arrow { font-family: var(--mono); font-size: 1.2rem; color: var(--muted); transition: transform 0.3s; flex-shrink: 0; margin-left: 1.5rem; }
-.faq-item.open .faq-arrow { transform: rotate(45deg); color: var(--accent); }
-.faq-a { max-height: 0; overflow: hidden; transition: max-height 0.4s ease, padding 0.3s ease; font-size: 0.9rem; color: var(--muted); font-weight: 300; line-height: 1.8; padding: 0 0 0 0; }
-.faq-item.open .faq-a { max-height: 400px; padding: 0 0 1.25rem 0; }
-
-/* Urgency bar */
+/* ─── URGENCY BAR ──────────────────────────────────────────────────── */
 .urgency-bar {
   background: rgba(0,255,157,0.08);
   border-bottom: 1px solid rgba(0,255,157,0.25);
   padding: 0.55rem 3rem;
   display: flex; align-items: center; justify-content: center; gap: 1.5rem;
   font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em;
-  color: var(--accent2);
-  flex-wrap: wrap;
+  color: var(--accent2); flex-wrap: wrap;
   position: relative; z-index: 99;
 }
 .urgency-bar .ub-pulse {
@@ -303,117 +121,505 @@ footer a:hover { color: var(--accent); }
   background: var(--accent2); margin-right: 0.4rem;
   animation: pulse 1.4s ease-in-out infinite;
 }
-@keyframes pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(0.7); } }
+.urgency-bar strong { color: var(--white); font-weight: 700; }
 .urgency-bar a { color: var(--accent2); text-decoration: underline; text-underline-offset: 3px; }
 .urgency-bar .ub-divider { color: rgba(0,255,157,0.3); }
-.urgency-bar strong { color: var(--white); font-weight: 700; }
 
-/* Insight callout (used in proof) */
-.insight-callout {
-  background: rgba(0,212,255,0.04); border: 1px solid rgba(0,212,255,0.15);
-  border-left: 3px solid var(--accent);
-  padding: 1.25rem 1.5rem; margin-top: 2rem;
-  font-family: var(--mono); font-size: 0.78rem;
+/* ─── HERO ─────────────────────────────────────────────────────────── */
+.hero {
+  min-height: 88vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 4rem;
+  padding: 5rem 3rem 4rem;
+  max-width: 1300px;
+  margin: 0 auto;
 }
-.insight-callout .ic-label { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem; }
-.insight-callout .ic-body { color: var(--text); line-height: 1.7; }
-.insight-callout .ic-body strong { color: var(--accent2); }
-.insight-callout .ic-body .ic-neg { color: var(--red); }
+.hero-eyebrow {
+  font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--accent);
+  margin-bottom: 1.5rem; display: flex; align-items: center; gap: 0.75rem;
+}
+.hero-eyebrow::before {
+  content: ''; display: block; width: 2rem; height: 1px; background: var(--accent);
+}
+.hero-headline {
+  font-family: var(--serif); font-size: clamp(2.6rem, 5vw, 4.2rem);
+  line-height: 1.05; color: var(--white); margin-bottom: 1.5rem;
+}
+.hero-headline em { color: var(--accent); font-style: normal; }
+.hero-headline .hl-red { color: var(--red); font-style: normal; }
+.hero-sub {
+  font-size: 1.05rem; color: var(--text); max-width: 510px;
+  margin-bottom: 2rem; line-height: 1.7; font-weight: 300;
+}
+.hero-sub strong { color: var(--white); font-weight: 400; }
+.hero-actions {
+  display: flex; align-items: center; gap: 1.25rem;
+  flex-wrap: wrap; margin-bottom: 1rem;
+}
+.btn-primary {
+  font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em;
+  text-transform: uppercase; background: var(--accent); color: var(--navy);
+  border: none; padding: 0.9rem 2rem; cursor: pointer; font-weight: 700;
+  text-decoration: none; display: inline-block;
+  transition: opacity 0.2s, transform 0.2s;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+.btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+.btn-secondary {
+  font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text); text-decoration: none;
+  border-bottom: 1px solid rgba(200,223,240,0.3);
+  padding-bottom: 3px; transition: color 0.2s, border-color 0.2s;
+}
+.btn-secondary:hover { color: var(--accent); border-bottom-color: var(--accent); }
+.hero-note {
+  font-family: var(--mono); font-size: 0.68rem; color: var(--muted);
+  letter-spacing: 0.06em; line-height: 1.7;
+}
+.hero-note span { color: var(--accent2); }
 
-.diff-badge {
-  display: inline-block; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em;
-  text-transform: uppercase; padding: 0.2rem 0.6rem; background: rgba(0,255,157,0.1);
-  color: var(--accent2); border: 1px solid rgba(0,255,157,0.25); margin-left: 0.75rem; vertical-align: middle;
+/* Hero terminal */
+.hero-terminal {
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.78rem; overflow: hidden;
+  position: relative; animation: fadeUp 0.8s ease both 0.3s;
+}
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.terminal-bar {
+  background: var(--panel); border-bottom: 1px solid var(--border);
+  padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.5rem;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot-r { background: #ff5f57; }
+.dot-y { background: #febc2e; }
+.dot-g { background: #28c840; }
+.terminal-title { margin-left: auto; font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; }
+.terminal-body { padding: 1.25rem 1.5rem; line-height: 1.85; }
+.t-dim { color: var(--muted); }
+.t-acc { color: var(--accent); }
+.t-grn { color: var(--accent2); }
+.t-amb { color: var(--amber); }
+.t-red { color: var(--red); }
+.t-wht { color: var(--white); }
+.cursor::after {
+  content: '█'; animation: blink 1s step-end infinite; color: var(--accent);
+}
+@keyframes blink { 50% { opacity: 0; } }
+
+/* ─── SECTIONS ─────────────────────────────────────────────────────── */
+.section {
+  max-width: 1200px; margin: 0 auto; padding: 5rem 3rem;
+}
+.section-label {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.22em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.75rem;
+  display: flex; align-items: center; gap: 0.75rem;
+}
+.section-label::after {
+  content: ''; flex: 1; height: 1px; background: var(--border); max-width: 80px;
+}
+.section-heading {
+  font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem);
+  color: var(--white); margin-bottom: 1rem; line-height: 1.15;
+}
+.section-sub {
+  color: var(--muted); max-width: 580px; font-weight: 300; font-size: 1.05rem;
 }
 
-/* Portfolio sim */
-.sim-section { background: var(--navy); border-top: 1px solid var(--border); }
-.sim-wrap { max-width: 1000px; margin: 0 auto; padding: 5rem 3rem; }
-.sim-head { text-align: center; margin-bottom: 2.5rem; }
-.sim-head .section-label { justify-content: center; }
-.sim-sub { color: var(--muted); max-width: 620px; margin: 0 auto 0; font-weight: 300; font-size: 1rem; line-height: 1.75; }
-.sim-stats {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 1px; background: var(--border);
+/* ─── BATTLE MAP ───────────────────────────────────────────────────── */
+.battle-map { background: var(--deep); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.battle-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 2.5rem; margin-top: 3rem;
+}
+.battle-col {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 2rem;
+}
+.battle-col-head {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding-bottom: 1.25rem; border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
+}
+.battle-col-num {
+  font-family: var(--serif); font-size: 2.5rem; line-height: 1;
+}
+.battle-col-num.green { color: var(--accent2); }
+.battle-col-num.red { color: var(--red); }
+.battle-col-title {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.16em;
+  text-transform: uppercase; color: var(--text);
+}
+.battle-col-sub {
+  font-family: var(--sans); font-size: 0.85rem; color: var(--muted);
+  margin-top: 0.25rem; font-weight: 300;
+}
+.battle-list { list-style: none; display: flex; flex-direction: column; gap: 0.75rem; }
+.battle-list li {
+  display: grid; grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem; align-items: flex-start;
+  font-size: 0.88rem; color: var(--text); line-height: 1.5;
+  padding: 0.5rem 0; border-bottom: 1px solid rgba(26,58,92,0.4);
+}
+.battle-list li:last-child { border-bottom: none; }
+.battle-list .bullet { font-family: var(--mono); font-size: 0.78rem; }
+.battle-list .green-bull { color: var(--accent2); }
+.battle-list .red-bull { color: var(--red); }
+.battle-list strong { color: var(--white); font-weight: 500; }
+.battle-list .b-fix {
+  display: block; font-family: var(--mono); font-size: 0.7rem;
+  color: var(--accent); margin-top: 0.25rem; letter-spacing: 0.04em;
+}
+
+/* ─── COMPARISON TABLE ─────────────────────────────────────────────── */
+.compare-wrap {
+  margin-top: 3rem; border: 1px solid var(--border); overflow-x: auto;
+}
+.compare-table {
+  width: 100%; border-collapse: collapse; min-width: 760px; font-family: var(--mono);
+}
+.compare-table th, .compare-table td {
+  padding: 0.9rem 1rem; text-align: left;
+  border-bottom: 1px solid var(--border); font-size: 0.78rem;
+}
+.compare-table thead th {
+  background: var(--panel); color: var(--muted);
+  font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;
+}
+.compare-table thead th.col-of {
+  color: var(--accent); background: rgba(0,212,255,0.08);
+  border-bottom: 2px solid var(--accent);
+}
+.compare-table tbody tr:hover td { background: rgba(0,212,255,0.02); }
+.compare-table td.col-of {
+  color: var(--white); background: rgba(0,212,255,0.04);
+  border-right: 1px solid rgba(0,212,255,0.15);
+  border-left: 1px solid rgba(0,212,255,0.15);
+}
+.compare-table td.feature {
+  color: var(--text); font-family: var(--sans);
+  font-size: 0.85rem; font-weight: 400;
+}
+.compare-table td.muted { color: var(--muted); }
+.compare-check { color: var(--accent2); font-weight: 700; }
+.compare-x { color: var(--red); opacity: 0.6; }
+
+/* ─── FEATURE BUCKETS ──────────────────────────────────────────────── */
+.buckets-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem; margin-top: 3rem;
+}
+.bucket {
+  background: var(--surface); border: 1px solid var(--border);
+  padding: 2rem 1.75rem; position: relative;
+}
+.bucket::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: var(--accent);
+}
+.bucket:nth-child(2)::before { background: var(--accent2); }
+.bucket:nth-child(3)::before { background: var(--amber); }
+.bucket-eyebrow {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 0.5rem;
+}
+.bucket:nth-child(2) .bucket-eyebrow { color: var(--accent2); }
+.bucket:nth-child(3) .bucket-eyebrow { color: var(--amber); }
+.bucket-title {
+  font-family: var(--serif); font-size: 1.4rem;
+  color: var(--white); margin-bottom: 1rem; line-height: 1.2;
+}
+.bucket-desc {
+  font-size: 0.92rem; color: var(--muted); line-height: 1.7;
+  font-weight: 300; margin-bottom: 1.5rem;
+}
+.bucket-list { list-style: none; display: flex; flex-direction: column; gap: 0.55rem; }
+.bucket-list li {
+  display: flex; align-items: flex-start; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--text); line-height: 1.6;
+}
+.bucket-list li::before {
+  content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 0.1rem;
+}
+.bucket:nth-child(2) .bucket-list li::before { color: var(--accent2); }
+.bucket:nth-child(3) .bucket-list li::before { color: var(--amber); }
+
+/* ─── AI SPOTLIGHT ─────────────────────────────────────────────────── */
+.ai-spotlight { background: var(--deep); border-top: 1px solid var(--border); }
+.ai-grid {
+  display: grid; grid-template-columns: 1fr 1.1fr;
+  gap: 3rem; margin-top: 3rem; align-items: center;
+}
+.ai-text p {
+  font-size: 0.95rem; color: var(--muted);
+  line-height: 1.85; margin-bottom: 1rem; font-weight: 300;
+}
+.ai-text p strong { color: var(--text); font-weight: 400; }
+.ai-feature-list {
+  list-style: none; margin-top: 1.5rem;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.ai-feature-list li {
+  display: grid; grid-template-columns: 1.5rem 1fr;
+  gap: 0.5rem; font-size: 0.88rem; color: var(--text); line-height: 1.6;
+}
+.ai-feature-list .ck {
+  color: var(--accent2); font-family: var(--mono); font-size: 0.85rem;
+}
+.ai-feature-list strong { color: var(--white); font-weight: 500; }
+
+.ai-mock {
+  background: var(--surface); border: 1px solid var(--border);
+  font-family: var(--mono); font-size: 0.72rem;
+}
+.ai-mock-head {
+  background: var(--panel); padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.5rem;
+  font-size: 0.6rem; letter-spacing: 0.12em; color: var(--muted);
+  text-transform: uppercase;
+}
+.ai-mock-body { padding: 1rem; }
+.ai-mock-row {
+  display: grid; grid-template-columns: 1fr auto;
+  gap: 0.75rem; padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(26,58,92,0.5);
+  font-size: 0.7rem;
+}
+.ai-mock-row:last-child { border-bottom: none; }
+.ai-mock-label { color: var(--muted); }
+.ai-mock-val { color: var(--white); }
+.ai-mock-status {
+  display: inline-block; font-size: 0.55rem; letter-spacing: 0.08em;
+  padding: 0.1rem 0.45rem; border: 1px solid; margin-left: 0.5rem;
+}
+.s-extracted { color: var(--accent2); border-color: rgba(0,255,157,0.4); background: rgba(0,255,157,0.08); }
+.s-flagged { color: var(--amber); border-color: rgba(245,166,35,0.4); background: rgba(245,166,35,0.08); }
+.s-cleared { color: var(--accent); border-color: rgba(0,212,255,0.4); background: rgba(0,212,255,0.08); }
+
+/* ─── PRICING ──────────────────────────────────────────────────────── */
+.pricing-section {  }
+.pricing-wrapper {
+  display: grid; grid-template-columns: 1fr 440px 1fr;
+  gap: 1.5rem; margin-top: 3.5rem; align-items: center;
+}
+.pricing-context {
+  color: var(--muted); font-size: 0.9rem; font-weight: 300; line-height: 1.9;
+}
+.pricing-context strong {
+  display: block; font-family: var(--mono); font-size: 0.7rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 0.75rem;
+}
+.pricing-context li {
+  list-style: none; padding-left: 1.25rem; position: relative; margin-bottom: 0.4rem;
+}
+.pricing-context li::before {
+  content: '·'; position: absolute; left: 0; color: var(--border);
+}
+.pricing-card {
+  background: var(--surface); border: 1px solid var(--accent);
+  position: relative; overflow: hidden;
+}
+.pricing-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+.pricing-badge {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.15em;
+  text-transform: uppercase; background: var(--accent); color: var(--navy);
+  padding: 0.25rem 0.75rem; display: inline-block;
+  margin: 1.5rem 1.5rem 0; font-weight: 700;
+}
+.pricing-body { padding: 1.5rem; }
+.pricing-toggle {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border); margin-bottom: 1.5rem;
   border: 1px solid var(--border);
-  margin: 0 auto 1.5rem;
-  max-width: 900px;
 }
-.sim-cell { background: var(--surface); padding: 1.75rem 1rem; text-align: center; }
-.sim-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
-.sim-val { font-family: var(--serif); font-size: 2.2rem; line-height: 1; color: var(--white); }
-.sim-val.green { color: var(--accent2); }
-.sim-val.cyan { color: var(--accent); }
-.sim-val.red { color: var(--red); }
-.sim-val.amber { color: var(--amber); }
-.sim-sub-val { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); margin-top: 0.35rem; letter-spacing: 0.05em; }
-.sim-footer { text-align: center; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-top: 1rem; letter-spacing: 0.03em; line-height: 1.7; }
-.sim-footer a { color: var(--accent); text-decoration: none; border-bottom: 1px dashed rgba(0,212,255,0.35); }
-.sim-footer a:hover { color: var(--accent2); border-bottom-color: var(--accent2); }
+.pricing-tab {
+  background: var(--deep); padding: 0.85rem 1rem;
+  text-align: center; cursor: pointer;
+  font-family: var(--mono); font-size: 0.65rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--muted); transition: all 0.2s;
+}
+.pricing-tab.active { background: var(--accent); color: var(--navy); font-weight: 700; }
+.pricing-price {
+  display: flex; align-items: baseline; gap: 0.3rem; margin-bottom: 0.3rem;
+}
+.price-dollar { font-family: var(--mono); font-size: 1rem; color: var(--muted); }
+.price-amount {
+  font-family: var(--serif); font-size: 3.4rem; color: var(--white); line-height: 1;
+}
+.price-period {
+  font-family: var(--mono); font-size: 0.72rem;
+  color: var(--muted); letter-spacing: 0.08em;
+}
+.pricing-tagline {
+  font-size: 0.85rem; color: var(--muted);
+  margin-bottom: 1.75rem; font-weight: 300;
+}
+.pricing-features {
+  list-style: none; margin-bottom: 2rem;
+  display: flex; flex-direction: column; gap: 0.6rem;
+}
+.pricing-features li {
+  display: flex; align-items: flex-start; gap: 0.75rem;
+  font-size: 0.88rem; color: var(--text); font-weight: 300;
+}
+.pricing-features li::before {
+  content: '✓'; font-family: var(--mono); font-size: 0.7rem;
+  color: var(--accent2); flex-shrink: 0; margin-top: 0.15rem;
+}
+.pricing-cta {
+  display: block; width: 100%;
+  font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em;
+  text-transform: uppercase; background: var(--accent); color: var(--navy);
+  border: none; padding: 1rem; cursor: pointer; font-weight: 700;
+  text-decoration: none; text-align: center;
+  transition: opacity 0.2s;
+  clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+.pricing-cta:hover { opacity: 0.85; }
+.pricing-note {
+  font-family: var(--mono); font-size: 0.65rem;
+  color: var(--muted); text-align: center; margin-top: 0.75rem; letter-spacing: 0.06em;
+}
+.pricing-right {
+  color: var(--muted); font-size: 0.9rem; font-weight: 300;
+  line-height: 1.9; padding-left: 1rem; border-left: 1px solid var(--border);
+}
+.pricing-right strong {
+  display: block; font-family: var(--mono); font-size: 0.7rem;
+  letter-spacing: 0.1em; text-transform: uppercase;
+  color: var(--accent2); margin-bottom: 0.75rem;
+}
 
-/* Final CTA strip */
-.final-cta { background: linear-gradient(180deg, var(--deep) 0%, var(--navy) 100%); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); padding: 4rem 3rem; text-align: center; }
-.final-cta h2 { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.5rem); color: var(--white); margin-bottom: 1rem; }
-.final-cta p { color: var(--muted); font-size: 1rem; font-weight: 300; max-width: 560px; margin: 0 auto 2rem; line-height: 1.7; }
-.final-cta .btn-primary { font-size: 0.9rem; padding: 1.1rem 2.75rem; }
-.final-cta .final-note { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); margin-top: 1.25rem; letter-spacing: 0.06em; }
+/* ─── ORIGIN ───────────────────────────────────────────────────────── */
+.origin-section { background: var(--deep); border-top: 1px solid var(--border); }
+.origin-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 5rem; align-items: center;
+}
+.origin-text p {
+  font-size: 1rem; color: var(--muted); font-weight: 300;
+  line-height: 1.85; margin-bottom: 1.25rem;
+}
+.origin-text p strong { color: var(--text); font-weight: 400; }
+.origin-stats {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1px; background: var(--border); border: 1px solid var(--border);
+}
+.stat-cell { background: var(--surface); padding: 1.75rem; text-align: center; }
+.stat-val {
+  font-family: var(--serif); font-size: 2.4rem; color: var(--accent);
+  line-height: 1; display: block; margin-bottom: 0.3rem;
+}
+.stat-cell:nth-child(2) .stat-val { color: var(--accent2); }
+.stat-cell:nth-child(3) .stat-val { color: var(--amber); }
+.stat-cell:nth-child(4) .stat-val { color: var(--white); }
+.stat-label {
+  font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--muted);
+}
+
+/* ─── FAQ ──────────────────────────────────────────────────────────── */
+.faq-list { display: flex; flex-direction: column; gap: 0; max-width: 780px; }
+.faq-item { border-bottom: 1px solid var(--border); }
+.faq-item:first-child { border-top: 1px solid var(--border); }
+.faq-q {
+  display: flex; align-items: center; justify-content: space-between;
+  width: 100%; padding: 1.25rem 0;
+  background: none; border: none; cursor: pointer; text-align: left;
+  font-family: var(--mono); font-size: 0.82rem; color: var(--white);
+  letter-spacing: 0.03em; line-height: 1.5; transition: color 0.2s;
+}
+.faq-q:hover { color: var(--accent); }
+.faq-arrow {
+  font-family: var(--mono); font-size: 1.2rem; color: var(--muted);
+  transition: transform 0.3s; flex-shrink: 0; margin-left: 1.5rem;
+}
+.faq-item.open .faq-arrow { transform: rotate(45deg); color: var(--accent); }
+.faq-a {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.3s ease;
+  font-size: 0.9rem; color: var(--muted); font-weight: 300; line-height: 1.8;
+  padding: 0;
+}
+.faq-item.open .faq-a { max-height: 400px; padding: 0 0 1.25rem 0; }
+
+/* ─── FINAL CTA ────────────────────────────────────────────────────── */
+.final-cta {
+  background: linear-gradient(180deg, var(--deep) 0%, var(--navy) 100%);
+  border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+  padding: 4rem 3rem; text-align: center;
+}
+.final-cta h2 {
+  font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.4rem);
+  color: var(--white); margin-bottom: 1rem;
+}
+.final-cta p {
+  color: var(--muted); font-size: 1rem; font-weight: 300;
+  max-width: 560px; margin: 0 auto 2rem; line-height: 1.7;
+}
+.final-cta .btn-primary { font-size: 0.9rem; padding: 1.05rem 2.5rem; }
+.final-cta .final-note {
+  font-family: var(--mono); font-size: 0.7rem;
+  color: var(--muted); margin-top: 1.25rem; letter-spacing: 0.06em;
+}
 .final-cta .final-note span { color: var(--accent2); }
 
+/* ─── FOOTER ───────────────────────────────────────────────────────── */
+footer {
+  border-top: 1px solid var(--border); padding: 2rem 3rem;
+  display: flex; align-items: center; justify-content: space-between;
+  font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em;
+  color: var(--muted); background: var(--deep); flex-wrap: wrap; gap: 1rem;
+}
+footer a { color: var(--muted); text-decoration: none; }
+footer a:hover { color: var(--accent); }
+.footer-disclaimer { max-width: 600px; text-align: center; line-height: 1.7; }
+
+/* ─── REVEAL ───────────────────────────────────────────────────────── */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ─── RESPONSIVE ───────────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .hero { grid-template-columns: 1fr; padding: 4rem 2rem; }
+  .battle-grid { grid-template-columns: 1fr; }
   .buckets-grid { grid-template-columns: 1fr; }
-  .signals-grid { grid-template-columns: 1fr; }
+  .ai-grid { grid-template-columns: 1fr; }
   .pricing-wrapper { grid-template-columns: 1fr; }
   .origin-grid { grid-template-columns: 1fr; gap: 3rem; }
-  .coverage-grid { grid-template-columns: 1fr; }
-  .coverage-card { border-right: none; border-bottom: 1px solid var(--border); }
   nav { padding: 1rem 1.5rem; }
   .nav-links { display: none; }
+  .urgency-bar { padding: 0.55rem 1rem; font-size: 0.62rem; }
 }
 @media (max-width: 640px) {
-  .origin-stats { grid-template-columns: 1fr 1fr; }
   .section { padding: 3.5rem 1.5rem; }
-  .sim-wrap { padding: 3.5rem 1.5rem; }
-  .sim-stats { grid-template-columns: 1fr 1fr; }
-  .sim-val { font-size: 1.7rem; }
+  .battle-col { padding: 1.5rem; }
+  .origin-stats { grid-template-columns: 1fr 1fr; }
   .final-cta { padding: 3rem 1.5rem; }
+  .nav-login { padding: 0.45rem 0.75rem; font-size: 0.65rem; }
+  .nav-cta { padding: 0.45rem 0.9rem; font-size: 0.65rem; }
 }
 </style>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "Submarine Catalyst",
-  "applicationCategory": "FinanceApplication",
-  "operatingSystem": "Web",
-  "url": "https://submarinecatalyst.com",
-  "description": "Biotech PDUFA scanner. 300+ biotechs tracked plus every PDUFA filer each year, with 8 risk layers: approval probability, sell-the-news risk, SEC EDGAR dilution detection, buyout probability, TAM/Cap analysis, AI research. Built solo by a Navy veteran.",
-  "offers": {
-    "@type": "Offer",
-    "price": "29.99",
-    "priceCurrency": "USD",
-    "priceValidUntil": "2027-01-01",
-    "availability": "https://schema.org/InStock"
-  },
-  "author": {
-    "@type": "Person",
-    "name": "Davis Rackler",
-    "url": "https://x.com/DRackler"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Submarine Catalyst",
-    "url": "https://submarinecatalyst.com"
-  }
-}
-</script>
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- NAV · Log In and Sign Up always visible at the top                   -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 <nav>
-  <a href="#" class="nav-logo">
+  <a href="/" class="nav-logo">
     <div class="sonar-icon">
-      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Submarine Catalyst sonar icon">
+      <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="16" cy="16" r="15" stroke="#1a3a5c" stroke-width="1"/>
         <circle cx="16" cy="16" r="10" stroke="#1a3a5c" stroke-width="0.75"/>
         <circle cx="16" cy="16" r="5" stroke="#1a3a5c" stroke-width="0.75"/>
@@ -427,68 +633,68 @@ footer a:hover { color: var(--accent); }
         </path>
       </svg>
     </div>
-    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+    <span class="nav-wordmark">ORIGIN<span>FLOW</span> · LOS</span>
   </a>
   <ul class="nav-links">
-    <li><a href="/calendar.html">Calendar</a></li>
-    <li><a href="/compare.html">Compare</a></li>
-    <li><a href="/track-record.html">Track Record</a></li>
-    <li><a href="/how-institutions-trade.html">Methodology</a></li>
+    <li><a href="#battle-map">Battle Map</a></li>
+    <li><a href="#compare">vs Encompass</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#origin">Founder</a></li>
     <li><a href="#faq">FAQ</a></li>
-    <li><a href="/login.html">Login</a></li>
+    <li><a href="dashboard.html">Live Demo</a></li>
   </ul>
-  <a href="#pricing" class="nav-cta">Start Tracking Catalysts</a>
+  <div class="nav-auth">
+    <a href="/login.html" class="nav-login">Log In</a>
+    <a href="/signup.html" class="nav-cta">Sign Up</a>
+  </div>
 </nav>
 
-<div class="urgency-bar" id="urgency-bar">
-  <span><span class="ub-pulse"></span>Live record: <strong id="ub-live-count">8/9</strong> pre-decision calls correct · most recent wins TVTX <strong>+33%</strong> and LGND <strong>+14%</strong></span>
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- URGENCY BAR                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<div class="urgency-bar">
+  <span><span class="ub-pulse"></span>Building in public · <strong>private beta opening Q2 2026</strong> · Texas independent loan officers first</span>
   <span class="ub-divider">·</span>
-  <span><span id="ub-bt-scored">102</span>-event backtest + <span id="ub-bt-tradable">73</span>-event $1M IRR on real Polygon data</span>
-  <span class="ub-divider">·</span>
-  <a href="/track-record.html">View everything logged →</a>
+  <a href="dashboard.html">See the live dashboard demo →</a>
 </div>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     HERO — outcome-first, human voice
-     ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- HERO                                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 <section>
   <div class="hero">
-    <div class="hero-left">
-      <div class="hero-eyebrow">Biotech PDUFA scanner · 300+ tickers + every filer</div>
-      <h1 class="hero-headline">Catch the <em>+33%</em> approval.<br>Flag the <span class="hl-red">-64%</span> CRL.</h1>
-      <p class="hero-sub">I was spending five hours per ticker reading FDA history, S-3 shelf registrations, and clinical trial data, and still missing the one thing that tanked the trade. So I built a scanner that reads all of it for me, every day. <strong>300+ biotechs worth tracking, plus every company with an upcoming PDUFA.</strong> Eight risk layers. Every pre-decision call logged publicly. Wins and losses.</p>
-      <div id="auth-status" class="auth-status hidden"></div>
+    <div>
+      <div class="hero-eyebrow">For loan officers · Not LOS admins</div>
+      <h1 class="hero-headline">Built for closers.<br>Not <span class="hl-red">clickers.</span></h1>
+      <p class="hero-sub">You got into mortgages for the closings. The keys, the calls, the referrals from the last family you took care of. You did not sign up to wait <strong>a full minute for a file to open</strong>, share an Excel tracker with two processors, or pay a $100k Encompass admin to keep the lights on. I rebuilt the LOS from scratch on a <strong>live database with Claude Vision reading every paystub, W2, and bank statement.</strong> So your day goes back to talking to borrowers, not staring at a spinning wheel.</p>
       <div class="hero-actions">
-        <button id="signup-btn" class="btn-primary">Start Tracking Catalysts — $29.99/mo</button>
-        <a href="#proof" class="btn-secondary">See the track record →</a>
+        <a href="/signup.html" class="btn-primary">Sign Up</a>
+        <a href="dashboard.html" class="btn-secondary">See the live dashboard →</a>
       </div>
-      <p class="hero-note"><span>✓</span> Cancel any time · No contracts · Solo-built by a Navy vet · Billed monthly via Stripe</p>
+      <p class="hero-note"><span>✓</span> Built for working LOs · <span>✓</span> Solo built by a Navy vet · <span>✓</span> No "Encompass Admin" required</p>
     </div>
 
     <div class="hero-terminal">
       <div class="terminal-bar">
         <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
-        <span class="terminal-title">SCANNER v14 — LIVE OUTPUT</span>
+        <span class="terminal-title">PIPELINE.OF · LIVE</span>
       </div>
       <div class="terminal-body">
         <div class="t-dim">══════════════════════════════════════════════════</div>
-        <div><span class="t-grn">✅ TVTX</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">74.2% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+33.29%</span></div>
-        <div><span class="t-grn">✅ LGND</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">71.5% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+14%</span></div>
-        <div><span class="t-grn">✅ VNDA</span><span class="t-dim"> APPROVED · called </span><span class="t-grn">78% PoA</span><span class="t-dim"> · move </span><span class="t-grn">+45%</span></div>
-        <div><span class="t-grn">✅ SNY</span><span class="t-dim"> Sarclisa APPROVED · called </span><span class="t-grn">74% PoA</span><span class="t-dim"> · STN VERY LOW ✓ · move </span><span class="t-grn">+2%</span></div>
+        <div><span class="t-acc">OF-1042</span><span class="t-dim"> CHEN, S+M · </span><span class="t-grn">CLEAR-TO-CLOSE</span><span class="t-dim"> · $425,000</span></div>
+        <div><span class="t-dim"> DTI 38.4 · LTV 80.0 · 15 conditions cleared</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-red">❌ REPL</span><span class="t-dim"> 2nd CRL · called </span><span class="t-red">84% PoA</span><span class="t-dim"> — model miss</span></div>
-        <div><span class="t-dim"> STN HIGH correctly flagged </span><span class="t-red">-64%</span><span class="t-dim"> downside risk</span></div>
-        <div><span class="t-red">❌ GRCE</span><span class="t-dim"> CRL on nimodipine · called </span><span class="t-red">72% PoA</span><span class="t-dim"> — manufacturing CRL</span></div>
-        <div><span class="t-dim"> STN VERY LOW missed </span><span class="t-red">-52%</span><span class="t-dim"> · double loss logged</span></div>
+        <div><span class="t-acc">OF-1043</span><span class="t-dim"> RODRIGUEZ, J · </span><span class="t-amb">UNDERWRITING</span><span class="t-dim"> · $310,000</span></div>
+        <div><span class="t-dim"> ✓ W-2 auto-extracted by Claude Vision</span></div>
+        <div><span class="t-dim"> ✓ Paystub condition auto-cleared 2m ago</span></div>
+        <div><span class="t-dim"> </span><span class="t-amb">⚑ $3,200 unidentified deposit flagged</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div class="t-dim"> 📊 Live: <span id="hero-live-count">9/11</span> Resolved · <span id="hero-miss-count">2</span> <span id="hero-miss-word">Misses</span> Logged (<span id="hero-miss-tickers">REPL, GRCE</span>)</div>
-        <div><span class="t-dim"> RCKT </span><span class="t-red">-20%</span><span class="t-dim"> STN:HIGH ⚠️ · DNLI </span><span class="t-grn">+8%</span><span class="t-dim"> · BIIB </span><span class="t-red">-5%</span></div>
+        <div><span class="t-acc">OF-1044</span><span class="t-dim"> WILLIAMS, T · </span><span class="t-acc">PROCESSING</span><span class="t-dim"> · $189,500</span></div>
+        <div><span class="t-dim"> Sarah pulsed an update 12s ago</span><span class="t-grn"> ◉</span></div>
         <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-dim"> 🧪 Backtest: </span><span class="t-acc" id="hero-bt-scored">102</span><span class="t-dim"> scored · </span><span class="t-acc" id="hero-bt-tradable">73</span><span class="t-dim"> with real IRR data</span></div>
-        <div><span class="t-dim"> 💰 Portfolio: </span><span class="t-grn">$1M → live IRR</span><span class="t-dim"> · Polygon.io close data</span></div>
-        <div class="t-dim">──────────────────────────────────────────────────</div>
-        <div><span class="t-dim"> 300+ tickers + every PDUFA filer · 8 risk layers · Updated </span><span class="t-grn">DAILY</span></div>
+        <div><span class="t-dim"> 📊 Pipeline: $4.7M · 14 active · avg 18 days</span></div>
+        <div><span class="t-dim"> 📊 Encompass benchmark: 47 days · 60s file load</span></div>
         <div class="t-dim">══════════════════════════════════════════════════</div>
         <div class="cursor t-dim"> </div>
       </div>
@@ -496,1077 +702,436 @@ footer a:hover { color: var(--accent); }
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     PROOF — live track record (unchanged; pulls from DB)
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="proof" style="background:var(--navy);border-top:1px solid var(--border);padding:3rem 0;">
-  <div class="section reveal" style="text-align:center;">
-    <div class="section-label" style="justify-content:center;">Track Record</div>
-    <h2 class="section-heading" id="proof-headline">Loading track record…</h2>
-    <p class="section-sub" id="proof-intro" style="margin:0 auto 0.75rem;">Every classification logged before the event resolved. Wins and losses both on the record.</p>
-
-    <div class="insight-callout" style="max-width:700px;margin:0 auto 2rem;">
-      <div class="ic-label">What the model got right and wrong</div>
-      <div class="ic-body" id="proof-callout-body">Loading summary from database…</div>
-    </div>
-
-    <table style="width:100%;max-width:700px;margin:0 auto;border-collapse:collapse;border:1px solid var(--border);">
-      <thead>
-        <tr>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">TICKER</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">SCANNER CALL</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">RESULT</th>
-          <th style="background:var(--panel);padding:0.65rem;text-align:center;font-family:var(--mono);font-size:0.58rem;color:var(--accent);letter-spacing:0.1em;border:1px solid var(--border);">POST-DECISION MOVE</th>
-        </tr>
-      </thead>
-      <tbody id="proof-tbody">
-        <tr><td colspan="4" style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">Loading from database…</td></tr>
-      </tbody>
-    </table>
-
-    <div style="max-width:700px;margin:1.25rem auto 0;text-align:left;">
-      <p id="proof-summary" style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);line-height:1.7;">Loading summary…</p>
-      <p style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.75rem;">Scanner outputs are quantitative classifications from public data. Not investment advice. Past accuracy does not guarantee future results.</p>
-    </div>
-
-    <div style="margin-top:2.25rem;display:flex;flex-direction:column;align-items:center;gap:0.75rem;">
-      <a href="#pricing" style="display:inline-block;font-family:var(--mono);font-size:0.9rem;letter-spacing:0.12em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:1.1rem 2.75rem;text-decoration:none;font-weight:700;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));">See Today's Live Classifications — $29.99/mo →</a>
-      <span style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);letter-spacing:0.06em;">Cancel any time · Access in 60 seconds</span>
-    </div>
-  </div>
-
-  <script>
-  // ═══════════════════════════════════════════════════════════════════════════
-  // PROOF SECTION — LIVE TRACK RECORD LOADER (unchanged)
-  // ═══════════════════════════════════════════════════════════════════════════
-  (async function loadProof() {
-    const $ = (id) => document.getElementById(id);
-
-    let sb;
-    try {
-      if (typeof getSupabase === 'function') {
-        sb = getSupabase();
-      } else if (typeof supabase !== 'undefined' && typeof SC_CONFIG !== 'undefined') {
-        sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseKey);
-      } else {
-        sb = supabase.createClient(
-          'https://dipagzqrvivposqjkdkx.supabase.co',
-          'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
-        );
-      }
-    } catch (e) {
-      console.error('[SC proof] init failed:', e);
-      return;
-    }
-
-    const { data: rows, error } = await sb
-      .from('track_record')
-      .select('ticker, drug, pdufa_date, scanner_poa, scanner_grade, scanner_call, scanner_stn_risk, actual_result, return_pct, call_correct')
-      .order('pdufa_date', { ascending: true });
-
-    if (error || !rows) {
-      console.error('[SC proof] fetch failed:', error);
-      $('proof-tbody').innerHTML =
-        '<tr><td colspan="4" style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--red);border:1px solid var(--border);">Unable to load track record.</td></tr>';
-      return;
-    }
-
-    const RESOLVED = ['APPROVED', 'CRL', 'WITHDRAWN'];
-    const scored  = rows.filter(r => RESOLVED.includes(String(r.actual_result || '').toUpperCase()));
-    const pending = rows.filter(r => {
-      const res = String(r.actual_result || '').toUpperCase();
-      return !RESOLVED.includes(res) && res !== 'DELAYED';
-    });
-    const misses  = scored.filter(r => r.call_correct === false);
-    const correct = scored.filter(r => r.call_correct === true);
-    const accuracy = scored.length > 0 ? ((correct.length / scored.length) * 100).toFixed(1) : '0';
-
-    // Fetch backtest summary counts (scored universe + IRR-tradable subset)
-    let btScored = 102, btTradable = 73;
-    try {
-      const { data: btRows } = await sb
-        .from('v_backtest_public_rows')
-        .select('scanner_call, return_pct');
-      if (btRows && btRows.length) {
-        btScored = btRows.length;
-        btTradable = btRows.filter(r => {
-          const call = String(r.scanner_call || '').toUpperCase();
-          const hasRet = r.return_pct !== null && r.return_pct !== undefined && !Number.isNaN(Number(r.return_pct));
-          return (call === 'APPROVE' || call === 'CRL') && hasRet;
-        }).length;
-      }
-    } catch (e) {
-      console.warn('[SC proof] backtest count fetch failed, using defaults', e);
-    }
-
-    const missText = misses.length > 0
-      ? ` ${misses.length === 1 ? 'One miss' : misses.length + ' misses'} logged.`
-      : '';
-    $('proof-headline').textContent =
-      `${correct.length}/${scored.length} live resolved.${missText} Plus ${btScored}-event scored backtest and ${btTradable}-event IRR simulation.`;
-
-    const pendingText = pending.length > 0 ? ` ${pending.length} pending.` : '';
-    $('proof-intro').innerHTML =
-      `Every live classification logged before the event resolved. Wins and losses both on the record.${pendingText} A separate <a href="/track-record.html" style="color:var(--accent);">${btScored}-event retrospective backtest</a> runs the same PoA engine against every FDA NME decision from Feb 2024 onward. And a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">${btTradable}-event $1M portfolio IRR</a> compounded through every event where Polygon.io has real post-decision close data.`;
-
-    let calloutHTML = '';
-    if (misses.length > 0) {
-      const m = misses[misses.length - 1];
-      const mvDisplay = m.return_pct !== null ? `<span class="ic-neg">${m.return_pct > 0 ? '+' : ''}${m.return_pct}%</span>` : '';
-      const stnNote = m.scanner_stn_risk && ['HIGH','ELEVATED'].includes(String(m.scanner_stn_risk).toUpperCase())
-        ? ` The STN Risk layer flagged <strong>${m.scanner_stn_risk}</strong> before the decision — the risk layer was right even when the probability layer was wrong. Stock dropped ${mvDisplay}.`
-        : '';
-      calloutHTML +=
-        `<strong>The miss:</strong> ${m.ticker} was called ${m.scanner_call || 'APPROVE'} at ` +
-        `<span class="ic-neg">${m.scanner_poa}% PoA</span> — FDA issued a ${m.actual_result}. ` +
-        `${misses.length === 1 ? 'Only' : 'Most recent'} incorrect call in the live record. Logged, not deleted.${stnNote} `;
-    }
-
-    const stnCorrectFlags = scored.filter(r => {
-      const stn = String(r.scanner_stn_risk || '').toUpperCase();
-      const mv = Number(r.return_pct);
-      if (Number.isNaN(mv)) return false;
-      if (stn === 'HIGH' || stn === 'ELEVATED') return mv <= 10;
-      return false;
-    });
-
-    if (stnCorrectFlags.length > 0) {
-      const flagsHTML = stnCorrectFlags.slice(0, 3).map(r => {
-        const sign = r.return_pct >= 0 ? '+' : '';
-        return `${r.ticker} <span class="ic-neg">${sign}${r.return_pct}%</span>`;
-      }).join(' · ');
-      calloutHTML +=
-        `<strong style="color:var(--accent2);">What held up:</strong> ${correct.length} of ${scored.length} events called correctly. ` +
-        `STN Risk flagged downside in advance on: ${flagsHTML}.`;
-    } else if (!calloutHTML) {
-      calloutHTML = `<strong style="color:var(--accent2);">Track record:</strong> ${correct.length} of ${scored.length} events called correctly (${accuracy}%).`;
-    }
-    $('proof-callout-body').innerHTML = calloutHTML;
-
-    const ordered = [
-      ...misses,
-      ...scored.filter(r => r.call_correct === true),
-      ...pending,
-    ];
-
-    const rowHTML = ordered.map((r, i) => {
-      const isMiss = r.call_correct === false;
-      const isPending = !RESOLVED.includes(String(r.actual_result || '').toUpperCase());
-      const zebra = i % 2 === 0 ? 'var(--deep)' : 'var(--surface)';
-      const bg = isMiss ? 'rgba(255,68,68,0.05)' : isPending ? 'rgba(0,212,255,0.04)' : zebra;
-
-      const tickerColor = isMiss ? 'var(--red)' : isPending ? 'var(--accent)' : 'var(--white)';
-      const missTag = isMiss
-        ? ' <span style="font-size:0.55rem;color:var(--red);letter-spacing:0.1em;">MISS</span>'
-        : '';
-      const pendingTag = isPending ? ' 🔴' : '';
-
-      const callText = r.scanner_call || 'WATCH';
-      const callColor = callText === 'APPROVE' ? 'var(--accent2)' : callText === 'WATCH' ? 'var(--amber)' : 'var(--muted)';
-      const poaDisplay = r.scanner_poa !== null ? `${r.scanner_poa}%` : '—';
-
-      let resultHTML;
-      const result = String(r.actual_result || '').toUpperCase();
-      if (result === 'APPROVED')      resultHTML = `<span style="color:var(--accent2);">✅ Approved</span>`;
-      else if (result === 'CRL')      resultHTML = `<span style="color:var(--red);font-weight:700;">❌ CRL</span>`;
-      else if (result === 'WITHDRAWN')resultHTML = `<span style="color:var(--red);">↩ Withdrawn</span>`;
-      else                             resultHTML = `<span style="color:var(--accent);">Pending ${formatShortDate(r.pdufa_date)}</span>`;
-
-      let moveHTML;
-      if (isPending || r.return_pct === null || r.return_pct === undefined) {
-        moveHTML = `<span style="color:var(--muted);">—</span>`;
-      } else {
-        const mv = Number(r.return_pct);
-        const sign = mv >= 0 ? '+' : '';
-        const color = mv > 5 ? 'var(--accent2)' : mv < -5 ? 'var(--red)' : 'var(--muted)';
-        const weight = Math.abs(mv) > 5 ? '700' : '400';
-        moveHTML = `<span style="color:${color};font-weight:${weight};">${sign}${mv}%</span>`;
-      }
-
-      const cellBase = 'padding:0.55rem;text-align:center;font-family:var(--mono);border:1px solid var(--border);';
-      return `<tr style="background:${bg};">` +
-        `<td style="${cellBase}font-size:0.72rem;color:${tickerColor};font-weight:700;">${r.ticker}${missTag}${pendingTag}</td>` +
-        `<td style="${cellBase}font-size:0.65rem;color:${callColor};">${callText} (${poaDisplay})</td>` +
-        `<td style="${cellBase}font-size:0.65rem;">${resultHTML}</td>` +
-        `<td style="${cellBase}font-size:0.72rem;">${moveHTML}</td>` +
-      `</tr>`;
-    }).join('');
-
-    $('proof-tbody').innerHTML = rowHTML ||
-      '<tr><td colspan="4" style="padding:1.5rem;text-align:center;font-family:var(--mono);font-size:0.65rem;color:var(--muted);border:1px solid var(--border);">No events logged yet.</td></tr>';
-
-    const bestWin = correct
-      .filter(r => r.return_pct !== null && r.return_pct > 0)
-      .sort((a, b) => b.return_pct - a.return_pct)[0];
-    const bestWinText = bestWin
-      ? ` Most recent notable win: ${bestWin.ticker} ${bestWin.drug ? '(' + bestWin.drug.split(' · ')[0] + ')' : ''} +${bestWin.return_pct}%.`
-      : '';
-    const pendingDesc = pending.length > 0
-      ? ` ${pending.length} active event${pending.length === 1 ? '' : 's'} pending.`
-      : '';
-    $('proof-summary').innerHTML =
-      `${correct.length}/${scored.length} on live resolved events — ${correct.length} correct approval call${correct.length === 1 ? '' : 's'}, ` +
-      `${misses.length} ${misses.length === 1 ? 'miss' : 'misses'}${misses.length > 0 ? ' (' + misses.map(m => m.ticker + ' ' + m.actual_result).join(', ') + ')' : ''}. ` +
-      `Every outcome logged including the ${misses.length === 1 ? 'miss' : 'misses'}.${bestWinText}${pendingDesc} ` +
-      `Plus <a href="/track-record.html" style="color:var(--accent);">${btScored}-event retrospective backtest</a> with full PoA calibration curve and a <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">${btTradable}-event $1M portfolio IRR</a> simulation on real Polygon data. ` +
-      `Subscribers see full scoring breakdowns and real-time classifications.`;
-
-  })();
-
-  function formatShortDate(dateStr) {
-    if (!dateStr) return '';
-    const d = new Date(dateStr);
-    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-  }
-  </script>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     PRODUCT PREVIEW — what subscribers actually see
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="product-preview" style="background:var(--deep);border-top:1px solid var(--border);">
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- BATTLE MAP                                                           -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<section id="battle-map" class="battle-map">
   <div class="section reveal">
-    <div class="section-label">Inside the platform</div>
-    <h2 class="section-heading">What you actually get for $29.99.</h2>
-    <p class="section-sub">No demo videos. No mockups. This is the live product. Subscribers see this for every ticker, every day.</p>
+    <div class="section-label">The Battle Map</div>
+    <h2 class="section-heading">10 things Encompass got right.<br>20 things stealing your day.</h2>
+    <p class="section-sub">Encompass has been the heavyweight champ since the late 90s for a reason. They nailed compliance, audit trails, and the vendor ecosystem. Match those or you're not a real LOS. The other 20 things on the right are where Encompass shows its age, and where a speedboat beats a battleship.</p>
 
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(440px,1fr));gap:1.5rem;margin-top:3rem;">
+    <div class="battle-grid">
 
-      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
-        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
-          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">01 · Scanner</div>
-          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Every PDUFA scored daily.</div>
-          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">56 events tracked at last refresh. Sort by Net Edge. Filter by grade. Search any ticker. ELITE setups flagged at the top.</div>
+      <!-- 10 GREEN -->
+      <div class="battle-col">
+        <div class="battle-col-head">
+          <div class="battle-col-num green">10</div>
+          <div>
+            <div class="battle-col-title">What I keep · table stakes</div>
+            <div class="battle-col-sub">Match these or it's not a real LOS</div>
+          </div>
         </div>
-        <img src="/images/scanner-dashboard.png" alt="Submarine Catalyst PDUFA Scanner showing 56 tracked events, ARVN and NUVL with PoA, STN Risk, Dilution and Net Edge scores" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
+        <ul class="battle-list">
+          <li><span class="bullet green-bull">✓</span><span><strong>Compliance fortress.</strong> TRID, ECOA, HMDA guardrails baked into every field. Row level security at the database layer, not the app layer.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Audit trails.</strong> Field level diffs on every change, with actor, role, and timestamp. Compliance officers will love it.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Milestone tracking.</strong> Pipeline view of every file by stage. Time in stage analytics so you can prove you close faster.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Vendor ecosystem.</strong> Direct integrations with credit bureaus, AUS, appraisal, title, flood. No "Encompass style" per click tax on top.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Secondary marketing tools.</strong> Rate locks, lock extensions, investor delivery. The basics that pay the rent.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Workflow customization.</strong> Conditional rules on conditions, status transitions, doc requirements, without an in house programmer.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>eClosing.</strong> Digital signatures, paperless closings, eNote and eVault integration through Snapdocs and Notarize.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Scalability.</strong> Postgres and Supabase scales linearly from 1 LO to 50 LOs without a server room upgrade.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Data granularity.</strong> Every 1003 field, every income source, every liability, every condition, queryable via SQL. Not buried in a black box reporting engine.</span></li>
+          <li><span class="bullet green-bull">✓</span><span><strong>Reliability.</strong> Boring infrastructure on Postgres and Cloudflare. The same stack running on other production fintech.</span></li>
+        </ul>
       </div>
 
-      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
-        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
-          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent2);margin-bottom:0.5rem;">02 · Detail page</div>
-          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Every ticker. Eight layers on one screen.</div>
-          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">PoA, STN Risk, Dilution, Innovation, Net Edge — plus market cap, price, 30-day change, and realized volatility.</div>
+      <!-- 20 RED -->
+      <div class="battle-col">
+        <div class="battle-col-head">
+          <div class="battle-col-num red">20</div>
+          <div>
+            <div class="battle-col-title">What I kill · the speedboat wins</div>
+            <div class="battle-col-sub">Where Encompass shows its age</div>
+          </div>
         </div>
-        <img src="/images/catalyst-detail.png" alt="ARVN catalyst detail page showing 81.9% PoA, STN Risk 66, MINIMAL dilution, 82/100 Innovation score, market cap $667.8M, 30-day change -16.3%" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
+        <ul class="battle-list">
+          <li><span class="bullet red-bull">✗</span><span><strong>Windows 95 UI →</strong> dense, gray, ancient design.<span class="b-fix">→ Modern dark UI built for the browser. Works on iPad. 2026 typography.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>60 second file loads →</strong> spinning wheel of death.<span class="b-fix">→ Loads in under 2 seconds. Direct Postgres, no middleware.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>File locking →</strong> only one user can save at a time.<span class="b-fix">→ Live merge. LO and processor edit at the same time.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Fake AI →</strong> bolted on OCR that can't reason.<span class="b-fix">→ Native Claude Vision. Reads, calculates, flags.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Manual stare and compare →</strong> typing PDF numbers into boxes.<span class="b-fix">→ Auto extract plus side by side review pane.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>$100k Encompass admin required →</strong> dedicated headcount.<span class="b-fix">→ Self serve config. Zero admin needed.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Opaque pricing →</strong> 3 month sales cycle, signed contracts.<span class="b-fix">→ Listed on the site. Pay per closed loan or flat.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Months long learning curve →</strong> certification programs.<span class="b-fix">→ 15 minute onboarding. New LO closes in week one.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Broken on mobile →</strong> nightmare on iPad and phone.<span class="b-fix">→ Mobile first. Field ready on any device.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>4 clicks to clear a condition →</strong> bloated workflows.<span class="b-fix">→ AI auto clears. Zero clicks when doc matches.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Fragile SDK →</strong> third party integrations break monthly.<span class="b-fix">→ Modern REST and webhooks. Versioned, documented.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>"Encompass is down" →</strong> end of month outages.<span class="b-fix">→ Postgres and edge functions. 99.95% uptime SLA.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Bad search →</strong> finding a file in the pipeline is slow.<span class="b-fix">→ Full text indexed. Find any borrower in under 100ms.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Clunky doc viewer →</strong> hard to split or merge PDFs.<span class="b-fix">→ Native viewer with split, merge, rotate, redact.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>No collaboration →</strong> emails and sticky notes.<span class="b-fix">→ Slack style chat per loan file. @mentions push.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Fake automation →</strong> task reminders, not actions.<span class="b-fix">→ Real triggers. AI clears conditions itself.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>RAM hungry desktop client →</strong> needs a power PC.<span class="b-fix">→ Browser only. Works on a Chromebook.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Hidden per click fees →</strong> $0.50 every credit pull.<span class="b-fix">→ All inclusive. Or pay per closed loan only.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>Notes as treasure hunt →</strong> finding a 3 week old log.<span class="b-fix">→ Threaded chat. Searchable. Pinnable. Dated.</span></span></li>
+          <li><span class="bullet red-bull">✗</span><span><strong>No version control →</strong> three bank statements, which is current?<span class="b-fix">→ Document versioning. Source of truth tagged.</span></span></li>
+        </ul>
       </div>
 
-      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
-        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
-          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--amber);margin-bottom:0.5rem;">03 · AI Research</div>
-          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Specific clinical detail, not generic filler.</div>
-          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">Drug class, comparators, mechanism, first-in-class implications. Written for traders who already know what a PROTAC is.</div>
-        </div>
-        <img src="/images/ai-summary.png" alt="AI executive summary on ARVN vepdegestrant explaining first-in-class PROTAC SERD mechanism, first-time approver caveat, 9x TAM-to-Cap ratio implications" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
-      </div>
-
-      <div style="background:var(--surface);border:1px solid var(--border);overflow:hidden;">
-        <div style="padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);">
-          <div style="font-family:var(--mono);font-size:0.62rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--accent);margin-bottom:0.5rem;">04 · Transparency</div>
-          <div style="font-family:var(--serif);font-size:1.25rem;color:var(--white);margin-bottom:0.4rem;line-height:1.25;">Every score, fully documented.</div>
-          <div style="font-size:0.88rem;color:var(--muted);font-weight:300;line-height:1.65;">Indication base rate, review pathway, CMC haircut. STN amplifiers itemized. No black boxes — audit any classification.</div>
-        </div>
-        <img src="/images/scoring-breakdown.png" alt="Approval probability breakdown showing 81.9% Indication PoA, PDUFA review pathway, 0% CMC haircut, with HIGH STN risk amplifiers itemized" style="width:100%;display:block;border-top:1px solid var(--border);" loading="lazy">
-      </div>
-
-    </div>
-
-    <div style="margin-top:2.75rem;text-align:center;">
-      <a href="#pricing" style="display:inline-block;font-family:var(--mono);font-size:0.85rem;letter-spacing:0.12em;text-transform:uppercase;background:var(--accent);color:var(--navy);padding:1rem 2.5rem;text-decoration:none;font-weight:700;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));">Get Inside — $29.99/mo →</a>
-      <p style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.75rem;letter-spacing:0.06em;">Cancel any time · Access in 60 seconds</p>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     PORTFOLIO SIMULATION (unchanged; pulls from DB)
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="portfolio-sim" class="sim-section">
-  <div class="sim-wrap reveal">
-    <div class="sim-head">
-      <div class="section-label">Portfolio Simulation</div>
-      <h2 class="section-heading" style="margin-bottom:1rem;">$1M baseline — fixed 7.5% sizing on every call.</h2>
-      <p class="sim-sub">Conservative baseline: a fixed 7.5% of equity on every resolved live call, no concentration on the highest-conviction setups. LONG and SHORT follow the classification's <code style="font-family:var(--mono);color:var(--accent);background:rgba(0,212,255,0.08);padding:1px 4px;font-size:0.85em;">trade_type</code>. No leverage, no overlap, no fee model. The point isn't the dollar return at uniform sizing — it's that with only 11 resolved events the sample is still small, and the equity curve is dominated by the two CRL misses (REPL, GRCE) sized identically to the +45% VNDA win. The <a href="/track-record.html#portfolio-irr" style="color:var(--accent);">full track record page</a> shows the same simulation with concentration toggles and the 73-event Polygon backtest.</p>
-    </div>
-
-    <div class="sim-stats">
-      <div class="sim-cell">
-        <div class="sim-label">Starting</div>
-        <div class="sim-val">$1.00M</div>
-        <div class="sim-sub-val">initial capital</div>
-      </div>
-      <div class="sim-cell">
-        <div class="sim-label">Ending Equity</div>
-        <div class="sim-val green" id="idx-final">—</div>
-        <div class="sim-sub-val" id="idx-total">calculating…</div>
-      </div>
-      <div class="sim-cell">
-        <div class="sim-label">CAGR (IRR)</div>
-        <div class="sim-val cyan" id="idx-cagr">—</div>
-        <div class="sim-sub-val" id="idx-years">annualized</div>
-      </div>
-      <div class="sim-cell">
-        <div class="sim-label">Max Drawdown</div>
-        <div class="sim-val red" id="idx-mdd">—</div>
-        <div class="sim-sub-val">peak-to-trough</div>
-      </div>
-    </div>
-
-    <div class="sim-footer">
-      <span id="idx-n">—</span> resolved trade<span id="idx-n-s">s</span> · 7.5% position sizing · WATCH-list excluded ·
-      <a href="/track-record.html#portfolio-irr">See full equity curve, trade-by-trade table, and sizing toggle →</a>
-    </div>
-  </div>
-
-  <script>
-  (async function loadSim() {
-    const $ = (id) => document.getElementById(id);
-
-    let sb;
-    try {
-      if (typeof getSupabase === 'function') {
-        sb = getSupabase();
-      } else if (typeof supabase !== 'undefined' && typeof SC_CONFIG !== 'undefined') {
-        sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseKey);
-      } else {
-        sb = supabase.createClient(
-          'https://dipagzqrvivposqjkdkx.supabase.co',
-          'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
-        );
-      }
-    } catch (e) {
-      console.error('[SC sim] init failed:', e);
-      return;
-    }
-
-    const { data: rows, error } = await sb
-      .from('track_record')
-      .select('pdufa_date, return_pct, trade_type')
-      .order('pdufa_date', { ascending: true });
-
-    if (error || !rows) {
-      console.error('[SC sim] fetch failed:', error);
-      return;
-    }
-
-    const trades = rows.filter(r => {
-      if (r.return_pct === null || r.return_pct === undefined) return false;
-      if (Number.isNaN(Number(r.return_pct))) return false;
-      const tt = String(r.trade_type || '').toUpperCase();
-      if (tt === 'WATCH' || tt === '') return false;
-      return true;
-    });
-
-    if (!trades.length) {
-      $('idx-final').textContent = '$1.00M';
-      $('idx-total').textContent = 'no resolved trades yet';
-      $('idx-cagr').textContent = '—';
-      $('idx-mdd').textContent = '—';
-      $('idx-n').textContent = '0';
-      return;
-    }
-
-    const START = 1_000_000;
-    const SIZING = 0.075;
-    let capital = START;
-    let peak = START;
-    let maxDD = 0;
-
-    trades.forEach(r => {
-      const tt = String(r.trade_type || '').toUpperCase();
-      const stockMove = Number(r.return_pct) / 100;
-      const ret = (tt === 'SHORT') ? -stockMove : stockMove;
-      const pnl = capital * SIZING * ret;
-      capital += pnl;
-      if (capital > peak) peak = capital;
-      const dd = (capital - peak) / peak;
-      if (dd < maxDD) maxDD = dd;
-    });
-
-    const firstDate = new Date(trades[0].pdufa_date).getTime();
-    const lastDate  = new Date(trades[trades.length - 1].pdufa_date).getTime();
-    const yearsRaw  = (lastDate - firstDate) / (365.25 * 24 * 60 * 60 * 1000);
-    const years     = Math.max(yearsRaw, 0.1);
-    const totalReturn = (capital / START) - 1;
-    const cagr = yearsRaw >= 0.1
-      ? (Math.pow(capital / START, 1 / years) - 1)
-      : totalReturn;
-
-    const fmt = (v) => {
-      const abs = Math.abs(v);
-      const sign = v < 0 ? '-' : '';
-      if (abs >= 1_000_000) return sign + '$' + (abs / 1_000_000).toFixed(2) + 'M';
-      if (abs >= 1_000)     return sign + '$' + (abs / 1_000).toFixed(0) + 'K';
-      return sign + '$' + Math.round(abs);
-    };
-
-    $('idx-final').textContent = fmt(capital);
-    const totalSign = totalReturn >= 0 ? '+' : '';
-    $('idx-total').textContent = totalSign + (totalReturn * 100).toFixed(1) + '% total';
-
-    const cagrSign = cagr >= 0 ? '+' : '';
-    $('idx-cagr').textContent = cagrSign + (cagr * 100).toFixed(1) + '%';
-    $('idx-cagr').className = 'sim-val ' + (cagr >= 0 ? 'cyan' : 'red');
-    $('idx-years').textContent = yearsRaw >= 0.1
-      ? (yearsRaw.toFixed(2) + ' yrs elapsed')
-      : 'total return shown';
-
-    $('idx-mdd').textContent = (maxDD * 100).toFixed(1) + '%';
-    $('idx-n').textContent = trades.length;
-    if (trades.length === 1) $('idx-n-s').textContent = '';
-  })();
-  </script>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     COMPARISON TABLE — positioning vs manual / calendar tools / Bloomberg
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="compare" style="background:var(--deep);border-top:1px solid var(--border);">
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- COMPARISON TABLE                                                     -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<section id="compare">
   <div class="section reveal">
-    <div class="section-label">Why this exists</div>
-    <h2 class="section-heading">Biotech catalyst data is either free and useless or $2k/mo and overkill.</h2>
-    <p class="section-sub">A PDUFA calendar without risk scoring tells you when the event is. It doesn't tell you whether the setup is worth trading. That gap is the whole point of this tool.</p>
+    <div class="section-label">Side by side</div>
+    <h2 class="section-heading">Encompass vs OriginFlow LOS.</h2>
+    <p class="section-sub">The numbers that matter to a working loan officer. Not to a CFO at Wells Fargo.</p>
 
     <div class="compare-wrap">
       <table class="compare-table">
         <thead>
           <tr>
-            <th style="width:32%;">&nbsp;</th>
-            <th>DIY research</th>
-            <th>Calendar-only tools</th>
-            <th>Bloomberg Terminal</th>
-            <th class="col-sc">Submarine Catalyst</th>
+            <th style="width:30%;">&nbsp;</th>
+            <th>Encompass</th>
+            <th>Other web LOSes</th>
+            <th class="col-of">OriginFlow LOS</th>
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td class="feature">Monthly cost</td>
-            <td class="muted">$0 + 5 hrs/ticker</td>
-            <td class="muted">$0 – $200</td>
-            <td class="muted">~$2,000+/mo</td>
-            <td class="col-sc"><strong>$29.99/mo</strong></td>
-          </tr>
-          <tr>
-            <td class="feature">PDUFA calendar</td>
-            <td class="muted">Manual from FDA.gov</td>
-            <td><span class="compare-check">✓</span></td>
-            <td><span class="compare-check">✓</span></td>
-            <td class="col-sc"><span class="compare-check">✓</span> 300+ + every filer</td>
-          </tr>
-          <tr>
-            <td class="feature">Probability-of-approval scoring</td>
-            <td class="muted">You guess</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted">Analyst reports, not scored</td>
-            <td class="col-sc"><span class="compare-check">✓</span> Hay 2014 · Wong 2019</td>
-          </tr>
-          <tr>
-            <td class="feature">Sell-the-news risk layer</td>
-            <td class="muted">You guess</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="col-sc"><span class="compare-check">✓</span> HIGH flagged REPL -64%, RCKT -20%</td>
-          </tr>
-          <tr>
-            <td class="feature">Dilution radar (SEC EDGAR)</td>
-            <td class="muted">Manual 424B5 scans</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted">Manual</td>
-            <td class="col-sc"><span class="compare-check">✓</span> Auto every 6 hrs</td>
-          </tr>
-          <tr>
-            <td class="feature">Buyout probability model</td>
-            <td class="muted">You guess</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="col-sc"><span class="compare-check">✓</span> 14-company patent cliff DB</td>
-          </tr>
-          <tr>
-            <td class="feature">TAM / Market Cap ratio</td>
-            <td class="muted">Spreadsheet</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="col-sc"><span class="compare-check">✓</span> Per-indication TAM</td>
-          </tr>
-          <tr>
-            <td class="feature">Live track record (wins + losses)</td>
-            <td class="muted">Your trading journal</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted">N/A</td>
-            <td class="col-sc"><span class="compare-check">✓</span> Public, including REPL miss</td>
-          </tr>
-          <tr>
-            <td class="feature">Pre-run calibration backtest</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted">N/A</td>
-            <td class="col-sc"><span class="compare-check">✓</span> 102-event, Feb 2024 →</td>
-          </tr>
-          <tr>
-            <td class="feature">AI deep-dive per ticker</td>
-            <td class="muted">You write it</td>
-            <td class="muted"><span class="compare-x">✗</span></td>
-            <td class="muted">Partial</td>
-            <td class="col-sc"><span class="compare-check">✓</span> Any tracked ticker</td>
-          </tr>
-          <tr>
-            <td class="feature">Runs on your phone</td>
-            <td class="muted"><span class="compare-tilde">~</span> tabs and PDFs</td>
-            <td><span class="compare-check">✓</span></td>
-            <td class="muted">Bloomberg Anywhere $</td>
-            <td class="col-sc"><span class="compare-check">✓</span></td>
-          </tr>
+          <tr><td class="feature">File open time</td><td class="muted">~60 seconds</td><td class="muted">5 to 15 seconds</td><td class="col-of"><strong>Under 2 seconds</strong></td></tr>
+          <tr><td class="feature">Monthly cost (5 LO branch)</td><td class="muted">~$3,000/mo plus per click fees</td><td class="muted">$1,200 to $2,400/mo</td><td class="col-of"><strong>$99/seat or $99/closed loan</strong></td></tr>
+          <tr><td class="feature">Onboarding to first close</td><td class="muted">3 to 4 months</td><td class="muted">2 to 4 weeks</td><td class="col-of"><strong>15 minutes</strong></td></tr>
+          <tr><td class="feature">Dedicated admin required</td><td class="muted">Yes ($100k/yr salary)</td><td class="muted">Sometimes</td><td class="col-of"><strong>No</strong></td></tr>
+          <tr><td class="feature">Two users edit same file</td><td class="muted"><span class="compare-x">✗</span> file lock</td><td class="muted"><span class="compare-x">✗</span></td><td class="col-of"><span class="compare-check">✓</span> live merge</td></tr>
+          <tr><td class="feature">AI document extraction</td><td class="muted">Bolt on OCR only</td><td class="muted">Partial</td><td class="col-of"><span class="compare-check">✓</span> Claude Vision native</td></tr>
+          <tr><td class="feature">Auto clear conditions</td><td class="muted"><span class="compare-x">✗</span> manual</td><td class="muted"><span class="compare-x">✗</span></td><td class="col-of"><span class="compare-check">✓</span> AI matches doc to condition</td></tr>
+          <tr><td class="feature">Internal chat per loan</td><td class="muted"><span class="compare-x">✗</span> external email</td><td class="muted">Limited</td><td class="col-of"><span class="compare-check">✓</span> Slack style threads</td></tr>
+          <tr><td class="feature">Mobile and iPad</td><td class="muted">Painful</td><td class="muted">Adequate</td><td class="col-of"><span class="compare-check">✓</span> Mobile first</td></tr>
+          <tr><td class="feature">Document version control</td><td class="muted"><span class="compare-x">✗</span></td><td class="muted">Partial</td><td class="col-of"><span class="compare-check">✓</span> Source of truth tagging</td></tr>
+          <tr><td class="feature">Compliance audit log</td><td><span class="compare-check">✓</span></td><td><span class="compare-check">✓</span></td><td class="col-of"><span class="compare-check">✓</span> field level diffs</td></tr>
+          <tr><td class="feature">Pricing transparency</td><td class="muted">3 month sales cycle</td><td class="muted">Quote on request</td><td class="col-of"><strong>Listed publicly</strong></td></tr>
+          <tr><td class="feature">Cancel anytime</td><td class="muted">Annual contracts</td><td class="muted">Annual contracts</td><td class="col-of"><span class="compare-check">✓</span> Month to month</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:1rem;line-height:1.7;">Bloomberg pricing from publicly reported figures. Calendar-only tools category includes free PDUFA tracker sites and low-cost calendar apps. Comparison is opinion based on my own use of each category — you're welcome to disagree.</p>
+    <p style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:1rem;line-height:1.7;">Encompass figures from publicly reported industry benchmarks and reviews. Comparison reflects positioning as of the OriginFlow LOS v0.1 spec. Independent verification welcome. That's why this site exists.</p>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     FEATURE BUCKETS — organized technical capabilities
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="features" style="background:var(--navy);border-top:1px solid var(--border);">
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- FEATURE BUCKETS                                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<section id="features" style="background:var(--deep);border-top:1px solid var(--border);">
   <div class="section reveal">
-    <div class="section-label">What the platform actually does</div>
-    <h2 class="section-heading">Three data layers. Eight scoring layers.<span class="diff-badge">No black boxes</span></h2>
-    <p class="section-sub">Every data point traces back to a public source. FDA filings, SEC EDGAR, ClinicalTrials.gov v2, Federal Register, openFDA, Finnhub, Polygon.io. You can audit any score on any ticker.</p>
+    <div class="section-label">What's actually inside</div>
+    <h2 class="section-heading">Three pillars. One platform.<br>No bolted on AI.</h2>
+    <p class="section-sub">Every line of code written for OriginFlow. No legacy from a 1998 desktop app. No "AI module" that's actually a regex. Built so the time you save shows up where it matters: on the phone with a borrower.</p>
 
     <div class="buckets-grid">
 
       <div class="bucket">
-        <div class="bucket-eyebrow">Bucket 01 · Regulatory & Clinical</div>
-        <h3 class="bucket-title">Catalysts the calendar tools don't show you.</h3>
-        <p class="bucket-desc">PDUFA dates are table stakes. The real signal is what's around them — AdCom meetings, Phase 2/3 readouts, CRL resubmissions.</p>
+        <div class="bucket-eyebrow">Pillar 01 · Document Intelligence</div>
+        <h3 class="bucket-title">Claude Vision reads every PDF.</h3>
+        <p class="bucket-desc">Drag a W2, paystub, or bank statement onto the file. Claude Vision extracts every number, calculates AGI and monthly gross, flags large unidentified deposits, and writes the result back to the loan record. The processor stops typing. You stop waiting on the processor.</p>
         <ul class="bucket-list">
-          <li>PDUFA calendar · pulled and scored daily</li>
-          <li>AdCom meetings · via Federal Register API</li>
-          <li>Phase 2/3 readouts · via ClinicalTrials.gov v2</li>
-          <li>CRL recovery filter · isolates CMC-only resubmissions</li>
-          <li>Drug asset database · resolves ticker drift</li>
+          <li>Auto extract W2 box by box · AGI computed</li>
+          <li>Paystub gross and net plus YTD with confidence score</li>
+          <li>Bank statement scan · large deposit flagging</li>
+          <li>Stare and compare with field level review</li>
+          <li>Auto clear conditions when doc type matches</li>
         </ul>
-        <div class="bucket-source">Source: FDA.gov · Federal Register · ClinicalTrials.gov v2</div>
       </div>
 
       <div class="bucket">
-        <div class="bucket-eyebrow">Bucket 02 · Risk Signal Layers</div>
-        <h3 class="bucket-title">Eight independent scores. One composite.</h3>
-        <p class="bucket-desc">Every layer is documented, weighted, and recalibrated after each resolved event. This is where the edge lives.</p>
+        <div class="bucket-eyebrow">Pillar 02 · Live Collaboration</div>
+        <h3 class="bucket-title">No file locks. No shared spreadsheet.</h3>
+        <p class="bucket-desc">Supabase Realtime broadcasts every change to every connected user. Your processor updates a DTI ratio on her screen and your card pulses cyan within 200ms, even if you're on the phone with the borrower at the same time. Internal chat per loan replaces the external email loop.</p>
         <ul class="bucket-list">
-          <li>Probability of Approval · Hay 2014 · Wong 2019</li>
-          <li>Sell-the-News Risk · pricing-in + dilution + urgency</li>
-          <li>Dilution Radar · SEC EDGAR scans every 6 hrs</li>
-          <li>Buyout Probability · 8 factors, patent cliff DB</li>
-          <li>TAM / Market Cap ratio · per-indication market size</li>
-          <li>Net Edge Score · composite of all eight</li>
+          <li>Live pipeline · pulse on update</li>
+          <li>Slack style chat thread per loan file</li>
+          <li>@mentions notify processor and underwriter</li>
+          <li>Branch scoped, RLS enforces isolation</li>
+          <li>Works on iPad and desktop simultaneously</li>
         </ul>
-        <div class="bucket-source">Source: SEC EDGAR · peer-reviewed approval rates · proprietary weights</div>
       </div>
 
       <div class="bucket">
-        <div class="bucket-eyebrow">Bucket 03 · Market Context</div>
-        <h3 class="bucket-title">The stuff that moves the stock.</h3>
-        <p class="bucket-desc">Catalysts don't fire in a vacuum. The rest of the market context — earnings windows, medical conferences, safety reports — all gets scored and placed on the same calendar.</p>
+        <div class="bucket-eyebrow">Pillar 03 · Compliance &amp; Audit</div>
+        <h3 class="bucket-title">Every change. Every actor. Every timestamp.</h3>
+        <p class="bucket-desc">Field level diffs auto write to an audit log on every insert, update, and delete. TRID, ECOA, and HMDA recordkeeping requirements satisfied without app code remembering. Status transitions captured separately for time in stage analytics. So when a borrower asks "where's my file?" you have a real answer in two seconds.</p>
         <ul class="bucket-list">
-          <li>Earnings calendar · 90-day window via Finnhub</li>
-          <li>Conferences · JPM · ASCO · AACR · ASH · ESMO</li>
-          <li>Safety signals · openFDA FAERS spike detection</li>
-          <li>Live price & volume · Polygon.io</li>
-          <li>Chart-pattern classifier · coiling · building · extended</li>
+          <li>Database triggers, non bypassable</li>
+          <li>TRID 3 day timer on Loan Estimate send</li>
+          <li>ECOA adverse action reasons captured</li>
+          <li>HMDA fields prefilled where derivable</li>
+          <li>25 month retention default · configurable</li>
         </ul>
-        <div class="bucket-source">Source: Finnhub · openFDA · Polygon.io · static conference manifest</div>
       </div>
 
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     SIGNAL ARCHITECTURE — deep dive for the skeptics (unchanged structure)
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="signals" class="signals-section">
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- AI SPOTLIGHT                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<section class="ai-spotlight">
   <div class="section reveal">
-    <div class="section-label">Signal Architecture</div>
-    <h2 class="section-heading">Eight signal layers. Every modifier documented.</h2>
-    <p class="section-sub">Each signal is sourced and weighted. The RCKT and VNDA panels below show the same model evaluating two approvals — one that made money, one that lost it. Same PoA range, very different outcomes. That's the point.</p>
-    <div class="signals-grid">
-      <div class="signal-list">
-        <div class="signal-item"><span class="signal-icon">🧬</span><div><div class="signal-name">Indication Classifier</div><div class="signal-desc">Maps drug to 16 therapeutic areas. Applies published FDA phase-3→approval rates. Oncology 85.5% · Rare/Orphan 86.2% · CNS 49%.</div></div><span class="signal-source">Hay 2014 · Wong 2019</span></div>
-        <div class="signal-item"><span class="signal-icon">📋</span><div><div class="signal-name">Review Pathway</div><div class="signal-desc">Breakthrough 90% · Priority NME 81% · Accelerated 72% · Resubmission 65%. Blended 50/50 with indication rate.</div></div><span class="signal-source">FDA PDUFA reports</span></div>
-        <div class="signal-item"><span class="signal-icon">🗳️</span><div><div class="signal-name">AdCom Vote Parser</div><div class="signal-desc">Extracts numerical votes (e.g. 8-7, 14-0). Unanimous → 1.25× multiplier. Close vote → 0.82×. Also feeds STN Risk.</div></div><span class="signal-source">PMC10329213</span></div>
-        <div class="signal-item"><span class="signal-icon">📁</span><div><div class="signal-name">SEC EDGAR Dilution Radar</div><div class="signal-desc">Scans 424B5, S-3 shelf, ATM agreements, and sales-agent changes near PDUFA dates every 6 hours.</div></div><span class="signal-source">SEC EDGAR API</span></div>
-        <div class="signal-item"><span class="signal-icon">🧪</span><div><div class="signal-name">ClinicalTrials.gov v2</div><div class="signal-desc">Phase 3 trial status check. Completed → 1.02× boost. Terminated/suspended → 0.70× discount.</div></div><span class="signal-source">CT.gov API v2</span></div>
-        <div class="signal-item"><span class="signal-icon">📐</span><div><div class="signal-name">Convexity Model</div><div class="signal-desc">6-factor asymmetry score: proximity, price depression, short squeeze potential, expected move, liquidity, size tier.</div></div><span class="signal-source">Proprietary</span></div>
-        <div class="signal-item"><span class="signal-icon">📊</span><div><div class="signal-name">TAM / Market Cap</div><div class="signal-desc">Drug TAM across 50+ indications ($20M–$50B). Compared to market cap. 10x+ ratio = massive upside. &lt;1x = limited room.</div></div><span class="signal-source">Industry data</span></div>
-        <div class="signal-item"><span class="signal-icon">🎯</span><div><div class="signal-name">Self-Calibrating Weights</div><div class="signal-desc">After each resolved PDUFA the model recalibrates. <span id="sig-live-count">8/9</span> on live resolved · <span id="sig-miss-text">only miss (REPL 2nd CRL) logged</span>. Plus <span id="sig-bt-scored">102</span>-event backtest + <span id="sig-bt-tradable">73</span>-event $1M IRR on real Polygon data.</div></div><span class="signal-source">Live log + backtest</span></div>
+    <div class="ai-grid">
+      <div class="ai-text">
+        <div class="section-label">Spotlight · The PDF Drop Zone</div>
+        <h2 class="section-heading" style="font-size:2.2rem;">Drop a PDF. Watch the file build itself.</h2>
+        <p>This is the feature that closed every demo so far. The processor (or you, on an iPad with a borrower at the kitchen table) drags a stack of borrower docs onto the loan file. Claude Vision reads each one, classifies the doc type, extracts the structured data, and writes it back to the loan record. <strong>The matching condition auto clears.</strong> Zero clicks. Zero stare and compare. The borrower watches their file build itself in real time.</p>
+        <p>The audit log captures the AI confidence score and the model version, so a compliance officer can replay the extraction six months later and verify the math. Low confidence extractions get routed to a manual review queue instead of silently failing. You stay safe. You also stay fast.</p>
+        <ul class="ai-feature-list">
+          <li><span class="ck">✓</span><span><strong>Income calc.</strong> AGI from W2 box 1, plus monthly gross from paystub gross divided by pay period count.</span></li>
+          <li><span class="ck">✓</span><span><strong>Asset verification.</strong> Bank statement scan for any deposit over 50% of monthly income, auto flagged.</span></li>
+          <li><span class="ck">✓</span><span><strong>Data integrity.</strong> Side by side PDF vs entered values. Discrepancies highlight in amber before submit.</span></li>
+          <li><span class="ck">✓</span><span><strong>Condition clearing.</strong> Doc type W2 flips the "Most recent W2" condition to submitted automatically.</span></li>
+          <li><span class="ck">✓</span><span><strong>OCR robustness.</strong> Rotated, faxed, multi page financial docs handled by Claude Vision natively.</span></li>
+        </ul>
       </div>
-      <div>
-        <div class="score-panel">
-          <div class="score-panel-title">// RCKT — why approval lost money</div>
-          <div class="score-bar-row"><span class="score-bar-label">PoA (approved ✓)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:77%"></div></div><span class="score-bar-val">77.5%</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">STN Risk</span><div class="score-bar-track"><div class="score-bar-fill" style="width:85%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">HIGH</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">Dilution ($100M ATM)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:70%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">HIGH</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">TAM / Cap</span><div class="score-bar-track"><div class="score-bar-fill" style="width:4%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">0.04x</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">Buyout</span><div class="score-bar-track"><div class="score-bar-fill" style="width:30%; background:var(--amber)"></div></div><span class="score-bar-val" style="color:var(--amber)">LOW</span></div>
-          <hr class="score-divider">
-          <div class="score-bar-row"><span class="score-bar-label">Actual move</span><div class="score-bar-track"><div class="score-bar-fill" style="width:20%; background:var(--red)"></div></div><span class="score-bar-val" style="color:var(--red)">-20%</span></div>
-          <hr class="score-divider">
-          <div class="score-total-row"><div><div class="score-total-label">The lesson</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">Approval ≠ profit. The scanner saw it before I did.</div></div><div class="score-total-val" style="color:var(--red)">⚠️</div></div>
-        </div>
 
-        <div class="score-panel" style="margin-top:1px;">
-          <div class="score-panel-title">// VNDA — why approval made money</div>
-          <div class="score-bar-row"><span class="score-bar-label">PoA (approved ✓)</span><div class="score-bar-track"><div class="score-bar-fill" style="width:78%"></div></div><span class="score-bar-val">78%</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">STN Risk</span><div class="score-bar-track"><div class="score-bar-fill" style="width:40%; background:var(--amber)"></div></div><span class="score-bar-val" style="color:var(--amber)">MODERATE</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">Dilution</span><div class="score-bar-track"><div class="score-bar-fill" style="width:10%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">MINIMAL</span></div>
-          <div class="score-bar-row"><span class="score-bar-label">TAM / Cap</span><div class="score-bar-track"><div class="score-bar-fill" style="width:50%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">5.0x</span></div>
-          <hr class="score-divider">
-          <div class="score-bar-row"><span class="score-bar-label">Actual move</span><div class="score-bar-track"><div class="score-bar-fill" style="width:45%; background:var(--accent2)"></div></div><span class="score-bar-val" style="color:var(--accent2)">+45%</span></div>
-          <hr class="score-divider">
-          <div class="score-total-row"><div><div class="score-total-label">The edge</div><div style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);margin-top:0.2rem">MODERATE STN but 5x TAM and no dilution = real upside.</div></div><div class="score-total-val" style="color:var(--accent2)">+45%</div></div>
+      <div class="ai-mock">
+        <div class="ai-mock-head">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <span style="margin-left:auto;">EXTRACTION · OF-1043 · paystub_2026_Q1.pdf</span>
+        </div>
+        <div class="ai-mock-body">
+          <div class="ai-mock-row"><span class="ai-mock-label">Document type</span><span class="ai-mock-val">PAYSTUB <span class="ai-mock-status s-extracted">98% conf</span></span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">Employer</span><span class="ai-mock-val">South Plains Health LLC</span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">Pay period end</span><span class="ai-mock-val">2026-03-15</span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">Gross (this period)</span><span class="ai-mock-val">$4,807.69</span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">YTD gross</span><span class="ai-mock-val">$28,846.14</span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">Computed monthly</span><span class="ai-mock-val">$10,416.66</span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">→ wrote to income_sources</span><span class="ai-mock-val">✓ <span class="ai-mock-status s-extracted">SAVED</span></span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">→ condition match</span><span class="ai-mock-val">"30 day paystub" <span class="ai-mock-status s-cleared">CLEARED</span></span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">→ DTI recompute</span><span class="ai-mock-val">38.4% <span class="ai-mock-status s-cleared">UPDATED</span></span></div>
+          <div class="ai-mock-row"><span class="ai-mock-label">total elapsed</span><span class="ai-mock-val">2.4 seconds</span></div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     COVERAGE — small/mid/large cap
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="coverage" style="padding:4rem 3rem;">
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- PRICING                                                              -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<section id="pricing">
   <div class="section reveal">
-    <div class="section-label">Full Coverage</div>
-    <h2 class="section-heading">Every cap tier. Small-caps are where the asymmetry lives.</h2>
-    <p class="section-sub">Submarine Catalyst tracks every FDA binary event across the full market cap spectrum — not just the small-caps retail traders already crowd into.</p>
-    <div class="coverage-grid">
-      <div class="coverage-card"><span class="coverage-num" style="color:var(--accent2)">SC</span><div class="coverage-title">Small-Cap · $0–$2B</div><p class="coverage-desc">Highest volatility. Highest spike potential. Highest dilution risk. Where the asymmetric PDUFA trades live — and where STN Risk and the Dilution Radar add the most value.</p></div>
-      <div class="coverage-card"><span class="coverage-num" style="color:var(--accent)">MC</span><div class="coverage-title">Mid-Cap · $2B–$10B</div><p class="coverage-desc">More institutional coverage, more efficient pricing. Moderate moves on approval (+10 to 25%). sNDA/label expansions are common. STN Risk goes up with coverage.</p></div>
-      <div class="coverage-card"><span class="coverage-num" style="color:var(--amber)">LC</span><div class="coverage-title">Large-Cap · $10B+</div><p class="coverage-desc">One drug rarely moves the needle. Tracked for competitive dynamics, pipeline intelligence, and the ripple effects a large-cap approval has on smaller players in the same therapeutic area.</p></div>
+    <div class="section-label">Pricing</div>
+    <h2 class="section-heading">Two paths. No sales call. Cancel any time.</h2>
+    <p class="section-sub">Encompass requires a 3 month enterprise sales cycle. I list my prices on the website like a grown up.</p>
+
+    <div class="pricing-wrapper">
+      <ul class="pricing-context">
+        <strong>What's included on every plan</strong>
+        <li>Full pipeline · unlimited active loans</li>
+        <li>Claude Vision document extraction · all doc types</li>
+        <li>Live collaboration · branch scoped RLS</li>
+        <li>Audit log · TRID, ECOA, HMDA grade recordkeeping</li>
+        <li>Internal chat · @mentions · pinning</li>
+        <li>Works on iPad, iPhone, any browser</li>
+        <li>Direct integrations · credit, AUS, appraisal, title</li>
+        <li>Email support · SLA on response time</li>
+      </ul>
+
+      <div class="pricing-card">
+        <span class="pricing-badge">Founding LO rate</span>
+        <div class="pricing-body">
+          <div class="pricing-toggle">
+            <div class="pricing-tab active" id="tab-flat" onclick="togglePrice('flat')">Per Seat</div>
+            <div class="pricing-tab" id="tab-success" onclick="togglePrice('success')">Per Closed Loan</div>
+          </div>
+          <div id="price-flat">
+            <div class="pricing-price">
+              <span class="price-dollar">$</span>
+              <span class="price-amount">99</span>
+              <span class="price-period">/seat/month</span>
+            </div>
+            <p class="pricing-tagline">All in. No per click fees. No "Encompass admin" required.</p>
+            <ul class="pricing-features">
+              <li>Unlimited loans, docs, conditions</li>
+              <li>All AI extraction included</li>
+              <li>Live collab plus chat</li>
+              <li>Audit log plus compliance reports</li>
+              <li>Email and Slack support</li>
+              <li>Cancel any time, prorated refund</li>
+            </ul>
+          </div>
+          <div id="price-success" style="display:none;">
+            <div class="pricing-price">
+              <span class="price-dollar">$</span>
+              <span class="price-amount">99</span>
+              <span class="price-period">/closed loan · $0 base</span>
+            </div>
+            <p class="pricing-tagline">Pay only when you close. Slow month? You owe nothing.</p>
+            <ul class="pricing-features">
+              <li>$0 monthly base, billed at funding</li>
+              <li>Unlimited seats, loans, docs</li>
+              <li>All AI extraction included</li>
+              <li>Live collab plus chat</li>
+              <li>Audit log plus compliance reports</li>
+              <li>Cancel any time, no minimums</li>
+            </ul>
+          </div>
+          <a href="/signup.html" class="pricing-cta">Sign Up →</a>
+          <p class="pricing-note">Beta opens Q2 2026 · Founding 25 LOs lock this rate forever</p>
+        </div>
+      </div>
+
+      <div class="pricing-right">
+        <strong>Straight talk on the success model</strong>
+        Per closed loan pricing aligns the software with the LO. If I don't help you close, I don't get paid. Encompass charges whether you funded one loan that month or fifty. The speedboat should price like the speedboat.<br><br>
+        For high volume LOs (8 plus closes/month) the per seat plan usually wins. For seasonal, refi cyclic, or new LO pipelines being built up, success pricing makes the most sense. Switch between them any time. I'll do the math for you in the dashboard.
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     ORIGIN — founder story (moved up, right before pricing)
-     ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- ORIGIN STORY                                                         -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 <section id="origin" class="origin-section">
   <div class="section reveal">
     <div class="origin-grid">
       <div class="origin-text">
         <div class="section-label">Who built this</div>
-        <h2 class="section-heading">A submarine, a spreadsheet, and a problem nobody was solving.</h2>
-        <p>I spent three years in the Navy, most of it on the USS Montana during dry dock in Newport News, Virginia. Eleven months inside a boat that wasn't in the water yet. What you learn in that environment is that everything runs on procedure, verification, and trusting your instruments when your instincts are screaming something else. That stuck with me.</p>
-        <p>I got medically separated and enrolled at Texas Tech for a BBA in IT Systems. Somewhere between learning SQL and reading SEC filings for fun, I started trading biotech PDUFA events. The problem was obvious pretty fast. I could spend five hours researching a single ticker — FDA history, EDGAR filings, clinical trial data, cash runway math — and still miss the one thing that tanked the trade. So I started building a tool to do the research for me.</p>
-        <p>That tool became Submarine Catalyst. It started as a Python script on my laptop. Now it runs eight analysis layers across <strong>300+ biotechs I actually track</strong>, plus every company with an upcoming PDUFA — updated daily by an automated pipeline that costs me less than $30 a month to operate. I'm 23, I'm still in school, and I built this because I needed it. Turns out other people need it too.</p>
-        <p>The RCKT event is what made this real. The model said 77.5% chance of approval. It got approved. The stock dropped 20%. I posted the loss publicly and it got 21,000 views. That one outcome led to the Sell-The-News Risk layer, the Dilution Radar, and every feature that separates this from a basic PDUFA calendar.</p>
-        <p>The two misses are in the record too. REPL on April 10, 2026 — model called 84%, FDA issued a 2nd CRL, stock dropped 64%. STN HIGH had correctly flagged severe downside before the decision. GRCE on April 23, 2026 — model called 72%, FDA issued a manufacturing CRL on nimodipine, stock dropped 52%. STN missed that one. Both losses logged the day they resolved, not after I cherry-picked which to publish. Every outcome gets logged, including the ones that hurt. That's the whole point.</p>
+        <h2 class="section-heading">A submarine, a spreadsheet, and a frustrated loan officer.</h2>
+        <p>I spent three years in the Navy, most of it on the USS Montana during dry dock in Newport News, Virginia. What you learn in that environment is that everything runs on procedure, verification, and trusting your instruments when your instincts are screaming something else.</p>
+        <p>I got medically separated and enrolled at Texas Tech for a BBA in IT Systems. While I was there I built <strong>Submarine Catalyst</strong>, a biotech PDUFA scanner. Same submarine aesthetic, same obsession with making the machine do the boring work. It taught me how to ship.</p>
+        <p>OriginFlow started because <strong>a loan officer friend in Texas</strong> wouldn't stop complaining about Encompass. The 60 second file loads. The shared Excel pipeline tracker. The $100k Encompass admin his branch couldn't afford. Every problem he described was a thing I could fix with a live database and an AI model that can read a paystub.</p>
+        <p>So I started building. The schema went up first. Then Claude Vision wired into the document pipeline. Then the dashboard. He's the first beta tester and the reason every feature exists. If it doesn't fix something a working LO has actually complained about, it doesn't make the cut.</p>
+        <p>By graduation in <strong>December 2026</strong>, I want OriginFlow LOS to be the leanest, fastest, cheapest alternative for independent loan officers across Texas. Then I expand. The aircraft carrier doesn't need to sink. I just need to be the better boat for the LOs it was never designed for.</p>
       </div>
       <div class="origin-stats">
-        <div class="stat-cell"><span class="stat-val">300+</span><span class="stat-label">Biotechs Tracked</span></div>
-        <div class="stat-cell"><span class="stat-val" id="origin-live-stat">8/9</span><span class="stat-label">Live Calls Correct</span></div>
-        <div class="stat-cell"><span class="stat-val" id="origin-bt-tradable">73</span><span class="stat-label">IRR Tradable Events</span></div>
-        <div class="stat-cell"><span class="stat-val">14</span><span class="stat-label">Big Pharma Patent Cliffs</span></div>
+        <div class="stat-cell"><span class="stat-val">23</span><span class="stat-label">Founder Age</span></div>
+        <div class="stat-cell"><span class="stat-val">3</span><span class="stat-label">Years USS Montana</span></div>
+        <div class="stat-cell"><span class="stat-val">$30</span><span class="stat-label">Monthly Op Cost</span></div>
+        <div class="stat-cell"><span class="stat-val">Dec '26</span><span class="stat-label">Public Launch</span></div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     PRICING — enhanced risk reversal
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="pricing">
-  <div class="section reveal">
-    <div class="section-label">Pricing</div>
-    <h2 class="section-heading">One tier. Full database. Cancel whenever.</h2>
-    <p class="section-sub">No freemium walls. No data delays. No upsells. Every risk layer on every ticker, updated daily.</p>
-    <div class="pricing-wrapper">
-      <ul class="pricing-context">
-        <strong>What's included</strong>
-        <li>300+ biotechs worth tracking + every PDUFA filer each year</li>
-        <li>Eight risk layers on every scored event</li>
-        <li>10-tab research calendar · PDUFA · Earnings · Clinical · AdCom · CMC Recovery · Dilution Watch · Conferences</li>
-        <li>AI research tool · deep dives on any ticker</li>
-        <li>Compare tool · side-by-side on 2-4 companies</li>
-        <li>Full backtest record · PoA calibration curve + $1M IRR</li>
-        <li>Every outcome documented · including losses</li>
-      </ul>
-      <div class="pricing-card">
-        <span class="pricing-badge">Founding-member rate</span>
-        <div class="pricing-body">
-          <div class="pricing-price">
-            <span class="price-dollar">$</span>
-            <span class="price-amount">29.99</span>
-            <span class="price-period">/month</span>
-          </div>
-          <p class="pricing-tagline">Full database · all tickers · all layers</p>
-          <ul class="pricing-features">
-            <li>300+ curated biotechs + every PDUFA filer</li>
-            <li>Eight independent risk layers per event</li>
-            <li>Sell-The-News Risk classification</li>
-            <li>Dilution Radar — SEC EDGAR, every 6 hrs</li>
-            <li>Buyout Probability — 8-factor, patent cliff DB</li>
-            <li>TAM / Market Cap ratio</li>
-            <li>CMC Recovery filter</li>
-            <li>AI Research Module — any ticker</li>
-            <li>Compare Module — 2-4 companies side-by-side</li>
-            <li>10-tab research calendar</li>
-            <li>Full backtest with real outcomes</li>
-          </ul>
-          <div class="risk-reversal">
-            <strong>✓ Cancel any time.</strong> No contracts. No cancellation fees. Access runs to the end of your billing period, then stops billing.
-          </div>
-          <div style="display:flex;align-items:flex-start;gap:0.75rem;margin:1.25rem 0;">
-            <input type="checkbox" id="tos-agree" style="margin-top:0.2rem;accent-color:var(--accent);cursor:pointer;flex-shrink:0;">
-            <label for="tos-agree" style="font-family:var(--mono);font-size:0.65rem;color:var(--muted);line-height:1.6;cursor:pointer;letter-spacing:0.03em;">
-              I agree to the <a href="/terms.html" target="_blank" style="color:var(--accent);text-decoration:none;">Terms</a> and <a href="/privacy.html" target="_blank" style="color:var(--accent);text-decoration:none;">Privacy Policy</a>. I understand this is a quantitative tool, not investment advice, and trading biotech carries substantial risk of loss.
-            </label>
-          </div>
-          <button id="checkout-btn" class="pricing-cta">Get Instant Access →</button>
-          <p class="pricing-note">Billed monthly via Stripe · Access within 60 seconds</p>
-        </div>
-      </div>
-      <div class="pricing-right">
-        <strong>Straight talk</strong>
-        This is a quantitative research tool, not investment advice. A high score reflects favorable evidence — it does not guarantee approval. Biotech binary events carry substantial risk of total loss.<br><br>
-        It's built for traders who already understand that risk and want a systematic edge evaluating setups. If you're looking for someone to tell you what to buy, this isn't it. If you're looking for eight risk layers scored on every biotech in the universe so your research takes ten minutes instead of five hours — that's what this is.
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     FAQ
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="faq" style="background: var(--navy); border-top: 1px solid var(--border);">
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- FAQ                                                                  -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<section id="faq">
   <div class="section reveal">
     <div class="section-label">FAQ</div>
     <h2 class="section-heading">Common questions.</h2>
-    <p class="section-sub">Straight answers. No filler.</p>
-    <div class="faq-list" style="margin-top:2.5rem; max-width:780px;">
+    <p class="section-sub">Direct answers. No filler.</p>
 
-      <div class="faq-item">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What exactly am I paying $29.99/mo for?</span>
-          <span class="faq-arrow">+</span>
-        </button>
-        <div class="faq-a">Full access to everything. 300+ biotechs worth tracking plus every company with an upcoming PDUFA — small, mid, large cap. Every PDUFA event scored with approval probability (PoA), Sell-The-News Risk, Dilution Radar (EDGAR scans every 6 hours), Buyout Probability, TAM/Cap ratio, Net Edge Score, and ELITE/STRONG/WATCH/WEAK grading. The AI Research Tool for any ticker. The Compare Tool for 2-4 companies side-by-side. 10-tab catalyst calendar covering PDUFAs, earnings, clinical readouts, AdComs, dilution watch, conferences. Post-catalyst behavioral patterns. The full education section. The transparent track record. Updated daily. No feature gates, no data delays.</div>
-      </div>
-
+    <div class="faq-list" style="margin-top:2.5rem;">
       <div class="faq-item open">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>Is this investment advice?</span>
+          <span>Is OriginFlow LOS production ready today?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">No. It's a quantitative scoring tool. Every output is a data classification from public sources — FDA filings, SEC EDGAR, clinical trial status, market data. It does not tell you what to buy or sell. All position sizing, risk management, and final trade decisions are yours. Biotech binary events carry substantial risk of total loss. I am not a registered investment adviser, broker-dealer, or financial planner.</div>
-      </div>
-
-      <div class="faq-item open">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>How accurate is the PoA score, really?</span>
-          <span class="faq-arrow">+</span>
-        </button>
-        <div class="faq-a">The base rates come from peer-reviewed literature (Hay et al. 2014, Wong et al. 2019) and FDA PDUFA performance reports. Individual scores are modified by seven other signal layers. Live record: <span id="faq-live-count">8/9</span> pre-decision calls correct. A separate <span id="faq-bt-scored">102</span>-event retrospective backtest runs the same PoA engine against every FDA NME decision from Feb 2024 onward — published on the track record page with per-bucket calibration. The scoring functions are byte-for-byte identical to production (synced-block comment prevents drift). Of those scored events, <span id="faq-bt-tradable">73</span> have real Polygon.io post-decision price data and feed the $1M portfolio IRR simulation — placeholder tickers, non-US exchanges, and delisted names are excluded rather than modeled, so every IRR P&amp;L figure traces back to actual market activity. No model is perfect. The REPL miss is in the record.</div>
+        <div class="faq-a">No, and I'm not going to pretend it is. The schema is built, the dashboard works, the document pipeline is being wired up. Beta opens Q2 2026 to a small group of Texas independent loan officers. Public launch targets December 2026 to coincide with my graduation from Texas Tech. If you're an LO, processor, or underwriter and you want to influence what gets built, the early access list is the place.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>How often is data updated?</span>
+          <span>How does the AI document extraction actually work?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Daily via automated pipeline. New PDUFA events sync from FDA each morning. EDGAR Dilution Radar scans SEC filings for every active ticker every 6 hours — checking for 424B5 prospectus supplements, S-3 shelf registrations, ATM agreements, and insider transactions. Scoring engine recalculates PoA, STN Risk, Dilution Score, and Net Edge Score after each data refresh. When a PDUFA resolves, the outcome is logged with actual stock-move data and the model's weights recalibrate.</div>
+        <div class="faq-a">A processor (or you, on an iPad with a borrower in front of you) drags a PDF onto the loan file. The doc gets stored in Supabase Storage and an extraction record is created. A serverless function picks it up, sends it to Claude Vision with a prompt scoped to the doc type (W2, paystub, bank statement, etc.), and parses the response into structured fields. The result lands back on the document record as JSONB, and a trigger fires to auto clear any matching condition. The AI's confidence score is recorded. Anything under a configurable threshold goes to manual review.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What's the AI Research Tool?</span>
+          <span>How do you handle compliance and PII?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">A subscriber-only AI analyst that runs deep dives on any biotech. For PDUFA events: executive summaries, SEC filing context, dilution risk assessment, bull/base/bear price scenarios. For companies without active PDUFAs: pipeline overview, catalyst timeline, buyout potential, competitive landscape. It knows the scanner's data — PoA, STN Risk, Dilution, Buyout Probability, TAM/Cap — and builds analysis on top of it.</div>
+        <div class="faq-a">Row level security at the Postgres layer scopes every query to the user's branch. Even a leaked anon key cannot see another branch's data. Field level audit logging via database triggers covers every insert, update, and delete on compliance relevant tables (loans, borrowers, conditions, documents). SSN is never stored in plaintext, only a salted hash and last four. Full PII goes through Supabase Vault for envelope encryption when needed for credit pulls. The retention default matches TRID and ECOA recordkeeping windows (25 to 36 months). Configurable.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>Why should I trust this more than a free calendar?</span>
+          <span>Will it integrate with my existing credit, AUS, and title vendors?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">You don't have to. Every classification is logged before the event resolves — wins and losses both. The REPL 2nd CRL miss is in the record. The RCKT -20% move on approval is in the record. The VNDA +45% win is in the record. The 102-event retrospective backtest is public with a per-bucket calibration curve. The $1M portfolio IRR runs on real Polygon.io close-to-close data, not theoretical. Compare that to a calendar-only tool that just lists dates. If the track record looks wrong, don't subscribe.</div>
+        <div class="faq-a">Goal is yes for the major ones. That's table stakes. Initial direct integrations target Equifax, Experian, and TransUnion via a credit reseller, DU and LP for AUS, Snapdocs for eClose, and the major flood and title APIs. I'm building this as a thin REST and webhooks layer so adding a new integration is days, not months. If your shop relies on a niche vendor, tell me. Early access LOs get to influence the integration roadmap.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What's Buyout Probability?</span>
+          <span>What happens to my data if I cancel?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">A 0-100 score estimating acquisition likelihood post-catalyst. Factors: first-in-class status, orphan/breakthrough designation, PRV eligibility, existing partnerships, market cap tier, commercial infrastructure, and therapeutic area M&A history — scored against a 14-company Big Pharma patent cliff database (ABBV, MRK, PFE, LLY, BIIB, and 9 others). Small-cap biotechs with first-in-class approved drugs and no sales force are the most common acquisition targets — the score identifies them before the market does.</div>
+        <div class="faq-a">You get a full SQL export of every loan, document, condition, audit log, and chat message in your branch. Documents come as a zip from Storage. The export is a permanent right, not a courtesy, written into the terms. You're never trapped here.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>What's TAM / Market Cap ratio?</span>
+          <span>Why should I trust a 23 year old with my LOS?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">TAM (Total Addressable Market) is the estimated annual peak revenue of the drug's indication. TAM/Cap ratio compares that market to the company's current market cap. 10x = drug market is 10 times company value (significant upside). Below 1x = drug market is smaller than company (limited upside even on good news). RCKT had 0.04x (gene therapy for ~30 patients). VNDA had 5x (gastroparesis, ~$1.5B market). Ratio predicted which approval was worth trading.</div>
-      </div>
-
-      <div class="faq-item open">
-        <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>Can I cancel?</span>
-          <span class="faq-arrow">+</span>
-        </button>
-        <div class="faq-a">Yes. Billing is monthly via Stripe. Cancel from your dashboard any time — no contracts, no cancellation fees, no questions. Access runs through the end of the current billing period, then stops.</div>
+        <div class="faq-a">Fair question. The answer: you don't have to until the demo earns it. The whole product is being built in public. Schema, code, dashboard, track record of features that work and features that don't. If you've used Submarine Catalyst (my biotech tool) you've already seen the same operator build something with eight active risk layers and a published track record including the misses. Same builder. Same standards. Different industry.</div>
       </div>
 
       <div class="faq-item">
         <button class="faq-q" onclick="this.parentElement.classList.toggle('open')">
-          <span>Who built this?</span>
+          <span>Who is this NOT for?</span>
           <span class="faq-arrow">+</span>
         </button>
-        <div class="faq-a">Me. Davis Rackler. 23-year-old Navy veteran, full-time student at Texas Tech (BBA in IT Systems). I served three years on the USS Montana, got medically separated, started trading biotech PDUFA events, got frustrated with how long the research took, and built a tool to automate it. I run it solo. It costs me less than $30/month to operate. Every outcome gets logged publicly whether it makes me look good or not. If you want to know more, the full story is in the "Who built this" section above — or reach out on X (@DRackler).</div>
+        <div class="faq-a">Big banks. Top 50 IMBs. Anyone closing 1,000 plus loans a month. Encompass actually fits you better, that's not a joke. OriginFlow is built for independent loan officers and small branches with 3 to 25 LOs who don't have an in house engineering team, and who currently feel like the LOS is the slowest part of their day. If you can quote your monthly closes from memory, you're the customer.</div>
       </div>
-
     </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     FINAL CTA — bottom of page
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section class="final-cta reveal">
-  <h2>See today's live classifications.</h2>
-  <p>300+ biotechs worth tracking plus every PDUFA filer. Eight risk layers. Every score sourced and documented. $29.99/month, cancel any time. I built this because I needed it — turns out you probably do too.</p>
-  <a href="#pricing" class="btn-primary">Start Tracking Catalysts →</a>
-  <p class="final-note"><span>✓</span> Cancel any time · <span>✓</span> No contracts · <span>✓</span> Access within 60 seconds</p>
-</section>
-
-<!-- ═══════════════════════════════════════════════════════════════════════════
-     EMAIL CAPTURE
-     ═══════════════════════════════════════════════════════════════════════════ -->
-<section id="updates" style="background:var(--deep);border-top:1px solid var(--border);">
-  <div class="section reveal" style="text-align:center;">
-    <div class="section-label" style="justify-content:center;">Free Updates</div>
-    <h2 class="section-heading">Monthly catalyst briefing.</h2>
-    <p class="section-sub" style="margin:0 auto 2.5rem;">Upcoming PDUFA dates, new risk classifications, model updates, resolved outcomes. No spam. No financial advice. Unsubscribe any time.</p>
-    <form class="email-capture" id="email-capture" action="https://formspree.io/f/mlgpanlj" method="POST">
-      <input type="email" name="email" class="email-input" placeholder="you@example.com" required autocomplete="email" />
-      <button type="submit" class="email-btn" id="email-btn">Subscribe</button>
-    </form>
-    <p class="email-note" id="email-note">No spam. Just research.</p>
-    <div class="social-row">
-      <a href="https://x.com/DRackler" target="_blank" rel="noopener" class="social-link">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-        Follow @DRackler
-      </a>
-    </div>
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- FINAL CTA                                                            -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<section id="early-access" class="final-cta reveal">
+  <h2>Stop losing hours to your LOS.</h2>
+  <p>Q2 2026 beta is capped at 25 founding loan officers. Founding rate locks for the life of your account. No spam. Just monthly build notes from a builder you'll actually talk to.</p>
+  <div style="display:flex;justify-content:center;gap:1rem;flex-wrap:wrap;margin-top:2rem;">
+    <a href="/signup.html" class="btn-primary">Sign Up →</a>
+    <a href="/login.html" class="btn-secondary" style="font-family:var(--mono);font-size:0.78rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);text-decoration:none;border-bottom:1px solid rgba(200,223,240,0.3);padding-bottom:3px;display:inline-flex;align-items:center;">Already have an account? Log In →</a>
+  </div>
+  <p class="final-note" style="margin-top:1.5rem;"><span>✓</span> Founding 25 LOs lock the rate · <span>✓</span> Davis reviews every signup · <span>✓</span> No sales calls</p>
+  <div style="margin-top:2rem;">
+    <a href="/dashboard.html" class="btn-secondary" style="font-family:var(--mono);font-size:0.7rem;letter-spacing:0.08em;color:var(--muted);text-decoration:none;">Or see the live dashboard demo →</a>
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER                                                               -->
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 <footer>
-  <a href="/" class="nav-wordmark" style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);text-decoration:none;letter-spacing:0.1em;">SUBMARINE CATALYST</a>
-  <div class="footer-disclaimer">Submarine Catalyst is a quantitative research platform. All outputs — PoA, Sell-The-News Risk, Net Edge Score, Dilution Risk, Buyout Factor Score, TAM/Cap Ratio, and Grade classifications — are software-generated model outputs from public data (FDA filings, SEC EDGAR, published approval rate studies, market data). These are data classifications, not investment advice or solicitations to buy, sell, or hold any security. All decisions, sizing, and risk management are the user's responsibility. Biotech binary events carry substantial risk of total loss. Past accuracy does not guarantee future results. Not a registered investment adviser, broker-dealer, or financial planner.</div>
+  <a href="/" class="nav-wordmark" style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);text-decoration:none;letter-spacing:0.1em;">ORIGINFLOW LOS</a>
+  <div class="footer-disclaimer">
+    OriginFlow LOS is a software platform for independent mortgage branches and loan officers. Not a registered investment adviser, broker dealer, or financial planner. All compliance with federal and state mortgage regulations remains the responsibility of the licensed lender. Software outputs are aids to underwriting decisions, not substitutes for them.
+  </div>
   <div style="display:flex;gap:1.5rem;align-items:center;flex-wrap:wrap;">
-    <a href="https://x.com/DRackler" target="_blank" rel="noopener" style="display:flex;align-items:center;gap:0.4rem;">
-      <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-    </a>
-    <a href="/calendar.html">Calendar</a>
-    <a href="/track-record.html">Track Record</a>
-    <a href="/fda-complete-response-letter.html">CRL Guide</a>
-    <a href="/fda-approval-rates-by-indication.html">Approval Rates</a>
-    <a href="/sec-dilution-signals-biotech.html">Dilution Signals</a>
-    <a href="/beginners-guide.html">Glossary</a>
-    <a href="/how-institutions-trade.html">Methodology</a>
-    <a href="/behavior-patterns.html">Patterns</a>
-    <a href="/privacy.html">Privacy</a>
-    <a href="/terms.html">Terms</a>
-    <a href="/login.html">Login</a>
+    <a href="dashboard.html">Demo</a>
+    <a href="#battle-map">Battle Map</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#origin">Founder</a>
+    <a href="#faq">FAQ</a>
+    <a href="https://x.com/DRackler" target="_blank" rel="noopener">@DRackler</a>
   </div>
 </footer>
 
 <script>
-  const authStatus  = document.getElementById('auth-status');
-  const signupBtn   = document.getElementById('signup-btn');
-  const checkoutBtn = document.getElementById('checkout-btn');
-  const tosCheckbox = document.getElementById('tos-agree');
-
-  signupBtn.addEventListener('click', () => {
-    document.getElementById('pricing').scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
-
-  checkoutBtn.addEventListener('click', async () => {
-    if (checkoutBtn.textContent.includes('Dashboard')) {
-      window.location.href = '/dashboard.html';
-      return;
-    }
-    if (!tosCheckbox.checked) {
-      const tosLabel = document.querySelector('label[for="tos-agree"]');
-      tosCheckbox.style.outline = '2px solid var(--red)';
-      tosCheckbox.style.outlineOffset = '3px';
-      if (tosLabel) tosLabel.style.color = 'var(--red)';
-      tosCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => {
-        tosCheckbox.style.outline = '';
-        if (tosLabel) tosLabel.style.color = '';
-      }, 2500);
-      return;
-    }
-    try {
-      if (typeof scGetSession === 'function') {
-        const session = await scGetSession();
-        if (session) {
-          scCheckout(session.user.id, session.user.email);
-          return;
-        }
-      }
-    } catch (e) {
-      console.warn('[SC] session check failed:', e);
-    }
-    window.location.href = '/signup.html';
-  });
-
-  (async () => {
-    try {
-      if (typeof scGetSession !== 'function') return;
-      const session = await scGetSession();
-      if (session) {
-        authStatus.textContent = 'Logged in as ' + session.user.email;
-        authStatus.classList.add('auth-success');
-        authStatus.classList.remove('hidden');
-        checkoutBtn.textContent = 'Access Dashboard →';
-      }
-    } catch (e) {
-      console.warn('[SC] auth check failed:', e);
-    }
-  })();
+  function togglePrice(mode) {
+    document.getElementById('tab-flat').classList.toggle('active', mode === 'flat');
+    document.getElementById('tab-success').classList.toggle('active', mode === 'success');
+    document.getElementById('price-flat').style.display    = mode === 'flat' ? 'block' : 'none';
+    document.getElementById('price-success').style.display = mode === 'success' ? 'block' : 'none';
+  }
 
   const els = document.querySelectorAll('.reveal');
   const io = new IntersectionObserver(entries => {
-    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
-  }, { threshold: 0.12 });
-  els.forEach(el => io.observe(el));
-
-  const emailForm = document.getElementById('email-capture');
-  if (emailForm) {
-    emailForm.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      const btn = document.getElementById('email-btn');
-      const note = document.getElementById('email-note');
-      const email = this.querySelector('input[name="email"]').value;
-      btn.textContent = 'Sending...';
-      btn.disabled = true;
-      try {
-        const res = await fetch(this.action, {
-          method: 'POST',
-          headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: email }),
-        });
-        if (res.ok) {
-          btn.textContent = 'Subscribed ✓';
-          note.textContent = '✓ You\'re in. Watch your inbox.';
-          note.classList.add('email-success');
-        } else {
-          btn.textContent = 'Try Again';
-          btn.disabled = false;
-          note.textContent = 'Something went wrong. Please try again.';
-        }
-      } catch (err) {
-        btn.textContent = 'Try Again';
-        btn.disabled = false;
-        note.textContent = 'Connection error. Please try again.';
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        io.unobserve(e.target);
       }
     });
-  }
-
-  // ═══════════════════════════════════════════════════════════════════════════
-  // LIVE-COUNTS LOADER — single source of truth for all counters
-  // ═══════════════════════════════════════════════════════════════════════════
-  (async function liveCountsLoader() {
-    try {
-      let sb;
-      if (typeof getSupabase === 'function') {
-        sb = getSupabase();
-      } else if (typeof supabase !== 'undefined' && typeof SC_CONFIG !== 'undefined') {
-        sb = supabase.createClient(SC_CONFIG.supabaseUrl, SC_CONFIG.supabaseKey);
-      } else {
-        sb = supabase.createClient(
-          'https://dipagzqrvivposqjkdkx.supabase.co',
-          'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU'
-        );
-      }
-
-      // Live track record counts
-      try {
-        const { data: rows, error } = await sb
-          .from('track_record')
-          .select('ticker, actual_result, call_correct')
-          .order('pdufa_date', { ascending: true });
-
-        if (!error && rows) {
-          const RESOLVED = ['APPROVED', 'CRL', 'WITHDRAWN'];
-          const resolved = rows.filter(r => RESOLVED.includes(String(r.actual_result || '').toUpperCase()));
-          const correct  = resolved.filter(r => r.call_correct === true);
-          const misses   = resolved.filter(r => r.call_correct === false);
-          const countStr = resolved.length > 0 ? (correct.length + '/' + resolved.length) : '—';
-
-          ['ub-live-count', 'hero-live-count', 'sig-live-count', 'origin-live-stat', 'faq-live-count'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = countStr;
-          });
-
-          const heroMissCount = document.getElementById('hero-miss-count');
-          if (heroMissCount) heroMissCount.textContent = misses.length;
-
-          const heroMissWord = document.getElementById('hero-miss-word');
-          if (heroMissWord) heroMissWord.textContent = misses.length === 1 ? 'Miss' : 'Misses';
-
-          const heroMissTickers = document.getElementById('hero-miss-tickers');
-          if (heroMissTickers) {
-            heroMissTickers.textContent = misses.length > 0 ? misses.map(m => m.ticker).join(', ') : 'none yet';
-          }
-
-          const sigMissText = document.getElementById('sig-miss-text');
-          if (sigMissText) {
-            if (misses.length === 0) {
-              sigMissText.textContent = 'no misses logged yet';
-            } else if (misses.length === 1) {
-              const m = misses[0];
-              sigMissText.textContent = 'only miss (' + m.ticker + ' ' + String(m.actual_result || 'miss').toUpperCase() + ') logged';
-            } else {
-              sigMissText.textContent = misses.length + ' misses logged (' + misses.map(m => m.ticker).join(', ') + ')';
-            }
-          }
-        }
-      } catch (e) { console.warn('[SC live-counts] track_record:', e); }
-
-      // Backtest counts
-      try {
-        const { data: btRows, error: btErr } = await sb
-          .from('v_backtest_public_rows')
-          .select('scanner_call, return_pct');
-
-        if (!btErr && btRows && btRows.length) {
-          const scoredCount = btRows.length;
-          const tradableCount = btRows.filter(r => {
-            const call = String(r.scanner_call || '').toUpperCase();
-            const hasRet = r.return_pct !== null && r.return_pct !== undefined && !Number.isNaN(Number(r.return_pct));
-            return (call === 'APPROVE' || call === 'CRL') && hasRet;
-          }).length;
-
-          ['ub-bt-scored', 'hero-bt-scored', 'sig-bt-scored', 'faq-bt-scored'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = scoredCount;
-          });
-
-          ['ub-bt-tradable', 'hero-bt-tradable', 'sig-bt-tradable', 'origin-bt-tradable', 'faq-bt-tradable'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.textContent = tradableCount;
-          });
-        }
-      } catch (e) { console.warn('[SC live-counts] backtest:', e); }
-    } catch (e) {
-      console.warn('[SC live-counts] fatal:', e);
-    }
-  })();
+  }, { threshold: 0.12 });
+  els.forEach(el => io.observe(el));
 </script>
 
-<!-- Cloudflare Web Analytics — replace token after setup at dash.cloudflare.com/web-analytics -->
 </body>
 </html>
