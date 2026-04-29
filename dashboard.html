@@ -2213,11 +2213,15 @@ cmo_audit_flag: e.cmo_audit_flag === true ||
   renderScanner();
   if (SCANNER_DATA.length > 0 && SC_CONFIG.polygonApiKey) {
     var tickers = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
+    // Chain snapshot → fetchPriceData. fetchPriceData gates its reference fetch on
+    // PRICE_DATA[tk]._fromSnapshot to skip delisted tickers; running them in parallel
+    // means the first batch of per-ticker calls fires before snapshot lands, the gate
+    // is false, no reference fetch, no shares_outstanding, no live market_cap.
     polyBulkSnapshot(tickers).then(function(snap) {
       var n = applyBulkSnapshot(snap);
       if (n > 0) renderScanner();
-    });
-    fetchPriceData(tickers).then(function() {
+      return fetchPriceData(tickers);
+    }).then(function() {
       applyLiveMarketData();
       renderScanner();
       renderBuyoutGrid();
@@ -2243,11 +2247,14 @@ cmo_audit_flag: e.cmo_audit_flag === true ||
           .filter(function(t) { return !scannerTickers[t]; })
           .filter(function(t, i, a) { return a.indexOf(t) === i; });
         if (buyoutOnlyTickers.length > 0) {
+          // Same chain fix as scanner path above — without it, the first batch of
+          // per-ticker fetches run before snapshot resolves, _fromSnapshot is false,
+          // reference fetch is skipped, shares_outstanding never lands.
           polyBulkSnapshot(buyoutOnlyTickers).then(function(snap) {
             applyBulkSnapshot(snap);
             renderBuyoutGrid();
-          });
-          fetchPriceData(buyoutOnlyTickers).then(function() {
+            return fetchPriceData(buyoutOnlyTickers);
+          }).then(function() {
             applyLiveMarketData();
             renderBuyoutGrid();
           });
