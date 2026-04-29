@@ -1630,6 +1630,37 @@ function renderBuyoutGrid() {
     var scoreColor = d.buyout_score >= 70 ? 'green' : d.buyout_score >= 50 ? 'cyan' : d.buyout_score >= 30 ? 'amber' : 'white';
     var riskColor = d.buyout_risk === 'HIGH' ? 'grade-elite' : d.buyout_risk === 'ELEVATED' ? 'grade-strong' : d.buyout_risk === 'MODERATE' ? 'grade-watch' : 'grade-weak';
 
+    // ─── Live Polygon block + 30D trend cell (mirrors PDUFA scanner cards) ──
+    // Reads from PRICE_DATA[ticker] populated by polyBulkSnapshot + fetchPriceData.
+    // Falls through to "loading…" placeholder if Polygon hasn't returned yet.
+    var p = PRICE_DATA[d.ticker];
+    var liveBlock = '';
+    if (!p) {
+      liveBlock = '<div style="font-family:var(--mono);font-size:0.55rem;color:var(--muted);padding:0.4rem 0.5rem;background:var(--deep);border:1px solid var(--border);margin-top:0.4rem;"><span style="opacity:0.4;">📊 Live data loading...</span></div>';
+    } else {
+      var priceColor = p.todayChange >= 0 ? 'var(--accent2)' : 'var(--red)';
+      var volColor = p.volRatio >= 150 ? 'var(--accent2)' : p.volRatio >= 80 ? 'var(--accent)' : 'var(--amber)';
+      var todayArrow = p.todayChange >= 0 ? '▲' : '▼';
+      var volDisplay = typeof p.volRatio === 'number' ? p.volRatio + '%' : '—';
+      var chartDisplay = p.chartIcon && p.chartSetup ? p.chartIcon + ' ' + p.chartSetup : '—';
+      var chartColor = p.chartColor || 'var(--muted)';
+      liveBlock = '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.5rem;background:var(--deep);border:1px solid var(--border);margin-top:0.4rem;display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:0.5rem;align-items:center;">' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">PRICE</span><span style="color:' + priceColor + ';font-weight:700;">$' + (p.close ? p.close.toFixed(2) : '—') + '</span></div>' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">TODAY</span><span style="color:' + priceColor + ';">' + todayArrow + ' ' + Math.abs(p.todayChange || 0).toFixed(1) + '%</span></div>' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">VOL</span><span style="color:' + volColor + ';">' + volDisplay + '</span></div>' +
+        '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + chartColor + ';font-weight:700;">' + chartDisplay + '</span></div>' +
+        '</div>';
+    }
+    var trend30Cell;
+    if (!p || typeof p.change30d !== 'number') {
+      trend30Cell = '<div class="score-box-val white" style="font-size:0.72rem;">—</div>';
+    } else {
+      var c30 = p.change30d;
+      var arrow30 = c30 >= 0 ? '▲' : '▼';
+      var trendColor = c30 >= 15 ? 'green' : c30 >= 0 ? 'cyan' : c30 >= -15 ? 'amber' : 'red';
+      trend30Cell = '<div class="score-box-val ' + trendColor + '" style="font-size:0.72rem;">' + arrow30 + ' ' + Math.abs(c30).toFixed(1) + '%</div>';
+    }
+
     // ─── M&A predictive signals block ──────────────────────────────────────
     // Insider clusters, banker hire, patent cliff fit, options unusual.
     // Each renders as its own line with a colored left-border by signal type.
@@ -1676,7 +1707,8 @@ function renderBuyoutGrid() {
 
     return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;">' +
       '<div class="card-top"><div><div class="card-ticker">' + d.ticker + '</div><div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);">' + (d.company_name || '') + '</div></div><span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span></div>' +
-      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr;"><div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div><div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + mcap + '</div></div><div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val cyan">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div></div>' +
+      '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;"><div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div><div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + mcap + '</div></div><div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val cyan">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div><div class="score-box"><div class="score-box-label">30D</div>' + trend30Cell + '</div></div>' +
+      liveBlock +
       maBlock +
       (d.buyout_timeline ? '<div style="font-family:var(--mono);font-size:0.6rem;margin-top:0.5rem;padding:0.5rem;background:rgba(0,255,157,0.03);border-left:2px solid var(--accent2);color:var(--text);">' + d.buyout_timeline + '</div>' : '') +
       '<div style="font-family:var(--mono);font-size:0.58rem;color:rgba(0,212,255,0.35);margin-top:0.6rem;letter-spacing:0.06em;">View deep dive →</div>' +
