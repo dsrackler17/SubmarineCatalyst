@@ -201,8 +201,8 @@ render();
 // ─── Live Polygon: bulk snapshot first (live prices/today change), then per-ticker bars+ref (30d trend, live cap from shares×price)
 if(SC_CONFIG.polygonApiKey&&D.length){
 var tickers=D.map(function(d){return d.ticker;}).filter(function(t,i,a){return a.indexOf(t)===i;});
-polyBulkSnapshot(tickers).then(function(snap){var n=applyBulkSnapshot(snap);console.log('[SC] Bulk snapshot: '+n+' tickers priced');applyLiveMarketData();render();});
-fetchPriceData(tickers).then(function(){applyLiveMarketData();render();console.log('[SC] Polygon detail data complete');});
+// Chain: snapshot must land before per-ticker fetches fire so the reference-data gate (_fromSnapshot) is unlocked
+polyBulkSnapshot(tickers).then(function(snap){var n=applyBulkSnapshot(snap);console.log('[SC] Bulk snapshot: '+n+' tickers priced');applyLiveMarketData();render();return fetchPriceData(tickers);}).then(function(){applyLiveMarketData();render();console.log('[SC] Polygon detail data complete');});
 }
 })();
 </script>
