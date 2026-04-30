@@ -1404,10 +1404,6 @@ footer a:hover { color: var(--accent); }
   });
 
   checkoutBtn.addEventListener('click', async () => {
-    if (checkoutBtn.textContent.includes('Dashboard')) {
-      window.location.href = '/dashboard.html';
-      return;
-    }
     if (!tosCheckbox.checked) {
       const tosLabel = document.querySelector('label[for="tos-agree"]');
       tosCheckbox.style.outline = '2px solid var(--red)';
@@ -1439,17 +1435,7 @@ footer a:hover { color: var(--accent); }
       if (typeof scGetSession !== 'function') return;
       const session = await scGetSession();
       if (session) {
-        authStatus.textContent = 'Logged in as ' + session.user.email;
-        authStatus.classList.add('auth-success');
-        authStatus.classList.remove('hidden');
-        checkoutBtn.textContent = 'Access Dashboard →';
-        const navLogin = document.getElementById('nav-login');
-        const navSignup = document.getElementById('nav-signup');
-        if (navLogin) navLogin.style.display = 'none';
-        if (navSignup) {
-          navSignup.textContent = 'Dashboard';
-          navSignup.setAttribute('href', '/dashboard.html');
-        }
+        authStatus.classList.add('hidden');
       }
     } catch (e) {
       console.warn('[SC] auth check failed:', e);
