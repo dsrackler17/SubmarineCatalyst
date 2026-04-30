@@ -101,7 +101,11 @@ nav {
 .nav-links a:hover { color: var(--accent); }
 .nav-cta { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 0.5rem 1.25rem; cursor: pointer; text-decoration: none; transition: background 0.2s, color 0.2s; }
 .nav-cta:hover { background: var(--accent); color: var(--navy); }
+.nav-actions { display: flex; align-items: center; gap: 0.5rem; }
+.nav-login { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text); text-decoration: none; padding: 0.5rem 0.85rem; transition: color 0.2s; }
+.nav-login:hover { color: var(--accent); }
 @media (max-width: 640px) {
+  .nav-login { padding: 0.4rem 0.5rem; font-size: 0.65rem; }
   .nav-cta { padding: 0.45rem 0.9rem; font-size: 0.65rem; }
 }
 @media (max-width: 640px) {
@@ -442,7 +446,10 @@ footer a:hover { color: var(--accent); }
     <li><a href="/how-institutions-trade.html">Methodology</a></li>
     <li><a href="#faq">FAQ</a></li>
   </ul>
-  <a href="/login.html" id="nav-auth" class="nav-cta">Sign In</a>
+  <div class="nav-actions">
+    <a href="/login.html" id="nav-login" class="nav-login">Sign In</a>
+    <a href="/signup.html" id="nav-signup" class="nav-cta">Sign Up</a>
+  </div>
 </nav>
 
 <div class="urgency-bar" id="urgency-bar">
@@ -1436,10 +1443,12 @@ footer a:hover { color: var(--accent); }
         authStatus.classList.add('auth-success');
         authStatus.classList.remove('hidden');
         checkoutBtn.textContent = 'Access Dashboard →';
-        const navAuth = document.getElementById('nav-auth');
-        if (navAuth) {
-          navAuth.textContent = 'Dashboard';
-          navAuth.setAttribute('href', '/dashboard.html');
+        const navLogin = document.getElementById('nav-login');
+        const navSignup = document.getElementById('nav-signup');
+        if (navLogin) navLogin.style.display = 'none';
+        if (navSignup) {
+          navSignup.textContent = 'Dashboard';
+          navSignup.setAttribute('href', '/dashboard.html');
         }
       }
     } catch (e) {
