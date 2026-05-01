@@ -1939,8 +1939,8 @@ async function loadClinicalReadouts() {
   async function fetchSponsorTrials(sponsor, ctx) {
     var p = new URLSearchParams();
     p.append('query.lead', sponsor);
-    p.append('filter.overallStatus', 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED');
-    p.append('filter.phase', 'PHASE2|PHASE3');
+    p.append('filter.overallStatus', 'RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION,COMPLETED');
+    p.append('filter.phase', 'PHASE2,PHASE3');
     p.append('pageSize', '50');
     p.append('format', 'json');
     var url = 'https://clinicaltrials.gov/api/v2/studies?' + p.toString();
@@ -1970,8 +1970,8 @@ async function loadClinicalReadouts() {
   var pageToken = null, pages = 0;
   while (pages < 15) {
     var bp = new URLSearchParams();
-    bp.append('filter.overallStatus', 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED');
-    bp.append('filter.phase', 'PHASE2|PHASE3');
+    bp.append('filter.overallStatus', 'RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION,COMPLETED');
+    bp.append('filter.phase', 'PHASE2,PHASE3');
     bp.append('pageSize', '1000');
     bp.append('format', 'json');
     bp.append('sort', 'LastUpdatePostDate:desc');
