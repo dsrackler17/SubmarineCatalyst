@@ -1879,6 +1879,17 @@ async function loadClinicalReadouts() {
         var enrollmentInfo = design.enrollmentInfo || {};
         var enrollmentCount = enrollmentInfo.count || 0;
         if (!leadSponsor || !pcd || !nctId) continue;
+        // Client-side phase filter (replaces removed filter.phase URL param).
+        // CT.gov API changed in 2026 — filter.phase now returns "unknown parameter".
+        // Filtering here keeps us resilient to further parameter renames.
+        var hasPhase23 = phasesArr.some(function(ph) { return ph === 'PHASE2' || ph === 'PHASE3'; });
+        if (!hasPhase23) continue;
+        // Client-side status filter (replaces removed filter.overallStatus URL param)
+        var validStatus = overallStatus === 'RECRUITING' ||
+                          overallStatus === 'ACTIVE_NOT_RECRUITING' ||
+                          overallStatus === 'ENROLLING_BY_INVITATION' ||
+                          overallStatus === 'COMPLETED';
+        if (!validStatus) continue;
         var pcdStr = pcd.length === 7 ? pcd + '-15' : pcd;
         var pcdD = new Date(pcdStr);
         if (isNaN(pcdD.getTime()) || pcdD < minDate || pcdD > maxDate) continue;
@@ -1939,10 +1950,9 @@ async function loadClinicalReadouts() {
   async function fetchSponsorTrials(sponsor, ctx) {
     var p = new URLSearchParams();
     p.append('query.lead', sponsor);
-    p.append('filter.overallStatus', 'RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION,COMPLETED');
-    p.append('filter.phase', 'PHASE2,PHASE3');
-    p.append('pageSize', '50');
+    p.append('pageSize', '100');
     p.append('format', 'json');
+    p.append('sort', 'LastUpdatePostDate:desc');
     var url = 'https://clinicaltrials.gov/api/v2/studies?' + p.toString();
     try {
       var res = await fetch(url);
@@ -1970,8 +1980,6 @@ async function loadClinicalReadouts() {
   var pageToken = null, pages = 0;
   while (pages < 15) {
     var bp = new URLSearchParams();
-    bp.append('filter.overallStatus', 'RECRUITING,ACTIVE_NOT_RECRUITING,ENROLLING_BY_INVITATION,COMPLETED');
-    bp.append('filter.phase', 'PHASE2,PHASE3');
     bp.append('pageSize', '1000');
     bp.append('format', 'json');
     bp.append('sort', 'LastUpdatePostDate:desc');
