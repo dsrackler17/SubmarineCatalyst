@@ -311,9 +311,10 @@
       <div class="scanner-grid" id="pr-scanner-grid"><div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.72rem;color:var(--muted);line-height:1.8;">Press release analysis loads on demand.<br><span onclick="loadPRData()" style="color:var(--accent);cursor:pointer;text-decoration:underline;letter-spacing:0.04em;">Click here to scan the last 7 days of PRs →</span></div></div>
     </div>
 
-    <div class="tab-panel" id="tab-clinical">
+   <div class="tab-panel" id="tab-clinical">
       <div class="section-header"><h2 class="section-title">Clinical Readouts</h2><span class="section-meta" id="clinical-count-meta">Loading from ClinicalTrials.gov...</span></div>
       <p style="font-family:var(--sans);font-size:0.85rem;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;max-width:720px;">Phase 2 and Phase 3 primary completion dates, pulled directly from ClinicalTrials.gov v2. Matched to your scanner universe by sponsor name. Hard dates (ACTUAL) flagged separately from estimated windows.</p>
+      <div id="clinical-debug-strip"></div>
       <div style="display:flex;gap:0.75rem;margin-bottom:1rem;flex-wrap:wrap;">
         <input type="text" id="clinical-search" placeholder="Search ticker..." oninput="renderCatalystGrid('clinical')" style="font-family:var(--mono);font-size:0.72rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;width:150px;">
         <select id="clinical-window" onchange="renderCatalystGrid('clinical')" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
@@ -1752,13 +1753,59 @@ function catNormalizeToken(name) {
   return parts[0] || '';
 }
 
+// Debug strip rendered at top of Clinical Readouts panel — visible without DevTools.
+window.CLINICAL_DEBUG = {
+  universe_count: 0,
+  priority_count: 0,
+  stage_a_trials: 0,
+  stage_b_trials: 0,
+  stage_b_pages: 0,
+  total_events: 0,
+  unique_tickers: 0,
+  errors: [],
+  cache_used: false
+};
+
+function renderClinicalDebug() {
+  var el = document.getElementById('clinical-debug-strip');
+  if (!el) return;
+  var d = window.CLINICAL_DEBUG;
+  var allZero = d.total_events === 0 && d.priority_count === 0 && d.universe_count === 0;
+  if (allZero) { el.innerHTML = ''; return; }
+  var color = d.total_events > 0 ? 'var(--accent2)' : 'var(--amber)';
+  var bg    = d.total_events > 0 ? 'rgba(0,255,157,0.05)' : 'rgba(245,166,35,0.06)';
+  var bd    = d.total_events > 0 ? 'rgba(0,255,157,0.3)'  : 'rgba(245,166,35,0.4)';
+  var rows = [
+    ['Universe (active companies)', d.universe_count],
+    ['Priority tickers (PDUFA scanner overlap)', d.priority_count],
+    ['Stage A trials (per-sponsor query)', d.stage_a_trials],
+    ['Stage B trials (bulk pull)', d.stage_b_trials + ' across ' + d.stage_b_pages + ' pages'],
+    ['Total events kept', d.total_events],
+    ['Unique tickers matched', d.unique_tickers],
+    ['Cache used', d.cache_used ? 'yes (6h TTL)' : 'no — fresh fetch']
+  ];
+  if (d.errors.length > 0) rows.push(['Errors', d.errors.join(' · ')]);
+  el.innerHTML =
+    '<div style="font-family:var(--mono);font-size:0.65rem;background:' + bg + ';border:1px solid ' + bd + ';padding:0.75rem 1rem;margin-bottom:1rem;color:' + color + ';">' +
+      '<div style="font-weight:700;letter-spacing:0.1em;text-transform:uppercase;font-size:0.55rem;color:var(--muted);margin-bottom:0.5rem;">Clinical Readout Loader Diagnostics</div>' +
+      '<div style="display:grid;grid-template-columns:1fr auto;gap:0.3rem 1rem;">' +
+        rows.map(function(r) {
+          return '<div style="color:var(--muted);">' + r[0] + '</div><div style="color:var(--white);font-weight:700;">' + r[1] + '</div>';
+        }).join('') +
+      '</div>' +
+    '</div>';
+}
+
 async function loadClinicalReadouts() {
   if (CAT_LOADED.clinical) return;
   var cached = catCacheGet('clinical', CAT_CACHE_6H);
   if (cached) {
     CATALYST_DATA.clinical = cached;
     CAT_LOADED.clinical = true;
-    console.log('[SC] Clinical readouts: ' + cached.length + ' events from cache');
+    window.CLINICAL_DEBUG.cache_used = true;
+    window.CLINICAL_DEBUG.total_events = cached.length;
+    window.CLINICAL_DEBUG.unique_tickers = Object.keys(cached.reduce(function(a, e) { a[e.ticker] = 1; return a; }, {})).length;
+    renderClinicalDebug();
     return;
   }
   var sb = getSupabase();
@@ -1767,17 +1814,17 @@ async function loadClinicalReadouts() {
     .eq('active', true);
   var universe = uniRes && uniRes.data;
   if (!universe || universe.length === 0) {
-    console.warn('[SC] Clinical readouts: biotech_universe returned 0 active companies');
+    window.CLINICAL_DEBUG.errors.push('biotech_universe returned 0 active companies');
     CAT_LOADED.clinical = true;
+    renderClinicalDebug();
     return;
   }
-  console.log('[SC] Clinical readouts: scanning ' + universe.length + ' active companies');
+  window.CLINICAL_DEBUG.universe_count = universe.length;
+  renderClinicalDebug();
 
   // Three-tier sponsor matching. CT.gov leadSponsor strings rarely match
   // biotech_universe.company_name byte-for-byte (e.g. "Eli Lilly" vs "Eli
-  // Lilly and Company", "Bristol-Myers Squibb" vs "Bristol Myers Squibb
-  // Company"). Try full normalized match first, then first-two-tokens,
-  // then first-token-only as a last resort.
+  // Lilly and Company"). Try full normalized → first-two-tokens → first-token.
   function clinTokens(name) {
     if (!name) return { full: '', two: '', one: '' };
     var s = String(name).toLowerCase().replace(/[,.()&/]/g, ' ');
@@ -1840,7 +1887,6 @@ async function loadClinicalReadouts() {
         var key = match.ticker + '|' + nctId;
         if (seen[key]) continue;
         seen[key] = true;
-        // Pick the most distinctive intervention (drug, biologic, gene therapy)
         var drugName = '';
         for (var k = 0; k < interventions.length; k++) {
           var iv = interventions[k];
@@ -1881,15 +1927,14 @@ async function loadClinicalReadouts() {
     return added;
   }
 
-  // Stage A: per-sponsor query.lead fetches for tickers with PDUFA overlap.
-  // These are the names subscribers care about most — we want guaranteed
-  // coverage even if their company_name spelling diverges from CT.gov.
+  // Stage A — per-sponsor query.lead for tickers with PDUFA overlap
   var priorityTickers = {};
   if (Array.isArray(SCANNER_DATA)) {
     SCANNER_DATA.forEach(function(d) { if (d && d.ticker) priorityTickers[d.ticker] = true; });
   }
   var prioritySet = universe.filter(function(u) { return priorityTickers[u.ticker]; });
-  console.log('[SC] Clinical Stage A: ' + prioritySet.length + ' priority tickers (PDUFA scanner overlap)');
+  window.CLINICAL_DEBUG.priority_count = prioritySet.length;
+  renderClinicalDebug();
 
   async function fetchSponsorTrials(sponsor, ctx) {
     var p = new URLSearchParams();
@@ -1901,25 +1946,28 @@ async function loadClinicalReadouts() {
     var url = 'https://clinicaltrials.gov/api/v2/studies?' + p.toString();
     try {
       var res = await fetch(url);
-      if (!res.ok) return 0;
+      if (!res.ok) {
+        window.CLINICAL_DEBUG.errors.push('Stage A HTTP ' + res.status + ' (' + ctx.ticker + ')');
+        return 0;
+      }
       var data = await res.json();
       return ingestStudies(data.studies || [], ctx);
-    } catch (err) { return 0; }
+    } catch (err) {
+      window.CLINICAL_DEBUG.errors.push('Stage A fetch fail (' + ctx.ticker + ')');
+      return 0;
+    }
   }
 
-  var stageAAdded = 0;
   for (var i = 0; i < prioritySet.length; i += 6) {
     var batch = prioritySet.slice(i, i + 6);
-    var counts = await Promise.all(batch.map(function(u) {
-      return fetchSponsorTrials(u.company_name, u);
-    }));
-    counts.forEach(function(c) { stageAAdded += c; });
+    var counts = await Promise.all(batch.map(function(u) { return fetchSponsorTrials(u.company_name, u); }));
+    counts.forEach(function(c) { window.CLINICAL_DEBUG.stage_a_trials += c; });
+    renderClinicalDebug();
     await new Promise(function(r) { setTimeout(r, 80); });
   }
-  console.log('[SC] Clinical Stage A: ' + stageAAdded + ' trials from ' + prioritySet.length + ' priority sponsors');
 
-  // Stage B: bulk paginated pull to backfill the rest of the universe
-  var pageToken = null, pages = 0, stageBAdded = 0;
+  // Stage B — bulk paginated pull to backfill the rest of the universe
+  var pageToken = null, pages = 0;
   while (pages < 15) {
     var bp = new URLSearchParams();
     bp.append('filter.overallStatus', 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED');
@@ -1932,27 +1980,29 @@ async function loadClinicalReadouts() {
     try {
       var bulkRes = await fetch(bulkUrl);
       if (!bulkRes.ok) {
-        console.warn('[SC] Clinical Stage B HTTP ' + bulkRes.status + ' on page ' + pages);
+        window.CLINICAL_DEBUG.errors.push('Stage B HTTP ' + bulkRes.status + ' (page ' + pages + ')');
         break;
       }
       var bulkData = await bulkRes.json();
-      stageBAdded += ingestStudies(bulkData.studies || [], null);
+      window.CLINICAL_DEBUG.stage_b_trials += ingestStudies(bulkData.studies || [], null);
       pageToken = bulkData.nextPageToken || null;
       pages++;
+      window.CLINICAL_DEBUG.stage_b_pages = pages;
+      renderClinicalDebug();
       if (!pageToken) break;
     } catch (e) {
-      console.warn('[SC] Clinical Stage B fetch failed on page ' + pages + ':', e);
+      window.CLINICAL_DEBUG.errors.push('Stage B fetch fail (page ' + pages + ')');
       break;
     }
   }
-  console.log('[SC] Clinical Stage B: ' + stageBAdded + ' additional trials over ' + pages + ' pages');
 
   events.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
   CATALYST_DATA.clinical = events;
   CAT_LOADED.clinical = true;
   catCacheSet('clinical', events);
-  var uniqueTickers = Object.keys(events.reduce(function(a, e) { a[e.ticker] = 1; return a; }, {})).length;
-  console.log('[SC] Clinical readouts: ' + events.length + ' total events for ' + uniqueTickers + ' unique tickers');
+  window.CLINICAL_DEBUG.total_events = events.length;
+  window.CLINICAL_DEBUG.unique_tickers = Object.keys(events.reduce(function(a, e) { a[e.ticker] = 1; return a; }, {})).length;
+  renderClinicalDebug();
 }
 
 async function loadEarnings() {
@@ -2180,9 +2230,42 @@ function renderCatalystGrid(kind) {
       var nctLink = e.nctId ? '<a href="https://clinicaltrials.gov/study/' + e.nctId + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">' + e.nctId + ' ↗</a>' : '';
       var phaseLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.5rem;letter-spacing:0.04em;">' + (e.phase || 'Phase ?') + (nctLink ? ' · ' + nctLink : '') + pdufaBadge + '</div>';
       extraLine = briefBlock + conditionChips + metaGrid + phaseLine;
+    } else if (kind === 'clinical') {
+      var briefT = e.brief_title ? (e.brief_title.length > 220 ? e.brief_title.substring(0, 220) + '…' : e.brief_title) : '';
+      var enroll = e.enrollment_count ? Number(e.enrollment_count).toLocaleString() : '—';
+      var statusRaw = e.overall_status || '';
+      var statusLabel = statusRaw.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, function(m) { return m.toUpperCase(); });
+      var statusColor = statusRaw === 'RECRUITING' ? 'var(--accent2)' : statusRaw === 'ACTIVE_NOT_RECRUITING' ? 'var(--accent)' : statusRaw === 'COMPLETED' ? 'var(--amber)' : 'var(--muted)';
+      var pcdLabel, pcdColor;
+      if (e.pcd_type === 'ACTUAL')           { pcdLabel = '✓ ACTUAL';     pcdColor = 'var(--accent2)'; }
+      else if (e.pcd_type === 'ANTICIPATED') { pcdLabel = '~ ANTICIPATED';pcdColor = 'var(--accent)'; }
+      else                                   { pcdLabel = '~ ESTIMATED';  pcdColor = 'var(--amber)'; }
+      var conditionChips = '';
+      if (Array.isArray(e.conditions) && e.conditions.length > 0) {
+        conditionChips = '<div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.5rem;">' +
+          e.conditions.slice(0, 3).map(function(c) {
+            var label = c.length > 40 ? c.substring(0, 40) + '…' : c;
+            return '<span style="font-family:var(--mono);font-size:0.55rem;letter-spacing:0.05em;padding:0.12rem 0.45rem;border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.05);color:var(--accent);">' + label + '</span>';
+          }).join('') +
+        '</div>';
+      }
+      var briefBlock = briefT ? '<div style="font-family:var(--sans);font-size:0.7rem;color:var(--text);line-height:1.5;margin-top:0.55rem;padding:0.5rem 0.6rem;background:rgba(0,212,255,0.04);border-left:2px solid var(--accent);">' + briefT + '</div>' : '';
+      var metaGrid = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-top:0.5rem;font-family:var(--mono);font-size:0.58rem;">' +
+        '<div style="background:var(--deep);border:1px solid var(--border);padding:0.4rem 0.5rem;text-align:center;"><div style="color:var(--muted);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.15rem;">Enrolled</div><div style="color:var(--white);font-weight:700;">' + enroll + '</div></div>' +
+        '<div style="background:var(--deep);border:1px solid var(--border);padding:0.4rem 0.5rem;text-align:center;"><div style="color:var(--muted);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.15rem;">Status</div><div style="color:' + statusColor + ';font-weight:700;font-size:0.55rem;">' + (statusLabel || '—') + '</div></div>' +
+        '<div style="background:var(--deep);border:1px solid var(--border);padding:0.4rem 0.5rem;text-align:center;"><div style="color:var(--muted);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.15rem;">PCD Type</div><div style="color:' + pcdColor + ';font-weight:700;font-size:0.55rem;">' + pcdLabel + '</div></div>' +
+      '</div>';
+      var pdufaBadge = '';
+      if (typeof SCANNER_DATA !== 'undefined' && Array.isArray(SCANNER_DATA)) {
+        var hasPdufa = SCANNER_DATA.some(function(p) { return p.ticker === e.ticker; });
+        if (hasPdufa) {
+          pdufaBadge = '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);margin-left:0.4rem;vertical-align:middle;" title="' + e.ticker + ' has an upcoming PDUFA in the scanner — clinical readout stacks on a binary catalyst">+PDUFA</span>';
+        }
+      }
+      var nctLink = e.nctId ? '<a href="https://clinicaltrials.gov/study/' + e.nctId + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">' + e.nctId + ' ↗</a>' : '';
+      var phaseLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.5rem;letter-spacing:0.04em;">' + (e.phase || 'Phase ?') + (nctLink ? ' · ' + nctLink : '') + pdufaBadge + '</div>';
+      extraLine = briefBlock + conditionChips + metaGrid + phaseLine;
     } else if (kind === 'adcom' && e.htmlUrl) {
-      extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;"><a href="' + e.htmlUrl + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">Federal Register notice ↗</a></div>';
-    } else if (kind === 'conferences') {
       extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;">' + (e.location || '') + ' · ' + (e.confirmed ? '✓ confirmed' : '~ tentative') + '</div>';
     }
     var isTickerResolved = e.ticker !== 'ADCOM' && e.ticker !== 'CONFERENCE';
