@@ -1755,81 +1755,204 @@ function catNormalizeToken(name) {
 async function loadClinicalReadouts() {
   if (CAT_LOADED.clinical) return;
   var cached = catCacheGet('clinical', CAT_CACHE_6H);
-  if (cached) { CATALYST_DATA.clinical = cached; CAT_LOADED.clinical = true; return; }
+  if (cached) {
+    CATALYST_DATA.clinical = cached;
+    CAT_LOADED.clinical = true;
+    console.log('[SC] Clinical readouts: ' + cached.length + ' events from cache');
+    return;
+  }
   var sb = getSupabase();
-  var uniRes = await sb.from('biotech_universe').select('ticker, company_name, market_cap_tier, estimated_market_cap').eq('active', true);
+  var uniRes = await sb.from('biotech_universe')
+    .select('ticker, company_name, market_cap_tier, estimated_market_cap')
+    .eq('active', true);
   var universe = uniRes && uniRes.data;
-  if (!universe || universe.length === 0) return;
-  var tokenIndex = {};
+  if (!universe || universe.length === 0) {
+    console.warn('[SC] Clinical readouts: biotech_universe returned 0 active companies');
+    CAT_LOADED.clinical = true;
+    return;
+  }
+  console.log('[SC] Clinical readouts: scanning ' + universe.length + ' active companies');
+
+  // Three-tier sponsor matching. CT.gov leadSponsor strings rarely match
+  // biotech_universe.company_name byte-for-byte (e.g. "Eli Lilly" vs "Eli
+  // Lilly and Company", "Bristol-Myers Squibb" vs "Bristol Myers Squibb
+  // Company"). Try full normalized match first, then first-two-tokens,
+  // then first-token-only as a last resort.
+  function clinTokens(name) {
+    if (!name) return { full: '', two: '', one: '' };
+    var s = String(name).toLowerCase().replace(/[,.()&/]/g, ' ');
+    s = s.replace(/\b(inc|incorporated|corp|corporation|ltd|limited|plc|sa|ag|nv|bv|co|company|llc|llp|holdings?|group|therapeutics|pharmaceuticals?|biosciences?|biotech|biosystems?|laboratories|labs?|sciences?|medicines?|health|medical|bio)\b/g, ' ');
+    s = s.replace(/\s+/g, ' ').trim();
+    var parts = s.split(' ').filter(function(w) { return w.length >= 3; });
+    return { full: parts.join(' '), two: parts.slice(0, 2).join(' '), one: parts[0] || '' };
+  }
+  var fullIdx = {}, twoIdx = {}, oneIdx = {};
   universe.forEach(function(u) {
-    var tok = catNormalizeToken(u.company_name || '');
-    if (!tok) return;
-    if (!tokenIndex[tok]) tokenIndex[tok] = [];
-    tokenIndex[tok].push(u);
+    var t = clinTokens(u.company_name || '');
+    if (t.full && !fullIdx[t.full]) fullIdx[t.full] = u;
+    if (t.two  && !twoIdx[t.two])   twoIdx[t.two]  = u;
+    if (t.one  && !oneIdx[t.one])   oneIdx[t.one]  = u;
   });
+  function matchSponsor(sponsor) {
+    var t = clinTokens(sponsor);
+    if (t.full && fullIdx[t.full]) return fullIdx[t.full];
+    if (t.two  && twoIdx[t.two])   return twoIdx[t.two];
+    if (t.one  && oneIdx[t.one])   return oneIdx[t.one];
+    return null;
+  }
+
   var today = new Date(); today.setUTCHours(0, 0, 0, 0);
-  var minDate = new Date(today.getTime() - 14 * 86400000);
-  var maxDate = new Date(today.getTime() + 365 * 86400000);
-  var pageToken = null, events = [], seen = {}, pages = 0;
-  while (pages < 15) {
-    var params = new URLSearchParams({
-      'filter.overallStatus': 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED',
-      'filter.phase': 'PHASE2|PHASE3',
-      'pageSize': '1000', 'format': 'json', 'sort': 'LastUpdatePostDate:desc'
-    });
-    if (pageToken) params.set('pageToken', pageToken);
-    var url = 'https://clinicaltrials.gov/api/v2/studies?' + params.toString();
+  var minDate = new Date(today.getTime() - 30 * 86400000);
+  var maxDate = new Date(today.getTime() + 730 * 86400000);
+  var events = [], seen = {};
+
+  function ingestStudies(studies, forcedCtx) {
+    var added = 0;
+    for (var j = 0; j < studies.length; j++) {
+      try {
+        var s = studies[j];
+        var ps = s.protocolSection || {};
+        var id = ps.identificationModule || {};
+        var status = ps.statusModule || {};
+        var sponsor = ps.sponsorCollaboratorsModule || {};
+        var design = ps.designModule || {};
+        var cond = ps.conditionsModule || {};
+        var arms = ps.armsInterventionsModule || {};
+        var nctId = id.nctId || '';
+        var briefTitle = id.briefTitle || '';
+        var phasesArr = Array.isArray(design.phases) ? design.phases : [];
+        var phases = phasesArr.join('/');
+        var leadSponsor = (sponsor.leadSponsor && sponsor.leadSponsor.name) || '';
+        var pcdStruct = status.primaryCompletionDateStruct || {};
+        var pcd = pcdStruct.date || status.primaryCompletionDate || '';
+        var pcdType = pcdStruct.type || 'UNKNOWN';
+        var overallStatus = status.overallStatus || '';
+        var conditions = Array.isArray(cond.conditions) ? cond.conditions : [];
+        var interventions = Array.isArray(arms.interventions) ? arms.interventions : [];
+        var enrollmentInfo = design.enrollmentInfo || {};
+        var enrollmentCount = enrollmentInfo.count || 0;
+        if (!leadSponsor || !pcd || !nctId) continue;
+        var pcdStr = pcd.length === 7 ? pcd + '-15' : pcd;
+        var pcdD = new Date(pcdStr);
+        if (isNaN(pcdD.getTime()) || pcdD < minDate || pcdD > maxDate) continue;
+        var match = forcedCtx || matchSponsor(leadSponsor);
+        if (!match) continue;
+        var key = match.ticker + '|' + nctId;
+        if (seen[key]) continue;
+        seen[key] = true;
+        // Pick the most distinctive intervention (drug, biologic, gene therapy)
+        var drugName = '';
+        for (var k = 0; k < interventions.length; k++) {
+          var iv = interventions[k];
+          var ivType = iv.type || '';
+          if (/DRUG|BIOLOGICAL|GENETIC|RADIATION|COMBINATION/i.test(ivType)) {
+            drugName = iv.name || '';
+            if (drugName) break;
+          }
+        }
+        if (!drugName && interventions.length > 0) drugName = interventions[0].name || '';
+        var primaryCondition = conditions[0] || '';
+        var primaryPhase = phases || 'Phase ?';
+        var titleLine = primaryPhase + (primaryCondition ? ' — ' + primaryCondition : '') + (drugName ? ' — ' + drugName : '');
+        events.push({
+          ticker: match.ticker,
+          company_name: match.company_name,
+          market_cap_tier: match.market_cap_tier,
+          estimated_market_cap: Number(match.estimated_market_cap) || 0,
+          drug: titleLine,
+          brief_title: briefTitle,
+          drug_name: drugName,
+          conditions: conditions.slice(0, 5),
+          indication: conditions.slice(0, 2).join(', '),
+          interventions: interventions.slice(0, 5).map(function(iv) { return { name: iv.name || '', type: iv.type || '' }; }),
+          enrollment_count: enrollmentCount,
+          phase: phases,
+          overall_status: overallStatus,
+          type: 'CLINICAL',
+          date: pcdStr,
+          grade: 'WATCH',
+          nctId: nctId,
+          confidence: pcdType === 'ACTUAL' ? 'HARD_DATE' : (pcdType === 'ANTICIPATED' ? 'ANTICIPATED' : 'ESTIMATED_WINDOW'),
+          pcd_type: pcdType
+        });
+        added++;
+      } catch (err) {}
+    }
+    return added;
+  }
+
+  // Stage A: per-sponsor query.lead fetches for tickers with PDUFA overlap.
+  // These are the names subscribers care about most — we want guaranteed
+  // coverage even if their company_name spelling diverges from CT.gov.
+  var priorityTickers = {};
+  if (Array.isArray(SCANNER_DATA)) {
+    SCANNER_DATA.forEach(function(d) { if (d && d.ticker) priorityTickers[d.ticker] = true; });
+  }
+  var prioritySet = universe.filter(function(u) { return priorityTickers[u.ticker]; });
+  console.log('[SC] Clinical Stage A: ' + prioritySet.length + ' priority tickers (PDUFA scanner overlap)');
+
+  async function fetchSponsorTrials(sponsor, ctx) {
+    var p = new URLSearchParams();
+    p.append('query.lead', sponsor);
+    p.append('filter.overallStatus', 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED');
+    p.append('filter.phase', 'PHASE2|PHASE3');
+    p.append('pageSize', '50');
+    p.append('format', 'json');
+    var url = 'https://clinicaltrials.gov/api/v2/studies?' + p.toString();
     try {
       var res = await fetch(url);
-      if (!res.ok) break;
+      if (!res.ok) return 0;
       var data = await res.json();
-      var studies = data.studies || [];
-      for (var j = 0; j < studies.length; j++) {
-        try {
-          var s = studies[j];
-          var ps = s.protocolSection || {};
-          var id = ps.identificationModule || {};
-          var status = ps.statusModule || {};
-          var sponsor = ps.sponsorCollaboratorsModule || {};
-          var design = ps.designModule || {};
-          var cond = ps.conditionsModule || {};
-          var nctId = id.nctId || '';
-          var phases = Array.isArray(design.phases) ? design.phases.join('/') : '';
-          var leadSponsor = (sponsor.leadSponsor && sponsor.leadSponsor.name) || '';
-          var pcdStruct = status.primaryCompletionDateStruct || {};
-          var pcd = pcdStruct.date || status.primaryCompletionDate || '';
-          var pcdType = pcdStruct.type || 'UNKNOWN';
-          var conditions = Array.isArray(cond.conditions) ? cond.conditions : [];
-          if (!leadSponsor || !pcd || !nctId) continue;
-          var pcdStr = pcd.length === 7 ? pcd + '-15' : pcd;
-          var pcdD = new Date(pcdStr);
-          if (isNaN(pcdD.getTime()) || pcdD < minDate || pcdD > maxDate) continue;
-          var tok = catNormalizeToken(leadSponsor);
-          if (!tok || !tokenIndex[tok]) continue;
-          var best = tokenIndex[tok][0];
-          var key = best.ticker + '|' + pcdStr + '|' + nctId;
-          if (seen[key]) continue;
-          seen[key] = true;
-          events.push({
-            ticker: best.ticker, company_name: best.company_name,
-            market_cap_tier: best.market_cap_tier,
-            estimated_market_cap: Number(best.estimated_market_cap) || 0,
-            drug: (phases || 'Phase ?') + ' readout — ' + (conditions.slice(0, 2).join(', ') || 'Clinical Readout'),
-            indication: conditions.slice(0, 2).join(', ') || '',
-            type: 'CLINICAL', date: pcdStr, grade: 'WATCH',
-            nctId: nctId, confidence: pcdType === 'ACTUAL' ? 'HARD_DATE' : 'ESTIMATED_WINDOW',
-            phase: phases
-          });
-        } catch (err) {}
+      return ingestStudies(data.studies || [], ctx);
+    } catch (err) { return 0; }
+  }
+
+  var stageAAdded = 0;
+  for (var i = 0; i < prioritySet.length; i += 6) {
+    var batch = prioritySet.slice(i, i + 6);
+    var counts = await Promise.all(batch.map(function(u) {
+      return fetchSponsorTrials(u.company_name, u);
+    }));
+    counts.forEach(function(c) { stageAAdded += c; });
+    await new Promise(function(r) { setTimeout(r, 80); });
+  }
+  console.log('[SC] Clinical Stage A: ' + stageAAdded + ' trials from ' + prioritySet.length + ' priority sponsors');
+
+  // Stage B: bulk paginated pull to backfill the rest of the universe
+  var pageToken = null, pages = 0, stageBAdded = 0;
+  while (pages < 15) {
+    var bp = new URLSearchParams();
+    bp.append('filter.overallStatus', 'RECRUITING|ACTIVE_NOT_RECRUITING|ENROLLING_BY_INVITATION|COMPLETED');
+    bp.append('filter.phase', 'PHASE2|PHASE3');
+    bp.append('pageSize', '1000');
+    bp.append('format', 'json');
+    bp.append('sort', 'LastUpdatePostDate:desc');
+    if (pageToken) bp.append('pageToken', pageToken);
+    var bulkUrl = 'https://clinicaltrials.gov/api/v2/studies?' + bp.toString();
+    try {
+      var bulkRes = await fetch(bulkUrl);
+      if (!bulkRes.ok) {
+        console.warn('[SC] Clinical Stage B HTTP ' + bulkRes.status + ' on page ' + pages);
+        break;
       }
-      pageToken = data.nextPageToken || null;
+      var bulkData = await bulkRes.json();
+      stageBAdded += ingestStudies(bulkData.studies || [], null);
+      pageToken = bulkData.nextPageToken || null;
       pages++;
       if (!pageToken) break;
-    } catch (e) { break; }
+    } catch (e) {
+      console.warn('[SC] Clinical Stage B fetch failed on page ' + pages + ':', e);
+      break;
+    }
   }
+  console.log('[SC] Clinical Stage B: ' + stageBAdded + ' additional trials over ' + pages + ' pages');
+
+  events.sort(function(a, b) { return new Date(a.date) - new Date(b.date); });
   CATALYST_DATA.clinical = events;
   CAT_LOADED.clinical = true;
   catCacheSet('clinical', events);
+  var uniqueTickers = Object.keys(events.reduce(function(a, e) { a[e.ticker] = 1; return a; }, {})).length;
+  console.log('[SC] Clinical readouts: ' + events.length + ' total events for ' + uniqueTickers + ' unique tickers');
 }
 
 async function loadEarnings() {
@@ -2023,7 +2146,40 @@ function renderCatalystGrid(kind) {
     var icon = ({ clinical: '🧪', earnings: '📊', adcom: '⚖️', conferences: '🎤' })[kind] || '📅';
     var extraLine = '';
     if (kind === 'clinical') {
-      extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;">' + (e.phase || '') + ' · ' + (e.confidence === 'HARD_DATE' ? '✓ confirmed date' : '~ estimated window') + (e.nctId ? ' · <a href="https://clinicaltrials.gov/study/' + e.nctId + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">' + e.nctId + '</a>' : '') + '</div>';
+      var briefT = e.brief_title ? (e.brief_title.length > 220 ? e.brief_title.substring(0, 220) + '…' : e.brief_title) : '';
+      var enroll = e.enrollment_count ? Number(e.enrollment_count).toLocaleString() : '—';
+      var statusRaw = e.overall_status || '';
+      var statusLabel = statusRaw.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, function(m) { return m.toUpperCase(); });
+      var statusColor = statusRaw === 'RECRUITING' ? 'var(--accent2)' : statusRaw === 'ACTIVE_NOT_RECRUITING' ? 'var(--accent)' : statusRaw === 'COMPLETED' ? 'var(--amber)' : 'var(--muted)';
+      var pcdLabel, pcdColor;
+      if (e.pcd_type === 'ACTUAL')           { pcdLabel = '✓ ACTUAL';     pcdColor = 'var(--accent2)'; }
+      else if (e.pcd_type === 'ANTICIPATED') { pcdLabel = '~ ANTICIPATED';pcdColor = 'var(--accent)'; }
+      else                                   { pcdLabel = '~ ESTIMATED';  pcdColor = 'var(--amber)'; }
+      var conditionChips = '';
+      if (Array.isArray(e.conditions) && e.conditions.length > 0) {
+        conditionChips = '<div style="display:flex;flex-wrap:wrap;gap:0.25rem;margin-top:0.5rem;">' +
+          e.conditions.slice(0, 3).map(function(c) {
+            var label = c.length > 40 ? c.substring(0, 40) + '…' : c;
+            return '<span style="font-family:var(--mono);font-size:0.55rem;letter-spacing:0.05em;padding:0.12rem 0.45rem;border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.05);color:var(--accent);">' + label + '</span>';
+          }).join('') +
+        '</div>';
+      }
+      var briefBlock = briefT ? '<div style="font-family:var(--sans);font-size:0.7rem;color:var(--text);line-height:1.5;margin-top:0.55rem;padding:0.5rem 0.6rem;background:rgba(0,212,255,0.04);border-left:2px solid var(--accent);">' + briefT + '</div>' : '';
+      var metaGrid = '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-top:0.5rem;font-family:var(--mono);font-size:0.58rem;">' +
+        '<div style="background:var(--deep);border:1px solid var(--border);padding:0.4rem 0.5rem;text-align:center;"><div style="color:var(--muted);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.15rem;">Enrolled</div><div style="color:var(--white);font-weight:700;">' + enroll + '</div></div>' +
+        '<div style="background:var(--deep);border:1px solid var(--border);padding:0.4rem 0.5rem;text-align:center;"><div style="color:var(--muted);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.15rem;">Status</div><div style="color:' + statusColor + ';font-weight:700;font-size:0.55rem;">' + (statusLabel || '—') + '</div></div>' +
+        '<div style="background:var(--deep);border:1px solid var(--border);padding:0.4rem 0.5rem;text-align:center;"><div style="color:var(--muted);font-size:0.5rem;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:0.15rem;">PCD Type</div><div style="color:' + pcdColor + ';font-weight:700;font-size:0.55rem;">' + pcdLabel + '</div></div>' +
+      '</div>';
+      var pdufaBadge = '';
+      if (typeof SCANNER_DATA !== 'undefined' && Array.isArray(SCANNER_DATA)) {
+        var hasPdufa = SCANNER_DATA.some(function(p) { return p.ticker === e.ticker; });
+        if (hasPdufa) {
+          pdufaBadge = '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);margin-left:0.4rem;vertical-align:middle;" title="' + e.ticker + ' has an upcoming PDUFA in the scanner — clinical readout stacks on a binary catalyst">+PDUFA</span>';
+        }
+      }
+      var nctLink = e.nctId ? '<a href="https://clinicaltrials.gov/study/' + e.nctId + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">' + e.nctId + ' ↗</a>' : '';
+      var phaseLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.5rem;letter-spacing:0.04em;">' + (e.phase || 'Phase ?') + (nctLink ? ' · ' + nctLink : '') + pdufaBadge + '</div>';
+      extraLine = briefBlock + conditionChips + metaGrid + phaseLine;
     } else if (kind === 'adcom' && e.htmlUrl) {
       extraLine = '<div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.4rem;"><a href="' + e.htmlUrl + '" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="color:var(--accent);text-decoration:none;">Federal Register notice ↗</a></div>';
     } else if (kind === 'conferences') {
