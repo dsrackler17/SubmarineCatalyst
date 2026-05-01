@@ -538,7 +538,7 @@ function computeNetEdge(d) {
 // any row the server hadn't re-scored yet.
 // ═══════════════════════════════════════════════════════════════════════════
 function deriveStnScore(d) {
-  if (!d) return 70;
+  if (!d) return 50;
 
   // Manual ticker+date override OUTRANKS server. Server STN values can be
   // stale or written by buggy versions of score-events; the override map
@@ -559,8 +559,11 @@ function deriveStnScore(d) {
     return Math.max(0, Math.min(100, Math.round(server)));
   }
 
-  // ─── Client fallback — mirrors score-events v4.8 STN v4 model ────────
-  var score = 70;
+  // ─── Client fallback — v5 recenter: base 70 → 50 ─────────────────────
+  // Supplement de-riskers proportionally trimmed (−50/−35/−20 → −25/−20/−12)
+  // so mega-cap supplements still classify LOW (~25-30) but don't bottom
+  // out at 0. Override map values keep their relative spacing.
+  var score = 50;
 
   var marketCap = Number(d.estimated_market_cap) || 0;
   var capB = marketCap / 1e9;
@@ -624,9 +627,9 @@ function deriveStnScore(d) {
   if (d.is_505b2)             score += 6;
 
   // ─── De-riskers ──────────────────────────────────────────────────────
-  if (capB >= 100 && isSupplement)      score -= 50;
-  else if (capB >= 50 && isSupplement)  score -= 35;
-  else if (capB >= 10 && isSupplement)  score -= 20;
+  if (capB >= 100 && isSupplement)      score -= 25;
+  else if (capB >= 50 && isSupplement)  score -= 20;
+  else if (capB >= 10 && isSupplement)  score -= 12;
 
   var rev = Number(d.revenue_m) || 0;
   if (marketCap > 0 && rev > 0) {
