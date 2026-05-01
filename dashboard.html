@@ -437,41 +437,32 @@ function computeNetEdge(d) {
 
 function deriveStnScore(d) {
   if (!d) return 50;
-
   var stnKey = d.ticker + '|' + d.date;
   var ovr = MANUAL_STN_OVERRIDES[stnKey];
   if (ovr && typeof ovr.stn_score === 'number') {
     return Math.max(0, Math.min(100, Math.round(ovr.stn_score)));
   }
-
   var server = d.stn_score != null ? Number(d.stn_score) : NaN;
   if (isFinite(server) && server >= 0) {
     return Math.max(0, Math.min(100, Math.round(server)));
   }
-
   var score = 50;
-
   var marketCap = Number(d.estimated_market_cap) || 0;
   var capB = marketCap / 1e9;
   var type = String(d.type || '').toUpperCase();
   var isSupplement = type.indexOf('SNDA') >= 0 || type.indexOf('SUPPLEMENT') >= 0 || type.indexOf('SBLA') >= 0
                   || (ovr && ovr.is_label_expansion === true);
-
   if (marketCap > 0 && marketCap < 200e6)      score += 10;
   else if (marketCap > 0 && marketCap < 500e6) score += 6;
-
   if (d.cmo_audit_flag) score += 10;
-
   var fc = String(d.formulation_class || '');
   if (fc === 'CELL_THERAPY' || fc === 'GENE_THERAPY') score += 8;
   else if (fc === 'NANOPARTICLE')                      score += 6;
   else if (fc === 'BIOLOGIC')                          score += 3;
-
   if (marketCap > 0 && marketCap < 500e6 &&
       (fc === 'NANOPARTICLE' || fc === 'CELL_THERAPY' || fc === 'GENE_THERAPY')) {
     score += 5;
   }
-
   var p = (typeof PRICE_DATA !== 'undefined') ? PRICE_DATA[d.ticker] : null;
   var p30 = p && typeof p.change30d === 'number' ? p.change30d : Number(d.price_change_30d);
   if (isFinite(p30)) {
@@ -479,80 +470,64 @@ function deriveStnScore(d) {
     else if (p30 >= 30) score += 8;
     else if (p30 >= 15) score += 4;
   }
-
   var p90 = Number(d.price_change_90d);
   if (isFinite(p90)) {
     if (p90 >= 150)     score += 15;
     else if (p90 >= 80) score += 8;
   }
-
   if (d.atm_active)                   score += 8;
   else if (d.shelf_active)            score += 4;
   var rw = Number(d.runway_months);
   if (isFinite(rw) && rw > 0 && rw < 12) score += 6;
   if (d.runway_trustworthy === false)    score += 10;
-
   var rsi = Number(d.rsi_14d);
   if (isFinite(rsi) && rsi > 0) {
     if (rsi >= 85)      score += 12;
     else if (rsi >= 75) score += 6;
   }
   if (d.volume_climax_flag) score += 8;
-
   var prox = Number(d.analyst_target_proximity_pct);
   if (isFinite(prox) && prox > 0) {
     if (prox >= 100)    score += 6;
     else if (prox >= 95) score += 4;
   }
-
   var firstTimer = ovr && typeof ovr.first_time_approver === 'boolean' ? ovr.first_time_approver : d.first_time_approver;
   if (firstTimer)  score += 8;
   if (d.pdufa_is_friday_pm)   score += 5;
   if (d.is_505b2)             score += 6;
-
   if (capB >= 100 && isSupplement)      score -= 25;
   else if (capB >= 50 && isSupplement)  score -= 20;
   else if (capB >= 10 && isSupplement)  score -= 12;
-
   var rev = Number(d.revenue_m) || 0;
   if (marketCap > 0 && rev > 0) {
     var revCap = rev / (marketCap / 1e6);
     if (revCap >= 0.25)      score -= 10;
     else if (revCap >= 0.15) score -= 5;
   }
-
   if (isFinite(p30) && p30 >= -5 && p30 <= 5 &&
       isFinite(p90) && p90 >= -10 && p90 <= 10) score -= 6;
   if (isFinite(p90) && p90 <= -20)              score -= 8;
-
   if (isFinite(p30)) {
     if (p30 <= -40)      score -= 20;
     else if (p30 <= -25) score -= 12;
     else if (p30 <= -15) score -= 6;
   }
-
   if (isFinite(rsi) && rsi > 0 && rsi <= 35)    score -= 6;
-
   if (isFinite(prox) && prox > 0) {
     if (prox <= 55)      score -= 10;
     else if (prox <= 70) score -= 5;
   }
-
   if (d.is_first_in_class) score -= 8;
   var tamExp = Number(d.tam_expansion_pct) || 0;
   if (tamExp >= 100)     score -= 10;
   else if (tamExp >= 50) score -= 6;
-
   var innScore = Number(d.innovation_score) || 0;
   if (innScore >= 80)      score -= 12;
   else if (innScore >= 65) score -= 8;
   else if (innScore >= 55) score -= 4;
-
   var recMean = Number(d.analyst_recommendation_mean);
   if (isFinite(recMean) && recMean >= 3.5) score -= 4;
-
   if (d.is_nce && !d.is_505b2) score -= 3;
-
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
@@ -763,41 +738,19 @@ function dedupeEvents(events) {
 }
 
 var INNOVATION_CAP_APPROVED_DRUGS = {
-  'leqembi':           { cap: 55 },
-  'lecanemab':         { cap: 55 },
-  'vyvgart':           { cap: 50 },
-  'efgartigimod':      { cap: 50 },
-  'tzield':            { cap: 50 },
-  'teplizumab':        { cap: 50 },
-  'auvelity':          { cap: 35 },
-  'welireg':           { cap: 35 },
-  'ryzumvi':           { cap: 30 },
-  'sarclisa':          { cap: 30 },
-  'padcev':            { cap: 30 },
-  'enfortumab':        { cap: 30 },
-  'keytruda':          { cap: 25 },
-  'pembrolizumab':     { cap: 25 },
-  'dupixent':          { cap: 25 },
-  'dupilumab':         { cap: 25 },
-  'imbruvica':         { cap: 25 },
-  'ibrutinib':         { cap: 25 },
-  'opdivo':            { cap: 25 },
-  'nivolumab':         { cap: 25 },
-  'eylea':             { cap: 25 },
-  'aflibercept':       { cap: 25 },
-  'augtyro':           { cap: 25 },
-  'repotrectinib':     { cap: 25 },
-  'norelgestromin':    { cap: 12 },
-  'ethinyl estradiol': { cap: 12 },
-  'nimodipine':        { cap: 18 },
-  'dexmethylphenidate':{ cap: 18 },
-  'tebipenem':         { cap: 22 },
-  'oxylanthanum':      { cap: 22 },
-  'ameluz':            { cap: 22 },
-  'igalmi':            { cap: 22 },
-  'molbreevi':         { cap: 30 },
-  'tyvaso':            { cap: 30 },
-  'furoscix':          { cap: 25 }
+  'leqembi': { cap: 55 }, 'lecanemab': { cap: 55 }, 'vyvgart': { cap: 50 },
+  'efgartigimod': { cap: 50 }, 'tzield': { cap: 50 }, 'teplizumab': { cap: 50 },
+  'auvelity': { cap: 35 }, 'welireg': { cap: 35 }, 'ryzumvi': { cap: 30 },
+  'sarclisa': { cap: 30 }, 'padcev': { cap: 30 }, 'enfortumab': { cap: 30 },
+  'keytruda': { cap: 25 }, 'pembrolizumab': { cap: 25 }, 'dupixent': { cap: 25 },
+  'dupilumab': { cap: 25 }, 'imbruvica': { cap: 25 }, 'ibrutinib': { cap: 25 },
+  'opdivo': { cap: 25 }, 'nivolumab': { cap: 25 }, 'eylea': { cap: 25 },
+  'aflibercept': { cap: 25 }, 'augtyro': { cap: 25 }, 'repotrectinib': { cap: 25 },
+  'norelgestromin': { cap: 12 }, 'ethinyl estradiol': { cap: 12 },
+  'nimodipine': { cap: 18 }, 'dexmethylphenidate': { cap: 18 },
+  'tebipenem': { cap: 22 }, 'oxylanthanum': { cap: 22 }, 'ameluz': { cap: 22 },
+  'igalmi': { cap: 22 }, 'molbreevi': { cap: 30 }, 'tyvaso': { cap: 30 },
+  'furoscix': { cap: 25 }
 };
 
 var INNOVATION_MEGA_CAP_TICKERS = {
@@ -841,7 +794,6 @@ function computeInnovationHeuristic(d) {
   var score = 0, signals = [];
   var flagsBlob = (d.flags || []).concat(d.appreciation_signals || [], d.innovation_flags || []).join(' ').toLowerCase();
   var indication = String(d.indication || '').toLowerCase();
-
   if (/first.?in.?class|first.?in.?its.?class|first.?to.?reach.?(?:approval|market)|no\s+approved\s+(?:therap|treatment|drug)/.test(flagsBlob)) {
     score += 28; signals.push('First-in-class mechanism');
   } else if (/novel\s+(?:mechanism|moa|target|pathway|class)|new\s+class/.test(flagsBlob)) {
@@ -851,7 +803,6 @@ function computeInnovationHeuristic(d) {
   } else if (/next.?gen|second.?generation|improved\s+selectivity|fewer\s+off.?target/.test(flagsBlob)) {
     score += 8; signals.push('Next-generation refinement');
   }
-
   if (/no\s+approved|orphan|ultra.?rare/.test(flagsBlob) && /(?:disease|condition|indication)/.test(flagsBlob)) {
     score += 18; signals.push('High unmet need / orphan');
   } else if (/orphan|rare\s+disease|breakthrough\s+therapy/.test(flagsBlob)) {
@@ -859,36 +810,29 @@ function computeInnovationHeuristic(d) {
   } else if (/unmet\s+(?:need|medical|population)/.test(flagsBlob)) {
     score += 6;
   }
-
   if (/disease.?modifying|disease.?altering|curative/.test(flagsBlob)) {
     score += 16; signals.push('Disease-modifying therapy');
   } else if (/superior\s+(?:efficacy|to\s+(?:soc|standard))|head.?to.?head/.test(flagsBlob)) {
     score += 10;
   }
-
   if (/oral\s+(?:vs|over|alternative\s+to)\s+(?:iv|injection)|tablet\s+vs\s+infusion/.test(flagsBlob)) {
     score += 10; signals.push('Oral over injectable');
   } else if (/subcutaneous|once.?weekly|once.?monthly|long.?acting|sustained.?release/.test(flagsBlob)) {
     score += 6; signals.push('Improved dosing convenience');
   }
-
   if (/breakthrough\s+therapy/.test(flagsBlob)) score += 6;
   else if (/priority\s+review|fast\s+track/.test(flagsBlob)) score += 3;
-
   if (INNOVATION_BONUS_AREAS.test(indication) || INNOVATION_BONUS_AREAS.test(flagsBlob)) {
     score += 6;
   }
-
   var tam = Number(d.tam_ratio) || 0;
   if (tam >= 20)      score += 4;
   else if (tam >= 10) score += 2;
-
   if (score === 0 && d.drug && d.drug.trim() && d.first_time_approver === true) {
     score = 25;
   } else if (score === 0 && d.drug && d.drug.trim()) {
     score = 15;
   }
-
   return { score: Math.min(100, Math.max(0, score)), signals: signals };
 }
 
@@ -1075,7 +1019,6 @@ function applyLiveMarketData() {
   var bo = applyTo(window.BUYOUT_DATA);
   console.log('[SC] Live cap applied: ' + sc.updated + ' scanner events, ' + bo.updated + ' buyout companies');
 }
-
 </script>
 <script>
 function sanitizeNarrative(text) {
@@ -1101,13 +1044,11 @@ function renderScanner() {
       '<div style="grid-column:1/-1;text-align:center;padding:3rem;font-family:var(--mono);font-size:0.78rem;color:var(--muted);">Loading scanner data from database...</div>';
     return;
   }
-
   SCANNER_DATA.forEach(function(d) {
     normalizeInnovation(d);
     fixIndication(d);
     d.net_edge_adj = computeNetEdge(d);
   });
-
   if (typeof window !== 'undefined' && !window._stnCoverageLogged) {
     var serverRows = SCANNER_DATA.filter(function(d) {
       return d.stn_score != null && isFinite(Number(d.stn_score));
@@ -1116,7 +1057,6 @@ function renderScanner() {
     console.log('[SC] STN coverage: ' + serverRows + '/' + total + ' rows have server stn_score (v4.8), ' + (total - serverRows) + ' falling back to client v4 deriver');
     window._stnCoverageLogged = true;
   }
-
   var sortEl = document.getElementById('scanner-sort');
   var gradeEl = document.getElementById('scanner-grade');
   var timeEl = document.getElementById('scanner-timeframe');
@@ -1125,7 +1065,6 @@ function renderScanner() {
   var gradeFilter = (gradeEl && gradeEl.value) || 'all';
   var timeframe = parseInt((timeEl && timeEl.value) || '0');
   var search = ((searchEl && searchEl.value) || '').toUpperCase();
-
   var clean = SCANNER_DATA.filter(function(d) { return !isBrokenRow(d); });
   clean = dedupeEvents(clean);
   var filtered = clean.filter(function(d) {
@@ -1138,7 +1077,6 @@ function renderScanner() {
     if (timeframe > 0 && days > timeframe) return false;
     return true;
   });
-
   var sorted = filtered.slice().sort(function(a, b) {
     switch (sortBy) {
       case 'date_asc':  return daysUntil(a.date) - daysUntil(b.date);
@@ -1151,13 +1089,11 @@ function renderScanner() {
       case 'trend90d':  return (Number(b.price_change_90d)||-999) - (Number(a.price_change_90d)||-999);
       case 'cmc_haircut': return (Number(b.cmc_haircut_pct)||0) - (Number(a.cmc_haircut_pct)||0);
       case 'cmc_score':   return (Number(b.cmc_score) || 0) - (Number(a.cmc_score) || 0);
-      case 'stn_risk':
-        return deriveStnScore(b) - deriveStnScore(a);
+      case 'stn_risk':  return deriveStnScore(b) - deriveStnScore(a);
       case 'rsi':       return (Number(b.rsi_14d)||0) - (Number(a.rsi_14d)||0);
       default:          return (b.net_edge_adj || 0) - (a.net_edge_adj || 0);
     }
   });
-
   var countEl = document.getElementById('scanner-count');
   if (countEl) {
     var uniqueTickers = {};
@@ -1169,11 +1105,9 @@ function renderScanner() {
     if (hiddenByFilters > 0) line += ' · ' + hiddenByFilters + ' filtered';
     countEl.textContent = line;
   }
-
   var tickerEventCounts = {};
   sorted.forEach(function(d) { tickerEventCounts[d.ticker] = (tickerEventCounts[d.ticker] || 0) + 1; });
   var tickerEventIndex = {};
-
   document.getElementById('scanner-grid').innerHTML = sorted.map(function(d, i) {
     tickerEventIndex[d.ticker] = (tickerEventIndex[d.ticker] || 0) + 1;
     var tickerTotal = tickerEventCounts[d.ticker] || 1;
@@ -1189,7 +1123,6 @@ function renderScanner() {
     var auditBadge = d.cmo_audit_flag
       ? '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.6);background:rgba(255,68,68,0.12);color:var(--red);margin-left:0.4rem;vertical-align:middle;" title="FDA Form 483 issued at CMO within last 18 months — elevated CMC CRL risk">483 FLAG</span>'
       : '';
-
     var stnScoreNum = deriveStnScore(d);
     var stnServer = d.stn_score != null && isFinite(Number(d.stn_score));
     var stnBoxColor, stnPillColor;
@@ -1201,14 +1134,12 @@ function renderScanner() {
       : 'Sell-the-News score ' + stnScoreNum + '/100 (derived from 30D run-up, dilution, PoA, RSI, analyst target proximity, TAM/Cap) · server score not yet available for this row';
     var stnPillLabel = 'STN ' + stnScoreNum;
     var stnPill = '<span style="display:inline-block;font-family:var(--mono);font-size:0.5rem;font-weight:700;letter-spacing:0.08em;padding:0.1rem 0.4rem;border:1px solid ' + stnPillColor.border + ';background:' + stnPillColor.bg + ';color:' + stnPillColor.fg + ';margin-left:0.4rem;vertical-align:middle;" title="' + stnPillTitle + '">' + stnPillLabel + '</span>';
-
     var innScore = Number(d.innovation_score) || 0;
     var innFactor = Number(d.innovation_factor) || 1.0;
     var innColor = innScore >= 75 ? 'green' : innScore >= 55 ? 'cyan' : innScore >= 35 ? 'white' : 'amber';
     var innStarColor = innScore >= 80 ? '#ffd700' : innScore >= 60 ? 'var(--accent2)' : innScore >= 40 ? 'var(--accent)' : 'var(--muted)';
     var innDisplay = innScore > 0 ? Math.round(innScore) + '/100' : '—';
     var netEdge = Number(d.net_edge_adj) || 0;
-
     var liveBlock = '';
     var p = PRICE_DATA[d.ticker];
     if (!p) {
@@ -1227,7 +1158,6 @@ function renderScanner() {
         '<div style="text-align:center;"><span style="display:block;font-size:0.48rem;color:var(--muted);letter-spacing:0.1em;">CHART</span><span style="color:' + chartColor + ';font-weight:700;">' + chartDisplay + '</span></div>' +
         '</div>';
     }
-
     var trend30Cell;
     if (!p || typeof p.change30d !== 'number') {
       trend30Cell = '<div class="score-box-val white" style="font-size:0.72rem;">—</div>';
@@ -1237,14 +1167,12 @@ function renderScanner() {
       var trendColor = c >= 15 ? 'green' : c >= 0 ? 'cyan' : c >= -15 ? 'amber' : 'red';
       trend30Cell = '<div class="score-box-val ' + trendColor + '" style="font-size:0.72rem;">' + arrow + ' ' + Math.abs(c).toFixed(1) + '%</div>';
     }
-
     var appreciationBlock = '';
     if (innScore >= 24 && (d.appreciation_signals || []).length > 0) {
       var edgePct = innFactor !== 1.0 ? ' <span style="color:#ffd700;">(' + (innFactor > 1 ? '+' : '') + Math.round((innFactor - 1) * 100) + '% edge)</span>' : '';
       appreciationBlock = '<div style="font-family:var(--mono);font-size:0.58rem;padding:0.4rem 0.55rem;background:rgba(255,215,0,0.04);border-left:2px solid #ffd700;margin-bottom:0.4rem;color:var(--text);line-height:1.5;">⭐ ' +
         d.appreciation_signals.slice(0,2).map(function(s){return s.length>90?s.substring(0,90)+'…':s;}).join(' · ') + edgePct + '</div>';
     }
-
     var cmcBlock = '';
     var hasCMC = (d.formulation_class && d.formulation_class !== 'UNKNOWN' && d.formulation_class !== 'SMALL_MOLECULE') || (Number(d.cmc_score)||0) >= 15 || (Number(d.cmc_haircut_pct)||0) >= 5 || d.runway_trustworthy === false;
     if (hasCMC) {
@@ -1259,7 +1187,6 @@ function renderScanner() {
           (label ? emoji + ' ' + label : '') + (label && splitStr ? ' · ' : '') + (splitStr ? '<span style="color:var(--amber);">' + splitStr + '</span>' : '') + runwayFlag + '</div>';
       }
     }
-
     var crlForensicsBlock = '';
     var leachNum = d.leachable_risk_score != null ? Number(d.leachable_risk_score) : null;
     var hasLeach = leachNum != null && isFinite(leachNum) && leachNum > 0;
@@ -1281,14 +1208,12 @@ function renderScanner() {
       }
       crlForensicsBlock = '<div style="font-family:var(--mono);font-size:0.6rem;padding:0.4rem 0.55rem;background:rgba(255,68,68,0.04);border-left:2px solid var(--red);margin-bottom:0.4rem;color:var(--text);line-height:1.6;"><span style="color:var(--muted);letter-spacing:0.08em;">CRL FORENSICS · </span>' + crlItems.join(' · ') + '</div>';
     }
-
     var pills = [];
     if (d.first_time_approver) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,212,255,0.4);background:rgba(0,212,255,0.08);color:var(--accent);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🆕 1ST-TIME</span>');
     if (d.pdufa_is_friday_pm) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">📅 FRI PM</span>');
     if (d.is_nce) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">NCE</span>');
     if (d.is_505b2) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(90,122,153,0.5);background:rgba(90,122,153,0.1);color:var(--muted);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">505(b)(2)</span>');
     if (d.volume_climax_flag) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">🔊 VOL CLIMAX</span>');
-
     var rsi = Number(d.rsi_14d);
     var rsiValid = d.rsi_14d != null && isFinite(rsi) && rsi > 0;
     if (rsiValid && rsi >= 70) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(255,68,68,0.5);background:rgba(255,68,68,0.1);color:var(--red);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;">RSI ' + rsi.toFixed(0) + '</span>');
@@ -1297,16 +1222,13 @@ function renderScanner() {
     var proxValid = d.analyst_target_proximity_pct != null && isFinite(prox) && prox > 0;
     if (proxValid && prox >= 95) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(245,166,35,0.4);background:rgba(245,166,35,0.08);color:var(--amber);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg target — priced in risk">TGT ' + prox.toFixed(0) + '%</span>');
     else if (proxValid && prox <= 50) pills.push('<span style="display:inline-block;padding:0.1rem 0.4rem;border:1px solid rgba(0,255,157,0.4);background:rgba(0,255,157,0.08);color:var(--accent2);font-size:0.52rem;letter-spacing:0.08em;margin:0.1rem;" title="Trading at ' + prox.toFixed(0) + '% of analyst avg — heavily discounted">TGT ' + prox.toFixed(0) + '%</span>');
-
     var pillsBlock = pills.length > 0 ? '<div style="margin-bottom:0.4rem;line-height:1.8;">' + pills.join('') + '</div>' : '';
-
     var expectedMoveBlock = '';
     var cleanMove = sanitizeNarrative(d.expected_move);
     if (cleanMove) {
       var borderColor = d.sell_news_risk === 'HIGH' ? 'var(--red)' : d.sell_news_risk === 'ELEVATED' ? 'var(--amber)' : 'var(--accent2)';
       expectedMoveBlock = '<div style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);margin-top:0.5rem;line-height:1.5;padding:0.5rem;background:rgba(0,212,255,0.03);border-left:2px solid ' + borderColor + ';">' + cleanMove + '</div>';
     }
-
     var seenFlags = {};
     var flagsList = (d.flags || [])
       .filter(function(f) {
@@ -1329,9 +1251,7 @@ function renderScanner() {
       .slice(0, 6)
       .map(function(f) { return '<div class="card-flag">' + f + '</div>'; })
       .join('');
-
     var drugLabel = buildCardDrugLabel(d).html;
-
     return '<div class="scanner-card ' + gradeClass(d.grade) + '" style="animation-delay:' + (i * 0.05) + 's" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" title="View ' + d.ticker + ' deep dive →">' +
       '<div class="card-top">' +
         '<div>' +
@@ -1360,7 +1280,6 @@ function renderScanner() {
       '<div style="font-family:var(--mono);font-size:0.6rem;color:rgba(0,212,255,0.35);margin-top:0.75rem;letter-spacing:0.06em;">View deep dive →</div>' +
     '</div>';
   }).join('');
-
   var validData = clean;
   var elite    = validData.filter(function(d) { return (d.net_edge_adj || 0) >= 72; }).length;
   var within30 = validData.filter(function(d) { return daysUntil(d.date) <= 30 && daysUntil(d.date) >= 0; }).length;
@@ -1454,7 +1373,6 @@ function renderBuyoutGrid() {
     var mcap = d.market_cap >= 1e9 ? '$' + (d.market_cap / 1e9).toFixed(1) + 'B' : d.market_cap >= 1e6 ? '$' + (d.market_cap / 1e6).toFixed(0) + 'M' : '—';
     var scoreColor = d.buyout_score >= 70 ? 'green' : d.buyout_score >= 50 ? 'cyan' : d.buyout_score >= 30 ? 'amber' : 'white';
     var riskColor = d.buyout_risk === 'HIGH' ? 'grade-elite' : d.buyout_risk === 'ELEVATED' ? 'grade-strong' : d.buyout_risk === 'MODERATE' ? 'grade-watch' : 'grade-weak';
-
     var p = PRICE_DATA[d.ticker];
     var liveBlock = '';
     if (!p) {
@@ -1482,39 +1400,22 @@ function renderBuyoutGrid() {
       var trendColor = c30 >= 15 ? 'green' : c30 >= 0 ? 'cyan' : c30 >= -15 ? 'amber' : 'red';
       trend30Cell = '<div class="score-box-val ' + trendColor + '" style="font-size:0.72rem;">' + arrow30 + ' ' + Math.abs(c30).toFixed(1) + '%</div>';
     }
-
     var maSignals = [];
     if (Number(d.insider_cluster_score) >= 5 && Number(d.insider_cluster_count) >= 3) {
       var usdLabel = d.insider_cluster_total_usd >= 1e6
         ? '$' + (d.insider_cluster_total_usd / 1e6).toFixed(1) + 'M'
         : '$' + Math.round(d.insider_cluster_total_usd / 1000) + 'K';
-      maSignals.push({
-        text: '🎯 INSIDER CLUSTER: ' + d.insider_cluster_count + ' open-market buys 30d, ' + usdLabel,
-        color: 'var(--accent2)',
-        bg: 'rgba(0,255,157,0.05)'
-      });
+      maSignals.push({ text: '🎯 INSIDER CLUSTER: ' + d.insider_cluster_count + ' open-market buys 30d, ' + usdLabel, color: 'var(--accent2)', bg: 'rgba(0,255,157,0.05)' });
     }
     if (d.banker_hire_active) {
       var advisorLabel = (d.banker_hire_advisors || []).slice(0, 2).join(', ') || 'engaged';
-      maSignals.push({
-        text: '💼 BANKER HIRE: ' + advisorLabel + (d.banker_hire_date ? ' (' + d.banker_hire_date + ')' : ''),
-        color: 'var(--red)',
-        bg: 'rgba(255,68,68,0.06)'
-      });
+      maSignals.push({ text: '💼 BANKER HIRE: ' + advisorLabel + (d.banker_hire_date ? ' (' + d.banker_hire_date + ')' : ''), color: 'var(--red)', bg: 'rgba(255,68,68,0.06)' });
     }
     if (Array.isArray(d.patent_cliff_acquirers) && d.patent_cliff_acquirers.length > 0 && Number(d.patent_cliff_fit_score) >= 8) {
-      maSignals.push({
-        text: '🏥 FIT FOR: ' + d.patent_cliff_acquirers.slice(0, 2).join('/') + (d.patent_cliff_summary ? ' — ' + d.patent_cliff_summary.split(';')[0] : ''),
-        color: 'var(--accent)',
-        bg: 'rgba(0,212,255,0.05)'
-      });
+      maSignals.push({ text: '🏥 FIT FOR: ' + d.patent_cliff_acquirers.slice(0, 2).join('/') + (d.patent_cliff_summary ? ' — ' + d.patent_cliff_summary.split(';')[0] : ''), color: 'var(--accent)', bg: 'rgba(0,212,255,0.05)' });
     }
     if (Number(d.options_unusual_score) >= 5 && d.options_unusual_detail) {
-      maSignals.push({
-        text: '📞 OPTIONS RAMP: ' + d.options_unusual_detail,
-        color: 'var(--amber)',
-        bg: 'rgba(245,166,35,0.06)'
-      });
+      maSignals.push({ text: '📞 OPTIONS RAMP: ' + d.options_unusual_detail, color: 'var(--amber)', bg: 'rgba(245,166,35,0.06)' });
     }
     var maBlock = maSignals.length > 0
       ? '<div style="margin-top:0.5rem;display:flex;flex-direction:column;gap:0.25rem;">' +
@@ -1523,7 +1424,6 @@ function renderBuyoutGrid() {
         }).join('') +
         '</div>'
       : '';
-
     return '<div class="scanner-card" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" style="cursor:pointer;">' +
       '<div class="card-top"><div><div class="card-ticker">' + d.ticker + '</div><div style="font-family:var(--sans);font-size:0.72rem;color:var(--muted);">' + (d.company_name || '') + '</div></div><span class="card-grade ' + riskColor + '">' + d.buyout_risk + '</span></div>' +
       '<div class="card-scores" style="grid-template-columns:1fr 1fr 1fr 1fr;"><div class="score-box"><div class="score-box-label">Buyout</div><div class="score-box-val ' + scoreColor + '">' + (d.buyout_score || 0) + '</div></div><div class="score-box"><div class="score-box-label">Cap</div><div class="score-box-val white" style="font-size:0.7rem;">' + mcap + '</div></div><div class="score-box"><div class="score-box-label">TAM/Cap</div><div class="score-box-val cyan">' + (d.tam_ratio ? d.tam_ratio + 'x' : '—') + '</div></div><div class="score-box"><div class="score-box-label">30D</div>' + trend30Cell + '</div></div>' +
@@ -1535,12 +1435,8 @@ function renderBuyoutGrid() {
   }).join('');
   document.getElementById('buyout-count').textContent = display.length + ' of ' + filtered.length + ' companies shown';
 }
-
 </script>
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// TABS — switch between scanner panels (catalyst loaders removed)
-// ═══════════════════════════════════════════════════════════════════════════
 function switchTab(btn, id) {
   document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
   document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
@@ -1550,7 +1446,6 @@ function switchTab(btn, id) {
   if (panel) panel.classList.add('active');
 }
 
-// ─── AUTH GUARD + INIT ────────────────────────────────────────────────────────
 (async function() {
   var session = await scRequireAuth();
   if (!session) return;
@@ -1677,7 +1572,6 @@ function switchTab(btn, id) {
   } catch (e) {
     console.warn('[SC] Failed to fetch live data:', e);
   }
-
   if (SCANNER_DATA.length > 0) {
     try {
       var scannerTickerList = SCANNER_DATA.map(function(d) { return d.ticker; }).filter(function(t, i, a) { return a.indexOf(t) === i; });
@@ -1700,7 +1594,6 @@ function switchTab(btn, id) {
       console.warn('[SC] biotech_universe enrich failed:', err);
     }
   }
-
   window.DRUG_ASSETS_MAP = {};
   if (SCANNER_DATA.length > 0) {
     try {
@@ -1782,12 +1675,8 @@ function switchTab(btn, id) {
   applyLiveMarketData();
   renderBuyoutGrid();
 })();
-
 </script>
 <script>
-// ═══════════════════════════════════════════════════════════════════════════
-// PR SCANNER (linguistic analysis on biotech press releases)
-// ═══════════════════════════════════════════════════════════════════════════
 var PR_DATA = [];
 
 var PR_STRONG_BULLISH = [
