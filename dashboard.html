@@ -1073,7 +1073,8 @@ function renderScanner() {
     if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
     if (gradeFilter === 'watch' && d.grade === 'WEAK') return false;
     var days = daysUntil(d.date);
-    if (days < 0) return false;
+    var isRecentlyResolved = (d.flags || []).some(function(f) { return /^RESOLVED:/i.test(String(f)); });
+    if (days < 0 && !isRecentlyResolved) return false;
     if (timeframe > 0 && days > timeframe) return false;
     return true;
   });
@@ -1236,6 +1237,7 @@ function renderScanner() {
         if (s.indexOf('TAM/CAP') >= 0 || s.indexOf('TAM/Cap') >= 0 || s.indexOf('Drug market') >= 0) return false;
         if (s.indexOf('AUTO-RESOLVED:') === 0) return false;
         if (s.indexOf('SC_AUTORESOLVED:') === 0) return false;
+        if (/^RESOLVED:/i.test(s)) return false;
         if (s.indexOf('INGESTED:') === 0) return false;
         if (s.indexOf('AI_RESOLUTION_FAILED') === 0) return false;
         if (s.indexOf('RESET_FOR_RERESOLUTION') >= 0) return false;
@@ -1252,10 +1254,22 @@ function renderScanner() {
       .map(function(f) { return '<div class="card-flag">' + f + '</div>'; })
       .join('');
     var drugLabel = buildCardDrugLabel(d).html;
+    var resolvedFlag = (d.flags || []).find(function(f) { return /^RESOLVED:/i.test(String(f)); });
+    var resolvedIsApproval = resolvedFlag && /APPROVED/i.test(String(resolvedFlag));
+    var resolvedColor = resolvedIsApproval ? 'var(--accent2)' : 'var(--red)';
+    var resolvedBg    = resolvedIsApproval ? 'rgba(0,255,157,0.12)' : 'rgba(255,68,68,0.12)';
+    var resolvedGrad  = resolvedIsApproval ? 'linear-gradient(90deg,rgba(0,255,157,0.18),rgba(0,255,157,0.04))' : 'linear-gradient(90deg,rgba(255,68,68,0.18),rgba(255,68,68,0.04))';
+    var resolvedBanner = resolvedFlag
+      ? '<div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.06em;padding:0.55rem 0.7rem;background:' + resolvedGrad + ';border-left:3px solid ' + resolvedColor + ';color:' + resolvedColor + ';margin:-1.5rem -1.5rem 0.85rem;font-weight:700;line-height:1.45;">✅ ' + String(resolvedFlag).replace(/^RESOLVED:\s*/i, '') + '</div>'
+      : '';
+    var daysPillHtml = resolvedFlag
+      ? '<span class="days-pill" style="border:1px solid ' + resolvedColor + ';color:' + resolvedColor + ';background:' + resolvedBg + ';">RESOLVED ✅</span>'
+      : daysPill(days);
     return '<div class="scanner-card ' + gradeClass(d.grade) + '" style="animation-delay:' + (i * 0.05) + 's" onclick="window.location.href=\'/catalyst-detail.html?ticker=' + d.ticker + '\'" title="View ' + d.ticker + ' deep dive →">' +
+      resolvedBanner +
       '<div class="card-top">' +
         '<div>' +
-          '<div class="card-ticker">' + d.ticker + ' ' + daysPill(days) + stnPill + auditBadge + royaltyBadge + multiBadge + '</div>' +
+          '<div class="card-ticker">' + d.ticker + ' ' + daysPillHtml + stnPill + auditBadge + royaltyBadge + multiBadge + '</div>' +
           (d.company_name && String(d.company_name).trim() && String(d.company_name).trim().toUpperCase() !== d.ticker.toUpperCase() ? '<div style="font-family:var(--sans);font-size:0.7rem;color:var(--muted);letter-spacing:0.02em;margin-top:0.15rem;line-height:1.3;">' + String(d.company_name).trim() + '</div>' : '') +
           '<div class="card-date">' + d.date + ' · ' + d.type + (isRoyalty && d.primary_ticker ? ' · via ' + d.primary_ticker : '') + '</div>' +
         '</div>' +
