@@ -321,7 +321,11 @@
           <div>
             <div class="account-field"><div class="account-field-label">Member Since</div><div class="account-field-val" id="acct-since">—</div></div>
             <div class="account-field"><div class="account-field-label">Next Billing Date</div><div class="account-field-val" id="acct-next">—</div></div>
-            <div class="account-field" style="margin-top:1.5rem"><a href="#" class="btn-portal" id="billing-portal-btn">Manage Billing →</a></div>
+            <div class="account-field" style="margin-top:1.5rem">
+              <a href="javascript:void(0)" class="btn-portal" id="billing-portal-btn" onclick="openBillingPortal(event)">Manage Billing &amp; Cancel →</a>
+              <div id="billing-portal-status" style="font-family:var(--mono);font-size:0.62rem;margin-top:0.55rem;letter-spacing:0.04em;line-height:1.55;display:none;"></div>
+              <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);margin-top:0.65rem;letter-spacing:0.04em;line-height:1.55;">Update card, view invoices, or cancel. Cancellation takes effect at the end of the current billing period — you keep access until then.</div>
+            </div>
           </div>
         </div>
       </div>
@@ -1460,6 +1464,52 @@ function switchTab(btn, id) {
   if (panel) panel.classList.add('active');
 }
 
+async function openBillingPortal(ev) {
+  if (ev) ev.preventDefault();
+  var btn = document.getElementById('billing-portal-btn');
+  var status = document.getElementById('billing-portal-status');
+  if (!btn) return;
+  var originalText = btn.textContent;
+  btn.style.opacity = '0.5';
+  btn.style.pointerEvents = 'none';
+  btn.textContent = 'Opening Stripe portal...';
+  if (status) {
+    status.style.display = 'block';
+    status.style.color = 'var(--muted)';
+    status.textContent = 'Generating secure billing portal session...';
+  }
+  try {
+    var session = await scGetSession();
+    if (!session || !session.access_token) throw new Error('Not signed in. Refresh and try again.');
+    var res = await fetch(SC_CONFIG.supabaseUrl + '/functions/v1/create-portal-session', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + session.access_token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ return_url: window.location.origin + '/dashboard.html' })
+    });
+    var data = await res.json();
+    if (!res.ok || !data.url) {
+      throw new Error(data.error || data.hint || 'Could not open billing portal');
+    }
+    if (status) {
+      status.style.color = 'var(--accent2)';
+      status.textContent = 'Redirecting to Stripe...';
+    }
+    window.location.href = data.url;
+  } catch (err) {
+    console.error('[SC] Portal session failed:', err);
+    btn.style.opacity = '1';
+    btn.style.pointerEvents = 'auto';
+    btn.textContent = originalText;
+    if (status) {
+      status.style.color = 'var(--red)';
+      status.textContent = '⚠ ' + (err.message || 'Failed to open billing portal') + '. Email dsrackler@gmail.com to cancel manually.';
+    }
+  }
+}
+
 (async function() {
   var session = await scRequireAuth();
   if (!session) return;
@@ -1499,12 +1549,7 @@ function switchTab(btn, id) {
   nextBilling.setMonth(nextBilling.getMonth() + 1);
   while (nextBilling < today) nextBilling.setMonth(nextBilling.getMonth() + 1);
   document.getElementById('acct-next').textContent = nextBilling.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
-  var portalBtn = document.getElementById('billing-portal-btn');
-  if (SC_CONFIG.stripePortalUrl) {
-    portalBtn.href = SC_CONFIG.stripePortalUrl;
-    portalBtn.target = '_blank';
-    portalBtn.rel = 'noopener';
-  }
+  // Billing portal handled by openBillingPortal() via create-portal-session edge function.
   if (fromStripe && isPaid && !sessionStorage.getItem('dismissed_welcome')) {
     document.getElementById('welcome-banner').style.display = 'block';
   }
