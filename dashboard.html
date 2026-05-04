@@ -203,7 +203,7 @@
     </div>
 
     <div class="stat-strip">
-      <div class="stat-cell"><div class="stat-label">Elite Setups</div><div class="stat-val green" id="stat-elite">—</div><div class="stat-sub">score ≥ 72</div></div>
+      <div class="stat-cell"><div class="stat-label">Strong+ Setups</div><div class="stat-val green" id="stat-elite">—</div><div class="stat-sub">Net Edge ≥ 58</div></div>
       <div class="stat-cell"><div class="stat-label">≤ 30 Days Out</div><div class="stat-val cyan" id="stat-30d">—</div><div class="stat-sub">active window</div></div>
       <div class="stat-cell"><div class="stat-label">Avg PoA</div><div class="stat-val white" id="stat-poa">—</div><div class="stat-sub">calendar average</div></div>
       <div class="stat-cell"><div class="stat-label">Companies</div><div class="stat-val white" id="stat-scan">—</div><div class="stat-sub">unique tickers</div></div>
@@ -235,6 +235,12 @@
           <option value="elite">🚀 ELITE only</option>
           <option value="strong">⚡ STRONG+</option>
           <option value="watch">🟡 WATCH+</option>
+        </select>
+        <select id="scanner-cap" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;" title="Filter by market cap. Mega-cap supplements (Keytruda, Welireg label expansions) are real PDUFAs but rarely tradable for retail.">
+          <option value="all" selected>All Caps</option>
+          <option value="exclude_mega">Hide Mega-Cap (≥ $100B)</option>
+          <option value="small_mid">Small + Mid only (≤ $10B)</option>
+          <option value="small_only">Small-Cap only (≤ $2B)</option>
         </select>
         <select id="scanner-timeframe" onchange="renderScanner()" style="font-family:var(--mono);font-size:0.68rem;background:var(--surface);border:1px solid var(--border);color:var(--text);padding:0.4rem 0.75rem;">
           <option value="all">All Dates</option>
@@ -726,8 +732,9 @@ function resolveDrugName(d) {
 function buildCardDrugLabel(d) {
   var raw = String(d.drug || '').trim();
   var type = String(d.type || 'PDUFA').trim();
+  var ticker = String(d.ticker || '').toUpperCase();
   if (isPlaceholderDrug(raw)) {
-    return { html: '<span style="color:var(--muted);font-style:italic;">' + type + ' ' + (d.date || '') + ' — drug name resolving</span>' };
+    return { html: '<span style="color:var(--muted);font-style:italic;">Undisclosed ' + type + ' filing — ' + ticker + ' has not publicly named the candidate</span>' };
   }
   var resolved = resolveDrugName(d);
   if (resolved.confident && resolved.name && !isPlaceholderDrug(resolved.name)) {
@@ -735,10 +742,10 @@ function buildCardDrugLabel(d) {
   }
   var ind = String(d.indication || '').trim();
   var indU = ind.toUpperCase();
-  if (ind && indU !== 'UNKNOWN' && indU !== 'INFECTIOUS' && indU !== 'NULL' && indU !== 'PENDING') {
-    return { html: type + ' — ' + ind + ' <span style="color:var(--muted);font-style:italic;font-size:0.72rem;">(drug name pending)</span>' };
+  if (ind && indU !== 'UNKNOWN' && indU !== 'INFECTIOUS' && indU !== 'NULL' && indU !== 'PENDING' && ind !== '—') {
+    return { html: 'Undisclosed ' + ind + ' candidate <span style="color:var(--muted);font-style:italic;font-size:0.72rem;">(' + ticker + ' has not publicly named)</span>' };
   }
-  return { html: '<span style="color:var(--muted);font-style:italic;">' + type + ' ' + (d.date || '') + ' — name pending</span>' };
+  return { html: '<span style="color:var(--muted);font-style:italic;">Undisclosed ' + type + ' candidate</span>' };
 }
 
 function cleanDrugDisplay(raw) { return resolveDrugName({ drug: raw }).name || ''; }
@@ -1083,6 +1090,8 @@ function renderScanner() {
   var gradeFilter = (gradeEl && gradeEl.value) || 'all';
   var timeframe = parseInt((timeEl && timeEl.value) || '0');
   var search = ((searchEl && searchEl.value) || '').toUpperCase();
+  var capEl = document.getElementById('scanner-cap');
+  var capFilter = (capEl && capEl.value) || 'all';
   var clean = SCANNER_DATA.filter(function(d) { return !isBrokenRow(d); });
   clean = dedupeEvents(clean);
   var filtered = clean.filter(function(d) {
@@ -1090,6 +1099,10 @@ function renderScanner() {
     if (gradeFilter === 'elite' && d.grade !== 'ELITE') return false;
     if (gradeFilter === 'strong' && d.grade !== 'ELITE' && d.grade !== 'STRONG') return false;
     if (gradeFilter === 'watch' && d.grade === 'WEAK') return false;
+    var capB = (Number(d.estimated_market_cap) || 0) / 1e9;
+    if (capFilter === 'exclude_mega' && capB >= 100) return false;
+    if (capFilter === 'small_mid'    && capB >  10)  return false;
+    if (capFilter === 'small_only'   && capB >  2)   return false;
     var days = daysUntil(d.date);
     var isRecentlyResolved = (d.flags || []).some(function(f) { return /^RESOLVED:/i.test(String(f)); });
     if (days < 0 && !isRecentlyResolved) return false;
@@ -1257,7 +1270,7 @@ function renderScanner() {
         if (s.indexOf('SC_AUTORESOLVED:') === 0) return false;
         if (/^RESOLVED:/i.test(s)) return false;
         if (s.indexOf('INGESTED:') === 0) return false;
-        if (s.indexOf('AI_RESOLUTION_FAILED') === 0) return false;
+        if (/^AI_RESOLUTION_FAILED/i.test(s)) return false;
         if (s.indexOf('RESET_FOR_RERESOLUTION') >= 0) return false;
         if (/STN\s+\d+\/100/i.test(s)) return false;
         if (/STN\s+(VERY\s+)?(LOW|HIGH|MOD|MED)/i.test(s)) return false;
@@ -1313,7 +1326,7 @@ function renderScanner() {
     '</div>';
   }).join('');
   var validData = clean;
-  var elite    = validData.filter(function(d) { return (d.net_edge_adj || 0) >= 72; }).length;
+  var elite    = validData.filter(function(d) { return (d.net_edge_adj || 0) >= 58; }).length;
   var within30 = validData.filter(function(d) { return daysUntil(d.date) <= 30 && daysUntil(d.date) >= 0; }).length;
   var avgPoa   = validData.length > 0 ? (validData.reduce(function(s, d) { return s + (d.poa || 0); }, 0) / validData.length).toFixed(1) : '0';
   var uniqueCompaniesAll = Object.keys(validData.reduce(function(acc, d) { acc[d.ticker] = 1; return acc; }, {})).length;
