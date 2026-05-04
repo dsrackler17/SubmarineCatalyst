@@ -594,6 +594,20 @@ function isBrokenRow(d) {
   if (/^\d+\s+[A-Z]{2,5}\s+[+\-]?\d/.test(drug)) return true;
   if (ticker === 'MGNX' && /tzield|teplizumab|margenza/i.test(drug)) return true;
   if (ticker === 'MRK'  && drugU === 'IDVYNSO') return true;
+
+  // v2: unscored pipeline row detection
+  // Rows that came through the resolver but were never scored have:
+  //   PoA = 0, Dilution = UNKNOWN, Net Edge ~ 0-2, indication = "—" or empty
+  // These are NOT real catalysts ready for the scanner — hide them.
+  var poa = Number(d.poa) || 0;
+  var netEdge = Number(d.net_edge_score) || Number(d.score) || 0;
+  var dilutionRisk = String(d.dilution_risk || '').toUpperCase();
+  var ind = String(d.indication || '').trim();
+  var indEmpty = !ind || ind === '—' || /^(unknown|null|pending|other)$/i.test(ind);
+  if (poa === 0 && netEdge < 5 && (dilutionRisk === 'UNKNOWN' || dilutionRisk === '') && indEmpty) {
+    return true;
+  }
+
   return false;
 }
 
