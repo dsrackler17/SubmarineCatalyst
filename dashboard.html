@@ -751,15 +751,59 @@ function buildCardDrugLabel(d) {
 function cleanDrugDisplay(raw) { return resolveDrugName({ drug: raw }).name || ''; }
 
 function dedupeEvents(events) {
-  var out = [], seen = {};
+  if (!events || events.length === 0) return [];
+
+  // Pass 1: exact (ticker, drug, date) — preserves prior behavior
+  var pass1 = [], seen = {};
   for (var i = 0; i < events.length; i++) {
     var d = events[i];
     var key = (d.ticker || '') + '|' + String(d.drug || '').toLowerCase().trim() + '|' + (d.date || '');
     if (seen[key]) continue;
     seen[key] = true;
-    out.push(d);
+    pass1.push(d);
   }
-  return out;
+
+  // Pass 2: open+resolved pair on (ticker, normalized_drug)
+  // Catches ARVN-style: same drug, two PDUFA dates, one already RESOLVED — suppress the stale open row.
+  function normDrug(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+  function isResolved(d) {
+    var f = d.flags || [];
+    for (var k = 0; k < f.length; k++) if (/^RESOLVED:/i.test(String(f[k]))) return true;
+    return false;
+  }
+
+  var groups = {};
+  pass1.forEach(function(d) {
+    var nd = normDrug(d.drug);
+    if (!nd || nd.length < 4) return;          // too short to risk grouping
+    if (!d.ticker) return;
+    var gkey = String(d.ticker).toUpperCase() + '|' + nd;
+    (groups[gkey] = groups[gkey] || []).push(d);
+  });
+
+  var suppress = {};
+  Object.keys(groups).forEach(function(gkey) {
+    var grp = groups[gkey];
+    if (grp.length < 2) return;
+    var hasResolved = false, hasOpen = false;
+    grp.forEach(function(d) { if (isResolved(d)) hasResolved = true; else hasOpen = true; });
+    if (hasResolved && hasOpen) {
+      grp.forEach(function(d) {
+        if (!isResolved(d)) {
+          suppress[d.ticker + '|' + (d.drug || '') + '|' + (d.date || '')] = true;
+        }
+      });
+    }
+  });
+
+  var suppressed = Object.keys(suppress).length;
+  if (suppressed > 0) {
+    console.log('[SC] dedupeEvents v2: suppressed ' + suppressed + ' stale open row(s) superseded by RESOLVED siblings');
+  }
+
+  return pass1.filter(function(d) {
+    return !suppress[d.ticker + '|' + (d.drug || '') + '|' + (d.date || '')];
+  });
 }
 
 var INNOVATION_CAP_APPROVED_DRUGS = {
