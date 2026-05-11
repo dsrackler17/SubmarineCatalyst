@@ -302,9 +302,16 @@
       successBox.textContent = '✓ Account created. Redirecting to payment...';
       successBox.classList.add('visible');
 
-      // Redirect to Stripe Payment Link with user context
-      const userId = data.user?.id || 'guest';
-      setTimeout(() => scCheckout(userId, email), 1200);
+      // Redirect to Stripe Payment Link with user context.
+      // client_reference_id is what the stripe-webhook uses to flip profiles.is_paid.
+      // prefilled_email auto-fills the Stripe Checkout email field (requires
+      // "Pre-fill checkout fields → Email" to be ON in the Payment Link settings).
+      const userId = data.user?.id;
+      const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03';
+      const checkoutUrl = new URL(STRIPE_PAYMENT_LINK);
+      if (userId) checkoutUrl.searchParams.set('client_reference_id', userId);
+      if (email)  checkoutUrl.searchParams.set('prefilled_email',     email);
+      setTimeout(() => { window.location.href = checkoutUrl.toString(); }, 1200);
 
     } catch (err) {
       errorBox.textContent = 'Connection error. Please check your internet and try again.';
