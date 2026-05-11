@@ -2,10 +2,10 @@ const SC_CONFIG = {
   supabaseUrl:  'https://dipagzqrvivposqjkdkx.supabase.co',
   supabaseKey:  'sb_publishable_36c12XT90Y3BfDqh5tUSXQ_4BHRpVFU',
   stripePaymentLink: 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03',
-  stripePortalUrl: 'billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00',
+  stripePortalUrl: 'https://billing.stripe.com/p/login/9B64gy5LA3QpcHc8L08IU00',
   polygonApiKey: 'GvKphrcYFTwv6DwM2_0OAuxW49K2xyVI',
   finnhubApiKey: 'd7dcla9r01qggoenrpogd7dcla9r01qggoenrpp0',
-  adminEmails: 'dsrackler@gmail.com',
+  adminEmails: ['dsrackler@gmail.com'],
   siteName: 'Submarine Catalyst',
   domain: 'submarinecatalyst.com',
 };
@@ -37,7 +37,7 @@ async function scGetProfile(userId) {
   const sb = getSupabase();
   if (!sb || !userId) return null;
   try {
-    const { data, error } = await sb.from('profiles').select('is_paid, plan_tier, subscription_status, stripe_customer_id, created_at').eq('id', userId).single();
+    const { data, error } = await sb.from('profiles').select('is_paid, stripe_customer_id, subscribed_at').eq('id', userId).single();.eq('id', userId).single();
     if (error) return null;
     return data;
   } catch (err) { return null; }
