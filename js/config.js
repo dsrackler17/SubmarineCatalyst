@@ -36,18 +36,39 @@ async function scGetSession() {
   } catch (err) { return null; }
 }
 
+// Returns the profile row. Admin emails are auto-treated as paid so admins
+// can never paywall themselves out of their own platform. Selects only
+// `is_paid` — the one column we know exists on the profiles table.
 async function scGetProfile(userId) {
   const sb = getSupabase();
   if (!sb || !userId) return null;
+
+  // Admin bypass — current session email vs SC_CONFIG.adminEmails
+  try {
+    const session = await scGetSession();
+    const email = session && session.user && session.user.email;
+    if (email && Array.isArray(SC_CONFIG.adminEmails) &&
+        SC_CONFIG.adminEmails.indexOf(email.toLowerCase()) >= 0) {
+      console.log('[SC] Admin bypass active for ' + email);
+      return { is_paid: true, _admin_bypass: true };
+    }
+  } catch (e) {}
+
   try {
     const { data, error } = await sb
       .from('profiles')
-      .select('is_paid, stripe_customer_id, subscribed_at, created_at')
+      .select('is_paid')
       .eq('id', userId)
       .single();
-    if (error) return null;
+    if (error) {
+      console.warn('[SC] scGetProfile error:', error.message || error);
+      return null;
+    }
     return data;
-  } catch (err) { return null; }
+  } catch (err) {
+    console.warn('[SC] scGetProfile threw:', err);
+    return null;
+  }
 }
 
 async function scSignOut() {
@@ -80,6 +101,17 @@ async function scRequireAuth() {
 async function scPollSubscription(userId, maxAttempts = 8) {
   const sb = getSupabase();
   if (!sb) return false;
+
+  // Admin bypass — admins are paid by definition
+  try {
+    const session = await scGetSession();
+    const email = session && session.user && session.user.email;
+    if (email && Array.isArray(SC_CONFIG.adminEmails) &&
+        SC_CONFIG.adminEmails.indexOf(email.toLowerCase()) >= 0) {
+      return true;
+    }
+  } catch (e) {}
+
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, 2500));
     try {
