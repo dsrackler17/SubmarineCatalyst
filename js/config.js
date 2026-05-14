@@ -9,6 +9,7 @@ const SC_CONFIG = {
   siteName: 'Submarine Catalyst',
   domain: 'submarinecatalyst.com',
 };
+
 let _supabase = null;
 function getSupabase() {
   if (_supabase) return _supabase;
@@ -24,6 +25,7 @@ function getSupabase() {
     return null;
   }
 }
+
 async function scGetSession() {
   const sb = getSupabase();
   if (!sb) return null;
@@ -33,44 +35,61 @@ async function scGetSession() {
     return session;
   } catch (err) { return null; }
 }
+
 async function scGetProfile(userId) {
   const sb = getSupabase();
   if (!sb || !userId) return null;
   try {
-    const { data, error } = await sb.from('profiles').select('is_paid, stripe_customer_id, subscribed_at').eq('id', userId).single();.eq('id', userId).single();
+    const { data, error } = await sb
+      .from('profiles')
+      .select('is_paid, stripe_customer_id, subscribed_at, created_at')
+      .eq('id', userId)
+      .single();
     if (error) return null;
     return data;
   } catch (err) { return null; }
 }
+
 async function scSignOut() {
   const sb = getSupabase();
-  if (sb) try { await sb.auth.signOut(); } catch (e) {}
+  if (sb) {
+    try { await sb.auth.signOut(); } catch (e) {}
+  }
   window.location.href = '/login.html';
 }
+
 function scCheckout(userId, email) {
   let url = SC_CONFIG.stripePaymentLink;
   const params = new URLSearchParams();
   if (userId) params.set('client_reference_id', userId);
-  if (email) params.set('prefilled_email', email);
+  if (email)  params.set('prefilled_email', email);
   const qs = params.toString();
   if (qs) url += (url.includes('?') ? '&' : '?') + qs;
   window.location.href = url;
 }
+
 async function scRequireAuth() {
   const session = await scGetSession();
-  if (!session) { window.location.replace('/login.html'); return null; }
+  if (!session) {
+    window.location.replace('/login.html');
+    return null;
+  }
   return session;
 }
+
 async function scPollSubscription(userId, maxAttempts = 8) {
   const sb = getSupabase();
   if (!sb) return false;
   for (let i = 0; i < maxAttempts; i++) {
     await new Promise(r => setTimeout(r, 2500));
     try {
-      const { data } = await sb.from('profiles').select('is_paid').eq('id', userId).single();
+      const { data } = await sb
+        .from('profiles')
+        .select('is_paid')
+        .eq('id', userId)
+        .single();
       if (data?.is_paid) return true;
     } catch (e) {}
   }
   return false;
 }
-
