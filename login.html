@@ -55,26 +55,39 @@
   .auth-card { background: var(--surface); border: 1px solid var(--border); padding: 2rem; position: relative; overflow: hidden; }
   .auth-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
   .form-group { margin-bottom: 1.25rem; }
-  .form-label { display: block; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+  .form-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .form-label { display: block; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+  .form-caps-warn { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.08em; color: var(--amber); display: none; align-items: center; gap: 0.3rem; }
+  .form-caps-warn.visible { display: inline-flex; }
+  .input-wrap { position: relative; }
   .form-input { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--white); font-family: var(--mono); font-size: 0.85rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .form-input.password { padding-right: 3rem; }
   .form-input::placeholder { color: var(--muted); }
   .form-input:focus { border-color: var(--accent); }
-  .form-footer { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
+  .show-pw-btn { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; padding: 0.3rem 0.5rem; transition: color 0.15s; }
+  .show-pw-btn:hover { color: var(--accent); }
+  .form-footer { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; min-height: 1.4rem; }
   .form-forgot { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.06em; color: var(--muted); text-decoration: none; transition: color 0.2s; }
   .form-forgot:hover { color: var(--accent); }
+  .form-forgot.elevated { color: var(--accent); font-weight: 700; text-decoration: underline; }
   .btn-submit { display: block; width: 100%; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.9rem; cursor: pointer; font-weight: 700; transition: opacity 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
   .btn-submit:hover { opacity: 0.85; }
   .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-resend { display: inline-block; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.08em; background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 0.4rem 0.85rem; cursor: pointer; transition: all 0.15s; }
+  .btn-resend:hover { background: var(--accent); color: var(--navy); }
+  .btn-resend:disabled { opacity: 0.5; cursor: not-allowed; }
   .auth-divider { display: flex; align-items: center; gap: 1rem; margin: 1.5rem 0; }
   .auth-divider::before, .auth-divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
   .auth-divider span { font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
   .auth-switch { text-align: center; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.06em; color: var(--muted); }
   .auth-switch a { color: var(--accent); text-decoration: none; }
   .auth-switch a:hover { text-decoration: underline; }
-  .error-box { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .error-box { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; line-height: 1.5; }
   .error-box.visible { display: block; }
-  .info-box { background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .error-box.amber { background: rgba(245,166,35,0.08); border-color: rgba(245,166,35,0.3); color: var(--amber); }
+  .info-box { background: rgba(0,212,255,0.05); border: 1px solid rgba(0,212,255,0.25); color: var(--accent); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; line-height: 1.5; }
   .info-box.visible { display: block; }
+  .info-box.green { background: rgba(0,255,157,0.05); border-color: rgba(0,255,157,0.3); color: var(--accent2); }
   footer { border-top: 1px solid var(--border); padding: 1.25rem 3rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); }
   footer a { color: var(--muted); text-decoration: none; }
   footer a:hover { color: var(--accent); }
@@ -116,23 +129,34 @@
     <p class="auth-sub">Access your PDUFA scanner, watchlist, and alerts.</p>
 
     <div class="auth-card">
-      <div class="error-box" id="error-box"></div>
-      <div class="info-box"  id="info-box"></div>
+      <div class="error-box" id="error-box">
+        <div id="error-text"></div>
+        <button type="button" class="btn-resend" id="resend-btn" style="display:none;">↻ Resend confirmation email</button>
+      </div>
+      <div class="info-box" id="info-box"></div>
 
       <form id="login-form" novalidate>
         <div class="form-group">
           <label class="form-label" for="email">Email Address</label>
           <input class="form-input" type="email" id="email" name="email"
-                 placeholder="you@example.com" autocomplete="email" required />
+                 placeholder="you@example.com" autocomplete="email"
+                 inputmode="email" autocapitalize="off" autocorrect="off"
+                 spellcheck="false" required />
         </div>
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
-          <input class="form-input" type="password" id="password" name="password"
-                 placeholder="••••••••" autocomplete="current-password" required />
+          <div class="form-label-row">
+            <label class="form-label" for="password">Password</label>
+            <span class="form-caps-warn" id="caps-warn">⚠ Caps Lock is on</span>
+          </div>
+          <div class="input-wrap">
+            <input class="form-input password" type="password" id="password" name="password"
+                   placeholder="••••••••" autocomplete="current-password" required />
+            <button type="button" class="show-pw-btn" id="show-pw-btn" aria-label="Show password">SHOW</button>
+          </div>
         </div>
         <div class="form-footer">
           <span></span>
-          <a href="/forgot-password.html" class="form-forgot">Forgot password?</a>
+          <a href="/forgot-password.html" class="form-forgot" id="forgot-link">Forgot password?</a>
         </div>
         <button type="submit" class="btn-submit" id="submit-btn">Sign In</button>
       </form>
@@ -152,19 +176,40 @@
 </footer>
 
 <script>
-  const errorBox  = document.getElementById('error-box');
-  const infoBox   = document.getElementById('info-box');
-  const submitBtn = document.getElementById('submit-btn');
+  const errorBox   = document.getElementById('error-box');
+  const errorText  = document.getElementById('error-text');
+  const infoBox    = document.getElementById('info-box');
+  const submitBtn  = document.getElementById('submit-btn');
+  const emailInput = document.getElementById('email');
+  const passInput  = document.getElementById('password');
+  const showPwBtn  = document.getElementById('show-pw-btn');
+  const capsWarn   = document.getElementById('caps-warn');
+  const forgotLink = document.getElementById('forgot-link');
+  const resendBtn  = document.getElementById('resend-btn');
 
-  function showError(msg) {
-    errorBox.textContent = msg;
+  // ─── Display helpers ───────────────────────────────────────────────────
+  function showError(msg, opts) {
+    opts = opts || {};
+    errorText.textContent = msg;
     errorBox.classList.add('visible');
+    errorBox.classList.toggle('amber', !!opts.amber);
     infoBox.classList.remove('visible');
+    resendBtn.style.display = opts.showResend ? 'inline-block' : 'none';
+    if (opts.elevateForgot) forgotLink.classList.add('elevated');
   }
-  function showInfo(msg) {
+  function showInfo(msg, opts) {
+    opts = opts || {};
     infoBox.textContent = msg;
     infoBox.classList.add('visible');
+    infoBox.classList.toggle('green', !!opts.green);
     errorBox.classList.remove('visible');
+    resendBtn.style.display = 'none';
+  }
+  function clearMessages() {
+    errorBox.classList.remove('visible');
+    infoBox.classList.remove('visible');
+    resendBtn.style.display = 'none';
+    forgotLink.classList.remove('elevated');
   }
   function resetBtn() {
     submitBtn.textContent = 'Sign In';
@@ -172,12 +217,125 @@
     submitBtn.style.opacity = '1';
   }
 
-  // Poll for session to be persisted before redirecting. This is the real
-  // fix: signInWithPassword can resolve before localStorage is written, and
-  // if we navigate to /dashboard.html too fast, its auth guard sees no
-  // session and bounces back here — which manifests as the Sign In button
-  // appearing to hang on "Signing in...". We poll getSession() every 100ms
-  // up to 3 seconds, only navigating once the session is readable.
+  // ─── Show/hide password ────────────────────────────────────────────────
+  showPwBtn.addEventListener('click', function() {
+    if (passInput.type === 'password') {
+      passInput.type = 'text';
+      showPwBtn.textContent = 'HIDE';
+      showPwBtn.setAttribute('aria-label', 'Hide password');
+    } else {
+      passInput.type = 'password';
+      showPwBtn.textContent = 'SHOW';
+      showPwBtn.setAttribute('aria-label', 'Show password');
+    }
+    passInput.focus();
+  });
+
+  // ─── Caps Lock detection ───────────────────────────────────────────────
+  // Listen on both inputs because some browsers only fire keydown when
+  // focus is on a field. We only display the warning when the password
+  // field is active to avoid alarming users typing their email.
+  function checkCaps(e) {
+    if (typeof e.getModifierState !== 'function') return;
+    const on = e.getModifierState('CapsLock');
+    if (on && document.activeElement === passInput) {
+      capsWarn.classList.add('visible');
+    } else {
+      capsWarn.classList.remove('visible');
+    }
+  }
+  passInput.addEventListener('keydown', checkCaps);
+  passInput.addEventListener('keyup', checkCaps);
+  passInput.addEventListener('blur', () => capsWarn.classList.remove('visible'));
+
+  // ─── Auto-focus email field on load ────────────────────────────────────
+  // Skip auto-focus if there's a value (e.g. browser autofilled) — let the
+  // user see what was prefilled before we steal focus.
+  window.addEventListener('load', function() {
+    setTimeout(function() {
+      if (!emailInput.value) emailInput.focus();
+    }, 100);
+  });
+
+  // ─── Granular Supabase error mapping ───────────────────────────────────
+  // Supabase generic "Invalid login credentials" doesn't tell users if
+  // the email or the password is wrong (intentional, prevents enumeration).
+  // We still surface friendlier messaging for the cases we CAN detect.
+  function mapSupabaseError(err) {
+    const msg = String(err?.message || err || '').toLowerCase();
+    const status = err?.status || 0;
+
+    if (msg.includes('email not confirmed') || msg.includes('not confirmed') || msg.includes('email_not_confirmed')) {
+      return {
+        text: 'Your email isn\'t confirmed yet. Check your inbox for the confirmation link, or click below to resend.',
+        showResend: true,
+        amber: true,
+      };
+    }
+    if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials') || msg.includes('invalid email or password')) {
+      return {
+        text: 'Wrong email or password. If you forgot it, click "Forgot password?" to reset.',
+        elevateForgot: true,
+      };
+    }
+    if (msg.includes('rate limit') || msg.includes('too many') || status === 429) {
+      return {
+        text: 'Too many sign-in attempts. Wait 60 seconds and try again, or reset your password.',
+        amber: true,
+        elevateForgot: true,
+      };
+    }
+    if (msg.includes('user not found') || msg.includes('no user')) {
+      return {
+        text: 'No account found with that email. Want to create one?',
+        amber: true,
+      };
+    }
+    if (msg.includes('network') || msg.includes('failed to fetch')) {
+      return {
+        text: 'Cannot reach the authentication server. Your Supabase project may be paused — try again in a few seconds.',
+      };
+    }
+    if (msg === 'timeout') {
+      return {
+        text: 'Authentication timed out after 15 seconds. Supabase may be warming up — wait 30 seconds and try again.',
+      };
+    }
+    return { text: err?.message || 'Sign-in failed. Please try again.' };
+  }
+
+  // ─── Resend confirmation email ─────────────────────────────────────────
+  resendBtn.addEventListener('click', async function() {
+    const email = emailInput.value.trim();
+    if (!email) {
+      showError('Enter your email above first, then click Resend.');
+      return;
+    }
+    const sb = (typeof getSupabase === 'function') ? getSupabase() : null;
+    if (!sb) {
+      showError('Service unavailable. Refresh the page and try again.');
+      return;
+    }
+    resendBtn.disabled = true;
+    resendBtn.textContent = 'Sending...';
+    try {
+      const { error } = await sb.auth.resend({ type: 'signup', email });
+      if (error) throw error;
+      showInfo('Confirmation email sent. Check your inbox (and spam folder).', { green: true });
+    } catch (err) {
+      showError('Could not resend: ' + (err.message || 'unknown error'));
+    } finally {
+      setTimeout(function() {
+        resendBtn.disabled = false;
+        resendBtn.textContent = '↻ Resend confirmation email';
+      }, 3000);
+    }
+  });
+
+  // ─── Session-persistence poll (preserved from previous version) ────────
+  // signInWithPassword can resolve before localStorage is written. If we
+  // navigate before that, the dashboard auth guard sees no session and
+  // bounces back here. Poll up to 3s before navigating.
   async function waitForSessionAndRedirect(sb, destination) {
     for (let i = 0; i < 30; i++) {
       try {
@@ -192,7 +350,7 @@
     return false;
   }
 
-  // If already signed in, skip straight to dashboard
+  // ─── Already-signed-in auto-redirect ───────────────────────────────────
   if (typeof scGetSession === 'function') {
     scGetSession()
       .then(session => {
@@ -204,21 +362,26 @@
       .catch(err => console.warn('[SC Login] session check error:', err));
   }
 
+  // ─── Submit handler ────────────────────────────────────────────────────
   document.getElementById('login-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    errorBox.classList.remove('visible');
-    infoBox.classList.remove('visible');
+    clearMessages();
 
-    const email    = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
+    const email    = emailInput.value.trim();
+    const password = passInput.value;
 
     if (!email || !password) {
       showError('Email and password required.');
       return;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError('That doesn\'t look like a valid email. Check for typos.');
+      emailInput.focus();
+      return;
+    }
 
-    submitBtn.textContent  = 'Signing in...';
-    submitBtn.disabled     = true;
+    submitBtn.textContent = 'Signing in...';
+    submitBtn.disabled    = true;
     submitBtn.style.opacity = '0.7';
 
     const sb = (typeof getSupabase === 'function') ? getSupabase() : null;
@@ -228,7 +391,6 @@
       return;
     }
 
-    // 15s timeout so the button never hangs forever silently
     const timeout = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('timeout')), 15000)
     );
@@ -241,7 +403,13 @@
       const { data, error } = result;
 
       if (error) {
-        showError(error.message || 'Invalid email or password.');
+        const mapped = mapSupabaseError(error);
+        showError(mapped.text, mapped);
+        // Clear password + refocus on it after a credential error.
+        if (/wrong email|invalid|rate limit/i.test(mapped.text)) {
+          passInput.value = '';
+          passInput.focus();
+        }
         resetBtn();
         return;
       }
@@ -254,17 +422,12 @@
       submitBtn.textContent = 'Loading dashboard...';
       const ok = await waitForSessionAndRedirect(sb, '/dashboard.html');
       if (!ok) {
-        showError('Signed in, but session did not persist to this browser. Try clearing cookies, disabling any browser extension blocking cookies, or switching browsers.');
+        showError('Signed in, but session did not persist. Try clearing cookies, disabling browser extensions that block cookies, or switching browsers.');
         resetBtn();
       }
     } catch (err) {
-      if (err.message === 'timeout') {
-        showError('Authentication timed out after 15 seconds. Supabase may still be warming up from a restore — wait 60 seconds and try again.');
-      } else if (err.message === 'Failed to fetch') {
-        showError('Cannot reach the authentication server. Your Supabase project may be paused — check the dashboard.');
-      } else {
-        showError('Connection error: ' + err.message);
-      }
+      const mapped = mapSupabaseError(err);
+      showError(mapped.text, mapped);
       resetBtn();
     }
   });
