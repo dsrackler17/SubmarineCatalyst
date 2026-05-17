@@ -32,47 +32,12 @@
     --sans:    'DM Sans', sans-serif;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--navy);
-    color: var(--text);
-    font-family: var(--sans);
-    font-size: 16px;
-    line-height: 1.6;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    opacity: 0.4;
-    pointer-events: none;
-    z-index: 0;
-  }
+  body { background: var(--navy); color: var(--text); font-family: var(--sans); font-size: 16px; line-height: 1.6; min-height: 100vh; display: flex; flex-direction: column; }
+  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+  body::after { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); opacity: 0.4; pointer-events: none; z-index: 0; }
   nav, main, footer { position: relative; z-index: 1; }
 
-  nav {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.25rem 3rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(4,13,26,0.85);
-    backdrop-filter: blur(12px);
-  }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 3rem; border-bottom: 1px solid var(--border); background: rgba(4,13,26,0.85); backdrop-filter: blur(12px); }
   .nav-logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
   .sonar-icon { width: 32px; height: 32px; }
   .sonar-icon svg { width: 100%; height: 100%; }
@@ -84,14 +49,7 @@
 
   main { flex: 1; display: flex; align-items: center; justify-content: center; padding: 4rem 2rem; }
 
-  .signup-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    max-width: 900px;
-    width: 100%;
-    animation: fadeUp 0.6s ease both;
-  }
+  .signup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; max-width: 900px; width: 100%; animation: fadeUp 0.6s ease both; }
   @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
 
   .value-side { padding-top: 0.5rem; }
@@ -114,10 +72,37 @@
   .auth-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); }
 
   .form-group { margin-bottom: 1.1rem; }
-  .form-label { display: block; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.5rem; }
+  .form-label-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; }
+  .form-label { display: block; font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+  .form-caps-warn { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.08em; color: var(--amber); display: none; align-items: center; gap: 0.3rem; }
+  .form-caps-warn.visible { display: inline-flex; }
+  .input-wrap { position: relative; }
   .form-input { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--white); font-family: var(--mono); font-size: 0.85rem; padding: 0.75rem 1rem; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .form-input.password { padding-right: 3rem; }
   .form-input::placeholder { color: var(--muted); }
   .form-input:focus { border-color: var(--accent); }
+  .show-pw-btn { position: absolute; right: 0.6rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; padding: 0.3rem 0.5rem; transition: color 0.15s; }
+  .show-pw-btn:hover { color: var(--accent); }
+
+  /* Password strength meter */
+  .pw-strength { margin-top: 0.5rem; display: none; }
+  .pw-strength.visible { display: block; }
+  .pw-strength-bar { height: 3px; background: var(--border); position: relative; overflow: hidden; }
+  .pw-strength-fill { height: 100%; width: 0%; background: var(--red); transition: width 0.2s, background 0.2s; }
+  .pw-strength-fill.fair   { background: var(--amber); }
+  .pw-strength-fill.good   { background: var(--accent); }
+  .pw-strength-fill.strong { background: var(--accent2); }
+  .pw-strength-label { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; color: var(--muted); margin-top: 0.3rem; display: flex; justify-content: space-between; }
+  .pw-strength-label .level { color: var(--muted); }
+  .pw-strength-label .level.fair   { color: var(--amber); }
+  .pw-strength-label .level.good   { color: var(--accent); }
+  .pw-strength-label .level.strong { color: var(--accent2); }
+
+  /* Match indicator */
+  .pw-match { margin-top: 0.4rem; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.04em; display: none; }
+  .pw-match.visible { display: block; }
+  .pw-match.matches    { color: var(--accent2); }
+  .pw-match.mismatches { color: var(--amber); }
 
   .tos-row { display: flex; align-items: flex-start; gap: 0.75rem; margin: 1.25rem 0; }
   .tos-row input[type="checkbox"] { margin-top: 0.15rem; accent-color: var(--accent); cursor: pointer; flex-shrink: 0; width: 14px; height: 14px; }
@@ -128,6 +113,8 @@
   .btn-submit { display: block; width: 100%; font-family: var(--mono); font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; background: var(--accent); color: var(--navy); border: none; padding: 0.9rem; cursor: pointer; font-weight: 700; transition: opacity 0.2s; clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px)); }
   .btn-submit:disabled { opacity: 0.4; cursor: not-allowed; }
   .btn-submit:not(:disabled):hover { opacity: 0.85; }
+  .btn-inline { display: inline-block; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; background: transparent; border: 1px solid var(--accent); color: var(--accent); padding: 0.35rem 0.8rem; text-decoration: none; margin-top: 0.5rem; }
+  .btn-inline:hover { background: var(--accent); color: var(--navy); }
 
   .auth-note { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); text-align: center; margin-top: 0.75rem; letter-spacing: 0.04em; }
 
@@ -138,9 +125,10 @@
   .auth-switch a { color: var(--accent); text-decoration: none; }
   .auth-switch a:hover { text-decoration: underline; }
 
-  .error-box { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .error-box { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; line-height: 1.5; }
   .error-box.visible { display: block; }
-  .success-box { background: rgba(0,255,157,0.08); border: 1px solid rgba(0,255,157,0.3); color: var(--accent2); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; }
+  .error-box.amber { background: rgba(245,166,35,0.08); border-color: rgba(245,166,35,0.3); color: var(--amber); }
+  .success-box { background: rgba(0,255,157,0.08); border: 1px solid rgba(0,255,157,0.3); color: var(--accent2); font-family: var(--mono); font-size: 0.72rem; padding: 0.75rem 1rem; margin-bottom: 1.25rem; display: none; letter-spacing: 0.04em; line-height: 1.5; }
   .success-box.visible { display: block; }
 
   footer { border-top: 1px solid var(--border); padding: 1.25rem 3rem; display: flex; align-items: center; justify-content: space-between; font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em; color: var(--muted); background: var(--deep); position: relative; z-index: 1; }
@@ -162,12 +150,8 @@
         <circle cx="16" cy="16" r="5"  stroke="#1a3a5c" stroke-width="0.75"/>
         <circle cx="16" cy="16" r="2"  fill="#00d4ff"/>
         <line x1="16" y1="16" x2="24" y2="4" stroke="#00d4ff" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="24" cy="4" r="1.5" fill="#00ff9d">
-          <animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/>
-        </circle>
-        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3">
-          <animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/>
-        </path>
+        <circle cx="24" cy="4" r="1.5" fill="#00ff9d"><animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/></circle>
+        <path d="M16 16 A10 10 0 0 1 26 16" stroke="#00d4ff" stroke-width="0.75" opacity="0.3"><animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/></path>
       </svg>
     </div>
     <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
@@ -189,7 +173,7 @@
         <li>AI Research Module — deep dives on any ticker with price scenarios</li>
         <li>Compare tool — side-by-side analysis of 2–4 companies</li>
         <li>9-tab catalyst calendar: PDUFA, Earnings, Buyout Factors, CMC Recovery, Dilution Watch</li>
-        <li>Full track record — 6/6 resolved calls correct, outcomes logged transparently</li>
+        <li>Full track record — outcomes logged transparently</li>
       </ul>
       <div class="price-tag">
         <span class="price-dollar">$</span>
@@ -199,21 +183,46 @@
     </div>
 
     <div class="auth-card">
-      <div class="error-box" id="error-box"></div>
+      <div class="error-box" id="error-box">
+        <div id="error-text"></div>
+        <a href="/login.html" class="btn-inline" id="signin-shortcut" style="display:none;">Sign in instead →</a>
+      </div>
       <div class="success-box" id="success-box"></div>
 
       <form id="signup-form" novalidate>
         <div class="form-group">
           <label class="form-label" for="email">Email Address</label>
-          <input class="form-input" type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+          <input class="form-input" type="email" id="email" name="email"
+                 placeholder="you@example.com" autocomplete="email"
+                 inputmode="email" autocapitalize="off" autocorrect="off"
+                 spellcheck="false" required />
         </div>
         <div class="form-group">
-          <label class="form-label" for="password">Password</label>
-          <input class="form-input" type="password" id="password" name="password" placeholder="Min. 8 characters" autocomplete="new-password" required minlength="8" />
+          <div class="form-label-row">
+            <label class="form-label" for="password">Password</label>
+            <span class="form-caps-warn" id="caps-warn">⚠ Caps Lock is on</span>
+          </div>
+          <div class="input-wrap">
+            <input class="form-input password" type="password" id="password" name="password"
+                   placeholder="Min. 8 characters" autocomplete="new-password" required minlength="8" />
+            <button type="button" class="show-pw-btn" id="show-pw-btn" aria-label="Show password">SHOW</button>
+          </div>
+          <div class="pw-strength" id="pw-strength">
+            <div class="pw-strength-bar"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+            <div class="pw-strength-label">
+              <span class="level" id="pw-strength-level">Weak</span>
+              <span id="pw-strength-hint" style="color:var(--muted);"></span>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label" for="confirm">Confirm Password</label>
-          <input class="form-input" type="password" id="confirm" name="confirm" placeholder="Repeat password" autocomplete="new-password" required />
+          <div class="input-wrap">
+            <input class="form-input password" type="password" id="confirm" name="confirm"
+                   placeholder="Repeat password" autocomplete="new-password" required />
+            <button type="button" class="show-pw-btn" id="show-confirm-btn" aria-label="Show password">SHOW</button>
+          </div>
+          <div class="pw-match" id="pw-match"></div>
         </div>
         <div class="tos-row">
           <input type="checkbox" id="tos-agree">
@@ -242,47 +251,205 @@
 </footer>
 
 <script>
-  // Redirect if already logged in
-  scGetSession().then(session => {
-    if (session) window.location.href = '/dashboard.html';
+  // ─── DOM refs ──────────────────────────────────────────────────────────
+  const errorBox   = document.getElementById('error-box');
+  const errorText  = document.getElementById('error-text');
+  const successBox = document.getElementById('success-box');
+  const submitBtn  = document.getElementById('submit-btn');
+  const tosBox     = document.getElementById('tos-agree');
+  const emailInput = document.getElementById('email');
+  const passInput  = document.getElementById('password');
+  const confInput  = document.getElementById('confirm');
+  const showPwBtn  = document.getElementById('show-pw-btn');
+  const showConfBtn = document.getElementById('show-confirm-btn');
+  const capsWarn   = document.getElementById('caps-warn');
+  const signinShortcut = document.getElementById('signin-shortcut');
+  const strengthWrap = document.getElementById('pw-strength');
+  const strengthFill = document.getElementById('pw-strength-fill');
+  const strengthLevel = document.getElementById('pw-strength-level');
+  const strengthHint = document.getElementById('pw-strength-hint');
+  const matchEl    = document.getElementById('pw-match');
+
+  // ─── Already signed in → straight to dashboard ─────────────────────────
+  if (typeof scGetSession === 'function') {
+    scGetSession().then(session => {
+      if (session) window.location.href = '/dashboard.html';
+    }).catch(() => {});
+  }
+
+  // ─── Submit gate (TOS only initially; password validity also enforced) ─
+  function refreshSubmitGate() {
+    const passValid = passInput.value.length >= 8;
+    const matchOK = confInput.value === passInput.value && confInput.value.length > 0;
+    submitBtn.disabled = !(tosBox.checked && passValid && matchOK);
+  }
+  tosBox.addEventListener('change', refreshSubmitGate);
+
+  // ─── Show/hide password ────────────────────────────────────────────────
+  function togglePw(input, btn) {
+    if (input.type === 'password') {
+      input.type = 'text';
+      btn.textContent = 'HIDE';
+    } else {
+      input.type = 'password';
+      btn.textContent = 'SHOW';
+    }
+    input.focus();
+  }
+  showPwBtn.addEventListener('click', () => togglePw(passInput, showPwBtn));
+  showConfBtn.addEventListener('click', () => togglePw(confInput, showConfBtn));
+
+  // ─── Caps Lock detection on both password fields ───────────────────────
+  function checkCaps(e) {
+    if (typeof e.getModifierState !== 'function') return;
+    const on = e.getModifierState('CapsLock');
+    const focused = document.activeElement === passInput || document.activeElement === confInput;
+    capsWarn.classList.toggle('visible', on && focused);
+  }
+  [passInput, confInput].forEach(el => {
+    el.addEventListener('keydown', checkCaps);
+    el.addEventListener('keyup', checkCaps);
+    el.addEventListener('blur', () => {
+      if (document.activeElement !== passInput && document.activeElement !== confInput) {
+        capsWarn.classList.remove('visible');
+      }
+    });
   });
 
-  const tosCheckbox = document.getElementById('tos-agree');
-  const submitBtn   = document.getElementById('submit-btn');
-
-  tosCheckbox.addEventListener('change', () => {
-    submitBtn.disabled = !tosCheckbox.checked;
+  // ─── Auto-focus email on load ──────────────────────────────────────────
+  window.addEventListener('load', () => {
+    setTimeout(() => { if (!emailInput.value) emailInput.focus(); }, 100);
   });
 
+  // ─── Password strength meter ───────────────────────────────────────────
+  function computeStrength(pw) {
+    if (!pw) return { pct: 0, level: 'weak', label: 'Weak', hint: '' };
+    let score = 0;
+    const hints = [];
+    if (pw.length >= 8) score++;
+    else hints.push('8+ chars');
+    if (pw.length >= 12) score++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    else if (pw.length >= 8) hints.push('mixed case');
+    if (/\d/.test(pw)) score++;
+    else if (pw.length >= 8) hints.push('a number');
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+
+    let pct, level, label;
+    if (score <= 1)      { pct =  20; level = 'weak';   label = 'Weak'; }
+    else if (score == 2) { pct =  45; level = 'fair';   label = 'Fair'; }
+    else if (score == 3) { pct =  70; level = 'good';   label = 'Good'; }
+    else                 { pct = 100; level = 'strong'; label = 'Strong'; }
+    return { pct, level, label, hint: hints.length ? 'add ' + hints.slice(0, 2).join(', ') : '' };
+  }
+
+  passInput.addEventListener('input', () => {
+    const pw = passInput.value;
+    if (!pw) {
+      strengthWrap.classList.remove('visible');
+    } else {
+      strengthWrap.classList.add('visible');
+      const s = computeStrength(pw);
+      strengthFill.style.width = s.pct + '%';
+      strengthFill.className = 'pw-strength-fill ' + s.level;
+      strengthLevel.textContent = s.label;
+      strengthLevel.className = 'level ' + s.level;
+      strengthHint.textContent = s.hint;
+    }
+    updateMatch();
+    refreshSubmitGate();
+  });
+
+  // ─── Live password match indicator ─────────────────────────────────────
+  function updateMatch() {
+    if (!confInput.value) {
+      matchEl.classList.remove('visible');
+      return;
+    }
+    matchEl.classList.add('visible');
+    if (confInput.value === passInput.value) {
+      matchEl.textContent = '✓ Passwords match';
+      matchEl.className = 'pw-match visible matches';
+    } else {
+      matchEl.textContent = '✗ Passwords don\'t match yet';
+      matchEl.className = 'pw-match visible mismatches';
+    }
+  }
+  confInput.addEventListener('input', () => { updateMatch(); refreshSubmitGate(); });
+
+  // ─── Granular signup error mapping ─────────────────────────────────────
+  function mapSignupError(err) {
+    const msg = String(err?.message || err || '').toLowerCase();
+    const status = err?.status || 0;
+
+    if (msg.includes('already registered') || msg.includes('already in use') || msg.includes('user already exists')) {
+      return {
+        text: 'An account with that email already exists.',
+        showSigninShortcut: true,
+        amber: true,
+      };
+    }
+    if (msg.includes('rate limit') || msg.includes('too many') || status === 429) {
+      return {
+        text: 'Too many signup attempts from this network. Wait 60 seconds and try again.',
+        amber: true,
+      };
+    }
+    if (msg.includes('invalid') && msg.includes('email')) {
+      return { text: 'That email format isn\'t valid. Check for typos.' };
+    }
+    if (msg.includes('password') && msg.includes('characters')) {
+      return { text: 'Password too short. Use at least 8 characters.' };
+    }
+    if (msg.includes('signup') && (msg.includes('disabled') || msg.includes('not allowed'))) {
+      return { text: 'Signups are temporarily paused. Email dsrackler@gmail.com for early access.' };
+    }
+    if (msg.includes('network') || msg.includes('failed to fetch')) {
+      return { text: 'Cannot reach the signup server. Check your connection and try again.' };
+    }
+    return { text: err?.message || 'Signup failed. Please try again.' };
+  }
+  function showError(opts) {
+    errorText.textContent = opts.text;
+    errorBox.classList.add('visible');
+    errorBox.classList.toggle('amber', !!opts.amber);
+    successBox.classList.remove('visible');
+    signinShortcut.style.display = opts.showSigninShortcut ? 'inline-block' : 'none';
+  }
+
+  // ─── Submit ────────────────────────────────────────────────────────────
   document.getElementById('signup-form').addEventListener('submit', async function(e) {
     e.preventDefault();
-    const errorBox   = document.getElementById('error-box');
-    const successBox = document.getElementById('success-box');
     errorBox.classList.remove('visible');
     successBox.classList.remove('visible');
+    signinShortcut.style.display = 'none';
 
-    const email    = document.getElementById('email').value.trim();
-    const password = document.getElementById('password').value;
-    const confirm  = document.getElementById('confirm').value;
+    const email    = emailInput.value.trim();
+    const password = passInput.value;
+    const confirm  = confInput.value;
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      showError({ text: 'That doesn\'t look like a valid email. Check for typos.' });
+      emailInput.focus();
+      return;
+    }
     if (password.length < 8) {
-      errorBox.textContent = 'Password must be at least 8 characters.';
-      errorBox.classList.add('visible');
+      showError({ text: 'Password must be at least 8 characters.' });
+      passInput.focus();
       return;
     }
     if (password !== confirm) {
-      errorBox.textContent = 'Passwords do not match.';
-      errorBox.classList.add('visible');
+      showError({ text: 'Passwords don\'t match.' });
+      confInput.focus();
       return;
     }
 
     submitBtn.textContent = 'Creating account...';
     submitBtn.disabled    = true;
 
-    const sb = getSupabase();
+    const sb = (typeof getSupabase === 'function') ? getSupabase() : null;
     if (!sb) {
-      errorBox.textContent = 'Service unavailable. Please try again in a moment.';
-      errorBox.classList.add('visible');
+      showError({ text: 'Service unavailable. Please refresh the page.' });
       submitBtn.textContent = 'Create Account & Subscribe';
       submitBtn.disabled = false;
       return;
@@ -292,20 +459,18 @@
       const { data, error } = await sb.auth.signUp({ email, password });
 
       if (error) {
-        errorBox.textContent = error.message || 'Signup failed. Please try again.';
-        errorBox.classList.add('visible');
+        showError(mapSignupError(error));
         submitBtn.textContent = 'Create Account & Subscribe';
-        submitBtn.disabled = false;
+        refreshSubmitGate();
         return;
       }
 
-      successBox.textContent = '✓ Account created. Redirecting to payment...';
+      successBox.textContent = '✓ Account created. Redirecting to payment — don\'t refresh this page.';
       successBox.classList.add('visible');
+      submitBtn.textContent = 'Redirecting...';
 
       // Redirect to Stripe Payment Link with user context.
       // client_reference_id is what the stripe-webhook uses to flip profiles.is_paid.
-      // prefilled_email auto-fills the Stripe Checkout email field (requires
-      // "Pre-fill checkout fields → Email" to be ON in the Payment Link settings).
       const userId = data.user?.id;
       const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/14A00i2zoaeN0YuaT88IU03';
       const checkoutUrl = new URL(STRIPE_PAYMENT_LINK);
@@ -314,10 +479,9 @@
       setTimeout(() => { window.location.href = checkoutUrl.toString(); }, 1200);
 
     } catch (err) {
-      errorBox.textContent = 'Connection error. Please check your internet and try again.';
-      errorBox.classList.add('visible');
+      showError(mapSignupError(err));
       submitBtn.textContent = 'Create Account & Subscribe';
-      submitBtn.disabled = false;
+      refreshSubmitGate();
     }
   });
 </script>
