@@ -124,6 +124,33 @@
   footer a:hover { color: var(--accent); }
   @media (max-width: 1024px) { .dash-layout { grid-template-columns: 1fr; } .sidebar { display: none; } .stat-strip { grid-template-columns: 1fr 1fr; } .account-grid { grid-template-columns: 1fr; } }
   @media (max-width: 640px) { .scanner-grid { grid-template-columns: 1fr; } nav { padding: 0.9rem 1.25rem; } }
+
+  /* Password change panel */
+  #password-panel { margin-bottom: 2rem; }
+  .pw-msg { font-family: var(--mono); font-size: 0.7rem; padding: 0.7rem 1rem; margin-bottom: 1rem; letter-spacing: 0.04em; line-height: 1.5; }
+  .pw-msg-error { background: rgba(255,68,68,0.08); border: 1px solid rgba(255,68,68,0.3); color: var(--red); }
+  .pw-msg-success { background: rgba(0,255,157,0.08); border: 1px solid rgba(0,255,157,0.3); color: var(--accent2); }
+  .pw-input-wrap { position: relative; }
+  .pw-input { width: 100%; background: var(--panel); border: 1px solid var(--border); color: var(--white); font-family: var(--mono); font-size: 0.82rem; padding: 0.65rem 3.2rem 0.65rem 0.85rem; outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .pw-input::placeholder { color: var(--muted); }
+  .pw-input:focus { border-color: var(--accent); }
+  .pw-show-btn { position: absolute; right: 0.5rem; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); cursor: pointer; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.08em; padding: 0.25rem 0.45rem; transition: color 0.15s; }
+  .pw-show-btn:hover { color: var(--accent); }
+  .pw-caps-warn { font-family: var(--mono); font-size: 0.55rem; letter-spacing: 0.08em; color: var(--amber); }
+  .pw-strength { margin-top: 0.4rem; display: none; }
+  .pw-strength-bar { height: 3px; background: var(--border); overflow: hidden; }
+  .pw-strength-fill { height: 100%; width: 0%; background: var(--red); transition: width 0.2s, background 0.2s; }
+  .pw-strength-fill.fair   { background: var(--amber); }
+  .pw-strength-fill.good   { background: var(--accent); }
+  .pw-strength-fill.strong { background: var(--accent2); }
+  .pw-strength-label { font-family: var(--mono); font-size: 0.58rem; letter-spacing: 0.08em; color: var(--muted); margin-top: 0.25rem; display: flex; justify-content: space-between; }
+  .pw-strength-label .fair   { color: var(--amber); }
+  .pw-strength-label .good   { color: var(--accent); }
+  .pw-strength-label .strong { color: var(--accent2); }
+  .pw-match { margin-top: 0.35rem; font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.04em; display: none; }
+  .pw-match.matches    { color: var(--accent2); }
+  .pw-match.mismatches { color: var(--amber); }
+  #password-panel .account-field-label { display: flex; align-items: center; justify-content: space-between; }
 </style>
 </head>
 <body>
@@ -334,6 +361,57 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <!-- Change Password Panel -->
+      <div class="account-panel" id="password-panel">
+        <div style="font-family:var(--mono);font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;">Change Password</div>
+        <div class="pw-msg pw-msg-error" id="pw-msg-error" style="display:none;"></div>
+        <div class="pw-msg pw-msg-success" id="pw-msg-success" style="display:none;"></div>
+        <form id="pw-change-form" novalidate>
+          <div class="account-grid">
+            <div>
+              <div class="account-field">
+                <div class="account-field-label"><span>Current Password</span></div>
+                <div class="pw-input-wrap">
+                  <input type="password" id="pw-current" class="pw-input" autocomplete="current-password" placeholder="Enter current password" required />
+                  <button type="button" class="pw-show-btn" data-target="pw-current" aria-label="Show password">SHOW</button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <div class="account-field">
+                <div class="account-field-label">
+                  <span>New Password</span>
+                  <span class="pw-caps-warn" id="pw-caps-warn" style="display:none;">⚠ Caps Lock</span>
+                </div>
+                <div class="pw-input-wrap">
+                  <input type="password" id="pw-new" class="pw-input" autocomplete="new-password" placeholder="Min. 8 characters" required minlength="8" />
+                  <button type="button" class="pw-show-btn" data-target="pw-new" aria-label="Show password">SHOW</button>
+                </div>
+                <div class="pw-strength" id="pw-strength">
+                  <div class="pw-strength-bar"><div class="pw-strength-fill" id="pw-strength-fill"></div></div>
+                  <div class="pw-strength-label">
+                    <span id="pw-strength-level">Weak</span>
+                    <span id="pw-strength-hint"></span>
+                  </div>
+                </div>
+              </div>
+              <div class="account-field" style="margin-top:1rem;">
+                <div class="account-field-label"><span>Confirm New Password</span></div>
+                <div class="pw-input-wrap">
+                  <input type="password" id="pw-confirm" class="pw-input" autocomplete="new-password" placeholder="Repeat new password" required />
+                  <button type="button" class="pw-show-btn" data-target="pw-confirm" aria-label="Show password">SHOW</button>
+                </div>
+                <div class="pw-match" id="pw-match"></div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:1.25rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;">
+            <button type="submit" class="btn-portal" id="pw-submit-btn" disabled style="opacity:0.4;">Update Password</button>
+            <span style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);letter-spacing:0.04em;">Signs you out on other devices after update.</span>
+          </div>
+        </form>
       </div>
 
       <div style="background:var(--surface);border:1px solid var(--border);padding:1.25rem 1.5rem;margin-bottom:2rem;">
@@ -2046,6 +2124,185 @@ function renderPRScanner() {
     '</div>';
   }).join('');
 }
+</script>
+<script>
+// ═══════════════════════════════════════════════════════════════════════════
+// Change Password — wires up the panel in the Account & Billing tab.
+// Flow: verify current pw via signInWithPassword → then updateUser({password})
+// ═══════════════════════════════════════════════════════════════════════════
+(function() {
+  var pwForm = document.getElementById('pw-change-form');
+  if (!pwForm) return;
+  var currentInput   = document.getElementById('pw-current');
+  var newInput       = document.getElementById('pw-new');
+  var confInput      = document.getElementById('pw-confirm');
+  var submitBtn      = document.getElementById('pw-submit-btn');
+  var errMsg         = document.getElementById('pw-msg-error');
+  var okMsg          = document.getElementById('pw-msg-success');
+  var capsWarn       = document.getElementById('pw-caps-warn');
+  var strengthWrap   = document.getElementById('pw-strength');
+  var strengthFill   = document.getElementById('pw-strength-fill');
+  var strengthLevel  = document.getElementById('pw-strength-level');
+  var strengthHint   = document.getElementById('pw-strength-hint');
+  var matchEl        = document.getElementById('pw-match');
+
+  // Show/hide toggles
+  document.querySelectorAll('.pw-show-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var input = document.getElementById(btn.getAttribute('data-target'));
+      if (!input) return;
+      if (input.type === 'password') { input.type = 'text';     btn.textContent = 'HIDE'; }
+      else                            { input.type = 'password'; btn.textContent = 'SHOW'; }
+      input.focus();
+    });
+  });
+
+  // Caps Lock
+  function checkCaps(e) {
+    if (typeof e.getModifierState !== 'function') return;
+    var on = e.getModifierState('CapsLock');
+    var focused = document.activeElement === currentInput
+               || document.activeElement === newInput
+               || document.activeElement === confInput;
+    capsWarn.style.display = (on && focused) ? 'inline-block' : 'none';
+  }
+  [currentInput, newInput, confInput].forEach(function(el) {
+    el.addEventListener('keydown', checkCaps);
+    el.addEventListener('keyup',   checkCaps);
+    el.addEventListener('blur', function() {
+      if (document.activeElement !== currentInput && document.activeElement !== newInput && document.activeElement !== confInput) {
+        capsWarn.style.display = 'none';
+      }
+    });
+  });
+
+  // Strength meter
+  function computeStrength(pw) {
+    if (!pw) return { pct: 0, level: 'weak', label: 'Weak', hint: '' };
+    var score = 0, hints = [];
+    if (pw.length >= 8)  score++; else hints.push('8+ chars');
+    if (pw.length >= 12) score++;
+    if (/[a-z]/.test(pw) && /[A-Z]/.test(pw)) score++;
+    else if (pw.length >= 8) hints.push('mixed case');
+    if (/\d/.test(pw)) score++;
+    else if (pw.length >= 8) hints.push('a number');
+    if (/[^A-Za-z0-9]/.test(pw)) score++;
+    var pct, level, label;
+    if (score <= 1)      { pct = 20;  level = 'weak';   label = 'Weak'; }
+    else if (score == 2) { pct = 45;  level = 'fair';   label = 'Fair'; }
+    else if (score == 3) { pct = 70;  level = 'good';   label = 'Good'; }
+    else                 { pct = 100; level = 'strong'; label = 'Strong'; }
+    return { pct: pct, level: level, label: label, hint: hints.length ? 'add ' + hints.slice(0,2).join(', ') : '' };
+  }
+  function updateStrength() {
+    var pw = newInput.value;
+    if (!pw) { strengthWrap.style.display = 'none'; return; }
+    strengthWrap.style.display = 'block';
+    var s = computeStrength(pw);
+    strengthFill.style.width = s.pct + '%';
+    strengthFill.className   = 'pw-strength-fill ' + s.level;
+    strengthLevel.textContent = s.label;
+    strengthLevel.className   = s.level;
+    strengthHint.textContent  = s.hint;
+  }
+  function updateMatch() {
+    if (!confInput.value) { matchEl.style.display = 'none'; return; }
+    matchEl.style.display = 'block';
+    if (confInput.value === newInput.value) {
+      matchEl.textContent = '✓ Passwords match';
+      matchEl.className   = 'pw-match matches';
+    } else {
+      matchEl.textContent = '✗ Passwords don\'t match yet';
+      matchEl.className   = 'pw-match mismatches';
+    }
+  }
+  function refreshGate() {
+    var ok = currentInput.value.length > 0
+          && newInput.value.length >= 8
+          && confInput.value === newInput.value
+          && confInput.value.length > 0;
+    submitBtn.disabled = !ok;
+    submitBtn.style.opacity = ok ? '1' : '0.4';
+  }
+  currentInput.addEventListener('input', refreshGate);
+  newInput.addEventListener('input',    function() { updateStrength(); updateMatch(); refreshGate(); });
+  confInput.addEventListener('input',   function() { updateMatch(); refreshGate(); });
+
+  function showError(t)   { errMsg.textContent = t; errMsg.style.display = 'block'; okMsg.style.display = 'none'; }
+  function showSuccess(t) { okMsg.textContent = t;  okMsg.style.display  = 'block'; errMsg.style.display = 'none'; }
+
+  pwForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    errMsg.style.display = 'none';
+    okMsg.style.display = 'none';
+
+    var currentPw = currentInput.value;
+    var newPw     = newInput.value;
+    var confirmPw = confInput.value;
+
+    if (newPw.length < 8)      { showError('New password must be at least 8 characters.'); return; }
+    if (newPw !== confirmPw)   { showError('New passwords don\'t match.'); return; }
+    if (currentPw === newPw)   { showError('New password must be different from current password.'); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Updating...';
+
+    try {
+      var sb = getSupabase();
+      var session = await scGetSession();
+      if (!session || !session.user || !session.user.email) {
+        showError('Session expired. Refresh the page and sign in again.');
+        submitBtn.textContent = 'Update Password'; refreshGate(); return;
+      }
+
+      // Step 1: verify current password
+      var verifyRes = await sb.auth.signInWithPassword({
+        email: session.user.email,
+        password: currentPw
+      });
+      if (verifyRes.error) {
+        var vmsg = String(verifyRes.error.message || '').toLowerCase();
+        if (vmsg.indexOf('invalid') >= 0 || vmsg.indexOf('credentials') >= 0) {
+          showError('Current password is incorrect.');
+        } else {
+          showError('Verification failed: ' + verifyRes.error.message);
+        }
+        submitBtn.textContent = 'Update Password'; refreshGate(); return;
+      }
+
+      // Step 2: update password
+      var updateRes = await sb.auth.updateUser({ password: newPw });
+      if (updateRes.error) {
+        var umsg = String(updateRes.error.message || '').toLowerCase();
+        if (umsg.indexOf('same') >= 0 || umsg.indexOf('different') >= 0) {
+          showError('New password must be different from your current password.');
+        } else if (umsg.indexOf('weak') >= 0 || umsg.indexOf('characters') >= 0) {
+          showError('Password too weak. Use at least 8 characters with mixed case and a number.');
+        } else if (umsg.indexOf('leaked') >= 0 || umsg.indexOf('pwned') >= 0) {
+          showError('This password appears in a known data breach. Choose a different one.');
+        } else {
+          showError('Update failed: ' + updateRes.error.message);
+        }
+        submitBtn.textContent = 'Update Password'; refreshGate(); return;
+      }
+
+      // Success
+      showSuccess('✓ Password updated. You\'re still signed in here. Other devices have been signed out.');
+      currentInput.value = ''; newInput.value = ''; confInput.value = '';
+      strengthWrap.style.display = 'none';
+      matchEl.style.display = 'none';
+      submitBtn.textContent = 'Update Password';
+      submitBtn.disabled = true;
+      submitBtn.style.opacity = '0.4';
+
+      // Sign out other devices (best-effort)
+      try { await sb.auth.signOut({ scope: 'others' }); } catch (_) {}
+    } catch (err) {
+      showError('Connection error: ' + (err.message || err));
+      submitBtn.textContent = 'Update Password'; refreshGate();
+    }
+  });
+})();
 </script>
 <script src="/js/support-widget.js"></script>
 </body>
