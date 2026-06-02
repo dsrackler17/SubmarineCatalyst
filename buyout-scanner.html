@@ -50,6 +50,7 @@ h1{font-family:var(--serif);font-size:2.2rem;color:var(--white);margin-bottom:0.
 .risk-elev{color:var(--accent);border:1px solid rgba(0,212,255,0.3);background:rgba(0,212,255,0.06);}
 .risk-mod{color:var(--amber);border:1px solid rgba(245,166,35,0.3);background:rgba(245,166,35,0.06);}
 .risk-low{color:var(--muted);border:1px solid var(--border);}
+.bo-new{font-family:var(--mono);font-size:0.55rem;letter-spacing:0.1em;font-weight:700;padding:0.12rem 0.45rem;display:inline-block;margin-top:0.25rem;color:var(--navy);background:var(--accent2);border:1px solid var(--accent2);animation:pulse 2s infinite;}
 .bo-score{font-family:var(--mono);font-size:0.68rem;color:var(--muted);margin-top:0.25rem;}
 .bo-score strong{font-size:0.95rem;}
 .bo-center{display:grid;grid-template-columns:repeat(4,1fr);gap:0.4rem 0.75rem;}
@@ -150,6 +151,8 @@ var nL='';if(d.news_items&&d.news_items.length){var nn=d.news_items[0];var hl=(n
 h+='<div class="bo-card" onclick="window.location.href=\''+lk+'\'">';
 h+='<div class="bo-left"><div class="bo-ticker">'+d.ticker+'</div><div class="bo-company">'+(d.company_name||d.ticker)+'</div>';
 h+='<span class="bo-risk '+rc+'">'+(d.buyout_risk||'—')+'</span>';
+var _ad=d.approval_date&&d.approval_date!=='—'?new Date(d.approval_date):null;
+if(d.approved_drug&&_ad&&!isNaN(_ad.getTime())&&(Date.now()-_ad.getTime())/864e5<=100)h+='<span class="bo-new" title="FDA approval within the last ~3 months">&#9889; NEW APPROVAL</span>';
 h+='<div class="bo-score">Buyout <strong style="color:'+sc+'">'+d.buyout_score+'</strong>/100</div>';
 if(d.acquirer_urgency_top)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--red);margin-top:0.15rem">&#127919; '+d.acquirer_urgency_top+'</div>';
 if(d.partner_name)h+='<div style="font-family:var(--mono);font-size:0.58rem;color:var(--accent);margin-top:0.1rem">&#129309; '+d.partner_name+'</div>';
