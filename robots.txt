@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /admin.html
 Disallow: /scanner.html
+Disallow: /login-debug.html
+Disallow: /dashboard.html
 
 Sitemap: https://submarinecatalyst.com/sitemap.xml

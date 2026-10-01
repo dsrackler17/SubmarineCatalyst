@@ -13,21 +13,22 @@
 
   // ─── STYLES ─────────────────────────────────────────────────────────────
   var css = [
-    '#sc-fab-root { position:fixed; bottom:1.25rem; right:1.25rem; z-index:2147483600; font-family:"Space Mono", monospace; }',
-    '#sc-fab-btn { display:flex; align-items:center; gap:0.5rem; background:#00d4ff; color:#040d1a; border:none; padding:0.65rem 1.1rem; font-family:inherit; font-size:0.72rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; box-shadow:0 4px 16px rgba(0,212,255,0.3); transition:transform 0.15s, box-shadow 0.15s; clip-path: polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px)); }',
-    '#sc-fab-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(0,212,255,0.45); }',
-    '#sc-fab-btn.active { background:#0b1f3a; color:#00d4ff; border:1px solid #00d4ff; }',
-    '#sc-fab-panel { display:none; position:absolute; bottom:3.5rem; right:0; width:320px; background:#0b1f3a; border:1px solid #1a3a5c; padding:1.25rem; box-shadow:0 12px 40px rgba(0,0,0,0.4); animation:scFabIn 0.2s ease; }',
+    '#sc-fab-root { position:fixed; bottom:1.25rem; right:1.25rem; z-index:2147483600; font-family:"Geist", system-ui, sans-serif; }',
+    '#sc-fab-btn { display:flex; align-items:center; gap:0.45rem; background:rgba(12,22,37,0.92); color:#f3f6fa; border:1px solid rgba(148,163,184,0.18); border-radius:999px; padding:0.6rem 1rem 0.6rem 0.85rem; font-family:inherit; font-size:0.85rem; font-weight:600; cursor:pointer; -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px); box-shadow:0 12px 32px -12px rgba(0,0,0,0.8), 0 0 0 1px rgba(34,211,238,0.08); transition:transform 0.15s, border-color 0.15s, box-shadow 0.15s; }',
+    '#sc-fab-btn:hover { transform:translateY(-1px); border-color:rgba(34,211,238,0.5); box-shadow:0 14px 36px -12px rgba(34,211,238,0.45); }',
+    '#sc-fab-btn .sc-fab-dot { width:8px; height:8px; border-radius:50%; background:#34e0a1; box-shadow:0 0 0 3px rgba(52,224,161,0.18); }',
+    '#sc-fab-btn.active { border-color:#22d3ee; color:#22d3ee; }',
+    '#sc-fab-panel { display:none; position:absolute; bottom:3.6rem; right:0; width:330px; background:rgba(12,22,37,0.97); -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px); border:1px solid rgba(148,163,184,0.14); border-radius:16px; padding:1.25rem; box-shadow:0 30px 60px -20px rgba(0,0,0,0.75); overflow:hidden; animation:scFabIn 0.2s ease; }',
     '#sc-fab-panel.open { display:block; }',
-    '#sc-fab-panel::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,#00d4ff,#00ff9d); }',
+    '#sc-fab-panel::before { content:""; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,#22d3ee,#34e0a1); }',
     '@keyframes scFabIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }',
-    '#sc-fab-panel h4 { font-family:"DM Serif Display", serif; font-size:1.1rem; color:#eaf4ff; margin:0 0 0.25rem; }',
-    '#sc-fab-panel .sc-fab-sub { font-family:"DM Sans", sans-serif; font-size:0.72rem; color:#5a7a99; margin-bottom:1rem; line-height:1.5; }',
-    '#sc-fab-panel .sc-fab-row { display:block; padding:0.65rem 0.85rem; margin-bottom:0.4rem; background:#07152b; border:1px solid #1a3a5c; color:#c8dff0; text-decoration:none; font-size:0.72rem; letter-spacing:0.04em; transition:border-color 0.15s, color 0.15s; }',
-    '#sc-fab-panel .sc-fab-row:hover { border-color:#00d4ff; color:#00d4ff; }',
-    '#sc-fab-panel .sc-fab-row small { display:block; color:#5a7a99; font-size:0.6rem; margin-top:0.2rem; letter-spacing:0.02em; }',
-    '#sc-fab-panel .sc-fab-footer { font-size:0.6rem; color:#5a7a99; margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid #1a3a5c; letter-spacing:0.04em; line-height:1.6; }',
-    '#sc-fab-panel .sc-fab-footer a { color:#00d4ff; text-decoration:none; }',
+    '#sc-fab-panel h4 { font-size:1.05rem; font-weight:600; letter-spacing:-0.02em; color:#f3f6fa; margin:0 0 0.25rem; }',
+    '#sc-fab-panel .sc-fab-sub { font-size:0.82rem; color:#7a8ca3; margin-bottom:1rem; line-height:1.5; }',
+    '#sc-fab-panel .sc-fab-row { display:block; padding:0.7rem 0.85rem; margin-bottom:0.45rem; background:rgba(8,16,29,0.8); border:1px solid rgba(148,163,184,0.12); border-radius:10px; color:#c3cedc; text-decoration:none; font-size:0.85rem; transition:border-color 0.15s, color 0.15s; }',
+    '#sc-fab-panel .sc-fab-row:hover { border-color:#22d3ee; color:#f3f6fa; }',
+    '#sc-fab-panel .sc-fab-row small { display:block; color:#7a8ca3; font-size:0.74rem; margin-top:0.2rem; }',
+    '#sc-fab-panel .sc-fab-footer { font-size:0.76rem; color:#7a8ca3; margin-top:0.75rem; padding-top:0.75rem; border-top:1px solid rgba(148,163,184,0.12); line-height:1.6; }',
+    '#sc-fab-panel .sc-fab-footer a { color:#22d3ee; text-decoration:none; }',
     '@media (max-width:480px) { #sc-fab-panel { width:calc(100vw - 2.5rem); right:0; } }',
   ].join('\n');
 
@@ -55,10 +56,10 @@
         '<small>Topic dropdown + longer message</small>' +
       '</a>' +
       '<div class="sc-fab-footer">' +
-        '<strong style="color:#c8dff0;">Paid but still locked out?</strong> Email the Stripe receipt address and I\'ll flip your account manually.' +
+        '<strong style="color:#c3cedc;">Paid but still locked out?</strong> Email the Stripe receipt address and I\'ll flip your account manually.' +
       '</div>' +
     '</div>' +
-    '<button id="sc-fab-btn" type="button" aria-label="Open support">💬 Help</button>';
+    '<button id="sc-fab-btn" type="button" aria-label="Open support" aria-expanded="false"><span class="sc-fab-dot"></span>Help</button>';
 
   // ─── BEHAVIOR ───────────────────────────────────────────────────────────
   function insert() {
@@ -70,6 +71,7 @@
         e.stopPropagation();
         var open = panel.classList.toggle('open');
         btn.classList.toggle('active', open);
+        btn.setAttribute('aria-expanded', String(open));
       });
       document.addEventListener('click', function(e) {
         if (!root.contains(e.target) && panel.classList.contains('open')) {

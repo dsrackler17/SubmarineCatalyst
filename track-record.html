@@ -8,13 +8,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Track Record — Submarine Catalyst</title>
 <meta name="description" content="Live PDUFA prediction outcomes + 102-event retrospective backtest + $1M portfolio IRR simulation. Every call documented, every dollar compounded, every number auditable.">
+<link rel="canonical" href="https://submarinecatalyst.com/track-record.html">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://submarinecatalyst.com/track-record.html">
+<meta property="og:title" content="Track Record — Submarine Catalyst">
+<meta property="og:description" content="Live PDUFA prediction outcomes + 102-event retrospective backtest + $1M portfolio IRR simulation. Every call documented, every dollar compounded, every number auditable.">
+<meta property="og:site_name" content="Submarine Catalyst">
 <meta property="og:image" content="https://submarinecatalyst.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://submarinecatalyst.com/og-image.png">
 <meta name="twitter:site" content="@DRackler">
-<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Serif+Display&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root{--navy:#040d1a;--deep:#07152b;--surface:#0b1f3a;--panel:#0f2647;--border:#1a3a5c;--accent:#00d4ff;--accent2:#00ff9d;--amber:#f5a623;--red:#ff4444;--text:#c8dff0;--muted:#5a7a99;--white:#eaf4ff;--mono:'Space Mono',monospace;--serif:'DM Serif Display',serif;--sans:'DM Sans',sans-serif;}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -178,11 +186,14 @@ footer a:hover{color:var(--accent);}
   .irr-trade-table th,.irr-trade-table td{padding:0.4rem 0.5rem;}
 }
 </style>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta name="theme-color" content="#050a14">
+<link rel="stylesheet" href="/css/sc-theme.css?v=1">
+<script src="/js/sc-ui.js?v=1" defer></script>
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-logo">
-    <span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
+  <a href="/" class="nav-logo"><span class="sonar-icon" aria-hidden="true"><svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="16" cy="16" r="15" stroke="#24364f" stroke-width="1"/><circle cx="16" cy="16" r="10" stroke="#24364f" stroke-width="0.75"/><circle cx="16" cy="16" r="5" stroke="#24364f" stroke-width="0.75"/><circle cx="16" cy="16" r="2" fill="#22d3ee"/><line x1="16" y1="16" x2="24" y2="4" stroke="#22d3ee" stroke-width="1.5" stroke-linecap="round"/><circle cx="24" cy="4" r="1.5" fill="#34e0a1"><animate attributeName="opacity" values="1;0;1" dur="1.8s" repeatCount="indefinite"/></circle><path d="M16 16 A10 10 0 0 1 26 16" stroke="#22d3ee" stroke-width="0.75" opacity="0.35"><animateTransform attributeName="transform" type="rotate" from="0 16 16" to="360 16 16" dur="3s" repeatCount="indefinite"/></path></svg></span><span class="nav-wordmark">SUBMARINE<span>CATALYST</span></span>
   </a>
   <ul class="nav-links">
     <li><a href="/calendar.html">Calendar</a></li>
@@ -814,8 +825,8 @@ async function loadBacktest() {
     document.getElementById('bt-watch').textContent = watchPct + '%';
 
     if (summary.window_start && summary.window_end) {
-      const startFmt = new Date(summary.window_start).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      const endFmt   = new Date(summary.window_end).toLocaleDateString('en-US',   { month: 'short', year: 'numeric' });
+      const startFmt = new Date(summary.window_start).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
+      const endFmt   = new Date(summary.window_end).toLocaleDateString('en-US',   { month: 'short', year: 'numeric', timeZone: 'UTC' });
       document.getElementById('bt-window').textContent = startFmt + ' → ' + endFmt;
     }
   }
@@ -1179,7 +1190,7 @@ function renderEquityChart(containerId, curve) {
     const pt = curve[idx];
     if (!pt.date && idx !== 0) continue;
     const label = pt.date
-      ? new Date(pt.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+      ? new Date(pt.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit', timeZone: 'UTC' })
       : 'Start';
     xLabels +=
       '<text x="' + xAt(idx) + '" y="' + (H - 14) +
@@ -1338,7 +1349,7 @@ async function loadBacktestIRR() {
   const sortedForDate = [...BT_IRR_ROWS].sort((a, b) =>
     new Date(a.decision_date) - new Date(b.decision_date)
   );
-  const firstDateFmt = new Date(sortedForDate[0].decision_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  const firstDateFmt = new Date(sortedForDate[0].decision_date).toLocaleDateString('en-US', { month: 'short', year: 'numeric', timeZone: 'UTC' });
   document.getElementById('bt-irr-start-date').textContent = firstDateFmt + ' baseline';
 
   // Configure the disclosure banner based on what data source is in play
